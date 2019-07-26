@@ -1,13 +1,12 @@
-import pymunk, pygame, math
+import pymunk, pygame
 
-from .entity import  Entity
-from utils.config import *
-from utils import pygame_utils
+from ..entities.entity import  Entity
+from ..utils.config import *
 
 
 class BasicAgent(Entity):
 
-    def __init__(self, agent_params, space):
+    def __init__(self, agent_params):
         super(BasicAgent, self).__init__()
 
         self.x, self.y, self.theta
@@ -60,8 +59,6 @@ class BasicAgent(Entity):
         self.shape = pymunk.Circle(body, self.radius, (0, 0))
         self.shape.elasticity = AGENT_ELASTICITY
         self.shape.collision_type = 1
-
-        space.add(body, self.shape)
 
         self.body = body
 

@@ -1,4 +1,4 @@
-import playground
+from flatland import playground
 import math
 import pygame
 from pygame.locals import *
@@ -42,10 +42,10 @@ agent_parameters = {
     #TODO: Add base / moving / eating metabolism
 }
 
-pg = playground.Playground( scene_parameters = scene_parameters,
-                            game_parameters = game_parameters,
-                            engine_parameters = engine_parameters,
-                            agent_parameters = agent_parameters)
+pg = playground.Playground(scene_parameters = scene_parameters,
+                           game_parameters = game_parameters,
+                           engine_parameters = engine_parameters,
+                           agent_parameters = agent_parameters)
 
 
 
@@ -195,7 +195,7 @@ door = {
     'position':  [300, 200, math.pi/2],
     'default_color':(0, 150, 200),
     'movable': False
-}
+}   
 
 new_object = {
     'physical_shape': 'circle',

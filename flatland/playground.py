@@ -1,15 +1,17 @@
 import pygame
 import pymunk
-from entities import entity, agent, actionable_object, yielder_object, basic_object
+from flatland.entities import yielder
+from flatland.entities import actionable, basic
+from flatland.agents import agent
 
 from pygame.color import THECOLORS
 
 import pymunk.pygame_util
-import scenes
+from flatland import scenes
 
 import random
 
-from utils.config import *
+from flatland.utils.config import *
 #TODO: implement simulation steps, size_envir, multithreading
 
 
@@ -24,7 +26,7 @@ class Playground(object):
         :param display : boolean, whether to display the environment
         """
 
-        self.scene = scenes.SceneGenerator.create( scene_parameters )
+        self.scene = scenes.SceneGenerator.create(scene_parameters)
         self.width, self.height = self.scene.total_area
 
 
@@ -32,6 +34,7 @@ class Playground(object):
         self.screen = None
         self.display_playground = engine_parameters['display_playground']
 
+        # TODO: check difference in terms of speed, compared to having a display function
         if self.display_playground :
             self.screen = pygame.display.set_mode((self.width, self.height))
         else:
@@ -77,20 +80,8 @@ class Playground(object):
         # TODO: add multiple agents
         self.addAgent( agent_parameters )
 
-        # TODO: move to separate function for collision initialization
-
-        # Collision handlers
-        h_abs = self.space.add_collision_handler(collision_types['agent'], collision_types['absorbable'])
-        h_abs.pre_solve = self.agent_absorbs
-
-        h_act = self.space.add_collision_handler(collision_types['agent'], collision_types['activable'])
-        h_act.pre_solve = self.agent_activates
-
-        h_edible = self.space.add_collision_handler(collision_types['agent'], collision_types['edible'])
-        h_edible.pre_solve = self.agent_eats
-
-        h_grasps = self.space.add_collision_handler(collision_types['agent'], collision_types['graspable'])
-        h_grasps.pre_solve = self.agent_grasps
+        # Add collision handlers
+        self.handle_collisions()
 
         self.ind_image = 0
 
@@ -117,7 +108,7 @@ class Playground(object):
 
         if entity_type == 'actionable' :
 
-            new_entity = actionable_object.ActionableGenerator.create(entity_params)
+            new_entity = actionable.ActionableGenerator.create(entity_params)
 
             # TODO: verify that we need 2 steps and 2 pairs shape/body
             self.space.add(new_entity.body_sensor, new_entity.shape_sensor)
@@ -148,18 +139,18 @@ class Playground(object):
                 raise ValueError('actionable type {} not implemented'.format(actionable_type) )
 
         elif entity_type == 'yielder':
-            new_entity = yielder_object.YielderObject(entity_params)
+            new_entity = yielder.YielderObject(entity_params)
             id = new_entity.name_id
             self.relations['yielders'][id] = []
 
         elif entity_type == 'absorbable':
-            new_entity = basic_object.BasicObject(entity_params)
+            new_entity = basic.BasicObject(entity_params)
             id = new_entity.name_id
             self.space.add(new_entity.body_body, new_entity.shape_body)
 
 
         else:
-            new_entity = basic_object.BasicObject(entity_params)
+            new_entity = basic.BasicObject(entity_params)
             id = new_entity.name_id
 
             if add_to_basics: self.relations['basics'].append(id)
@@ -346,7 +337,19 @@ class Playground(object):
 
     def handle_collisions(self):
 
-        pass
+        # Collision handlers
+        h_abs = self.space.add_collision_handler(collision_types['agent'], collision_types['absorbable'])
+        h_abs.pre_solve = self.agent_absorbs
+
+        h_act = self.space.add_collision_handler(collision_types['agent'], collision_types['activable'])
+        h_act.pre_solve = self.agent_activates
+
+        h_edible = self.space.add_collision_handler(collision_types['agent'], collision_types['edible'])
+        h_edible.pre_solve = self.agent_eats
+
+        h_grasps = self.space.add_collision_handler(collision_types['agent'], collision_types['graspable'])
+        h_grasps.pre_solve = self.agent_grasps
+
 
     # TODO: methodes privees
 
@@ -365,8 +368,8 @@ class Playground(object):
             self.space.step(1. / SIMULATION_STEPS)
         self.reload_screen()
 
-        pygame.image.save(self.screen, 'imgs/'+str(self.ind_image).zfill(10)+'.png')
-        self.ind_image += 1
+        #pygame.image.save(self.screen, 'imgs/'+str(self.ind_image).zfill(10)+'.png')
+        #self.ind_image += 1
 
         # TODO: do all timers at once
         # TODO: Generlize, not just for doors
