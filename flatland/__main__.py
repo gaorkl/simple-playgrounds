@@ -1,4 +1,8 @@
 import time, math
+import pygame
+
+
+
 
 ################# Test scenes
 
@@ -15,12 +19,10 @@ test_scene = scenes.SceneGenerator.create( 'rooms_2' , scene_params)
 
 import flatland.playgrounds as playgrounds
 pg = playgrounds.PlaygroundGenerator.create( 'basic_empty' )
-pg.display_playground()
 
 scene_params = {'walls_depth': 50}
 pg_params = { 'scene': scene_params}
 pg = playgrounds.PlaygroundGenerator.create( 'basic_empty', pg_params )
-pg.display_playground()
 
 scene_params = {'walls_depth': 50}
 edible = {
@@ -41,35 +43,42 @@ edible = {
 pg_params = { 'scene': scene_params,
               'entities': [edible]}
 
-pg = playgrounds.PlaygroundGenerator.create( 'basic_empty', pg_params )
-pg.display_playground()
-
-pg = playgrounds.PlaygroundGenerator.create( 'basic_field', pg_params )
+pg_basic_empty = playgrounds.PlaygroundGenerator.create( 'basic_empty', pg_params )
+pg_basic_field = playgrounds.PlaygroundGenerator.create( 'basic_field', pg_params )
 
 
 scene_params = {'walls_depth': 20}
 pg_params = { 'scene': scene_params }
-pg = playgrounds.PlaygroundGenerator.create( 'rooms_2_empty', pg_params )
-pg.display_playground()
+pg_rooms_2_edible = playgrounds.PlaygroundGenerator.create( 'rooms_2_edible', pg_params )
 
 ############## Agent
-import flatland.agents.agent as agent
+import flatland.agents.forward_head as forward_head
 
 agent_parameters = {
     'color': (0, 200, 0),
     'speed': 1.0,
-    'rotation_speed': (2*math.pi)/100 ,
+    'rotation_speed': (2*math.pi)/50 ,
     'position':  [50, 50, math.pi/2.0],
     'health': 1000,
     'base_metabolism': 0.01,
-    'action_metabolism': 1
+    'action_metabolism': 1,
+    'head_range': math.pi/2,
+    'head_speed': 0.05
     #TODO: Add base / moving / eating metabolism
 }
-ag = agent.BasicAgent(agent_parameters, controller = 'human')
+ag = forward_head.ForwardHeadAgent(agent_parameters)
+
+
+############### Brain Controller
+#import flatland.controllers.human as human_controller
+import flatland.controllers.random as random_controller
+
+available_actions = ag.getAvailableActions()
+kb_control = random_controller.Random(available_actions)
 
 
 ############### Create game with playground and parameters
-from . import game_engine
+from flatland.game_engine import Engine
 
 game_parameters = {
     'rules':{
@@ -79,15 +88,39 @@ game_parameters = {
     'engine' : {
         'speed_ratio': 1,
         'aspect_ratio': 1,
+        'frame_rate': 24
     },
     'display': {
         'playground' : True,
         'internals' : False,
-        'sensors' : False
+        'sensors' : False,
     }
 }
 
-game = game_engine.Engine( playground = pg, agents = [ag], params = game_parameters)
+dict_agents = {
+    'test_agent': {
+        'agent': ag,
+        'controller': kb_control
+    }
+}
+
+game = Engine( playground = pg_rooms_2_edible, agents = dict_agents, params = game_parameters )
+
+
+clock = pygame.time.Clock()
+
+
+while game.game_on:
+
+    game.get_observations()
+    game.set_actions()
+    game.step()
+
+    game.display()
+
+    clock.tick(60)
+
+
 
 
 
