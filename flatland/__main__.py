@@ -66,15 +66,21 @@ agent_parameters = {
     'head_speed': 0.05
     #TODO: Add base / moving / eating metabolism
 }
-ag = forward_head.ForwardHeadAgent(agent_parameters)
+ag_1 = forward_head.ForwardHeadAgent(agent_parameters)
+
+agent_parameters['position'][0] = 200
+ag_2 = forward_head.ForwardHeadAgent(agent_parameters)
 
 
 ############### Brain Controller
-#import flatland.controllers.human as human_controller
+import flatland.controllers.human as human_controller
 import flatland.controllers.random as random_controller
 
-available_actions = ag.getAvailableActions()
-kb_control = random_controller.Random(available_actions)
+available_actions = ag_1.getAvailableActions()
+rd_control = random_controller.Random(available_actions)
+
+kb_mapping = ag_2.getStandardKeyMapping()
+kb_control = human_controller.Keyboard(kb_mapping)
 
 
 ############### Create game with playground and parameters
@@ -99,8 +105,13 @@ game_parameters = {
 
 dict_agents = {
     'test_agent': {
-        'agent': ag,
+        'agent': ag_1,
+        'controller': rd_control
+    },
+    'test_agent_2': {
+        'agent': ag_2,
         'controller': kb_control
+
     }
 }
 
