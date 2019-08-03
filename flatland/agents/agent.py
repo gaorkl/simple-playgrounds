@@ -1,9 +1,19 @@
 import pymunk, pygame
 
-from ..entities.entity import  Entity
-from ..utils.config import *
+from ..entities.entity import Entity
 
 from pygame.locals import *
+
+from ..common import texture
+from flatland.utils.pygame_utils import to_pygame
+
+
+
+default_texture =  {
+        'type': 'color',
+        'color': (217, 35, 144)
+    }
+
 
 
 class PhysicalBody():
@@ -13,6 +23,7 @@ class PhysicalBody():
         self.body = None
         self.shapes = None
         self.joint = None
+
 
 
 class Agent(Entity):
@@ -62,6 +73,11 @@ class Agent(Entity):
 
         self.anatomy = {"base" : base}
 
+        text = agent_params.get('texture', default_texture)
+        self.texture = texture.Texture.create(text)
+        self.texture_surface = None
+
+
 
     def pre_step(self):
 
@@ -69,34 +85,31 @@ class Agent(Entity):
         self.actions = []
 
 
-    def draw(self, surface):
+    def draw(self,  surface):
 
         """
         Draw the agent on the environment screen
         """
 
-        pass
+        # Body
+        radius = int(self.radius)
 
-        # # Create the mask
-        # mask = pygame.Surface((self.radius * 2, self.radius * 2))
-        # mask.fill((0, 0, 0, 0))
-        # pygame.draw.circle(mask, (255, 255, 255, 255), (self.radius, self.radius), self.radius)
-        #
-        # # Apply texture on mask
-        # mask.blit(self.texture, (0, 0), None, pygame.BLEND_MULT)
-        # mask_rect = mask.get_rect()
-        # mask_rect.center = pygame_utils.to_pygame((self.x, self.y), surface)
-        #
-        # # Blit the masked texture on the screen
-        # surface.blit(mask, mask_rect, None)
-        #
-        # circle_center = (self.x, self.y)
-        # p = pygame_utils.to_pygame(circle_center, surface)
-        #
-        # circle_edge = circle_center + pymunk.Vec2d(self.radius, 0).rotated(self.theta)
-        # p2 = pygame_utils.to_pygame(circle_edge, surface)
-        # line_r = 3
-        # pygame.draw.lines(surface, pygame.color.THECOLORS["blue"], False, [p, p2], line_r)
+        # Create a texture surface with the right dimensions
+        if self.texture_surface is None:
+            self.texture_surface = self.texture.generate(radius * 2, radius * 2)
+
+        # Create the mask
+        mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        mask.fill((0, 0, 0, 0))
+        pygame.draw.circle(mask, (255, 255, 255, 255), (radius, radius), radius)
+
+        # Apply texture on mask
+        mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        mask_rect = mask.get_rect()
+        mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
+
+        # Blit the masked texture on the screen
+        surface.blit(mask, mask_rect, None)
 
 
     def apply_action(self, actions):

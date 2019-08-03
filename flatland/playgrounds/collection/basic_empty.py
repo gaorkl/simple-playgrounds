@@ -61,7 +61,7 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         # Store the temporary pinjoints for grasping
         self.grasped = []
         self.timers = {}
-        self.agents = {}
+        self.agents = []
 
         for elem in self.scene.elements:
             self.addEntity( elem , add_to_basics = False)
@@ -76,6 +76,10 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
 
         return scenes.SceneGenerator.create( 'basic' , scene_params)
+
+    def addAgent(self, ag):
+
+        self.agents.append(ag)
 
     def addEntity(self, entity_params, add_to_basics = True):
         '''
@@ -157,16 +161,33 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         # Reset the environment
         self.__init__(**self.parameters)
 
-    def display_playground(self):
+    def generate_scene_image(self):
         # Update the screen of the environment
         self.screen.fill(THECOLORS["black"])
         self.draw()
+
+    def display_playground(self):
+
+        self.generate_scene_image()
         pygame.display.flip()
 
 
     def draw(self):
 
-        # debug draw for now
-        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        for id_entity in self.physical_entities:
 
-        self.space.debug_draw(self.draw_options)
+            self.physical_entities[id_entity].draw(self.screen)
+
+        for ag in self.agents:
+
+            ag.draw(self.screen)
+
+    def initialize_textures(self):
+
+        for id_entity in self.physical_entities:
+
+            self.physical_entities[id_entity].initialize_texture()
+
+        for ag in self.agents:
+
+            ag.draw(self.screen)

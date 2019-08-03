@@ -12,6 +12,7 @@ test_scene = scenes.SceneGenerator.create( 'basic' )
 scene_params = {'walls_depth': 50}
 test_scene = scenes.SceneGenerator.create( 'basic' , scene_params)
 
+
 test_scene = scenes.SceneGenerator.create( 'rooms_2' , scene_params)
 
 
@@ -60,8 +61,8 @@ agent_parameters = {
     'rotation_speed': (2*math.pi)/50 ,
     'position':  [50, 50, math.pi/2.0],
     'health': 1000,
-    'base_metabolism': 0.01,
-    'action_metabolism': 1,
+    'base_metabolism': 0.00,
+    'action_metabolism': 0.00,
     'head_range': math.pi/2,
     'head_speed': 0.05
     #TODO: Add base / moving / eating metabolism
@@ -104,10 +105,10 @@ game_parameters = {
 }
 
 dict_agents = {
-    'test_agent': {
-        'agent': ag_1,
-        'controller': rd_control
-    },
+    # 'test_agent': {
+    #     'agent': ag_1,
+    #     'controller': rd_control
+    # },
     'test_agent_2': {
         'agent': ag_2,
         'controller': kb_control

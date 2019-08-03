@@ -17,9 +17,9 @@ class Engine():
 
             ag = self.agents[ag_name]['agent']
 
-            for anatomical_parts in ag.anatomy:
+            self.playground.addAgent(ag)
 
-                print(anatomical_parts)
+            for anatomical_parts in ag.anatomy:
 
                 part = ag.anatomy[anatomical_parts]
 
@@ -38,6 +38,7 @@ class Engine():
 
         self.handle_collisions()
 
+        self.playground.initialize_textures()
 
 
 
@@ -61,9 +62,12 @@ class Engine():
 
     def step(self):
 
+        for ag in self.agents:
+            self.agents[ag]['agent'].pre_step()
+
         for _ in range(SIMULATION_STEPS):
             self.playground.space.step(1. / SIMULATION_STEPS)
-        #self.playground.display_playground()
+
 
         # pygame.image.save(self.screen, 'imgs/'+str(self.ind_image).zfill(10)+'.png')
         # self.ind_image += 1
@@ -109,6 +113,8 @@ class Engine():
     def display(self):
 
         self.playground.display_playground()
+
+
 
     def agent_absorbs(self, arbiter, space, data):
 
@@ -266,6 +272,7 @@ class Engine():
 
             self.playground.space.add(edible.body_sensor, edible.shape_sensor)
             self.playground.space.add(edible.body_body, edible.shape_body)
+
 
         else:
             self.playground.physical_entities.pop(edible_id)
