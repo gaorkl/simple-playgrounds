@@ -1,6 +1,8 @@
 import pymunk, pygame
 import math
 from .forward import ForwardAgent
+from ..common import texture
+
 
 # move physical body to utils
 from .agent import PhysicalBody
@@ -10,6 +12,12 @@ from ..utils.config import *
 from pygame.locals import *
 
 
+default_head_texture =  {
+        'type': 'uniform',
+        'a': (120, 5, 150),
+        'b': (200, 34, 200)
+    }
+
 class ForwardHeadAgent(ForwardAgent):
 
     def __init__(self, agent_params):
@@ -18,6 +26,7 @@ class ForwardHeadAgent(ForwardAgent):
 
         self.head_range = agent_params.get('head_range', 0)
         self.head_speed = agent_params.get('head_speed', 10)
+        self.head_radius = agent_params.get("head_radius", 10)
 
         head = PhysicalBody()
 
@@ -43,6 +52,12 @@ class ForwardHeadAgent(ForwardAgent):
 
 
         self.anatomy["head"] = head
+
+
+        text = agent_params.get('head_texture', default_head_texture)
+        self.head_texture = texture.Texture.create(text)
+        self.head_texture_surface = None
+
 
     def get_head_angle(self):
 
@@ -89,3 +104,26 @@ class ForwardHeadAgent(ForwardAgent):
 
     def draw(self, surface):
         super().draw(surface)
+
+        # Body
+        radius = int(self.head_radius)
+
+        # Create a texture surface with the right dimensions
+        if self.head_texture_surface is None:
+            self.head_texture_surface = self.head_texture.generate(radius * 2, radius * 2)
+
+        # Create the mask
+        mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        mask.fill((0, 0, 0, 0))
+        pygame.draw.circle(mask, (255, 255, 255, 255), (radius, radius), radius)
+
+        # Apply texture on mask
+        mask.blit(self.head_texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        mask = pygame.transform.rotate(mask, self.anatomy['head'].body.angle * 180 / math.pi)
+
+        mask_rect = mask.get_rect()
+        mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
+
+        # Blit the masked texture on the screen
+        surface.blit(mask, mask_rect, None)
+

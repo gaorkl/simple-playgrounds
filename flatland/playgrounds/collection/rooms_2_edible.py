@@ -23,7 +23,7 @@ class TwoRoomsEdiblePlayground(BasicEmptyPlayground):
             'entity_type': 'actionable',
             'actionable_type': 'edible',
             'action_radius': 10,
-            'shink_when_eaten': 0.9,
+            'shrink_when_eaten': 0.9,
             'mass': 10,
             'initial_reward': 30
         }

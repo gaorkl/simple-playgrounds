@@ -36,7 +36,7 @@ edible = {
     'entity_type':'actionable',
     'actionable_type': 'edible',
     'action_radius':10,
-    'shink_when_eaten': 0.9,
+    'shrink_when_eaten': 0.9,
     'mass': 10,
     'initial_reward' : 30
 }
@@ -64,7 +64,9 @@ agent_parameters = {
     'base_metabolism': 0.00,
     'action_metabolism': 0.00,
     'head_range': math.pi/2,
-    'head_speed': 0.05
+    'head_speed': 0.05,
+    'radius': 20,
+    'head_radius' : 10
     #TODO: Add base / moving / eating metabolism
 }
 ag_1 = forward_head.ForwardHeadAgent(agent_parameters)
@@ -130,7 +132,7 @@ while game.game_on:
 
     game.display()
 
-    clock.tick(60)
+    clock.tick(120)
 
 
 

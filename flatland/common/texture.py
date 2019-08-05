@@ -25,13 +25,13 @@ class Texture(object):
         if texture_type not in cls.subclasses:
             raise ValueError('Texture not implemented: '+texture_type)
 
-        return cls.subclasses[texture_type](params)
+        return cls.subclasses[texture_type](**params)
 
 
 @Texture.register_subclass('color')
 class ColorTexture(Texture):
 
-    def __init__(self, params):
+    def __init__(self, **params):
         super(ColorTexture, self).__init__()
         self.color = params['color']
 
@@ -45,7 +45,7 @@ class ColorTexture(Texture):
 @Texture.register_subclass('uniform')
 class UniformTexture(Texture):
 
-    def __init__(self, a, b):
+    def __init__(self, a, b, **kwargs):
         super(UniformTexture, self).__init__()
         self.a = a
         self.b = b

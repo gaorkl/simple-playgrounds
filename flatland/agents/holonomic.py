@@ -45,4 +45,4 @@ class HolonomicAgent(ForwardAgent):
         return actions
 
     def draw(self, surface):
-        pass
+        super().draw(surface)

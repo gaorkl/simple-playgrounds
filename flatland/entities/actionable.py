@@ -175,7 +175,7 @@ class EdibleObject(ActionableObject):
 
         super(EdibleObject, self).__init__(params)
 
-        self.shrink_when_eaten = params['shink_when_eaten']
+        self.shrink_when_eaten = params['shrink_when_eaten']
 
         self.shape_sensor.collision_type = collision_types['edible']
 
@@ -222,6 +222,10 @@ class EdibleObject(ActionableObject):
         # TODO: dirty, very dirty. Should be replaced
         self.params['radius'] = self.shrink_when_eaten * self.radius
         self.params['reward'] = self.shrink_when_eaten * self.reward
+
+        # TODO: harmonize angles and positions x,y,theta ... body.position, body.angle ...
+        self.params['position'] = ( self.body_body.position[0], self.body_body.position[1], self.body_body.angle)
+
         self.__init__(self.params)
         self.initialize_texture()
 

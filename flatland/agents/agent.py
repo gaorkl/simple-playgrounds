@@ -1,3 +1,4 @@
+import math
 import pymunk, pygame
 
 from ..entities.entity import Entity
@@ -31,12 +32,16 @@ class Agent(Entity):
     def __init__(self, agent_params):
         super(Agent, self).__init__()
 
+
+
         self.speed = agent_params['speed']
         self.rotation_speed = agent_params['rotation_speed']
 
+
+
         # Define the radius
-        self.radius = 20
-        self.agent_mass = 10
+        self.radius =  agent_params.get("radius", 20)
+        self.agent_mass =  agent_params.get("mass", 10)
         self.color = agent_params['color']
 
         self.health = agent_params.get('health', 1000)
@@ -64,10 +69,6 @@ class Agent(Entity):
         shape.collision_type = 1
 
         base.shape = shape
-
-        self.texture = pygame.Surface((2*self.radius, 2*self.radius))
-        self.texture.fill(self.color)
-        self.texture.set_colorkey((0, 0, 0, 0))
 
         self.is_activating = False
 
@@ -105,6 +106,8 @@ class Agent(Entity):
 
         # Apply texture on mask
         mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        mask = pygame.transform.rotate(mask, self.anatomy['base'].body.angle * 180 / math.pi)
+
         mask_rect = mask.get_rect()
         mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
 
