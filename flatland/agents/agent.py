@@ -6,8 +6,7 @@ from ..entities.entity import Entity
 from pygame.locals import *
 
 from ..common import texture
-from flatland.utils.pygame_utils import to_pygame
-
+from ..sensors import sensor
 
 
 default_texture =  {
@@ -77,6 +76,32 @@ class Agent(Entity):
         text = agent_params.get('texture', default_texture)
         self.texture = texture.Texture.create(text)
         self.texture_surface = None
+
+        self.sensors = []
+
+
+    def add_sensor(self, sensor_param):
+
+        new_sensor = sensor.generateSensor(  self.anatomy, sensor_param )
+        self.sensors.append(new_sensor)
+
+    def compute_sensors(self, img):
+
+        for sens in self.sensors:
+            sens.update_sensor(img)
+
+    def init_display(self):
+        """
+        Prepare a surface for displaying agent sensors, and measures
+        :return:
+        """
+        pass
+
+    def display_agent(self):
+        """
+        Update surface for agent
+        :return:
+        """
 
 
 
