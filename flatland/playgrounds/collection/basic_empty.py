@@ -161,15 +161,19 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         # Reset the environment
         self.__init__(**self.parameters)
 
-    def generate_scene_image(self):
+    def generate_playground_image(self, with_activation_radius = True):
         # Update the screen of the environment
         self.screen.fill(THECOLORS["black"])
+
+
+        if with_activation_radius:
+
+            for id_entity in self.physical_entities:
+
+                if self.physical_entities[id_entity].activable:
+                    self.physical_entities[id_entity].draw_activation_radius(self.screen)
+
         self.draw()
-
-    def display_playground(self):
-
-        self.generate_scene_image()
-        pygame.display.flip()
 
 
     def draw(self):

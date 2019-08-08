@@ -31,12 +31,8 @@ class Agent(Entity):
     def __init__(self, agent_params):
         super(Agent, self).__init__()
 
-
-
         self.speed = agent_params['speed']
         self.rotation_speed = agent_params['rotation_speed']
-
-
 
         # Define the radius
         self.radius =  agent_params.get("radius", 20)
@@ -77,18 +73,23 @@ class Agent(Entity):
         self.texture = texture.Texture.create(text)
         self.texture_surface = None
 
-        self.sensors = []
+        self.sensors = {}
+        self.observations = {}
+
 
 
     def add_sensor(self, sensor_param):
 
-        new_sensor = sensor.generateSensor(  self.anatomy, sensor_param )
-        self.sensors.append(new_sensor)
+        sensor_param['minRange'] = self.radius
+        new_sensor = sensor.SensorGenerator.create(self.anatomy, sensor_param)
+        self.sensors[new_sensor.name] = new_sensor
 
     def compute_sensors(self, img):
 
         for sens in self.sensors:
-            sens.update_sensor(img)
+            self.sensors[sens].update_sensor(img)
+
+            self.observations[sens] = self.sensors[sens].observation
 
     def init_display(self):
         """

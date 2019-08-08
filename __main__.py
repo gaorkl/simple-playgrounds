@@ -1,7 +1,8 @@
 import time, math
 import pygame
-
-
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
 
 
 ################# Test scenes
@@ -66,12 +67,32 @@ agent_parameters = {
     'head_range': math.pi/2,
     'head_speed': 0.05,
     'radius': 20,
-    'head_radius' : 10
+    'head_radius' : 10,
+
+    'sensors':
+
+            [
+                {
+                    'name': 'rgb_1',
+                    'type': 'rgb',
+                    'fovResolution': 128,
+                    'fovRange': 500,
+                    'fovAngle': math.pi,
+                    'bodyAnchor': "head",
+                    'd_r': 0,
+                    'd_theta': 0,
+                    'd_relativeOrientation': 0
+                }
+            ]
+
+
     #TODO: Add base / moving / eating metabolism
 }
+
+
 ag_1 = forward_head.ForwardHeadAgent(agent_parameters)
 
-agent_parameters['position'][0] = 200
+agent_parameters['position'][0] = 100
 ag_2 = forward_head.ForwardHeadAgent(agent_parameters)
 
 
@@ -126,11 +147,23 @@ clock = pygame.time.Clock()
 
 while game.game_on:
 
-    game.get_observations()
+    game.update_observations()
     game.set_actions()
     game.step()
 
-    game.display()
+    for agent in game.agents:
+
+        observations = game.agents[agent]['agent'].observations
+
+        for obs in observations:
+
+            im = np.asarray( observations[obs])
+            im = np.expand_dims(im, 0)
+            im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
+            cv2.imshow( obs, im )
+
+
+    game.display_full_scene()
 
     clock.tick(120)
 

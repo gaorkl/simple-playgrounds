@@ -1,6 +1,35 @@
 from abc import abstractmethod, ABC
-from matplotlib import pyplot as plt
 import math
+import cv2
+import numpy as np
+
+
+class SensorGenerator:
+
+    """
+    Register class to provide a decorator that is used to go through the package and
+    register available playgrounds.
+    """
+
+    subclasses = {}
+
+    @classmethod
+    def register(cls, sensor_type):
+        def decorator(subclass):
+            cls.subclasses[sensor_type] = subclass
+            return subclass
+
+        return decorator
+
+    @classmethod
+    def create(cls, anatomy, sensor_param ):
+
+        sensor_type = sensor_param["type"]
+
+        if sensor_type not in cls.subclasses:
+            raise ValueError('Sensor not implemented:' + sensor_type)
+
+        return cls.subclasses[sensor_type](anatomy, sensor_param )
 
 
 def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
@@ -16,48 +45,77 @@ def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
 
 class Sensor(ABC):
 
-    def __init__(self, **kwargs):
-        self.display = kwargs['display']
-        
-        # TODO: add tests and default cases
-        # TODO: refactor names
-        
-        # Sensor name and type to access it and compute sensors.
-        self.nameSensor =  kwargs['nameSensor'] if 'nameSensor' in kwargs else None
-        self.typeSensor =  kwargs['typeSensor'] if 'typeSensor' in kwargs else None
-        
+    def __init__(self, anatomy, sensor_param):
+
+        self.name = sensor_param.get('name', None)
+
         # Field of View of the Sensor
-        self.fovResolution = kwargs['fovResolution'] if 'fovResolution' in kwargs else None
-        self.fovRange = kwargs['fovRange'] if 'fovRange' in kwargs else None
-        self.fovAngle = kwargs['fovAngle'] if 'fovAngle' in kwargs else None
+        self.fovResolution = sensor_param.get('fovResolution', None)
+        self.fovRange = sensor_param.get('fovRange', None)
+        self.fovAngle = sensor_param.get('fovAngle', None)
+        self.min_range = sensor_param.get('minRange', None)
+
         
         # Anchor of the sensor
-        # TODO: for now, attach to body.but should be able to attach to head, etc.
-        self.bodyAnchor = kwargs['bodyAnchor'] if 'bodyAnchor' in kwargs else None
+        body_anchor = sensor_param.get('bodyAnchor', None)
+        self.body_anchor = anatomy[body_anchor].body
+
         # Relative location (polar) and angle wrt body
-        self.d_r = kwargs['d_r'] if 'd_r' in kwargs else None
-        self.d_theta = kwargs['d_theta'] if 'd_theta' in kwargs else None
-        self.d_relativeOrientation = kwargs['d_relativeOrientation'] if 'd_relativeOrientation' in kwargs else None
+        self.d_r = sensor_param.get('d_r', None)
+        self.d_theta = sensor_param.get('d_theta', None)
+        self.d_relativeOrientation = sensor_param.get('d_relativeOrientation', None)
+
+
+
+
+        self.get_shape_observation()
+
+        self.resized_img = None
+        self.cropped_img = None
+
+        self.observation = None
         
-        if self.display:
-            self.figure = None
-            self.matrix = None
-
-    
-    @abstractmethod
-    def get_sensory_input(self, env):
-        pass
 
     @abstractmethod
-    def update_display(self, env, array):
-        pass
+    def update_sensor(self, img):
+
+        w, h, _ = img.shape
+
+        # Position of the body
+        x, y = self.body_anchor.position
+
+        x, y =  y, x
+        theta = 2*math.pi - self.body_anchor.angle
+
+        # Position and angle of the sensor
+        sensor_x = x + self.d_r * math.cos((theta + self.d_theta) % (2 * math.pi))
+        sensor_y = y + self.d_r * math.sin((theta + self.d_theta) % (2 * math.pi))
+        sensor_angle = theta - self.d_relativeOrientation
+
+        polar_img = cv2.linearPolar(img, (sensor_x, sensor_y), self.fovRange, flags=cv2.INTER_NEAREST)
 
 
-    #TODO: Kiiiiillll meeeee. Reeeemoooove meeee.
+
+        angle_center = h * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
+        rolled_img = np.roll(polar_img, int(h / 2 - angle_center), axis=0)
+
+        cv2.imshow('test', rolled_img)
+
+        cropped_img = rolled_img[
+                      int(h / 2 - h * (self.fovAngle / 2.0) / (2 * math.pi)):int(
+                          h / 2 + h * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
+                      self.min_range:
+                      ]
+
+        resized_img = cv2.resize(
+            cropped_img,
+            (cropped_img.shape[1], int(self.fovResolution)),
+            interpolation=cv2.INTER_NEAREST
+        )
+
+        self.resized_img = resized_img
+        self.cropped_img = cropped_img
+
     @abstractmethod
-    def shape(self, env):
+    def get_shape_observation(self):
         pass
-
-    def reset(self):
-        if self.display:
-            plt.close()

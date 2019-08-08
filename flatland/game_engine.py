@@ -1,6 +1,7 @@
-import pymunk
+import pymunk, pygame
 from flatland.utils.config import *
-
+from PIL import Image
+import numpy as np
 
 class Engine():
 
@@ -40,27 +41,38 @@ class Engine():
 
         self.playground.initialize_textures()
 
+        self.playground_img = None
+
+        # TODO: dd dictionary shape -> body id for fast identification during collisions
+
+    def update_observations(self):
+
+        # If it has not been done yet, generate a visualization of the environment
+        self.playground.generate_playground_image(with_activation_radius=False)
+        self.playground_img = self.playground.screen
+
+        # TODO: changggeee meeee! Fasteeeeer !
+        data = pygame.image.tostring(self.playground_img, 'RGB')
+        pil_image = Image.frombytes('RGB', (self.playground.width, self.playground.height), data)
+        img = np.asarray(pil_image.convert('RGB'))
 
 
-
-        ## TODO: dd dictionary shape -> body id for fast identification during colliions
-
-
-    def get_observations(self):
-
-        pass
+        # For each agent, compute sensors
+        for agent_name in self.agents:
+            self.agents[agent_name]['agent'].compute_sensors(img)
 
     def set_actions(self):
 
         for ag_name in self.agents:
 
-            ag = self.agents[ag_name]['agent']
-            ctr = self.agents[ag_name]['controller']
+            observations = self.agents[ag_name]['agent'].observations
+            actions = self.agents[ag_name]['controller'].get_actions( )
 
-            acts = ctr.get_action()
-            ag.apply_action(acts)
+            self.agents[ag_name]['agent'].apply_action(actions)
 
     def step(self):
+
+        self.playground_img = None
 
         for ag in self.agents:
             self.agents[ag]['agent'].pre_step()
@@ -110,9 +122,13 @@ class Engine():
         # print(self.agent.reward, self.agent.health)
 
 
-    def display(self):
+    def display_full_scene(self):
 
-        self.playground.display_playground()
+        if self.playground_img is None:
+            self.playground.generate_playground_image()
+            self.playground_img = self.playground.screen
+
+        pygame.display.flip()
 
 
 

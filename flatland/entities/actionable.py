@@ -19,6 +19,7 @@ class ActionableObject(BasicObject):
             'color': (10, 30, 200)
         }
 
+        self.activable = True
         self.action_radius = params['action_radius']
         self.actionable_type = params['actionable_type']
 
@@ -90,10 +91,16 @@ class ActionableObject(BasicObject):
         return moment
 
 
-    def draw(self, surface, with_action_radius = True):
+    def draw(self, surface):
         """
         Draw the obstacle on the environment screen
         """
+        super().draw(surface)
+
+
+    def draw_activation_radius(self, surface):
+
+
 
         radius = int(self.radius) + self.action_radius
 

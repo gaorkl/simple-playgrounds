@@ -58,6 +58,11 @@ class ForwardHeadAgent(ForwardAgent):
         self.head_texture = texture.Texture.create(text)
         self.head_texture_surface = None
 
+        list_sensors = agent_params.get("sensors", None)
+
+        for sens in list_sensors:
+            self.add_sensor(sens)
+
 
     def get_head_angle(self):
 

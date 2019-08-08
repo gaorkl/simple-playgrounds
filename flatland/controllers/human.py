@@ -23,7 +23,7 @@ class Keyboard():
             if self.mapping[k][0] == 'press_once':
                 self.actions[self.mapping[k][1]] = 0
 
-    def get_action(self):
+    def get_actions(self):
 
         self.reset_press_once_actions()
 

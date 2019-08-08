@@ -10,7 +10,7 @@ class Random():
 
 
 
-    def get_action(self):
+    def get_actions(self):
 
         actions = {}
 

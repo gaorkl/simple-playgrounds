@@ -23,6 +23,7 @@ class BasicObject(Entity):
 
         self.physical_shape = params['physical_shape']
         self.movable = params['movable']
+        self.activable = False
         self.position = params['position']
 
         self.reward = params.get('reward', 0)
