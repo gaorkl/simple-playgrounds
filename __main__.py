@@ -76,9 +76,21 @@ agent_parameters = {
                     'name': 'rgb_1',
                     'type': 'rgb',
                     'fovResolution': 128,
-                    'fovRange': 500,
+                    'fovRange': 100,
                     'fovAngle': math.pi,
                     'bodyAnchor': "head",
+                    'd_r': 0,
+                    'd_theta': 0,
+                    'd_relativeOrientation': 0
+                },
+
+                {
+                    'name': 'touch_1',
+                    'type': 'touch',
+                    'fovResolution': 128,
+                    'fovRange': 25,
+                    'fovAngle': 2*math.pi,
+                    'bodyAnchor': "base",
                     'd_r': 0,
                     'd_theta': 0,
                     'd_relativeOrientation': 0
@@ -122,8 +134,7 @@ game_parameters = {
     },
     'display': {
         'playground' : True,
-        'internals' : False,
-        'sensors' : False,
+        'agents' : True,
     }
 }
 
@@ -162,13 +173,12 @@ while game.game_on:
             im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
             cv2.imshow( obs, im )
 
-
     game.display_full_scene()
 
     clock.tick(120)
 
 
-
+# TODO: compare dynamics of basic object and actionable object + action radius (effects of having 2 bodies)
 
 
 

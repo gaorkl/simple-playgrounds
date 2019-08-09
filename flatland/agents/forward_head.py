@@ -117,14 +117,17 @@ class ForwardHeadAgent(ForwardAgent):
         if self.head_texture_surface is None:
             self.head_texture_surface = self.head_texture.generate(radius * 2, radius * 2)
 
-        # Create the mask
-        mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-        mask.fill((0, 0, 0, 0))
-        pygame.draw.circle(mask, (255, 255, 255, 255), (radius, radius), radius)
+            # Create the mask
+            self.mask_head = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            self.mask_head.fill((0, 0, 0, 0))
+            pygame.draw.circle(self.mask_head, (255, 255, 255, 255), (radius, radius), radius)
 
-        # Apply texture on mask
-        mask.blit(self.head_texture_surface, (0, 0), None, pygame.BLEND_MULT)
-        mask = pygame.transform.rotate(mask, self.anatomy['head'].body.angle * 180 / math.pi)
+            # Apply texture on mask
+            self.mask_head.blit(self.head_texture_surface, (0, 0), None, pygame.BLEND_MULT)
+            pygame.draw.line(self.mask_head,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
+
+
+        mask = pygame.transform.rotate(self.mask_head, self.anatomy['head'].body.angle * 180 / math.pi)
 
         mask_rect = mask.get_rect()
         mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]

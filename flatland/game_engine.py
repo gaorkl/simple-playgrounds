@@ -47,18 +47,17 @@ class Engine():
 
     def update_observations(self):
 
-        # If it has not been done yet, generate a visualization of the environment
-        self.playground.generate_playground_image(with_activation_radius=False)
-        self.playground_img = self.playground.screen
+        self.playground.generate_playground_image()
 
         # TODO: changggeee meeee! Fasteeeeer !
-        data = pygame.image.tostring(self.playground_img, 'RGB')
+        data = pygame.image.tostring(self.playground.screen, 'RGB')
         pil_image = Image.frombytes('RGB', (self.playground.width, self.playground.height), data)
         img = np.asarray(pil_image.convert('RGB'))
 
-
         # For each agent, compute sensors
         for agent_name in self.agents:
+
+            #TODO: for now, every sensor computed independently. But polar need only to be computed once
             self.agents[agent_name]['agent'].compute_sensors(img)
 
     def set_actions(self):
@@ -124,9 +123,8 @@ class Engine():
 
     def display_full_scene(self):
 
-        if self.playground_img is None:
-            self.playground.generate_playground_image()
-            self.playground_img = self.playground.screen
+        self.playground.generate_playground_image()
+        self.playground.draw_activation_radius()
 
         pygame.display.flip()
 

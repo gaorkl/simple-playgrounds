@@ -1,1 +1,1 @@
-from . import rgb_sensor
+from . import rgb_sensor, touch_sensor

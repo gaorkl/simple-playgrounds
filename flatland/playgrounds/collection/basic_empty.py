@@ -161,18 +161,9 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         # Reset the environment
         self.__init__(**self.parameters)
 
-    def generate_playground_image(self, with_activation_radius = True):
+    def generate_playground_image(self):
         # Update the screen of the environment
         self.screen.fill(THECOLORS["black"])
-
-
-        if with_activation_radius:
-
-            for id_entity in self.physical_entities:
-
-                if self.physical_entities[id_entity].activable:
-                    self.physical_entities[id_entity].draw_activation_radius(self.screen)
-
         self.draw()
 
 
@@ -185,6 +176,17 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         for ag in self.agents:
 
             ag.draw(self.screen)
+
+    def draw_activation_radius(self):
+
+        for id_entity in self.physical_entities:
+
+            if self.physical_entities[id_entity].activable:
+
+                self.physical_entities[id_entity].draw_activation_radius(self.screen)
+                self.physical_entities[id_entity].draw(self.screen)
+
+
 
     def initialize_textures(self):
 

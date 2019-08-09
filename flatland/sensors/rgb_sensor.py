@@ -1,8 +1,6 @@
 from .sensor import SensorGenerator, Sensor
-from matplotlib import pyplot as plt
 import numpy as np
 import cv2
-import math
 
 @SensorGenerator.register('rgb')
 class RgbSensor(Sensor):
@@ -13,6 +11,8 @@ class RgbSensor(Sensor):
     def update_sensor(self, img):
 
         super().update_sensor( img)
+
+        cv2.imshow('test_rbg', self.cropped_img)
 
         # Get value sensor
         mask = self.resized_img != 0

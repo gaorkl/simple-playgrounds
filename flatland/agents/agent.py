@@ -80,7 +80,7 @@ class Agent(Entity):
 
     def add_sensor(self, sensor_param):
 
-        sensor_param['minRange'] = self.radius
+        sensor_param['minRange'] = self.radius + 2  # To avoid errors while converting
         new_sensor = sensor.SensorGenerator.create(self.anatomy, sensor_param)
         self.sensors[new_sensor.name] = new_sensor
 
@@ -124,21 +124,22 @@ class Agent(Entity):
         # Create a texture surface with the right dimensions
         if self.texture_surface is None:
             self.texture_surface = self.texture.generate(radius * 2, radius * 2)
+            self.mask =  pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            self.mask.fill((0, 0, 0, 0))
+            pygame.draw.circle(self.mask, (255, 255, 255, 255), (radius, radius), radius)
 
-        # Create the mask
-        mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-        mask.fill((0, 0, 0, 0))
-        pygame.draw.circle(mask, (255, 255, 255, 255), (radius, radius), radius)
+            # Apply texture on mask
+            self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+            pygame.draw.line(self.mask,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
 
-        # Apply texture on mask
-        mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
-        mask = pygame.transform.rotate(mask, self.anatomy['base'].body.angle * 180 / math.pi)
 
-        mask_rect = mask.get_rect()
+
+        mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)
+        mask_rect = mask_rotated.get_rect()
         mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
 
         # Blit the masked texture on the screen
-        surface.blit(mask, mask_rect, None)
+        surface.blit(mask_rotated, mask_rect, None)
 
 
     def apply_action(self, actions):

@@ -38,6 +38,8 @@ class ActionableObject(BasicObject):
 
         self.shape_body.collision_type = collision_types['basic_object']
 
+        self.action_radius_texture = None
+
 
     def actionate(self):
 
@@ -100,13 +102,11 @@ class ActionableObject(BasicObject):
 
     def draw_activation_radius(self, surface):
 
-
-
         radius = int(self.radius) + self.action_radius
 
         # Create a texture surface with the right dimensions
-        if self.texture_surface is None:
-            self.texture_surface = self.texture.generate(radius * 2, radius * 2)
+        if self.action_radius_texture is None:
+            self.action_radius_texture = self.texture.generate(radius * 2, radius * 2)
 
         # Create the mask
         mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
@@ -114,14 +114,13 @@ class ActionableObject(BasicObject):
         pygame.draw.circle(mask, (255, 255, 255, 50), (radius, radius), radius)
 
         # Apply texture on mask
-        mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
         mask_rect = mask.get_rect()
         mask_rect.center = self.body_body.position[1], self.body_body.position[0]
 
         # Blit the masked texture on the screen
         surface.blit(mask, mask_rect, None)
 
-        super().draw(surface)
 
 
     #
