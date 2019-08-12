@@ -11,50 +11,52 @@ from ..utils.config import *
 
 from pygame.locals import *
 
+from ..common.default_agent_parameters import *
 
-default_head_texture =  {
-        'type': 'uniform',
-        'a': (120, 5, 150),
-        'b': (200, 34, 200)
-    }
+
 
 class ForwardHeadAgent(ForwardAgent):
 
     def __init__(self, agent_params):
 
+        agent_params = {**forward_head_default, **agent_params}
+
         super(ForwardHeadAgent, self).__init__(agent_params)
 
-        self.head_range = agent_params.get('head_range', 0)
-        self.head_speed = agent_params.get('head_speed', 10)
-        self.head_radius = agent_params.get("head_radius", 10)
+        self.head_range = agent_params.get('head_rotation_range')
+        self.head_speed = agent_params.get('head_rotation_speed')
+        self.head_radius = agent_params.get("head_radius")
+        self.head_mass = agent_params.get("head_mass")
+
+        self.head_metabolism = agent_params.get("head_metabolism")
+
+        print(agent_params)
+        print(self.head_mass)
 
         head = PhysicalBody()
 
         base = self.anatomy["base"]
 
-        inertia = pymunk.moment_for_circle(1, 0, self.radius, (0, 0))
+        inertia = pymunk.moment_for_circle(self.head_mass, 0, self.head_radius, (0, 0))
 
-        body = pymunk.Body(1, inertia)
-        body.position = agent_params['position'][:2]
-        body.angle = agent_params['position'][2]
+        body = pymunk.Body(self.head_mass, inertia)
+        body.position = self.anatomy['base'].body.position
+        body.angle = self.anatomy['base'].body.angle
 
         head.body = body
 
-        shape = pymunk.Circle(body, self.radius-5, (0, 0))
+        shape = pymunk.Circle(body, self.head_radius, (0, 0))
         shape.sensor = True
 
         head.shape = shape
-
 
         head.joint = [ pymunk.PinJoint(head.body, base.body, (0, 0), (0, 0)),
                        pymunk.SimpleMotor(head.body, base.body, 0)
                        ]
 
-
         self.anatomy["head"] = head
 
-
-        text = agent_params.get('head_texture', default_head_texture)
+        text = agent_params.get('head_texture')
         self.head_texture = texture.Texture.create(text)
         self.head_texture_surface = None
 
@@ -86,10 +88,11 @@ class ForwardHeadAgent(ForwardAgent):
         elif self.get_head_angle() > self.head_range:
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range
 
+        self.head_metabolism
 
+        self.reward -= self.head_metabolism * (abs(head_velocity))
+        self.health -= self.head_metabolism * (abs(head_velocity))
 
-
-        #self.anatomy["head"].joint
 
     def getStandardKeyMapping(self):
 

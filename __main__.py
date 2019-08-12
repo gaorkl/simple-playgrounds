@@ -57,54 +57,12 @@ pg_rooms_2_edible = playgrounds.PlaygroundGenerator.create( 'rooms_2_edible', pg
 import flatland.agents.forward_head as forward_head
 
 agent_parameters = {
-    'color': (0, 200, 0),
-    'speed': 1.0,
-    'rotation_speed': (2*math.pi)/50 ,
-    'position':  [50, 50, math.pi/2.0],
-    'health': 1000,
-    'base_metabolism': 0.00,
-    'action_metabolism': 0.00,
-    'head_range': math.pi/2,
-    'head_speed': 0.05,
-    'radius': 20,
-    'head_radius' : 10,
-
-    'sensors':
-
-            [
-                {
-                    'name': 'rgb_1',
-                    'type': 'rgb',
-                    'fovResolution': 128,
-                    'fovRange': 100,
-                    'fovAngle': math.pi,
-                    'bodyAnchor': "head",
-                    'd_r': 0,
-                    'd_theta': 0,
-                    'd_relativeOrientation': 0
-                },
-
-                {
-                    'name': 'touch_1',
-                    'type': 'touch',
-                    'fovResolution': 128,
-                    'fovRange': 25,
-                    'fovAngle': 2*math.pi,
-                    'bodyAnchor': "base",
-                    'd_r': 0,
-                    'd_theta': 0,
-                    'd_relativeOrientation': 0
-                }
-            ]
-
-
-    #TODO: Add base / moving / eating metabolism
+    'base_weight' : 30,
+    'starting_position' : [100, 100, math.pi]
 }
-
 
 ag_1 = forward_head.ForwardHeadAgent(agent_parameters)
 
-agent_parameters['position'][0] = 100
 ag_2 = forward_head.ForwardHeadAgent(agent_parameters)
 
 

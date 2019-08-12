@@ -9,11 +9,6 @@ from ..common import texture
 from ..sensors import sensor
 
 
-default_texture =  {
-        'type': 'color',
-        'color': (217, 35, 144)
-    }
-
 
 
 class PhysicalBody():
@@ -31,36 +26,36 @@ class Agent(Entity):
     def __init__(self, agent_params):
         super(Agent, self).__init__()
 
-        self.speed = agent_params['speed']
-        self.rotation_speed = agent_params['rotation_speed']
+        self.base_translation_speed = agent_params['base_translation_speed']
+        self.base_rotation_speed = agent_params['base_rotation_speed']
 
         # Define the radius
-        self.radius =  agent_params.get("radius", 20)
-        self.agent_mass =  agent_params.get("mass", 10)
-        self.color = agent_params['color']
+        self.base_radius =  agent_params.get("base_radius")
+        self.base_mass =  agent_params.get("base_mass")
+        self.base_texture = agent_params['base_texture']
 
-        self.health = agent_params.get('health', 1000)
+        self.health = agent_params.get('health')
+        self.base_metabolism = agent_params.get('base_metabolism')
+        self.action_metabolism = agent_params.get('action_metabolism')
+
         self.reward = 0
-        self.base_metabolism = agent_params.get('base_metabolism', 0)
-        self.action_metabolism = agent_params.get('action_metabolism', 0)
-
-        AGENT_ELASTICITY = 0.1
-
 
         # Base
-
         base = PhysicalBody()
 
-        inertia = pymunk.moment_for_circle(self.agent_mass, 0, self.radius, (0, 0))
+        inertia = pymunk.moment_for_circle(self.base_mass, 0, self.base_radius, (0, 0))
 
-        body = pymunk.Body(self.agent_mass, inertia)
-        body.position = agent_params['position'][:2]
-        body.angle = agent_params['position'][2]
+        body = pymunk.Body(self.base_mass, inertia)
+
+        #TODO: modify starting position. Make it potentially random, area, or multiple points.
+
+        body.position = agent_params['starting_position'][:2]
+        body.angle = agent_params['starting_position'][2]
 
         base.body = body
 
-        shape = pymunk.Circle(body, self.radius, (0, 0))
-        shape.elasticity = AGENT_ELASTICITY
+        shape = pymunk.Circle(body, self.base_radius, (0, 0))
+        shape.elasticity = 0.1
         shape.collision_type = 1
 
         base.shape = shape
@@ -69,8 +64,7 @@ class Agent(Entity):
 
         self.anatomy = {"base" : base}
 
-        text = agent_params.get('texture', default_texture)
-        self.texture = texture.Texture.create(text)
+        self.texture = texture.Texture.create(self.base_texture)
         self.texture_surface = None
 
         self.sensors = {}
@@ -80,7 +74,7 @@ class Agent(Entity):
 
     def add_sensor(self, sensor_param):
 
-        sensor_param['minRange'] = self.radius + 2  # To avoid errors while converting
+        sensor_param['minRange'] = self.base_radius + 2  # To avoid errors while logpolar converting
         new_sensor = sensor.SensorGenerator.create(self.anatomy, sensor_param)
         self.sensors[new_sensor.name] = new_sensor
 
@@ -118,8 +112,9 @@ class Agent(Entity):
         Draw the agent on the environment screen
         """
 
+        # TODO: refactor and simplifies. create texture in separate function, with init
         # Body
-        radius = int(self.radius)
+        radius = int(self.base_radius)
 
         # Create a texture surface with the right dimensions
         if self.texture_surface is None:
