@@ -4,76 +4,40 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
+from flatland.common.default_entities_parameters import *
 
 ################# Test scenes
 
 import flatland.scenes as scenes
 test_scene = scenes.SceneGenerator.create( 'basic' )
 
-scene_params = {'walls_depth': 50}
-test_scene = scenes.SceneGenerator.create( 'basic' , scene_params)
-
-
-test_scene = scenes.SceneGenerator.create( 'rooms_2' , scene_params)
-
-
 ################# Test playground
 
 import flatland.playgrounds as playgrounds
-pg = playgrounds.PlaygroundGenerator.create( 'basic_empty' )
-
-scene_params = {'walls_depth': 50}
-pg_params = { 'scene': scene_params}
-pg = playgrounds.PlaygroundGenerator.create( 'basic_empty', pg_params )
-
-scene_params = {'walls_depth': 50}
-edible = {
-    'physical_shape': 'circle',
-    'radius': 15,
-    'position':  [200, 200, 0],
-    'default_color':(0, 250, 100),
-    'movable': True,
-
-    'entity_type':'actionable',
-    'actionable_type': 'edible',
-    'action_radius':10,
-    'shrink_when_eaten': 0.9,
-    'mass': 10,
-    'initial_reward' : 30
-}
-
-pg_params = { 'scene': scene_params,
-              'entities': [edible]}
-
-pg_basic_empty = playgrounds.PlaygroundGenerator.create( 'basic_empty', pg_params )
-pg_basic_field = playgrounds.PlaygroundGenerator.create( 'basic_field', pg_params )
-
 
 scene_params = {'walls_depth': 20}
-pg_params = { 'scene': scene_params }
-pg_rooms_2_edible = playgrounds.PlaygroundGenerator.create( 'rooms_2_edible', pg_params )
+pg_params = { 'scene': scene_params}
+pg = playgrounds.PlaygroundGenerator.create( 'basic_empty', pg_params )
 
 ############## Agent
 import flatland.agents.forward_head as forward_head
 
 agent_parameters = {
     'base_weight' : 30,
-    'starting_position' : [100, 100, math.pi]
+    'starting_position' :
+        {
+            'type': 'gaussian',
+            'mean' : [100, 100, math.pi],
+            'var' : []
+        }
 }
 
-ag_1 = forward_head.ForwardHeadAgent(agent_parameters)
-
-ag_2 = forward_head.ForwardHeadAgent(agent_parameters)
-
+ag = forward_head.ForwardHeadAgent(agent_parameters)
 
 ############### Brain Controller
 import flatland.controllers.human as human_controller
-import flatland.controllers.random as random_controller
 
-available_actions = ag_1.getAvailableActions()
-rd_control = random_controller.Random(available_actions)
-
-kb_mapping = ag_2.getStandardKeyMapping()
+kb_mapping = ag.getStandardKeyMapping()
 kb_control = human_controller.Keyboard(kb_mapping)
 
 
@@ -102,13 +66,13 @@ dict_agents = {
     #     'controller': rd_control
     # },
     'test_agent_2': {
-        'agent': ag_2,
+        'agent': ag,
         'controller': kb_control
 
     }
 }
 
-game = Engine( playground = pg_rooms_2_edible, agents = dict_agents, params = game_parameters )
+game = Engine( playground = pg, agents = dict_agents, params = game_parameters )
 
 
 clock = pygame.time.Clock()

@@ -2,29 +2,25 @@ import pymunk, pygame
 import pymunk.pygame_util
 from pygame.color import THECOLORS
 
+from flatland import scenes as  scenes
+from flatland.entities import basic, yielder, actionable
+from flatland.utils.config import *
 
-from ... import scenes as  scenes
-from ...entities import basic, yielder, actionable
-from ...utils.config import *
+from flatland.playgrounds.register import PlaygroundGenerator
 
-from ..register import PlaygroundGenerator
+from ..common.default_scene_parameters import *
 
 
-
-@PlaygroundGenerator.register_subclass('basic_empty')
+@PlaygroundGenerator.register_subclass('basic')
 class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir, multithreading
 
 
     def __init__(self , params):
 
+        scene_parameters = params.get('scene', {})
+        scene_parameters = {**basic_scene_default, **scene_parameters}
 
-        if 'scene' in params:
-            scene_params = params['scene']
-        else: scene_params = {}
-
-
-
-        self.scene = self.generateScene( scene_params )
+        self.scene = self.generateScene( scene_parameters )
 
         self.width, self.height = self.scene.total_area
 
@@ -43,9 +39,9 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         self.yielders = {}
 
         # Screen for display
-        self.screen = pygame.display.set_mode((self.width, self.height))
-        self.screen.set_alpha(None)
-
+        #self.screen = pygame.display.set_mode((self.width, self.height))
+        #self.screen.set_alpha(None)
+        self.screen = pygame.Surface((self.width, self.height))
 
         self.relations = {}
         self.relations['basics'] = []
@@ -74,8 +70,8 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
     def generateScene(self, scene_params):
 
-
-        return scenes.SceneGenerator.create( 'basic' , scene_params)
+        scene_type = scene_params['scene_type']
+        return scenes.SceneGenerator.create( scene_type , scene_params)
 
     def addAgent(self, ag):
 
@@ -165,7 +161,10 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         # Update the screen of the environment
         self.screen.fill(THECOLORS["black"])
         self.draw()
+        self.draw_activation_radius()
 
+        imgdata = pygame.surfarray.array3d( self.screen )
+        return imgdata
 
     def draw(self):
 

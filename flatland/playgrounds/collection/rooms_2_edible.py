@@ -1,7 +1,6 @@
 from ..register import PlaygroundGenerator
-from .basic_empty import BasicEmptyPlayground
-
-from ... import scenes as  scenes
+from flatland.playgrounds.basic import BasicEmptyPlayground
+from ...common.default_entities_parameters import edible_default
 
 
 @PlaygroundGenerator.register_subclass('rooms_2_edible')
@@ -9,29 +8,19 @@ class TwoRoomsEdiblePlayground(BasicEmptyPlayground):
 
     def __init__(self, params):
 
+        if 'scene' in params:
+            params['scene']['scene_type']  = 'rooms_2'
 
         super(TwoRoomsEdiblePlayground, self).__init__(params)
 
+        y = self.width * 3 / 4.0
+        x = self.height / 2.0
 
-        edible = {
-            'physical_shape': 'circle',
-            'radius': 20,
-            'position': [200, 300, 0],
-            'default_color': (0, 250, 100),
-            'movable': True,
+        edible = edible_default.copy()
+        edible['position'] = [x, y, 0]
 
-            'entity_type': 'actionable',
-            'actionable_type': 'edible',
-            'action_radius': 10,
-            'shrink_when_eaten': 0.9,
-            'mass': 10,
-            'initial_reward': 30
-        }
         self.addEntity(edible)
 
 
-    def generateScene(self, scene_params):
-
-        return scenes.SceneGenerator.create( 'rooms_2' , scene_params)
 
 

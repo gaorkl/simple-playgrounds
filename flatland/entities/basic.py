@@ -66,28 +66,20 @@ class BasicObject(Entity):
         if 'default_color' in params:
             self.shape_body.color = params['default_color']
 
-
         self.body_body = body
 
-        self.default_texture = {
-            'type': 'color',
-            'color': (100, 100, 100)
-        }
-
-
-        self.text = params.get('texture', None)
-
-
-
-
-
-    def initialize_texture(self ):
-
-        tex = self.text if self.text != None else self.default_texture
-
+        text = params['texture']
+        self.texture = texture.Texture.create(text)
         self.texture_surface = None
-        self.texture = texture.Texture.create( tex )
 
+
+    # def initialize_texture(self ):
+    #
+    #     tex = self.text if self.text != None else self.default_texture
+    #
+    #     self.texture_surface = None
+    #     self.texture = texture.Texture.create( tex )
+    #
 
 
     def generate_pymunk_shape(self, body):

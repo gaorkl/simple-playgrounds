@@ -1,5 +1,5 @@
 from ..register import PlaygroundGenerator
-from .basic_empty import BasicEmptyPlayground
+from flatland.playgrounds.basic import BasicEmptyPlayground
 
 @PlaygroundGenerator.register_subclass('basic_field')
 class BasicFieldPlayground(BasicEmptyPlayground):

@@ -1,7 +1,7 @@
 import math
 
 from ..register import SceneGenerator
-from .basic import BasicScene
+from flatland.scenes.collection.room import BasicScene
 
 
 
@@ -13,16 +13,25 @@ class TwoRooms(BasicScene):
         # Overwrite basic params if needed
         super(TwoRooms, self).__init__(params)
 
-        wall_shape = [(self.walls_depth, self.total_area[0] * 3 / 4 - 2*self.walls_depth),
-                       (self.total_area[0] * 3 / 8.0, self.total_area[1] / 2.0, math.pi / 2.0)]
+        wall_shapes = []
+
+        wall_shapes.append([(self.walls_depth, self.total_area[1] * 1 / 3),
+                            (self.total_area[1] * 1 / 6.0, self.total_area[0] / 2.0, math.pi / 2.0)])
+        wall_shapes.append([(self.walls_depth, self.total_area[1] * 1 / 3),
+                            (self.total_area[1] * 5 / 6.0, self.total_area[0] / 2.0, math.pi / 2.0)])
 
         # TODO: fctorize wall
-        wall = {}
-        wall['entity_type'] = 'basic'
-        wall['physical_shape'] = 'box'
-        wall['size_box'] = wall_shape[0]
-        wall['position'] = wall_shape[1]
-        wall['movable'] = False
-        wall['debug_color'] = (200, 0, 0)
+        wall = {
+            'entity_type': 'basic',
+            'physical_shape': 'box',
+            'movable' : False,
+            'texture' : self.walls_texture
+            }
 
-        self.elements.append(wall)
+        for wall_shape in wall_shapes:
+
+            wall['size_box'] = wall_shape[0]
+            wall['position'] = wall_shape[1]
+
+
+            self.elements.append(wall.copy())
