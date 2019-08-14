@@ -92,14 +92,16 @@ class Sensor(ABC):
         # Position and angle of the sensor
         sensor_x = x + self.d_r * math.cos((theta + self.d_theta) % (2 * math.pi))
         sensor_y = y + self.d_r * math.sin((theta + self.d_theta) % (2 * math.pi))
-        sensor_angle = theta - self.d_relativeOrientation - math.pi - math.pi/2
+        sensor_angle = (self.body_anchor.angle%2*math.pi - self.d_relativeOrientation - math.pi )
 
         polar_img = cv2.linearPolar(img, (sensor_x, sensor_y), self.fovRange, flags=cv2.INTER_NEAREST)
 
-        angle_center = h * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
+        cv2.imshow('te', polar_img)
+
+        angle_center = w * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
         rolled_img = np.roll(polar_img, int(h / 2 - angle_center), axis=0)
 
-        start_crop = int(self.min_range * w / self.fovRange)
+        start_crop = int(self.min_range * h / self.fovRange)
 
         cropped_img = rolled_img[
                       int(h / 2 - h * (self.fovAngle / 2.0) / (2 * math.pi)):int(

@@ -25,3 +25,18 @@ edible_default = {
 
     'initial_reward': 30
 }
+
+# Basic entities
+
+basic_texture =  {
+    'type': 'color',
+    'color': (125, 100, 150)
+    }
+
+basic_default = {
+    'physical_shape': 'circle',
+    'radius': 10,
+    'mass': 10,
+    'texture': basic_texture,
+    'movable': True
+}

@@ -4,32 +4,59 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
+import flatland.playgrounds as playgrounds
 from flatland.common.default_entities_parameters import *
 
-################# Test scenes
 
-import flatland.scenes as scenes
-test_scene = scenes.SceneGenerator.create( 'basic' )
+new_entity = basic_default.copy()
+new_entity['position'] = [50, 50, 0.2]
+new_entity['physical_shape'] = 'box'
+new_entity['size_box'] = [30, 60]
 
-################# Test playground
+pg_params = {
+    'scene': {
+        'shape': [600, 200]
+    },
+    'entities': [new_entity]
+}
 
-import flatland.playgrounds as playgrounds
 
-scene_params = {'walls_depth': 20}
-pg_params = { 'scene': scene_params}
-pg = playgrounds.PlaygroundGenerator.create( 'basic_empty', pg_params )
+pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
+#img = pg.generate_playground_image()
+#display(img)
+
+new_entity_1 = basic_default.copy()
+new_entity_1['position'] = [50, 50, 0.0]
+new_entity_1['physical_shape'] = 'triangle'
+new_entity_1['radius'] = 20
+
+new_entity_2 = edible_default.copy()
+new_entity_2['position'] = [200, 50, 0.2]
+new_entity_2['physical_shape'] = 'pentagon'
+new_entity_2['radius'] = 20
+
+pg_params = {
+    'scene': {
+        'shape': [600, 400]
+    },
+    'entities': [new_entity_1, new_entity_2]
+}
+
+pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
+#img = pg.generate_playground_image()
+#display(img)
 
 ############## Agent
 import flatland.agents.forward_head as forward_head
 
 agent_parameters = {
-    'base_weight' : 30,
-    'starting_position' :
-        {
-            'type': 'gaussian',
-            'mean' : [100, 100, math.pi],
-            'var' : []
-        }
+    'base_weight' : 5,
+    'starting_position' : [200, 200, 0]
+        # {
+        #     'type': 'gaussian',
+        #     'mean' : [100, 100, math.pi],
+        #     'var' : [25, 25, 0.5]
+        # }
 }
 
 ag = forward_head.ForwardHeadAgent(agent_parameters)
@@ -97,7 +124,7 @@ while game.game_on:
 
     game.display_full_scene()
 
-    clock.tick(120)
+    clock.tick(20)
 
 
 # TODO: compare dynamics of basic object and actionable object + action radius (effects of having 2 bodies)

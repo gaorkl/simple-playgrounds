@@ -23,7 +23,7 @@ forward_default = {
     'base_radius': 20,
     'base_mass' : 20,
 
-    'base_translation_speed': 1.0,
+    'base_translation_speed': 10.0,
     'base_rotation_speed': 0.1,
 
     'health' : 1000,
@@ -36,7 +36,7 @@ forward_default = {
                 'name': 'rgb_1',
                 'type': 'rgb',
                 'fovResolution': 128,
-                'fovRange': 100,
+                'fovRange': 400,
                 'fovAngle': math.pi,
                 'bodyAnchor': "base",
                 'd_r': 0,

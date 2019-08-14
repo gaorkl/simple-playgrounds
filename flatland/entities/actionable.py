@@ -48,49 +48,34 @@ class ActionableObject(BasicObject):
 
     def generate_pymunk_sensor_shape(self, body):
 
+        shape_sensor = pymunk.Circle(body, self.radius + self.action_radius)
 
-        if self.physical_shape == 'circle':
+        shape_sensor.sensor = True
 
-            shape_sensor = pymunk.Circle(body, self.radius + self.action_radius)
-
-            shape_sensor.sensor = True
-
-        #TODO : activables with other shapes
-        #elif self.physical_shape == 'poly':
-
-        #    shape = pymunk.Poly(body, self.vertices)
-
-        #elif self.physical_shape == 'box':
-
-        #    shape = pymunk.Poly.create_box(body, self.size_box)
-
-        else:
-
-            raise ValueError('Not implemented')
 
         return shape_sensor
-
-
-
-    def compute_moments(self):
-
-        if self.physical_shape == 'circle':
-
-            moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
-
-        elif self.physical_shape == 'poly':
-
-            moment = pymunk.moment_for_poly(self.mass, self.vertices)
-
-        elif self.physical_shape == 'box':
-
-            moment =  pymunk.moment_for_box(self.mass, self.size_box)
-
-        else:
-
-            raise ValueError('Not implemented')
-
-        return moment
+    #
+    #
+    #
+    # def compute_moments(self):
+    #
+    #     if self.physical_shape == 'circle':
+    #
+    #         moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
+    #
+    #     elif self.physical_shape == 'poly':
+    #
+    #         moment = pymunk.moment_for_poly(self.mass, self.vertices)
+    #
+    #     elif self.physical_shape == 'box':
+    #
+    #         moment =  pymunk.moment_for_box(self.mass, self.size_box)
+    #
+    #     else:
+    #
+    #         raise ValueError('Not implemented')
+    #
+    #     return moment
 
 
     def draw(self, surface):
@@ -233,7 +218,7 @@ class EdibleObject(ActionableObject):
         self.params['position'] = ( self.body_body.position[0], self.body_body.position[1], self.body_body.angle)
 
         self.__init__(self.params)
-        self.initialize_texture()
+        #self.initialize_texture()
 
 
 @ActionableGenerator.register_subclass('dispenser')

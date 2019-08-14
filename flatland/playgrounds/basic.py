@@ -189,9 +189,9 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
     def initialize_textures(self):
 
-        for id_entity in self.physical_entities:
+        #for id_entity in self.physical_entities:
 
-            self.physical_entities[id_entity].initialize_texture()
+        #    self.physical_entities[id_entity].initialize_texture()
 
         for ag in self.agents:
 

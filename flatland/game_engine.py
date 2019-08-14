@@ -43,6 +43,9 @@ class Engine():
 
         self.playground_img = None
 
+        self.screen = pygame.display.set_mode((self.playground.width, self.playground.height))
+        self.screen.set_alpha(None)
+
         # TODO: dd dictionary shape -> body id for fast identification during collisions
 
     def update_observations(self):
@@ -123,8 +126,9 @@ class Engine():
 
     def display_full_scene(self):
 
-        self.playground.generate_playground_image()
-        self.playground.draw_activation_radius()
+        img = self.playground.generate_playground_image()
+        surf = pygame.surfarray.make_surface(img)
+        self.screen.blit( surf , (0,0), None)
 
         pygame.display.flip()
 

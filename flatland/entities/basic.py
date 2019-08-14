@@ -28,16 +28,16 @@ class BasicObject(Entity):
 
         self.reward = params.get('reward', 0)
 
-        if self.physical_shape == 'circle':
-            self.radius = params['radius']
+        # TODO: replace basic shapes by circle, triangle, rectangle, pentagon , hexagon
 
-        elif self.physical_shape == 'box':
+        if self.physical_shape == 'box':
             self.size_box = params['size_box']
 
-        elif self.physical_shape == 'poly':
-            self.vertices = params['vertices']
+        else :
+            self.radius = params['radius']
 
-
+        if self.physical_shape in ['triangle', 'pentagon'] :
+            self.compute_vertices()
 
         if self.movable:
             self.mass = params['mass']
@@ -72,14 +72,22 @@ class BasicObject(Entity):
         self.texture = texture.Texture.create(text)
         self.texture_surface = None
 
+    def compute_vertices(self):
 
-    # def initialize_texture(self ):
-    #
-    #     tex = self.text if self.text != None else self.default_texture
-    #
-    #     self.texture_surface = None
-    #     self.texture = texture.Texture.create( tex )
-    #
+        if self.physical_shape == 'triangle':
+
+            self.vertices = [[0,0], [ 0, self.radius * math.sqrt(3)],
+                             [self.radius * 3 / 2.0 , self.radius * math.sqrt(3) / 2.0 ] ]
+
+            self.vertices = [ [v[0] - self.radius / 2.0, v[1] - self.radius* math.sqrt(3) / 2.0] for v in self.vertices]
+
+        elif self.physical_shape == 'pentagon':
+
+            self.vertices = []
+            for n in range(5):
+                self.vertices.append( [ self.radius*math.cos(n * 2*math.pi / 5), self.radius* math.sin(n * 2*math.pi / 5) ])
+
+
 
 
     def generate_pymunk_shape(self, body):
@@ -89,7 +97,7 @@ class BasicObject(Entity):
 
             shape = pymunk.Circle(body, self.radius)
 
-        elif self.physical_shape == 'poly':
+        elif self.physical_shape in ['triangle', 'pentagon']:
 
             shape = pymunk.Poly(body, self.vertices)
 
@@ -111,7 +119,7 @@ class BasicObject(Entity):
 
             moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
 
-        elif self.physical_shape == 'poly':
+        elif self.physical_shape in ['triangle', 'pentagon']:
 
             moment = pymunk.moment_for_poly(self.mass, self.vertices)
 
@@ -160,6 +168,8 @@ class BasicObject(Entity):
                 self.texture_surface = self.texture.generate(length, width)
                 self.texture_surface.set_colorkey((0, 0, 0, 0))
 
+
+
             # Rotate and center the texture
             texture_surface = pygame.transform.rotate(self.texture_surface, self.body_body.angle * 180 / math.pi)
             texture_surface_rect = texture_surface.get_rect()
@@ -169,6 +179,36 @@ class BasicObject(Entity):
             # Blit the masked texture on the screen
             surface.blit(texture_surface, texture_surface_rect, None)
 
+        elif self.physical_shape in ['triangle', 'pentagon']:
+
+            bb = self.shape_body.cache_bb()
+            length = bb.top - bb.bottom
+            width = bb.right - bb.left
+
+            vertices = [ [x[1] + length, x[0] + width ] for x in self.vertices ]
+
+            # Create a texture surface with the right dimensions
+            if self.texture_surface is None:
+                self.texture_surface = self.texture.generate(2*length, 2*width )
+                self.mask = pygame.Surface((2*length, 2*width), pygame.SRCALPHA)
+                self.mask.fill((0, 0, 0, 0))
+                pygame.draw.polygon(self.mask, (255, 255, 255, 255), vertices)
+
+                # Apply texture on mask
+                self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+
+            mask_rotated = pygame.transform.rotate(self.mask, self.body_body.angle * 180 / math.pi)
+            mask_rect = mask_rotated.get_rect()
+            mask_rect.center = self.body_body.position[1], self.body_body.position[0]
+
+            # Blit the masked texture on the screen
+            surface.blit(mask_rotated, mask_rect, None)
+
+
+
+
+        else:
+            print('gnagnagne')
         # elif self.shape == 'composite':
         #     for obstacle in self.obstacles:
         #         obstacle.draw()

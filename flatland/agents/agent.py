@@ -127,8 +127,6 @@ class Agent(Entity):
             self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
             pygame.draw.line(self.mask,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
 
-
-
         mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)
         mask_rect = mask_rotated.get_rect()
         mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
