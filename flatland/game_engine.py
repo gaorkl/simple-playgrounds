@@ -2,7 +2,7 @@ import pymunk, pygame
 from pygame.locals import K_q
 from flatland.utils.config import *
 from PIL import Image
-import numpy as np
+import math, random
 
 class Engine():
 
@@ -88,35 +88,20 @@ class Engine():
         if pygame.key.get_pressed()[K_q]:
             self.game_on = False
 
+        self.playground.yielders_produce()
+
+        self.playground.check_timers()
 
         # pygame.image.save(self.screen, 'imgs/'+str(self.ind_image).zfill(10)+'.png')
         # self.ind_image += 1
 
         # TODO: do all timers at once
         # TODO: Generlize, not just for doors
-        # for door_opener_id in self.timers.copy().keys():
-        #     self.timers[door_opener_id] -= 1
         #
-        #     if self.timers[door_opener_id] < 0:
-        #         door_id = self.relations['actionables']['doors'][door_opener_id]
-        #         door = self.physical_entities[door_id]
-        #         door_opener = self.physical_entities[door_opener_id]
-        #
-        #         self.space.add(door.body_body, door.shape_body)
-        #         door_opener.door_closed = True
-        #
-        #         # TODO: change
-        #         self.timers.pop(door_opener_id)
         #
         # # TODO: update object state for timers and other states
         #
-        # for yielder_id in self.relations['yielders']:
         #
-        #     if (random.random() < self.yielders[yielder_id].probability) and (
-        #             len(self.relations['yielders'][yielder_id]) < self.yielders[yielder_id].limit):
-        #         new_obj = self.yielders[yielder_id].produce()
-        #         id_obj = self.addEntity(new_obj, add_to_basics=False)
-        #         self.relations['yielders'][yielder_id].append(id_obj)
         #
         # # TODO: update grasp only when grasp released
         # if self.agent.is_releasing == True:
@@ -143,7 +128,7 @@ class Engine():
     def agent_absorbs(self, arbiter, space, data):
 
         absorbable_shape = arbiter.shapes[1]
-        agent_shape = arbiter.shape[0]
+        agent_shape = arbiter.shapes[0]
 
         agent = self.agents_shape[agent_shape]
 
@@ -209,10 +194,12 @@ class Engine():
                 if activable.door_closed:
                     activable.door_closed = False
 
+
                     door_id = self.playground.relations['actionables']['doors'][activable_id]
                     door = self.playground.physical_entities[door_id]
 
                     space.remove(door.body_body, door.shape_body)
+                    door.visible = False
 
                     self.playground.timers[activable_id] = activable.time_open
 
@@ -246,10 +233,10 @@ class Engine():
             self.is_grasping = False
             self.is_holding = True
 
-            j1 = pymunk.PinJoint(activable.body_body, agent.body, (0,5), (0,-5))
-            j2 = pymunk.PinJoint(activable.body_body, agent.body, (0,-5), (0,5))
-            j3 = pymunk.PinJoint(activable.body_body, agent.body, (5,5), (0,5))
-            j4 = pymunk.PinJoint(activable.body_body, agent.body, (5,-5), (0,5))
+            j1 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (0,5), (0,-5))
+            j2 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (0,-5), (0,5))
+            j3 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (5,5), (0,5))
+            j4 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (5,-5), (0,5))
 
             self.playground.space.add(j1, j2, j3, j4)
 

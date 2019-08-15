@@ -11,7 +11,7 @@ class YielderObject():
         :param pos: 2d tuple or 'random', position of the fruit
         :param environment: the environment calling the creation of the fruit
         """
-        self.object_produced = params['object']
+        self.object_produced = params['object_produced']
 
         self.production_area_shape = params['area_shape']
         self.production_area = params['area']

@@ -176,40 +176,6 @@ class EdibleObject(ActionableObject):
 
     def actionate(self):
 
-        #self.radius = self.shrink_when_eaten * self.radius
-        #self.reward = self.shrink_when_eaten * self.reward
-
-        #
-        # if self.movable:
-        #     self.mass = self.shrink_when_eaten * self.mass
-        #     inertia = self.compute_moments()
-        #     body = pymunk.Body(self.mass, inertia)
-        #
-        # else:
-        #     self.mass = None
-        #     body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        #
-        # body.position = self.body_body.position
-        # body.angle = self.body_body.angle
-        #
-        # self.body_body = body
-        # shape_sensor = self.generate_pymunk_sensor_shape( self.body_body )
-        #
-        # self.shape_body = shape_body
-        # self.shape_body.friction = 1.
-        # self.shape_body.elasticity = 0.95
-        #
-        #
-        # if 'default_color' in self.params:
-        #     self.shape_body.color = self.params['default_color']
-        # #
-        # self.shape_sensor = shape_sensor
-        #
-        # self.shape_sensor.collision_type = collision_types['edible']
-        # #
-        # self.body_sensor = self.body_body.copy()
-        #
-
         # TODO: dirty, very dirty. Should be replaced
         self.params['radius'] = self.shrink_when_eaten * self.radius
         self.params['reward'] = self.shrink_when_eaten * self.reward
@@ -230,7 +196,7 @@ class DispenserObject(ActionableObject):
 
         self.shape_sensor.collision_type = collision_types['activable']
 
-        self.object_produced = params['object']
+        self.object_produced = params['object_produced']
 
         self.production_area_shape = params['area_shape']
         self.production_area = params['area']

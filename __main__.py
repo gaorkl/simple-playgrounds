@@ -26,22 +26,61 @@ pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 #img = pg.generate_playground_image()
 #display(img)
 
-new_entity_1 = basic_default.copy()
-new_entity_1['position'] = [50, 50, 0.0]
-new_entity_1['physical_shape'] = 'triangle'
-new_entity_1['radius'] = 20
+### Basic entities
+basic_1 = basic_default.copy()
+basic_1['position'] = [80, 80, 0.2]
+basic_1['physical_shape'] = 'triangle'
+basic_1['radius'] = 20
 
-new_entity_2 = edible_default.copy()
-new_entity_2['position'] = [200, 50, 0.2]
-new_entity_2['physical_shape'] = 'pentagon'
-new_entity_2['mass'] = 100
-new_entity_2['radius'] = 20
+basic_2 = basic_default.copy()
+basic_2['position'] = [80, 120, 0.2]
+basic_2['physical_shape'] = 'pentagon'
+basic_2['radius'] = 15
+basic_2['movable'] = False
+
+
+### Edibles
+
+edible_1 = edible_default.copy()
+edible_1['position'] = [200, 50, 0.2]
+edible_1['physical_shape'] = 'pentagon'
+edible_1['mass'] = 100
+edible_1['radius'] = 20
+edible_1['movable'] = False
+
+### Absorbables
+
+absorbable_1 = absorbable_default.copy()
+absorbable_1['position'] = [350, 200, 0.2]
+
+absorbable_2 = absorbable_default.copy()
+absorbable_2['position'] = [350, 220,0.5]
+
+### Dispenser
+
+dispenser_1 = dispenser_default.copy()
+dispenser_1['position'] = [350, 50,0]
+dispenser_1['area'] = [[360, 100],[380, 120]]
+
+### Yielder
+
+yielder_1 = yielder_default.copy()
+yielder_1['area'] = [[100, 400],[200, 600]]
+
+### Graspable
+grasp_1 = graspable_default.copy()
+grasp_1['position'] = [150, 200 ,0]
+
+### Door
+door_opener = door_opener_default.copy()
+door_opener['door']['position'] = [200, 300, math.pi/2]
+door_opener['position'] = [50, 300, 0]
 
 pg_params = {
     'scene': {
         'shape': [600, 400]
     },
-    'entities': [new_entity_1, new_entity_2]
+    'entities': [basic_1, basic_2, edible_1, absorbable_1, absorbable_2, dispenser_1, yielder_1, grasp_1, door_opener]
 }
 
 pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
@@ -52,7 +91,7 @@ pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 import flatland.agents.forward_head as forward_head
 
 agent_parameters = {
-    'base_mass' : 1,
+    'base_mass' : 15,
     'starting_position' : [100, 200, 0]
 
 }

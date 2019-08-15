@@ -32,6 +32,8 @@ class Entity(ABC):
         self.movable = False
         self.actionable = False
 
+        self.visible = True
+
 
 
     @property

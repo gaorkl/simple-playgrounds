@@ -10,6 +10,8 @@ from flatland.playgrounds.register import PlaygroundGenerator
 
 from ..common.default_scene_parameters import *
 
+import random
+
 
 @PlaygroundGenerator.register_subclass('basic')
 class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir, multithreading
@@ -178,7 +180,8 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
         for id_entity in self.physical_entities:
 
-            self.physical_entities[id_entity].draw(self.screen)
+            if self.physical_entities[id_entity].visible:
+                self.physical_entities[id_entity].draw(self.screen)
 
         for ag in self.agents:
 
@@ -204,3 +207,30 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         for ag in self.agents:
 
             ag.draw(self.screen)
+
+    def yielders_produce(self):
+
+        for yielder_id in self.relations['yielders']:
+
+            if (random.random() < self.yielders[yielder_id].probability) and (len(self.relations['yielders'][yielder_id]) < self.yielders[yielder_id].limit):
+                new_obj = self.yielders[yielder_id].produce()
+                id_obj = self.addEntity(new_obj, add_to_basics=False)
+                self.relations['yielders'][yielder_id].append(id_obj)
+
+    def check_timers(self):
+
+        for door_opener_id in self.timers.copy().keys():
+            self.timers[door_opener_id] -= 1
+
+            if self.timers[door_opener_id] < 0:
+                door_id = self.relations['actionables']['doors'][door_opener_id]
+                door = self.physical_entities[door_id]
+                door_opener = self.physical_entities[door_opener_id]
+
+                self.space.add(door.body_body, door.shape_body)
+                door_opener.door_closed = True
+                door.visible = True
+
+                # TODO: change
+                self.timers.pop(door_opener_id)
+
