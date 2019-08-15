@@ -12,8 +12,6 @@ class RgbSensor(Sensor):
 
         super().update_sensor( img)
 
-        cv2.imshow('test_rbg', self.cropped_img)
-
         # Get value sensor
         mask = self.resized_img != 0
         sensor_id = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.cropped_img.shape[1] - 1), axis=1)

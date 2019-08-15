@@ -27,9 +27,11 @@ class Keyboard():
 
         self.reset_press_once_actions()
 
+        list_keys = pygame.key.get_pressed()[K_q]
+
         for event in pygame.event.get():
 
-            if event.type == KEYDOWN :
+            if event.type == KEYDOWN:
 
                 if event.key in self.mapping:
 
@@ -41,7 +43,6 @@ class Keyboard():
 
                     elif type_event == 'press_hold':
                         self.actions[act] = val
-
 
             if event.type == KEYUP:
 
@@ -55,7 +56,5 @@ class Keyboard():
                     if type_event == 'press_hold':
                         self.press_state[event.key] = True
                         self.actions[act] = 0
-
-
 
         return self.actions

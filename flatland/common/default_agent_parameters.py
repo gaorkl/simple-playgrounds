@@ -39,32 +39,25 @@ forward_default = {
                 'fovRange': 400,
                 'fovAngle': math.pi,
                 'bodyAnchor': "base",
-                'd_r': 0,
-                'd_theta': 0,
-                'd_relativeOrientation': 0
             },
 
             {
                 'name': 'touch_1',
                 'type': 'touch',
                 'fovResolution': 128,
-                'fovRange': 25,
+                'fovRange': 5,
                 'fovAngle': 2*math.pi,
                 'bodyAnchor': "base",
-                'd_r': 0,
-                'd_theta': 0,
-                'd_relativeOrientation': 0
             }
         ]
 
 }
 
-
 holonomic_default = forward_default.copy()
 
 forward_head_default = {
     'head_texture':  head_texture,
-    'head_radius': 15,
+    'head_radius': 10,
     'head_mass' : 5,
 
     'head_rotation_speed': 0.1,
@@ -77,12 +70,9 @@ forward_head_default = {
                 'name': 'rgb_1',
                 'type': 'rgb',
                 'fovResolution': 128,
-                'fovRange': 100,
+                'fovRange': 400,
                 'fovAngle': math.pi,
                 'bodyAnchor': "head",
-                'd_r': 0,
-                'd_theta': 0,
-                'd_relativeOrientation': 0
             },
 
             {
@@ -92,9 +82,6 @@ forward_head_default = {
                 'fovRange': 25,
                 'fovAngle': 2*math.pi,
                 'bodyAnchor': "base",
-                'd_r': 0,
-                'd_theta': 0,
-                'd_relativeOrientation': 0
             }
         ]
 

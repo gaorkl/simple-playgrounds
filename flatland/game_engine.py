@@ -1,16 +1,19 @@
 import pymunk, pygame
+from pygame.locals import K_q
 from flatland.utils.config import *
 from PIL import Image
 import numpy as np
 
 class Engine():
 
-    def __init__(self, playground, agents, params):
+    def __init__(self, playground, agents, game_parameters):
 
         self.game_on = True
         self.agents = agents
 
         self.playground = playground
+
+        self.playground.game_on = self.game_on
 
         self.agents_shape = {}
 
@@ -50,12 +53,8 @@ class Engine():
 
     def update_observations(self):
 
-        self.playground.generate_playground_image()
+        img = self.playground.generate_playground_image_sensor()
 
-        # TODO: changggeee meeee! Fasteeeeer !
-        data = pygame.image.tostring(self.playground.screen, 'RGB')
-        pil_image = Image.frombytes('RGB', (self.playground.width, self.playground.height), data)
-        img = np.asarray(pil_image.convert('RGB'))
 
         # For each agent, compute sensors
         for agent_name in self.agents:
@@ -70,6 +69,10 @@ class Engine():
             observations = self.agents[ag_name]['agent'].observations
             actions = self.agents[ag_name]['controller'].get_actions( )
 
+            # Teerminate when q pressed
+            if actions is None:
+                self.game_on = False
+
             self.agents[ag_name]['agent'].apply_action(actions)
 
     def step(self):
@@ -81,6 +84,9 @@ class Engine():
 
         for _ in range(SIMULATION_STEPS):
             self.playground.space.step(1. / SIMULATION_STEPS)
+
+        if pygame.key.get_pressed()[K_q]:
+            self.game_on = False
 
 
         # pygame.image.save(self.screen, 'imgs/'+str(self.ind_image).zfill(10)+'.png')

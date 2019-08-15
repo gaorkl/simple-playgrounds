@@ -74,7 +74,7 @@ class Agent(Entity):
 
     def add_sensor(self, sensor_param):
 
-        sensor_param['minRange'] = self.base_radius + 2  # To avoid errors while logpolar converting
+        sensor_param['minRange'] = self.base_radius   # To avoid errors while logpolar converting
         new_sensor = sensor.SensorGenerator.create(self.anatomy, sensor_param)
         self.sensors[new_sensor.name] = new_sensor
 
@@ -114,7 +114,9 @@ class Agent(Entity):
 
         # TODO: refactor and simplifies. create texture in separate function, with init
         # Body
-        radius = int(self.base_radius)
+
+        # Trick to compute sensors without overlapping when converting to logpolar
+        radius = int(self.base_radius) - 3
 
         # Create a texture surface with the right dimensions
         if self.texture_surface is None:

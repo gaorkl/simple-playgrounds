@@ -15,7 +15,7 @@ from ..common.default_scene_parameters import *
 class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir, multithreading
 
 
-    def __init__(self , params):
+    def __init__(self , params ):
 
         scene_parameters = params.get('scene', {})
         scene_parameters = {**basic_scene_default, **scene_parameters}
@@ -162,6 +162,14 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         self.screen.fill(THECOLORS["black"])
         self.draw()
         self.draw_activation_radius()
+
+        imgdata = pygame.surfarray.array3d( self.screen )
+        return imgdata
+
+    def generate_playground_image_sensor(self):
+        # Update the screen of the environment
+        self.screen.fill(THECOLORS["black"])
+        self.draw()
 
         imgdata = pygame.surfarray.array3d( self.screen )
         return imgdata

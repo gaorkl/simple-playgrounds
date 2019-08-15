@@ -1,5 +1,6 @@
 import time, math
 import pygame
+from pygame.locals import *
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
@@ -33,6 +34,7 @@ new_entity_1['radius'] = 20
 new_entity_2 = edible_default.copy()
 new_entity_2['position'] = [200, 50, 0.2]
 new_entity_2['physical_shape'] = 'pentagon'
+new_entity_2['mass'] = 100
 new_entity_2['radius'] = 20
 
 pg_params = {
@@ -50,16 +52,13 @@ pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 import flatland.agents.forward_head as forward_head
 
 agent_parameters = {
-    'base_weight' : 5,
-    'starting_position' : [200, 200, 0]
-        # {
-        #     'type': 'gaussian',
-        #     'mean' : [100, 100, math.pi],
-        #     'var' : [25, 25, 0.5]
-        # }
+    'base_mass' : 1,
+    'starting_position' : [100, 200, 0]
+
 }
 
 ag = forward_head.ForwardHeadAgent(agent_parameters)
+
 
 ############### Brain Controller
 import flatland.controllers.human as human_controller
@@ -87,19 +86,15 @@ game_parameters = {
     }
 }
 
+
 dict_agents = {
-    # 'test_agent': {
-    #     'agent': ag_1,
-    #     'controller': rd_control
-    # },
-    'test_agent_2': {
+    'test_agent': {
         'agent': ag,
         'controller': kb_control
-
     }
 }
 
-game = Engine( playground = pg, agents = dict_agents, params = game_parameters )
+game = Engine( playground = pg, agents = dict_agents, game_parameters = game_parameters )
 
 
 clock = pygame.time.Clock()
@@ -123,6 +118,8 @@ while game.game_on:
             cv2.imshow( obs, im )
 
     game.display_full_scene()
+
+
 
     clock.tick(20)
 
