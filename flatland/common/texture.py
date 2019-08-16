@@ -1,4 +1,7 @@
 from pygame import Surface, PixelArray, SRCALPHA
+import pygame, cv2
+
+
 from scipy.stats import truncnorm
 import numpy.random as rand
 import numpy as np
@@ -45,10 +48,10 @@ class ColorTexture(Texture):
 @Texture.register_subclass('uniform')
 class UniformTexture(Texture):
 
-    def __init__(self, a, b, **kwargs):
+    def __init__(self, **params):
         super(UniformTexture, self).__init__()
-        self.a = a
-        self.b = b
+        self.min = params['min']
+        self.max = params['max']
 
     def generate(self, width, height):
         """
@@ -58,17 +61,71 @@ class UniformTexture(Texture):
         :return: the pygame Surface
         """
 
-        surface = Surface((width, height))
-        pxarray = PixelArray(surface)
+        random_image = np.random.uniform(self.min, self.max, (int(width), int(height), 3)).astype('int')
+        print(random_image.shape)
+        surf = pygame.surfarray.make_surface(random_image)
+        return surf
 
-        a = np.array(self.a)
-        b = np.array(self.b)
-        t = rand.rand(width, height, 3)
+
+@Texture.register_subclass('uniform_grained')
+class UniformGrainedTexture(Texture):
+
+    def __init__(self, **params):
+        super(UniformGrainedTexture, self).__init__()
+        self.min = params['min']
+        self.max = params['max']
+        self.size_grains = params['size_grains']
+
+    def generate(self, width, height):
+        """
+        Generate a pygame Surface with pixels following a uniform density
+        :param width: the width of the generated Surface
+        :param height: the height of the generated Surface
+        :return: the pygame Surface
+        """
+
+        random_image = np.random.uniform(self.min, self.max, (int(width*1.0/self.size_grains), int(height*1.0/self.size_grains), 3)).astype('int')
+        random_image = cv2.resize(random_image, ( int(width), int(height) ), interpolation=cv2.INTER_NEAREST)
+        surf = pygame.surfarray.make_surface(random_image)
+        return surf
+
+@Texture.register_subclass('polar_stripes')
+class PolarStripesTexture(Texture):
+
+    def __init__(self, **params):
+        super(PolarStripesTexture, self).__init__()
+        self.color_1 = params['color_1']
+        self.color_2 = params['color_2']
+        self.n_stripes = params['n_stripes']
+
+    def generate(self, width, height):
+        """
+        Generate a pyame Surface with pixels following a circular striped pattern from the center of the parent entity
+        :param width: the width of the generated surface
+        :param height: the height of the generated surface
+        :return: the pygame Surface
+        """
+
+        width = int(width)
+        height = int(height)
+
+        img = np.zeros( (width, height , 3) )
+
+        x = width/2
+        y = height/2
+
         for i in range(width):
             for j in range(height):
-                pxarray[i, j] = tuple((a + t[i, j] * (b - a)).astype(int))
 
-        return surface
+                angle = np.arctan2( j - y, i - x)  % (2*math.pi/self.n_stripes)
+
+                if angle  > math.pi/(self.n_stripes) :
+                    img[i, j, :] = self.color_1
+                else:
+                    img[i, j, :] = self.color_2
+
+        surf = pygame.surfarray.make_surface(img)
+        return surf
 
 
 class NormalTexture(Texture):
@@ -138,40 +195,4 @@ class StripesTexture(Texture):
         return surface
 
 
-class PolarStripesTexture(Texture):
 
-    def __init__(self, colors, ratios, iterations):
-        super(PolarStripesTexture, self).__init__()
-        self.colors = colors
-        self.ratios = ratios
-        self.iterations = iterations
-        assert len(self.colors) == len(self.ratios), "Parameters 'ratios' and 'colors' should be the same length."
-        assert sum(self.ratios) == 1, "The color ratios should sum to 1"
-
-    def generate(self, width, height):
-        """
-        Generate a pyame Surface with pixels following a circular striped pattern from the center of the parent entity
-        :param width: the width of the generated surface
-        :param height: the height of the generated surface
-        :return: the pygame Surface
-        """
-
-        surface = Surface((width, height), SRCALPHA)
-        pxarray = PixelArray(surface)
-
-        x = width/2
-        y = height/2
-
-        for i in range(width):
-            for j in range(height):
-                if i != x:
-                    a = np.arctan((j - y)/(i - x))
-                else:
-                    a = np.sign(j - y) * np.pi / 2
-                r = a % (2 * np.pi / self.iterations)
-                for mode, d, in enumerate(np.cumsum(self.ratios)):
-                    if r < 2 * np.pi * d / self.iterations:
-                        pxarray[i, j] = self.colors[mode]
-                        break
-
-        return surface

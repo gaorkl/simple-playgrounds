@@ -32,11 +32,29 @@ basic_1['position'] = [80, 80, 0.2]
 basic_1['physical_shape'] = 'triangle'
 basic_1['radius'] = 20
 
+
+basic_1['texture'] = {
+    'type': 'uniform_grained',
+    'min': [150, 0, 50],
+    'max': [200, 0, 100],
+    'size_grains': 8
+}
+
+
+
 basic_2 = basic_default.copy()
-basic_2['position'] = [80, 120, 0.2]
+basic_2['position'] = [80, 120, 0]
 basic_2['physical_shape'] = 'pentagon'
-basic_2['radius'] = 15
+basic_2['radius'] = 30
 basic_2['movable'] = False
+
+basic_2['texture'] = {
+    'type': 'polar_stripes',
+    'color_1': [0, 0, 150],
+    'color_2': [250, 0, 100],
+    'n_stripes' : 10
+}
+
 
 
 ### Edibles
