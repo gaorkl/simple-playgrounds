@@ -70,6 +70,9 @@ class Agent(Entity):
         self.sensors = {}
         self.observations = {}
 
+        self.grasped = []
+        self.is_holding = False
+
 
 
     def add_sensor(self, sensor_param):
@@ -143,8 +146,10 @@ class Agent(Entity):
         self.is_eating = bool(actions.get('eat', 0))
 
         self.is_grasping = bool(actions.get('grasp', 0))
-        self.is_releasing = bool(actions.get('release', 0))
-        self.is_holding = False
+
+
+        if self.is_holding and not self.is_grasping:
+            self.is_holding = False
 
         # Compute energy and reward
         if self.is_eating: self.reward -= self.action_metabolism

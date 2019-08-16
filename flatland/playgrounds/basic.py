@@ -234,3 +234,12 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
                 # TODO: change
                 self.timers.pop(door_opener_id)
 
+    def release_grasps(self):
+
+        for agent in self.agents:
+
+            if agent.is_holding == False:
+
+                for joint in agent.grasped:
+                    self.space.remove(joint)
+                agent.grasped = []

@@ -92,6 +92,8 @@ class Engine():
 
         self.playground.check_timers()
 
+        self.playground.release_grasps()
+
         # pygame.image.save(self.screen, 'imgs/'+str(self.ind_image).zfill(10)+'.png')
         # self.ind_image += 1
 
@@ -218,8 +220,6 @@ class Engine():
         agent_shape = arbiter.shapes[0]
         agent = self.agents_shape[agent_shape]
 
-        is_grasping = agent.is_grasping
-
         activable_shape = arbiter.shapes[1]
 
         all_activables =  list(self.playground.relations['actionables']['graspables'])
@@ -227,11 +227,10 @@ class Engine():
         activable_id = [id for id in all_activables if self.playground.physical_entities[id].shape_sensor == activable_shape][0]
         activable = self.playground.physical_entities[activable_id]
 
-        if is_grasping and (activable.movable == True) and (activable_id not in self.playground.grasped):
+        if agent.is_grasping and not agent.is_holding and activable.movable :
 
             # create new link
-            self.is_grasping = False
-            self.is_holding = True
+            agent.is_holding = True
 
             j1 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (0,5), (0,-5))
             j2 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (0,-5), (0,5))
@@ -240,10 +239,10 @@ class Engine():
 
             self.playground.space.add(j1, j2, j3, j4)
 
-            self.playground.grasped.append(j1)
-            self.playground.grasped.append(j2)
-            self.playground.grasped.append(j3)
-            self.playground.grasped.append(j4)
+            agent.grasped.append(j1)
+            agent.grasped.append(j2)
+            agent.grasped.append(j3)
+            agent.grasped.append(j4)
 
         return True
 
