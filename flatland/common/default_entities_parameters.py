@@ -121,8 +121,8 @@ door_texture =  {
     }
 
 door_default = {
-    'physical_shape': 'box',
-    'size_box': [10, 100],
+    'physical_shape': 'rectangle',
+    'shape_rectangle': [10, 100],
     'texture': door_texture,
     'movable': False
 }

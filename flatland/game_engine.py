@@ -139,7 +139,7 @@ class Engine():
 
         reward = absorbable.reward
 
-        self.playground.space.remove(absorbable.shape_body, absorbable.body_body)
+        self.playground.space.remove(absorbable.pm_body, absorbable.pm_shape)
         self.playground.physical_entities.pop(absorbable_id)
         if absorbable_id in self.playground.relations['basics']:
             self.playground.relations['basics'].remove(absorbable_id)
@@ -174,7 +174,7 @@ class Engine():
 
         all_activables =  list(self.playground.relations['actionables']['doors'].keys()) + list(self.playground.relations['actionables']['distractors']) + list(self.playground.relations['actionables']['dispensers'].keys())
 
-        activable_id = [id for id in all_activables if self.playground.physical_entities[id].shape_sensor == activable_shape][0]
+        activable_id = [id for id in all_activables if self.playground.physical_entities[id].pm_sensor == activable_shape][0]
         activable = self.playground.physical_entities[activable_id]
 
         if is_activating:
@@ -200,7 +200,7 @@ class Engine():
                     door_id = self.playground.relations['actionables']['doors'][activable_id]
                     door = self.playground.physical_entities[door_id]
 
-                    space.remove(door.body_body, door.shape_body)
+                    space.remove(door.pm_body, door.pm_shape)
                     door.visible = False
 
                     self.playground.timers[activable_id] = activable.time_open
@@ -224,7 +224,7 @@ class Engine():
 
         all_activables =  list(self.playground.relations['actionables']['graspables'])
 
-        activable_id = [id for id in all_activables if self.playground.physical_entities[id].shape_sensor == activable_shape][0]
+        activable_id = [id for id in all_activables if self.playground.physical_entities[id].pm_sensor == activable_shape][0]
         activable = self.playground.physical_entities[activable_id]
 
         if agent.is_grasping and not agent.is_holding and activable.movable :
@@ -232,10 +232,10 @@ class Engine():
             # create new link
             agent.is_holding = True
 
-            j1 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (0,5), (0,-5))
-            j2 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (0,-5), (0,5))
-            j3 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (5,5), (0,5))
-            j4 = pymunk.PinJoint(activable.body_body, agent.anatomy['base'].body, (5,-5), (0,5))
+            j1 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (0,5), (0,-5))
+            j2 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (0,-5), (0,5))
+            j3 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (5,5), (0,5))
+            j4 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (5,-5), (0,5))
 
             self.playground.space.add(j1, j2, j3, j4)
 
@@ -257,15 +257,14 @@ class Engine():
         is_eating = agent.is_eating
 
         sensor_shape = arbiter.shapes[1]
-        edible_id = [id for id in self.playground.relations['actionables']['edibles'] if self.playground.physical_entities[id].shape_sensor == sensor_shape][0]
+        edible_id = [id for id in self.playground.relations['actionables']['edibles'] if self.playground.physical_entities[id].pm_sensor == sensor_shape][0]
         edible = self.playground.physical_entities[edible_id]
 
         if is_eating:
 
             agent.is_eating = False
 
-            space.remove(edible.body_sensor, edible.shape_sensor)
-            space.remove(edible.body_body, edible.shape_body)
+            space.remove(edible.pm_body, edible.pm_shape, edible.pm_sensor)
 
             space.add_post_step_callback(self.eaten_shrinks, edible_id, agent )
 
@@ -280,8 +279,7 @@ class Engine():
 
         if edible.radius > 5 :
 
-            self.playground.space.add(edible.body_sensor, edible.shape_sensor)
-            self.playground.space.add(edible.body_body, edible.shape_body)
+            space.remove(edible.pm_body, edible.pm_shape, edible.pm_sensor)
 
 
         else:

@@ -23,14 +23,14 @@ class TwoRooms(BasicScene):
         # TODO: fctorize wall
         wall = {
             'entity_type': 'basic',
-            'physical_shape': 'box',
+            'physical_shape': 'rectangle',
             'movable' : False,
             'texture' : self.walls_texture
             }
 
         for wall_shape in wall_shapes:
 
-            wall['size_box'] = wall_shape[0]
+            wall['shape_rectangle'] = wall_shape[0]
             wall['position'] = wall_shape[1]
 
 

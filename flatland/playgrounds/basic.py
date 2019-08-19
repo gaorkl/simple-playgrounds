@@ -101,8 +101,7 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
             new_entity = actionable.ActionableGenerator.create(entity_params)
 
             # TODO: verify that we need 2 steps and 2 pairs shape/body
-            self.space.add(new_entity.body_sensor, new_entity.shape_sensor)
-            self.space.add(new_entity.body_body, new_entity.shape_body)
+            self.space.add(new_entity.pm_body, new_entity.pm_shape, new_entity.pm_sensor)
 
             actionable_type =  new_entity.actionable_type
 
@@ -136,7 +135,7 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         elif entity_type == 'absorbable':
             new_entity = basic.BasicObject(entity_params)
             id = new_entity.name_id
-            self.space.add(new_entity.body_body, new_entity.shape_body)
+            self.space.add(new_entity.pm_body, new_entity.pm_shape)
 
 
         else:
@@ -145,7 +144,7 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
             if add_to_basics: self.relations['basics'].append(id)
 
-            self.space.add(new_entity.body_body, new_entity.shape_body)
+            self.space.add(new_entity.pm_body, new_entity.pm_shape)
 
         if entity_type == 'yielder':
             self.yielders[id] = new_entity
@@ -227,7 +226,7 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
                 door = self.physical_entities[door_id]
                 door_opener = self.physical_entities[door_opener_id]
 
-                self.space.add(door.body_body, door.shape_body)
+                self.space.add(door.pm_body, door.pm_shape)
                 door_opener.door_closed = True
                 door.visible = True
 

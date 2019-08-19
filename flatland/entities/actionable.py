@@ -27,16 +27,14 @@ class ActionableObject(BasicObject):
 
         self.name_id = self.actionable_type + '_'+str(EdibleObject.id_number)
 
-        shape_sensor = self.generate_pymunk_sensor_shape( self.body_body )
+        shape_sensor = self.generate_pymunk_sensor_shape( self.pm_body )
 
         if 'default_color' in params:
-            self.shape_body.color = params['default_color']
+            self.pm_shape.color = params['default_color']
 
-        self.shape_sensor = shape_sensor
+        self.pm_sensor = shape_sensor
 
-        self.body_sensor = self.body_body.copy()
-
-        self.shape_body.collision_type = collision_types['basic_object']
+        self.pm_shape.collision_type = collision_types['basic_object']
 
         self.action_radius_texture = None
 
@@ -101,7 +99,7 @@ class ActionableObject(BasicObject):
         # Apply texture on mask
         mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
         mask_rect = mask.get_rect()
-        mask_rect.center = self.body_body.position[1], self.body_body.position[0]
+        mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
 
         # Blit the masked texture on the screen
         surface.blit(mask, mask_rect, None)
@@ -151,12 +149,12 @@ class DistractorObject(ActionableObject):
 
         super(DistractorObject, self).__init__(params)
 
-        self.shape_sensor.collision_type = collision_types['activable']
+        self.pm_sensor.collision_type = collision_types['activable']
 
 
     def actionate(self):
 
-        self.shape_body.color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.pm_shape.color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 
 @ActionableGenerator.register_subclass('edible')
@@ -168,7 +166,7 @@ class EdibleObject(ActionableObject):
 
         self.shrink_when_eaten = params['shrink_when_eaten']
 
-        self.shape_sensor.collision_type = collision_types['edible']
+        self.pm_sensor.collision_type = collision_types['edible']
 
         self.reward = params.get('initial_reward', 0)
 
@@ -181,7 +179,7 @@ class EdibleObject(ActionableObject):
         self.params['reward'] = self.shrink_when_eaten * self.reward
 
         # TODO: harmonize angles and positions x,y,theta ... body.position, body.angle ...
-        self.params['position'] = ( self.body_body.position[0], self.body_body.position[1], self.body_body.angle)
+        self.params['position'] = ( self.pm_body.position[0], self.pm_body.position[1], self.pm_body.angle)
 
         self.__init__(self.params)
         #self.initialize_texture()
@@ -194,7 +192,7 @@ class DispenserObject(ActionableObject):
 
         super(DispenserObject, self).__init__(params)
 
-        self.shape_sensor.collision_type = collision_types['activable']
+        self.pm_sensor.collision_type = collision_types['activable']
 
         self.object_produced = params['object_produced']
 
@@ -224,7 +222,7 @@ class GraspableObject(ActionableObject):
 
         super(GraspableObject, self).__init__( params)
 
-        self.shape_sensor.collision_type = collision_types['graspable']
+        self.pm_sensor.collision_type = collision_types['graspable']
 
         self.graspable = True
 
@@ -240,7 +238,7 @@ class DoorObject(ActionableObject):
 
         super(DoorObject, self).__init__(params)
 
-        self.shape_sensor.collision_type = collision_types['activable']
+        self.pm_sensor.collision_type = collision_types['activable']
 
         self.door_params = params['door']
 

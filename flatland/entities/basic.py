@@ -1,10 +1,7 @@
 import pymunk, math, pygame
-
 from flatland.utils.config import *
-from flatland.utils.pygame_utils import to_pygame
 
 from ..common import texture
-
 
 from flatland.entities.entity import Entity
 
@@ -30,8 +27,8 @@ class BasicObject(Entity):
 
         # TODO: replace basic shapes by circle, triangle, rectangle, pentagon , hexagon
 
-        if self.physical_shape == 'box':
-            self.size_box = params['size_box']
+        if self.physical_shape == 'rectangle':
+            self.shape_rectangle = params['shape_rectangle']
 
         else :
             self.radius = params['radius']
@@ -39,34 +36,35 @@ class BasicObject(Entity):
         if self.physical_shape in ['triangle', 'pentagon'] :
             self.compute_vertices()
 
+
         if self.movable:
             self.mass = params['mass']
             inertia = self.compute_moments()
-            body = pymunk.Body(self.mass, inertia)
+            pm_body = pymunk.Body(self.mass, inertia)
 
         else:
             self.mass = None
-            body = pymunk.Body(body_type=pymunk.Body.STATIC)
+            pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
 
-        body.position = params['position'][0:2]
-        body.angle = params['position'][2]
+        pm_body.position = params['position'][0:2]
+        pm_body.angle = params['position'][2]
 
-        self.shape_body = self.generate_pymunk_shape(body)
+        self.pm_shape = self.generate_pymunk_shape(pm_body)
 
-        self.shape_body.friction = 1.
+        self.pm_shape.friction = 1.
         # self.shape.group = 1
-        self.shape_body.elasticity = 0.95
+        self.pm_shape.elasticity = 0.95
 
         self.absorbable = params.get('absorbable', False)
         if self.absorbable == True:
             self.name_id = 'absorbable_' + str(Entity.id_number)
-            self.shape_body.collision_type = collision_types['absorbable']
+            self.pm_shape.collision_type = collision_types['absorbable']
 
         if 'default_color' in params:
-            self.shape_body.color = params['default_color']
+            self.pm_shape.color = params['default_color']
 
-        self.body_body = body
+        self.pm_body = pm_body
 
         text = params['texture']
         self.texture = texture.Texture.create(text)
@@ -101,9 +99,9 @@ class BasicObject(Entity):
 
             shape = pymunk.Poly(body, self.vertices)
 
-        elif self.physical_shape == 'box':
+        elif self.physical_shape == 'rectangle':
 
-            shape = pymunk.Poly.create_box(body, self.size_box)
+            shape = pymunk.Poly.create_box(body, self.shape_rectangle)
 
         else:
 
@@ -123,9 +121,9 @@ class BasicObject(Entity):
 
             moment = pymunk.moment_for_poly(self.mass, self.vertices)
 
-        elif self.physical_shape == 'box':
+        elif self.physical_shape == 'rectangle':
 
-            moment =  pymunk.moment_for_box(self.mass, self.size_box)
+            moment =  pymunk.moment_for_box(self.mass, self.shape_rectangle)
 
         else:
 
@@ -155,13 +153,13 @@ class BasicObject(Entity):
             # Apply texture on mask
             mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
             mask_rect = mask.get_rect()
-            mask_rect.center = self.body_body.position[1], self.body_body.position[0]
+            mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
 
             # Blit the masked texture on the screen
             surface.blit(mask, mask_rect, None)
 
-        elif self.physical_shape == 'box':
-            width , length = self.size_box
+        elif self.physical_shape == 'rectangle':
+            width , length = self.shape_rectangle
 
             # Create a texture surface with the right dimensions
             if self.texture_surface is None:
@@ -171,17 +169,17 @@ class BasicObject(Entity):
 
 
             # Rotate and center the texture
-            texture_surface = pygame.transform.rotate(self.texture_surface, self.body_body.angle * 180 / math.pi)
+            texture_surface = pygame.transform.rotate(self.texture_surface, self.pm_body.angle * 180 / math.pi)
             texture_surface_rect = texture_surface.get_rect()
             #texture_surface_rect.center = to_pygame(self.body_body.position, surface)
-            texture_surface_rect.center = self.body_body.position[1], self.body_body.position[0]
+            texture_surface_rect.center = self.pm_body.position[1], self.pm_body.position[0]
 
             # Blit the masked texture on the screen
             surface.blit(texture_surface, texture_surface_rect, None)
 
         elif self.physical_shape in ['triangle', 'pentagon']:
 
-            bb = self.shape_body.cache_bb()
+            bb = self.pm_shape.cache_bb()
             length = bb.top - bb.bottom
             width = bb.right - bb.left
 
@@ -197,9 +195,9 @@ class BasicObject(Entity):
                 # Apply texture on mask
                 self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
 
-            mask_rotated = pygame.transform.rotate(self.mask, self.body_body.angle * 180 / math.pi)
+            mask_rotated = pygame.transform.rotate(self.mask, self.pm_body.angle * 180 / math.pi)
             mask_rect = mask_rotated.get_rect()
-            mask_rect.center = self.body_body.position[1], self.body_body.position[0]
+            mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
 
             # Blit the masked texture on the screen
             surface.blit(mask_rotated, mask_rect, None)

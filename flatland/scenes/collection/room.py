@@ -41,7 +41,7 @@ class BasicScene():
 
         wall = {
             'entity_type': 'basic',
-            'physical_shape': 'box',
+            'physical_shape': 'rectangle',
             'movable': False,
             'texture': self.walls_texture,
 
@@ -49,7 +49,7 @@ class BasicScene():
 
         for wall_shape in wall_shapes:
             depth_length, position = wall_shape
-            wall['size_box'] = depth_length
+            wall['shape_rectangle'] = depth_length
             wall['position'] = position
 
             self.elements.append(wall.copy())
