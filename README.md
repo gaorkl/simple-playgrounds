@@ -18,7 +18,11 @@ New version of flatland.
 
 # TODO agents:
 - for now, every sensor computed independently. But polar need only to be computed once
-- sensors are reversed
+- modify library:
+  - controllers
+  - body
+  - sensors
+  - generic class agent, which has a body, a controller, and sensors
 
 
 # TODO Gui
