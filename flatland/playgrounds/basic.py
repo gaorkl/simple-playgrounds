@@ -14,36 +14,29 @@ import random
 
 
 @PlaygroundGenerator.register_subclass('basic')
-class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir, multithreading
+class BasicEmptyPlayground(object):
 
-
-    def __init__(self , params ):
+    def __init__(self, params ):
 
         scene_parameters = params.get('scene', {})
         scene_parameters = {**basic_scene_default, **scene_parameters}
 
-        self.scene = self.generateScene( scene_parameters )
+        self.scene = self.generate_scene(scene_parameters)
 
         self.width, self.height = self.scene.total_area
 
-
         # Initialization of the pymunk space, this space is responsible for modelling all the physics
-        self.space = pymunk.Space()
-        self.space.gravity = pymunk.Vec2d(0., 0.)
-        self.space.collision_bias = 0
-        self.space.collision_persistence = 1
-        self.space.collision_slop = 0
-        self.space.damping = SPACE_DAMPING
+        self.space = None
+        self.initialize_space()
+
+        # Screen for display
+        self.topdown_view = pygame.Surface((self.width, self.height))
 
         # Data structures to save list of entities, and relations between them
         # TODO: better data structure, with classes
+
         self.physical_entities = {}
         self.yielders = {}
-
-        # Screen for display
-        #self.screen = pygame.display.set_mode((self.width, self.height))
-        #self.screen.set_alpha(None)
-        self.screen = pygame.Surface((self.width, self.height))
 
         self.relations = {}
         self.relations['basics'] = []
@@ -57,29 +50,77 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         self.relations['yielders'] = {}
 
         # Store the temporary pinjoints for grasping
-        self.grasped = []
+        self.grasped = {}
+
+        # Store the timers for doors or other timed events
         self.timers = {}
-        self.agents = []
 
         for elem in self.scene.elements:
-            self.addEntity( elem , add_to_basics = False)
+            self.add_entity(elem, add_to_basics = False)
 
         if 'entities' in params:
             for ent in params['entities']:
-                self.addEntity(ent)
+                self.add_entity(ent)
+
+        # TODO: Replace by class for registring, and import all collisions in a separate file
+        self.handle_collisions()
+
+        #self.initialize_textures()
+
+        self.agents = {}
+        self.body_parts_agents = {}
 
 
+    def initialize_space(self):
 
-    def generateScene(self, scene_params):
+        self.space = pymunk.Space()
+        self.space.gravity = pymunk.Vec2d(0., 0.)
+        #self.space.collision_bias = 0
+        self.space.collision_persistence = 1
+        self.space.collision_slop = 0
+        self.space.damping = SPACE_DAMPING
+
+    def update_playground(self):
+
+        self.yielders_produce()
+        self.check_timers()
+        self.release_grasps()
+
+    def generate_scene(self, scene_params):
 
         scene_type = scene_params['scene_type']
         return scenes.SceneGenerator.create( scene_type , scene_params)
 
-    def addAgent(self, ag):
+    def add_agent(self, agent_name, ag):
 
-        self.agents.append(ag)
+        self.agents[agent_name] = ag
 
-    def addEntity(self, entity_params, add_to_basics = True):
+        if ag.starting_position['type'] == 'fixed':
+
+            pos = ag.starting_position['position']
+
+
+        for anatomical_parts in ag.anatomy:
+
+            part = ag.anatomy[anatomical_parts]
+
+            if part.body is not None:
+
+                part.body.position = pos[:2]
+                part.body.angle = pos[2]
+                self.space.add(part.body)
+
+            if part.shape is not None:
+                self.space.add(part.shape)
+
+            if part.joint is not None:
+                for j in part.joint:
+                    # self.playground.space.add(part.joint)
+                    self.space.add(j)
+
+            self.body_parts_agents[part.shape] = agent_name
+
+    def add_entity(self, entity_params, add_to_basics = True):
         '''
         Create new entity and assign  it to corresponding dictionary
         Different dictionaries to deal with different logics
@@ -117,7 +158,7 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
                 self.relations['actionables']['dispensers'][id] = []
 
             elif actionable_type == 'door':
-                id_door = self.addEntity(new_entity.door_params)
+                id_door = self.add_entity(new_entity.door_params)
                 self.relations['actionables']['doors'][id] = id_door
 
             elif actionable_type == 'graspable':
@@ -153,26 +194,25 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
         return id
 
-
     def reset(self):
         # Reset the environment
         self.__init__(**self.parameters)
 
     def generate_playground_image(self):
         # Update the screen of the environment
-        self.screen.fill(THECOLORS["black"])
+        self.topdown_view.fill(THECOLORS["black"])
         self.draw()
         self.draw_activation_radius()
 
-        imgdata = pygame.surfarray.array3d( self.screen )
+        imgdata = pygame.surfarray.array3d(self.topdown_view)
         return imgdata
 
     def generate_playground_image_sensor(self):
         # Update the screen of the environment
-        self.screen.fill(THECOLORS["black"])
+        self.topdown_view.fill(THECOLORS["black"])
         self.draw()
 
-        imgdata = pygame.surfarray.array3d( self.screen )
+        imgdata = pygame.surfarray.array3d(self.topdown_view)
         return imgdata
 
     def draw(self):
@@ -180,11 +220,11 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
         for id_entity in self.physical_entities:
 
             if self.physical_entities[id_entity].visible:
-                self.physical_entities[id_entity].draw(self.screen)
+                self.physical_entities[id_entity].draw(self.topdown_view)
 
-        for ag in self.agents:
+        for agent_name in self.agents:
 
-            ag.draw(self.screen)
+            self.agents[agent_name].draw(self.topdown_view)
 
     def draw_activation_radius(self):
 
@@ -192,10 +232,8 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
             if self.physical_entities[id_entity].activable:
 
-                self.physical_entities[id_entity].draw_activation_radius(self.screen)
-                self.physical_entities[id_entity].draw(self.screen)
-
-
+                self.physical_entities[id_entity].draw_activation_radius(self.topdown_view)
+                self.physical_entities[id_entity].draw(self.topdown_view)
 
     def initialize_textures(self):
 
@@ -203,9 +241,8 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
         #    self.physical_entities[id_entity].initialize_texture()
 
-        for ag in self.agents:
-
-            ag.draw(self.screen)
+        for agent_name in self.agents:
+            self.agents[agent_name].draw(self.topdown_view)
 
     def yielders_produce(self):
 
@@ -213,7 +250,7 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
             if (random.random() < self.yielders[yielder_id].probability) and (len(self.relations['yielders'][yielder_id]) < self.yielders[yielder_id].limit):
                 new_obj = self.yielders[yielder_id].produce()
-                id_obj = self.addEntity(new_obj, add_to_basics=False)
+                id_obj = self.add_entity(new_obj, add_to_basics=False)
                 self.relations['yielders'][yielder_id].append(id_obj)
 
     def check_timers(self):
@@ -235,10 +272,189 @@ class BasicEmptyPlayground(object):#TODO: implement simulation steps, size_envir
 
     def release_grasps(self):
 
-        for agent in self.agents:
+        for agent_name in self.agents:
 
-            if agent.is_holding == False:
+            agent = self.agents[agent_name]
+
+            if not agent.is_holding:
 
                 for joint in agent.grasped:
                     self.space.remove(joint)
                 agent.grasped = []
+
+    def agent_absorbs(self, arbiter, space, data):
+
+        absorbable_shape = arbiter.shapes[1]
+        agent_shape = arbiter.shapes[0]
+
+        agent_name = self.body_parts_agents[agent_shape]
+        agent = self.agents[agent_name]
+
+        absorbable_id = [id for id in self.physical_entities if self.physical_entities[id].pm_shape == absorbable_shape][0]
+        absorbable = self.physical_entities[absorbable_id]
+
+        reward = absorbable.reward
+
+        self.space.remove(absorbable.pm_body, absorbable.pm_shape)
+        self.physical_entities.pop(absorbable_id)
+        if absorbable_id in self.relations['basics']:
+            self.relations['basics'].remove(absorbable_id)
+
+        # TODO: also if yielder
+
+        for disp_id, disp_contain in self.relations['yielders'].items():
+            if absorbable_id in disp_contain:
+                disp_contain.remove(absorbable_id)
+
+        for disp_id, disp_contain in self.relations['actionables']['dispensers'].items():
+            if absorbable_id in disp_contain:
+                disp_contain.remove(absorbable_id)
+
+
+        # TODO: add reward and reset to zero at each ts
+        agent.reward = reward
+        agent.health += reward
+
+        return True
+
+
+    def agent_activates(self, arbiter, space, data):
+
+
+        activable_shape = arbiter.shapes[1]
+
+        agent_shape = arbiter.shapes[0]
+        agent_name = self.body_parts_agents[agent_shape]
+        agent = self.agents[agent_name]
+
+        is_activating = agent.is_activating
+
+        all_activables =  list(self.relations['actionables']['doors'].keys()) + list(self.relations['actionables']['distractors']) + list(self.relations['actionables']['dispensers'].keys())
+
+        activable_id = [id for id in all_activables if self.physical_entities[id].pm_sensor == activable_shape][0]
+        activable = self.physical_entities[activable_id]
+
+        if is_activating:
+
+            agent.is_activating = False
+
+
+
+            if activable.actionable_type == 'dispenser':
+
+
+                if len(self.playground.relations['actionables']['dispensers'][activable_id]) < activable.limit:
+                    new_obj = activable.actionate()
+                    id_new_object = self.add_entity(new_obj, add_to_basics = False)
+                    self.relations['actionables']['dispensers'][activable_id].append(id_new_object)
+
+            elif activable.actionable_type == 'door':
+
+                if activable.door_closed:
+                    activable.door_closed = False
+
+
+                    door_id = self.relations['actionables']['doors'][activable_id]
+                    door = self.physical_entities[door_id]
+
+                    space.remove(door.pm_body, door.pm_shape)
+                    door.visible = False
+
+                    self.timers[activable_id] = activable.time_open
+
+
+
+            else:
+                activable.actionate()
+
+        return True
+
+    def agent_grasps(self, arbiter, space, data):
+
+        agent_shape = arbiter.shapes[0]
+        agent_name = self.body_parts_agents[agent_shape]
+        agent = self.agents[agent_name]
+
+        activable_shape = arbiter.shapes[1]
+
+        all_activables =  list(self.relations['actionables']['graspables'])
+
+        activable_id = [id for id in all_activables if self.physical_entities[id].pm_sensor == activable_shape][0]
+        activable = self.physical_entities[activable_id]
+
+        if agent.is_grasping and not agent.is_holding and activable.movable :
+
+            # create new link
+            agent.is_holding = True
+
+            j1 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (0,5), (0,-5))
+            j2 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (0,-5), (0,5))
+            j3 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (5,5), (0,5))
+            j4 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (5,-5), (0,5))
+
+            self.space.add(j1, j2, j3, j4)
+
+            agent.grasped.append(j1)
+            agent.grasped.append(j2)
+            agent.grasped.append(j3)
+            agent.grasped.append(j4)
+
+        return True
+
+
+
+    # TODO: norm PEP8, is_eating -> b_eating ?
+    def agent_eats(self, arbiter, space, data):
+
+        agent_shape = arbiter.shapes[0]
+        agent_name = self.body_parts_agents[agent_shape]
+        agent = self.agents[agent_name]
+
+        is_eating = agent.is_eating
+
+        sensor_shape = arbiter.shapes[1]
+        edible_id = [id for id in self.relations['actionables']['edibles'] if self.physical_entities[id].pm_sensor == sensor_shape][0]
+        edible = self.physical_entities[edible_id]
+
+        if is_eating:
+
+            agent.is_eating = False
+
+            space.remove(edible.pm_body, edible.pm_shape, edible.pm_sensor)
+
+            space.add_post_step_callback(self.eaten_shrinks, edible_id, agent )
+
+        return True
+
+    def eaten_shrinks(self, space, edible_id, agent):
+
+        edible = self.physical_entities[edible_id]
+        edible.actionate()
+
+        agent.reward += edible.reward
+
+        if edible.radius > 5 :
+
+            space.remove(edible.pm_body, edible.pm_shape, edible.pm_sensor)
+
+
+        else:
+            self.physical_entities.pop(edible_id)
+            self.relations['actionables']['edibles'].remove(edible_id)
+
+        return True
+
+    def handle_collisions(self):
+
+        # Collision handlers
+        h_abs = self.space.add_collision_handler(collision_types['agent'], collision_types['absorbable'])
+        h_abs.pre_solve = self.agent_absorbs
+
+        h_act = self.space.add_collision_handler(collision_types['agent'], collision_types['activable'])
+        h_act.pre_solve = self.agent_activates
+
+        h_edible = self.space.add_collision_handler(collision_types['agent'], collision_types['edible'])
+        h_edible.pre_solve = self.agent_eats
+
+        h_grasps = self.space.add_collision_handler(collision_types['agent'], collision_types['graspable'])
+        h_grasps.pre_solve = self.agent_grasps

@@ -28,5 +28,5 @@ class BasicFieldPlayground(BasicEmptyPlayground):
             'limit': 5
         }
 
-        self.addEntity(yielder)
+        self.add_entity(yielder)
 

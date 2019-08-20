@@ -8,21 +8,25 @@ New version of flatland.
 - create a function for random position of agent / produced objects
 - harmonize coordinate system and shapes of envir
 - teleport agent (for alban)
+- implement simulation steps, size_envir, multithreading
 
 # TODO entities:
 - create key for door (graspable + door mechanism)
 - create visible / invisible fire areas
 - fire objects
+- initialize textures
 
 # TODO agents:
 - move sensors and controllers inside agents
+- for now, every sensor computed independently. But polar need only to be computed once
+- sensors are reversed
 
 
 # TODO Gui
 - one window per agent with sensors and reward
 - integration with ipynb
+- harmonize definition of x, y , angle, width, height
 
 # TODO RL:
-
 - end zone
 - reset environment

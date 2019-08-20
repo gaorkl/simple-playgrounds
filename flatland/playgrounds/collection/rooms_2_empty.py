@@ -11,7 +11,7 @@ class BasicFieldPlayground(BasicEmptyPlayground):
 
         super(BasicFieldPlayground, self).__init__(params)
 
-    def generateScene(self, scene_params):
+    def generate_scene(self, scene_params):
 
         return scenes.SceneGenerator.create( 'rooms_2' , scene_params)
 

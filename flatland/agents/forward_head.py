@@ -58,12 +58,31 @@ class ForwardHeadAgent(ForwardAgent):
 
         text = agent_params.get('head_texture')
         self.head_texture = texture.Texture.create(text)
-        self.head_texture_surface = None
+        self.init_head_texture()
 
         list_sensors = agent_params.get("sensors", None)
 
         for sens in list_sensors:
             self.add_sensor(sens)
+
+
+    def init_head_texture(self):
+
+        # Head
+        radius = int(self.head_radius)
+
+        # Create a texture surface with the right dimensions
+        self.head_texture_surface = self.head_texture.generate(radius * 2, radius * 2)
+
+        # Create the mask
+        self.mask_head = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        self.mask_head.fill((0, 0, 0, 0))
+        pygame.draw.circle(self.mask_head, (255, 255, 255, 255), (radius, radius), radius)
+
+        # Apply texture on mask
+        self.mask_head.blit(self.head_texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        pygame.draw.line(self.mask_head, pygame.color.THECOLORS["blue"], (radius, radius), (radius, 2 * radius), 2)
+
 
 
     def get_head_angle(self):
@@ -112,23 +131,6 @@ class ForwardHeadAgent(ForwardAgent):
 
     def draw(self, surface):
         super().draw(surface)
-
-        # Body
-        radius = int(self.head_radius)
-
-        # Create a texture surface with the right dimensions
-        if self.head_texture_surface is None:
-            self.head_texture_surface = self.head_texture.generate(radius * 2, radius * 2)
-
-            # Create the mask
-            self.mask_head = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            self.mask_head.fill((0, 0, 0, 0))
-            pygame.draw.circle(self.mask_head, (255, 255, 255, 255), (radius, radius), radius)
-
-            # Apply texture on mask
-            self.mask_head.blit(self.head_texture_surface, (0, 0), None, pygame.BLEND_MULT)
-            pygame.draw.line(self.mask_head,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
-
 
         mask = pygame.transform.rotate(self.mask_head, self.anatomy['head'].body.angle * 180 / math.pi)
 

@@ -19,7 +19,7 @@ class TwoRoomsEdiblePlayground(BasicEmptyPlayground):
         edible = edible_default.copy()
         edible['position'] = [x, y, 0]
 
-        self.addEntity(edible)
+        self.add_entity(edible)
 
 
 

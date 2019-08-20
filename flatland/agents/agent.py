@@ -6,9 +6,7 @@ from ..entities.entity import Entity
 from pygame.locals import *
 
 from ..common import texture
-from ..sensors import sensor
-
-
+from flatland.agents.sensors import sensor
 
 
 class PhysicalBody():
@@ -40,18 +38,14 @@ class Agent(Entity):
 
         self.reward = 0
 
+        self.starting_position = agent_params.get('starting_position')
+
         # Base
         base = PhysicalBody()
 
         inertia = pymunk.moment_for_circle(self.base_mass, 0, self.base_radius, (0, 0))
 
         body = pymunk.Body(self.base_mass, inertia)
-
-        #TODO: modify starting position. Make it potentially random, area, or multiple points.
-
-        body.position = agent_params['starting_position'][:2]
-        body.angle = agent_params['starting_position'][2]
-
         base.body = body
 
         shape = pymunk.Circle(body, self.base_radius, (0, 0))
@@ -65,7 +59,7 @@ class Agent(Entity):
         self.anatomy = {"base" : base}
 
         self.texture = texture.Texture.create(self.base_texture)
-        self.texture_surface = None
+        self.init_texture()
 
         self.sensors = {}
         self.observations = {}
@@ -73,6 +67,20 @@ class Agent(Entity):
         self.grasped = []
         self.is_holding = False
 
+    def init_texture(self):
+
+        # Trick to compute sensors without overlapping when converting to logpolar
+        radius = int(self.base_radius) - 3
+
+        # Create a texture surface with the right dimensions
+        self.texture_surface = self.texture.generate(radius * 2, radius * 2)
+        self.mask =  pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        self.mask.fill((0, 0, 0, 0))
+        pygame.draw.circle(self.mask, (255, 255, 255, 255), (radius, radius), radius)
+
+        # Apply texture on mask
+        self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        pygame.draw.line(self.mask,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
 
 
     def add_sensor(self, sensor_param):
@@ -117,20 +125,6 @@ class Agent(Entity):
 
         # TODO: refactor and simplifies. create texture in separate function, with init
         # Body
-
-        # Trick to compute sensors without overlapping when converting to logpolar
-        radius = int(self.base_radius) - 3
-
-        # Create a texture surface with the right dimensions
-        if self.texture_surface is None:
-            self.texture_surface = self.texture.generate(radius * 2, radius * 2)
-            self.mask =  pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            self.mask.fill((0, 0, 0, 0))
-            pygame.draw.circle(self.mask, (255, 255, 255, 255), (radius, radius), radius)
-
-            # Apply texture on mask
-            self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
-            pygame.draw.line(self.mask,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
 
         mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)
         mask_rect = mask_rotated.get_rect()

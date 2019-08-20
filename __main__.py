@@ -1,7 +1,4 @@
-import time, math
 import pygame
-from pygame.locals import *
-import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
@@ -109,16 +106,17 @@ pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 import flatland.agents.forward_head as forward_head
 
 agent_parameters = {
-    'base_mass' : 15,
-    'starting_position' : [100, 200, 0]
-
+    'starting_position' : {
+        'type': 'fixed',
+        'position' : [200, 200, 0]
+    }
 }
 
 ag = forward_head.ForwardHeadAgent(agent_parameters)
 
 
 ############### Brain Controller
-import flatland.controllers.human as human_controller
+import flatland.agents.controllers.human as human_controller
 
 kb_mapping = ag.getStandardKeyMapping()
 kb_control = human_controller.Keyboard(kb_mapping)
