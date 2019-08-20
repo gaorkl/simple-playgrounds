@@ -106,8 +106,8 @@ class Sensor(ABC):
             interpolation=cv2.INTER_NEAREST
         )
 
-        self.resized_img = resized_img[..., ::-1]
-        self.cropped_img = cropped_img[..., ::-1]
+        self.resized_img = resized_img[::-1, :, ::-1]
+        self.cropped_img = cropped_img[::-1, :, ::-1]
 
     @abstractmethod
     def get_shape_observation(self):

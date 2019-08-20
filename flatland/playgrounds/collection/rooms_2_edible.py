@@ -1,10 +1,10 @@
 from ..register import PlaygroundGenerator
-from flatland.playgrounds.playground import BasicEmptyPlayground
+from flatland.playgrounds.playground import Playground
 from ...default_parameters.entities import edible_default
 
 
 @PlaygroundGenerator.register_subclass('rooms_2_edible')
-class TwoRoomsEdiblePlayground(BasicEmptyPlayground):
+class TwoRoomsEdiblePlayground(Playground):
 
     def __init__(self, params):
 

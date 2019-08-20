@@ -1,11 +1,11 @@
 from ..register import PlaygroundGenerator
-from flatland.playgrounds.playground import BasicEmptyPlayground
+from flatland.playgrounds.playground import Playground
 
 from ... import scenes as  scenes
 
 
 @PlaygroundGenerator.register_subclass('rooms_2_empty')
-class BasicFieldPlayground(BasicEmptyPlayground):
+class BasicFieldPlayground(Playground):
 
     def __init__(self, params):
 

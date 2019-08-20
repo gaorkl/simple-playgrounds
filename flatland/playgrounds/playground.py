@@ -14,7 +14,7 @@ import random
 
 
 @PlaygroundGenerator.register_subclass('basic')
-class BasicEmptyPlayground(object):
+class Playground(object):
 
     def __init__(self, params ):
 
@@ -343,7 +343,7 @@ class BasicEmptyPlayground(object):
             if activable.actionable_type == 'dispenser':
 
 
-                if len(self.playground.relations['actionables']['dispensers'][activable_id]) < activable.limit:
+                if len(self.relations['actionables']['dispensers'][activable_id]) < activable.limit:
                     new_obj = activable.actionate()
                     id_new_object = self.add_entity(new_obj, add_to_basics = False)
                     self.relations['actionables']['dispensers'][activable_id].append(id_new_object)
@@ -435,7 +435,7 @@ class BasicEmptyPlayground(object):
 
         if edible.radius > 5 :
 
-            space.remove(edible.pm_body, edible.pm_shape, edible.pm_sensor)
+            space.add(edible.pm_body, edible.pm_shape, edible.pm_sensor)
 
 
         else:
