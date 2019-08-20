@@ -6,6 +6,7 @@ import flatland.playgrounds as playgrounds
 from flatland.common.default_entities_parameters import *
 
 
+print('tada')
 new_entity = basic_default.copy()
 new_entity['position'] = [50, 50, 0.2]
 new_entity['physical_shape'] = 'rectangle'
