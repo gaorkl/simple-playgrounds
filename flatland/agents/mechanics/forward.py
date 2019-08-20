@@ -1,12 +1,12 @@
 import pymunk, pygame
 
-from .agent import Agent
+from flatland.agents.agent import Agent
 
-from ..utils.config import *
+from flatland.utils.config import *
 
 from pygame.locals import *
 
-from ..common.default_agent_parameters import *
+from flatland.default_parameters.agents import *
 
 class ForwardAgent(Agent):
 

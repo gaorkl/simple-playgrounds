@@ -1,17 +1,13 @@
 import pymunk, pygame
-import math
 from .forward import ForwardAgent
-from ..common import texture
-
+from flatland.utils import texture
 
 # move physical body to utils
-from .agent import PhysicalBody
-
-from ..utils.config import *
+from flatland.agents.agent import PhysicalBody
 
 from pygame.locals import *
 
-from ..common.default_agent_parameters import *
+from flatland.default_parameters.agents import *
 
 
 

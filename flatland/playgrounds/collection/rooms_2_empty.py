@@ -1,5 +1,5 @@
 from ..register import PlaygroundGenerator
-from flatland.playgrounds.basic import BasicEmptyPlayground
+from flatland.playgrounds.playground import BasicEmptyPlayground
 
 from ... import scenes as  scenes
 

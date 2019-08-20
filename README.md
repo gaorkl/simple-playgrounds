@@ -17,7 +17,6 @@ New version of flatland.
 - initialize textures
 
 # TODO agents:
-- move sensors and controllers inside agents
 - for now, every sensor computed independently. But polar need only to be computed once
 - sensors are reversed
 

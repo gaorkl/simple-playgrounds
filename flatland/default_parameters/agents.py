@@ -1,7 +1,7 @@
 import math
 
 """
-Different standard parameters for agents:
+Different standard parameters for mechanics:
  - forward_default
  - forward_head_default
  - holonomic_default

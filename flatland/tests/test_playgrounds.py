@@ -1,7 +1,7 @@
 from flatland import playgrounds
 import matplotlib.pyplot as plt
 
-from flatland.common.default_entities_parameters import *
+from flatland.default_parameters.entities import *
 
 def display(img):
     plt.imshow(img)

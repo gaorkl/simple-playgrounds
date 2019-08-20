@@ -2,7 +2,7 @@ import math
 
 from flatland.scenes.register import SceneGenerator
 
-from flatland.common.default_scene_parameters import *
+from flatland.default_parameters.scenes import *
 
 
 

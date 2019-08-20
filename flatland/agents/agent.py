@@ -5,7 +5,7 @@ from ..entities.entity import Entity
 
 from pygame.locals import *
 
-from ..common import texture
+from flatland.utils import texture
 from flatland.agents.sensors import sensor
 
 
@@ -122,8 +122,6 @@ class Agent(Entity):
         """
         Draw the agent on the environment screen
         """
-
-        # TODO: refactor and simplifies. create texture in separate function, with init
         # Body
 
         mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)

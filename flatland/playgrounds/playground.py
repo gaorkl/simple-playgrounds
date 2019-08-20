@@ -8,7 +8,7 @@ from flatland.utils.config import *
 
 from flatland.playgrounds.register import PlaygroundGenerator
 
-from ..common.default_scene_parameters import *
+from ..default_parameters.scenes import *
 
 import random
 

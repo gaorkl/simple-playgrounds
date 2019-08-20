@@ -1,6 +1,6 @@
 from ..register import PlaygroundGenerator
-from flatland.playgrounds.basic import BasicEmptyPlayground
-from ...common.default_entities_parameters import edible_default
+from flatland.playgrounds.playground import BasicEmptyPlayground
+from ...default_parameters.entities import edible_default
 
 
 @PlaygroundGenerator.register_subclass('rooms_2_edible')

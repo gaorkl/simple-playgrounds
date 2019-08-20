@@ -1,8 +1,7 @@
 from flatland import playgrounds
 import matplotlib.pyplot as plt
-import flatland.agents.forward_head as forward_head
+import flatland.agents.mechanics.forward_head as forward_head
 
-from flatland.common.default_entities_parameters import *
 
 def display(img):
     plt.imshow(img)

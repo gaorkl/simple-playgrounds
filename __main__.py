@@ -3,10 +3,9 @@ import numpy as np
 import cv2
 
 import flatland.playgrounds as playgrounds
-from flatland.common.default_entities_parameters import *
+from flatland.default_parameters.entities import *
 
 
-print('tada')
 new_entity = basic_default.copy()
 new_entity['position'] = [50, 50, 0.2]
 new_entity['physical_shape'] = 'rectangle'
@@ -104,7 +103,7 @@ pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 #display(img)
 
 ############## Agent
-import flatland.agents.forward_head as forward_head
+import flatland.agents.mechanics.forward_head as forward_head
 
 agent_parameters = {
     'starting_position' : {
@@ -138,7 +137,7 @@ game_parameters = {
     },
     'display': {
         'playground' : True,
-        'agents' : True,
+        'mechanics' : True,
     }
 }
 
@@ -172,6 +171,7 @@ while game.game_on:
             im = np.expand_dims(im, 0)
             im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
             cv2.imshow( obs, im )
+            cv2.waitKey(1)
 
     game.display_full_scene()
 
@@ -190,7 +190,7 @@ while game.game_on:
 #control = controller.Keyboard(rat)
 #print(control)
 
-#pg = playground( scene = basic_scene, agents = [rat] )
+#pg = playground( scene = basic_scene, mechanics = [rat] )
 
 #obs = None
 #act = None

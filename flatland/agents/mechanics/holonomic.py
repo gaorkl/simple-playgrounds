@@ -2,7 +2,7 @@ import pymunk, pygame
 
 from .forward import ForwardAgent
 
-from ..utils.config import *
+from flatland.utils.config import *
 
 from pygame.locals import *
 

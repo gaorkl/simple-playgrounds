@@ -52,28 +52,7 @@ class ActionableObject(BasicObject):
 
 
         return shape_sensor
-    #
-    #
-    #
-    # def compute_moments(self):
-    #
-    #     if self.physical_shape == 'circle':
-    #
-    #         moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
-    #
-    #     elif self.physical_shape == 'poly':
-    #
-    #         moment = pymunk.moment_for_poly(self.mass, self.vertices)
-    #
-    #     elif self.physical_shape == 'box':
-    #
-    #         moment =  pymunk.moment_for_box(self.mass, self.size_box)
-    #
-    #     else:
-    #
-    #         raise ValueError('Not implemented')
-    #
-    #     return moment
+
 
 
     def draw(self, surface):
@@ -104,19 +83,6 @@ class ActionableObject(BasicObject):
         # Blit the masked texture on the screen
         surface.blit(mask, mask_rect, None)
 
-
-
-    #
-    #     if self.appearance == 'rectangle':
-    #
-    #         # Rotate and center the texture
-    #
-    #         texture_surface = pygame.transform.rotate(self.texture, self.theta * 180/math.pi)
-    #         texture_surface_rect = texture_surface.get_rect()
-    #         texture_surface_rect.center = pygame_utils.to_pygame((self.x, self.y), surface)
-    #
-    #         # Blit the masked texture on the screen
-    #         surface.blit(texture_surface, texture_surface_rect, None)
 
 
 

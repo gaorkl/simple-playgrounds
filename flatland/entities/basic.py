@@ -1,7 +1,7 @@
 import pymunk, math, pygame
 from flatland.utils.config import *
 
-from ..common import texture
+from flatland.utils import texture
 
 from flatland.entities.entity import Entity
 
@@ -206,7 +206,4 @@ class BasicObject(Entity):
 
 
         else:
-            print('gnagnagne')
-        # elif self.shape == 'composite':
-        #     for obstacle in self.obstacles:
-        #         obstacle.draw()
+            raise ValueError('Not implemented')
