@@ -6,23 +6,44 @@ from flatland import scenes as  scenes
 from flatland.entities import basic, yielder, actionable
 from flatland.utils.config import *
 
-from flatland.playgrounds.register import PlaygroundGenerator
-
 from ..default_parameters.scenes import *
 
 import random
 
 
-@PlaygroundGenerator.register_subclass('basic')
-class Playground(object):
+class PlaygroundGenerator():
+
+    """
+    Register class to provide a decorator that is used to go through the package and
+    register available playgrounds.
+    """
+
+    subclasses = {}
+
+    @classmethod
+    def register_subclass(cls, playground_name):
+        def decorator(subclass):
+            cls.subclasses[playground_name] = subclass
+            return subclass
+
+        return decorator
+
+    @classmethod
+    def create(cls, playground_name, params = {}):
+
+        if playground_name not in cls.subclasses:
+            raise ValueError('Playground not implemented:' + playground_name)
+
+        return cls.subclasses[playground_name](params)
+
+class Playground():
 
     def __init__(self, params ):
 
+        # Generate Scene
         scene_parameters = params.get('scene', {})
         scene_parameters = {**basic_scene_default, **scene_parameters}
-
         self.scene = self.generate_scene(scene_parameters)
-
         self.width, self.height = self.scene.total_area
 
         # Initialization of the pymunk space, this space is responsible for modelling all the physics
@@ -33,7 +54,6 @@ class Playground(object):
         self.topdown_view = pygame.Surface((self.width, self.height))
 
         # Data structures to save list of entities, and relations between them
-        # TODO: better data structure, with classes
 
         self.physical_entities = {}
         self.yielders = {}
@@ -67,9 +87,8 @@ class Playground(object):
 
         #self.initialize_textures()
 
-        self.agents = {}
+        self.agents = []
         self.body_parts_agents = {}
-
 
     def initialize_space(self):
 
@@ -91,18 +110,17 @@ class Playground(object):
         scene_type = scene_params['scene_type']
         return scenes.SceneGenerator.create( scene_type , scene_params)
 
-    def add_agent(self, agent_name, ag):
+    def add_agent(self, agent):
 
-        self.agents[agent_name] = ag
+        self.agents.append( agent )
 
-        if ag.starting_position['type'] == 'fixed':
+        # Todo: replace by function to get coordinates
+        if agent.starting_position['type'] == 'fixed':
 
-            pos = ag.starting_position['position']
+            pos = agent.starting_position['position']
 
 
-        for anatomical_parts in ag.anatomy:
-
-            part = ag.anatomy[anatomical_parts]
+        for part in agent.anatomy:
 
             if part.body is not None:
 
@@ -118,7 +136,7 @@ class Playground(object):
                     # self.playground.space.add(part.joint)
                     self.space.add(j)
 
-            self.body_parts_agents[part.shape] = agent_name
+            self.body_parts_agents[part.shape] = agent
 
     def add_entity(self, entity_params, add_to_basics = True):
         '''
@@ -235,15 +253,6 @@ class Playground(object):
                 self.physical_entities[id_entity].draw_activation_radius(self.topdown_view)
                 self.physical_entities[id_entity].draw(self.topdown_view)
 
-    def initialize_textures(self):
-
-        #for id_entity in self.physical_entities:
-
-        #    self.physical_entities[id_entity].initialize_texture()
-
-        for agent_name in self.agents:
-            self.agents[agent_name].draw(self.topdown_view)
-
     def yielders_produce(self):
 
         for yielder_id in self.relations['yielders']:
@@ -287,8 +296,7 @@ class Playground(object):
         absorbable_shape = arbiter.shapes[1]
         agent_shape = arbiter.shapes[0]
 
-        agent_name = self.body_parts_agents[agent_shape]
-        agent = self.agents[agent_name]
+        agent = self.body_parts_agents[agent_shape]
 
         absorbable_id = [id for id in self.physical_entities if self.physical_entities[id].pm_shape == absorbable_shape][0]
         absorbable = self.physical_entities[absorbable_id]
@@ -324,8 +332,7 @@ class Playground(object):
         activable_shape = arbiter.shapes[1]
 
         agent_shape = arbiter.shapes[0]
-        agent_name = self.body_parts_agents[agent_shape]
-        agent = self.agents[agent_name]
+        agent = self.body_parts_agents[agent_shape]
 
         is_activating = agent.is_activating
 
@@ -372,8 +379,7 @@ class Playground(object):
     def agent_grasps(self, arbiter, space, data):
 
         agent_shape = arbiter.shapes[0]
-        agent_name = self.body_parts_agents[agent_shape]
-        agent = self.agents[agent_name]
+        agent = self.body_parts_agents[agent_shape]
 
         activable_shape = arbiter.shapes[1]
 
@@ -407,8 +413,7 @@ class Playground(object):
     def agent_eats(self, arbiter, space, data):
 
         agent_shape = arbiter.shapes[0]
-        agent_name = self.body_parts_agents[agent_shape]
-        agent = self.agents[agent_name]
+        agent = self.body_parts_agents[agent_shape]
 
         is_eating = agent.is_eating
 

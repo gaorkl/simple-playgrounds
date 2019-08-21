@@ -1,4 +1,4 @@
-from ..register import PlaygroundGenerator
+from ..playground import PlaygroundGenerator
 from flatland.playgrounds.playground import Playground
 
 @PlaygroundGenerator.register_subclass('basic_field')

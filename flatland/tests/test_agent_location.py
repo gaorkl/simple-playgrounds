@@ -1,6 +1,6 @@
 from flatland import playgrounds
 import matplotlib.pyplot as plt
-import flatland.agents.mechanics.forward_head as forward_head
+import flatland.agents.physical_bodies.forward_head as forward_head
 
 
 def display(img):
@@ -18,7 +18,7 @@ agent_parameters = {
             }
 }
 
-agent = forward_head.ForwardHeadAgent(agent_parameters)
+agent = forward_head.ForwardHead(agent_parameters)
 
 pg.add_agent(agent)
 

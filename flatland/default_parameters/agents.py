@@ -1,7 +1,7 @@
 import math
 
 """
-Different standard parameters for mechanics:
+Different standard parameters for physical_bodies:
  - forward_default
  - forward_head_default
  - holonomic_default
@@ -17,6 +17,28 @@ head_texture = {
     'color': (200, 0, 200)
 }
 
+metabolism_default = {
+    'health' : 1000,
+    'base_metabolism' : 0.001,
+    'action_metabolism': 0.01,
+}
+
+rgb_default = {
+    'type': 'rgb',
+    'fovResolution': 128,
+    'fovRange': 400,
+    'fovAngle': math.pi,
+    'bodyAnchor': "base",
+}
+
+touch_default = {
+    'type': 'touch',
+    'fovResolution': 128,
+    'fovRange': 5,
+    'fovAngle': 2*math.pi,
+    'bodyAnchor': "base",
+}
+
 
 forward_default = {
     'base_texture':  base_texture,
@@ -25,31 +47,6 @@ forward_default = {
 
     'base_translation_speed': 10.0,
     'base_rotation_speed': 0.1,
-
-    'health' : 1000,
-    'base_metabolism' : 0.001,
-    'action_metabolism': 0.01,
-
-    'sensors':
-        [
-            {
-                'name': 'rgb_1',
-                'type': 'rgb',
-                'fovResolution': 128,
-                'fovRange': 400,
-                'fovAngle': math.pi,
-                'bodyAnchor': "base",
-            },
-
-            {
-                'name': 'touch_1',
-                'type': 'touch',
-                'fovResolution': 128,
-                'fovRange': 5,
-                'fovAngle': 2*math.pi,
-                'bodyAnchor': "base",
-            }
-        ]
 
 }
 
@@ -63,27 +60,6 @@ forward_head_default = {
     'head_rotation_speed': 0.1,
     'head_rotation_range': math.pi/2,
     'head_metabolism' : 0.001,
-
-    'sensors':
-        [
-            {
-                'name': 'rgb_1',
-                'type': 'rgb',
-                'fovResolution': 128,
-                'fovRange': 400,
-                'fovAngle': math.pi,
-                'bodyAnchor': "head",
-            },
-
-            {
-                'name': 'touch_1',
-                'type': 'touch',
-                'fovResolution': 128,
-                'fovRange': 25,
-                'fovAngle': 2*math.pi,
-                'bodyAnchor': "base",
-            }
-        ]
 
 }
 

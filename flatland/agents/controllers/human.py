@@ -1,8 +1,9 @@
 import pygame
 from pygame.locals import *
+from .controller import ControllerGenerator, Controller
 
-
-class Keyboard():
+@ControllerGenerator.register_subclass('keyboard')
+class Keyboard(Controller):
 
     def __init__(self, mapping):
 
@@ -26,8 +27,6 @@ class Keyboard():
     def get_actions(self):
 
         self.reset_press_once_actions()
-
-        list_keys = pygame.key.get_pressed()[K_q]
 
         for event in pygame.event.get():
 

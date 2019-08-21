@@ -1,9 +1,7 @@
 import pymunk, pygame
-from .forward import ForwardAgent
+from .forward import Forward
+from .physical_body import BodyParts
 from flatland.utils import texture
-
-# move physical body to utils
-from flatland.agents.agent import PhysicalBody
 
 from pygame.locals import *
 
@@ -11,13 +9,12 @@ from flatland.default_parameters.agents import *
 
 
 
-class ForwardHeadAgent(ForwardAgent):
+class ForwardHead(Forward):
 
     def __init__(self, agent_params):
 
         agent_params = {**forward_head_default, **agent_params}
-
-        super(ForwardHeadAgent, self).__init__(agent_params)
+        super(ForwardHead, self).__init__(agent_params)
 
         self.head_range = agent_params.get('head_rotation_range')
         self.head_speed = agent_params.get('head_rotation_speed')
@@ -26,10 +23,7 @@ class ForwardHeadAgent(ForwardAgent):
 
         self.head_metabolism = agent_params.get("head_metabolism")
 
-        print(agent_params)
-        print(self.head_mass)
-
-        head = PhysicalBody()
+        head = BodyParts()
 
         base = self.anatomy["base"]
 
@@ -54,15 +48,12 @@ class ForwardHeadAgent(ForwardAgent):
 
         text = agent_params.get('head_texture')
         self.head_texture = texture.Texture.create(text)
-        self.init_head_texture()
-
-        list_sensors = agent_params.get("sensors", None)
-
-        for sens in list_sensors:
-            self.add_sensor(sens)
+        self.initialize_head_texture()
 
 
-    def init_head_texture(self):
+
+
+    def initialize_head_texture(self):
 
         # Head
         radius = int(self.head_radius)
@@ -102,6 +93,7 @@ class ForwardHeadAgent(ForwardAgent):
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle + self.head_range
         elif self.get_head_angle() > self.head_range:
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range
+
 
         self.head_metabolism
 

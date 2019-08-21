@@ -2,7 +2,10 @@ import pygame
 from pygame.locals import *
 import random
 
-class Random():
+from .controller import ControllerGenerator, Controller
+
+@ControllerGenerator.register_subclass('random')
+class Random(Controller):
 
     def __init__(self, actions):
 

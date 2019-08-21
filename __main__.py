@@ -2,26 +2,12 @@ import pygame
 import numpy as np
 import cv2
 
-import flatland.playgrounds as playgrounds
+
+###########################################
+# BUILDING A PLAYGROUND
+###########################################
+import flatland.playgrounds.playground as playground
 from flatland.default_parameters.entities import *
-
-
-new_entity = basic_default.copy()
-new_entity['position'] = [50, 50, 0.2]
-new_entity['physical_shape'] = 'rectangle'
-new_entity['shape_rectangle'] = [30, 60]
-
-pg_params = {
-    'scene': {
-        'shape': [600, 200]
-    },
-    'entities': [new_entity]
-}
-
-
-pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
-#img = pg.generate_playground_image()
-#display(img)
 
 ### Basic entities
 basic_1 = basic_default.copy()
@@ -98,31 +84,41 @@ pg_params = {
     'entities': [basic_1, basic_2, edible_1, absorbable_1, absorbable_2, dispenser_1, yielder_1, grasp_1, door_opener]
 }
 
-pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
-#img = pg.generate_playground_image()
-#display(img)
+pg = playground.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 
-############## Agent
-import flatland.agents.mechanics.forward_head as forward_head
+#################################################
+##### BUILDING AN AGENT
+#################################################
 
-agent_parameters = {
-    'starting_position' : {
+import flatland.agents.agent as agent
+from flatland.default_parameters.agents import *
+
+agent_params = {
+    'body' : {
+        'type': 'forward',
+        'params' : {
+            'base_radius': 50
+                }
+    },
+    'controller' :{
+        'type': 'human'
+    },
+    'sensors':{
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head'} },
+        'touch_1' : touch_default,
+    },
+    'starting_position':{
         'type': 'fixed',
         'position' : [200, 200, 0]
     }
 }
 
-ag = forward_head.ForwardHeadAgent(agent_parameters)
+my_agent = agent.Agent(agent_params)
 
+####################################################
+####### Create game with playground and parameters
+####################################################
 
-############### Brain Controller
-import flatland.agents.controllers.human as human_controller
-
-kb_mapping = ag.getStandardKeyMapping()
-kb_control = human_controller.Keyboard(kb_mapping)
-
-
-############### Create game with playground and parameters
 from flatland.game_engine import Engine
 
 game_parameters = {
@@ -137,19 +133,12 @@ game_parameters = {
     },
     'display': {
         'playground' : True,
-        'mechanics' : True,
+        'physical_bodies' : True,
     }
 }
 
 
-dict_agents = {
-    'test_agent': {
-        'agent': ag,
-        'controller': kb_control
-    }
-}
-
-game = Engine( playground = pg, agents = dict_agents, game_parameters = game_parameters )
+game = Engine( playground = pg, agents = [my_agent], game_parameters = game_parameters )
 
 
 clock = pygame.time.Clock()
@@ -178,28 +167,3 @@ while game.game_on:
 
 
     clock.tick(20)
-
-
-# TODO: compare dynamics of basic object and actionable object + action radius (effects of having 2 bodies)
-
-
-
-#rat = agent.Rat()
-#print(rat) # Should print agent details
-
-#control = controller.Keyboard(rat)
-#print(control)
-
-#pg = playground( scene = basic_scene, mechanics = [rat] )
-
-#obs = None
-#act = None
-
-#for t in range(1000):
-
-#    obs = pg.step( act )
-
-#    controller.get_action( obs )
-
-    # In case of RL:
-    # controller.update()

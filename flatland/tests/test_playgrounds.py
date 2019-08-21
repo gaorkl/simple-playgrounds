@@ -1,4 +1,5 @@
-from flatland import playgrounds
+import flatland.playgrounds.playground as playground
+
 import matplotlib.pyplot as plt
 
 from flatland.default_parameters.entities import *
@@ -12,9 +13,9 @@ def display(img):
 ####################################################
 # Selecting different scenes for a basic playground
 
-pg = playgrounds.PlaygroundGenerator.create('basic')
-# img = pg.generate_playground_image()
-# display(img)
+pg = playground.PlaygroundGenerator.create('basic')
+img = pg.generate_playground_image()
+display(img)
 
 pg_params = {
     'scene': {
@@ -23,16 +24,16 @@ pg_params = {
     }
 }
 
-pg = playgrounds.PlaygroundGenerator.create('basic', pg_params)
-# img = pg.generate_playground_image()
-# display(img)
+pg = playground.PlaygroundGenerator.create('basic', pg_params)
+img = pg.generate_playground_image()
+display(img)
 
 ####################################################
 # Selecting different Playgrounds
 
-pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible')
-# img = pg.generate_playground_image()
-# display(img)
+pg = playground.PlaygroundGenerator.create('rooms_2_edible')
+img = pg.generate_playground_image()
+display(img)
 
 # Changing default shape
 pg_params = {
@@ -40,9 +41,10 @@ pg_params = {
         'shape': [600, 200],
     }
 }
-pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
-# img = pg.generate_playground_image()
-# display(img)
+pg = playground.PlaygroundGenerator.create('rooms_2_edible', pg_params )
+img = pg.generate_playground_image()
+display(img)
+
 
 #####################################################
 # Adding entities
@@ -56,7 +58,7 @@ pg_params = {
     },
     'entities': [new_entity]
 }
-pg = playgrounds.PlaygroundGenerator.create('rooms_2_edible', pg_params )
+pg = playground.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 # img = pg.generate_playground_image()
 # display(img)
 

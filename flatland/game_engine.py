@@ -6,22 +6,29 @@ class Engine():
 
     def __init__(self, playground, agents, game_parameters):
 
-        self.game_on = True
-        self.agents = agents
+        '''
+        Engine binds a playground, a list of agents, and rules of the game.
 
+        :param playground: a Playground object where agents will play
+        :param agents: a list of Agent objects
+        :param game_parameters: a dict with the parameters of the game
+        '''
+
+        # Playground already exists
         self.playground = playground
 
-        self.agents_shape = {}
+        self.agents = agents
+        for agent in self.agents:
+            self.playground.add_agent(agent)
 
-        for agent_name in self.agents:
-
-            ag = self.agents[agent_name]['agent']
-            self.playground.add_agent(agent_name, ag)
-
+        # Display screen
         self.playground_img = None
-
         self.screen = pygame.display.set_mode((self.playground.width, self.playground.height))
         self.screen.set_alpha(None)
+
+        # Rules
+        self.game_on = True
+
 
     def update_observations(self):
 
@@ -29,23 +36,23 @@ class Engine():
         img = self.playground.generate_playground_image_sensor()
 
         # For each agent, compute sensors
-        for agent_name in self.agents:
+        for agent in self.agents:
 
-            self.agents[agent_name]['agent'].compute_sensors(img)
+            agent.compute_sensors(img)
 
     def set_actions(self):
 
-        for ag_name in self.agents:
+        for agent in self.agents:
 
-            actions = self.agents[ag_name]['controller'].get_actions( )
-            self.agents[ag_name]['agent'].apply_action(actions)
+            agent.get_actions()
+            agent.apply_action()
 
     def step(self):
 
         self.playground_img = None
 
-        for ag in self.agents:
-            self.agents[ag]['agent'].pre_step()
+        for agent in self.agents:
+            agent.pre_step()
 
         for _ in range(SIMULATION_STEPS):
             self.playground.space.step(1. / SIMULATION_STEPS)

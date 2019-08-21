@@ -1,36 +1,16 @@
 import math
 import pymunk, pygame
 
-from ..entities.entity import Entity
-
 from pygame.locals import *
 
-from flatland.utils import texture
-from flatland.agents.sensors import sensor
+from .sensors import sensor
+from .controllers import controller
+from .physical_bodies import physical_body
 
-
-class PhysicalBody():
-
-    def __init__(self):
-
-        self.body = None
-        self.shapes = None
-        self.joint = None
-
-
-
-class Agent(Entity):
+class Agent():
 
     def __init__(self, agent_params):
         super(Agent, self).__init__()
-
-        self.base_translation_speed = agent_params['base_translation_speed']
-        self.base_rotation_speed = agent_params['base_rotation_speed']
-
-        # Define the radius
-        self.base_radius =  agent_params.get("base_radius")
-        self.base_mass =  agent_params.get("base_mass")
-        self.base_texture = agent_params['base_texture']
 
         self.health = agent_params.get('health')
         self.base_metabolism = agent_params.get('base_metabolism')
@@ -38,49 +18,15 @@ class Agent(Entity):
 
         self.reward = 0
 
-        self.starting_position = agent_params.get('starting_position')
-
-        # Base
-        base = PhysicalBody()
-
-        inertia = pymunk.moment_for_circle(self.base_mass, 0, self.base_radius, (0, 0))
-
-        body = pymunk.Body(self.base_mass, inertia)
-        base.body = body
-
-        shape = pymunk.Circle(body, self.base_radius, (0, 0))
-        shape.elasticity = 0.1
-        shape.collision_type = 1
-
-        base.shape = shape
-
         self.is_activating = False
-
-        self.anatomy = {"base" : base}
-
-        self.texture = texture.Texture.create(self.base_texture)
-        self.init_texture()
-
-        self.sensors = {}
-        self.observations = {}
-
         self.grasped = []
         self.is_holding = False
 
-    def init_texture(self):
+        self.sensors = []
+        for sensor_param in agent_params.get('sensors', []):
+            self.add_sensor(sensor_param)
 
-        # Trick to compute sensors without overlapping when converting to logpolar
-        radius = int(self.base_radius) - 3
-
-        # Create a texture surface with the right dimensions
-        self.texture_surface = self.texture.generate(radius * 2, radius * 2)
-        self.mask =  pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-        self.mask.fill((0, 0, 0, 0))
-        pygame.draw.circle(self.mask, (255, 255, 255, 255), (radius, radius), radius)
-
-        # Apply texture on mask
-        self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
-        pygame.draw.line(self.mask,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
+        self.observations = {}
 
 
     def add_sensor(self, sensor_param):
@@ -95,21 +41,6 @@ class Agent(Entity):
             self.sensors[sens].update_sensor(img)
 
             self.observations[sens] = self.sensors[sens].observation
-
-    def init_display(self):
-        """
-        Prepare a surface for displaying agent sensors, and measures
-        :return:
-        """
-        pass
-
-    def display_agent(self):
-        """
-        Update surface for agent
-        :return:
-        """
-
-
 
     def pre_step(self):
 
@@ -146,6 +77,9 @@ class Agent(Entity):
         # Compute energy and reward
         if self.is_eating: self.reward -= self.action_metabolism
         if self.is_activating: self.reward -= self.action_metabolism
+
+        self.reward -= self.base_metabolism * (abs(longitudinal_velocity) + abs(angular_velocity))
+        self.health += self.reward
 
     def getStandardKeyMapping(self):
         mapping = {

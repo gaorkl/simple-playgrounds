@@ -1,4 +1,4 @@
-from ..register import PlaygroundGenerator
+from ..playground import PlaygroundGenerator
 from flatland.playgrounds.playground import Playground
 
 from ... import scenes as  scenes

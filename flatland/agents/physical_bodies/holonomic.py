@@ -1,16 +1,16 @@
 import pymunk, pygame
 
-from .forward import ForwardAgent
+from .forward import Forward
 
 from flatland.utils.config import *
 
 from pygame.locals import *
 
-class HolonomicAgent(ForwardAgent):
+class Holonomic(Forward):
 
     def __init__(self, agent_params):
 
-        super(HolonomicAgent, self).__init__(agent_params)
+        super(Holonomic, self).__init__(agent_params)
 
     def apply_action(self, actions):
         super().apply_action(actions)
