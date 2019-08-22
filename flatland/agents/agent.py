@@ -1,38 +1,65 @@
 import math
-import pymunk, pygame
+import pygame
 
 from pygame.locals import *
 
 from .sensors import sensor
 from .controllers import controller
-from .physical_bodies import physical_body
+from .frames import frame
+from ..default_parameters.agents import *
 
 class Agent():
 
     def __init__(self, agent_params):
         super(Agent, self).__init__()
 
+        agent_params = {**agent_params, **metabolism_default }
+
         self.health = agent_params.get('health')
         self.base_metabolism = agent_params.get('base_metabolism')
         self.action_metabolism = agent_params.get('action_metabolism')
 
-        self.reward = 0
+        # Create Frame
+        frame_params = agent_params.get('frame', {})
+        self.frame = frame.FrameGenerator.create(frame_params)
+        self.available_actions = self.frame.get_available_actions()
 
+        # Add all necessary sensors
+        self.sensors = {}
+        for sensor_name, sensor_params in agent_params.get('sensors', {}).items():
+            sensor_params['name'] = sensor_name
+            self.add_sensor(sensor_params)
+
+        # Select Controller
+        controller_params = agent_params.get('controller', {})
+        self.controller = controller.ControllerGenerator.create(controller_params)
+
+        self.controller.set_available_actions(self.available_actions)
+
+        if self.controller.require_key_mapping:
+            default_key_mapping = self.frame.get_default_key_mapping()
+            self.controller.assign_key_mapping(default_key_mapping)
+
+
+        # Internals
+        self.reward = 0
         self.is_activating = False
+        self.is_eating = False
+        self.is_grasping = False
         self.grasped = []
         self.is_holding = False
 
-        self.sensors = []
-        for sensor_param in agent_params.get('sensors', []):
-            self.add_sensor(sensor_param)
-
         self.observations = {}
+        self.action_commands = {}
+
+        # Default starting position
+        self.starting_position = agent_params.get('starting_position', None)
 
 
     def add_sensor(self, sensor_param):
 
-        sensor_param['minRange'] = self.base_radius   # To avoid errors while logpolar converting
-        new_sensor = sensor.SensorGenerator.create(self.anatomy, sensor_param)
+        sensor_param['minRange'] = self.frame.base_radius   # To avoid errors while logpolar converting
+        new_sensor = sensor.SensorGenerator.create(self.frame.anatomy, sensor_param)
         self.sensors[new_sensor.name] = new_sensor
 
     def compute_sensors(self, img):
@@ -45,31 +72,17 @@ class Agent():
     def pre_step(self):
 
         self.reward = 0
-        self.actions = []
+        self.action_commands = {}
 
+    def get_actions(self):
 
-    def draw(self,  surface):
+        self.action_commands = self.controller.get_actions()
 
-        """
-        Draw the agent on the environment screen
-        """
-        # Body
+    def apply_action(self):
 
-        mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)
-        mask_rect = mask_rotated.get_rect()
-        mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
-
-        # Blit the masked texture on the screen
-        surface.blit(mask_rotated, mask_rect, None)
-
-
-    def apply_action(self, actions):
-
-        self.is_activating = bool(actions.get('activate', 0))
-        self.is_eating = bool(actions.get('eat', 0))
-
-        self.is_grasping = bool(actions.get('grasp', 0))
-
+        self.is_activating = bool(self.action_commands.get('activate', 0))
+        self.is_eating = bool(self.action_commands.get('eat', 0))
+        self.is_grasping = bool(self.action_commands.get('grasp', 0))
 
         if self.is_holding and not self.is_grasping:
             self.is_holding = False
@@ -77,8 +90,10 @@ class Agent():
         # Compute energy and reward
         if self.is_eating: self.reward -= self.action_metabolism
         if self.is_activating: self.reward -= self.action_metabolism
+        if self.is_holding: self.reward -= self.action_metabolism
 
-        self.reward -= self.base_metabolism * (abs(longitudinal_velocity) + abs(angular_velocity))
+        self.frame.apply_actions(self.action_commands)
+
         self.health += self.reward
 
     def getStandardKeyMapping(self):

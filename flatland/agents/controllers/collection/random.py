@@ -2,20 +2,24 @@ import pygame
 from pygame.locals import *
 import random
 
-from .controller import ControllerGenerator, Controller
+from flatland.agents.controllers.controller import ControllerGenerator, Controller
 
 @ControllerGenerator.register_subclass('random')
 class Random(Controller):
 
-    def __init__(self, actions):
+    def __init__(self, controller_params):
 
-        self.available_actions = actions
+        super(Random).__init__(controller_params)
+        self.require_key_mapping = False
+        self.actions = {}
 
+    def set_available_actions(self, available_actions):
 
+        self.available_actions = available_actions
+        for act in available_actions:
+            self.actions[act] = 0
 
     def get_actions(self):
-
-        actions = {}
 
         for act in self.available_actions:
 
@@ -33,6 +37,7 @@ class Random(Controller):
 
                 raise ValueError
 
-            actions[act] = act_value
+            self.actions[act] = act_value
 
-        return actions
+        return self.actions
+

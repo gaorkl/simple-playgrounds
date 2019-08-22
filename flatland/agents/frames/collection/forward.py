@@ -1,6 +1,6 @@
 import pymunk, pygame
 
-from flatland.agents.physical_bodies.physical_body import BodyGenerator, PhysicalBody
+from flatland.agents.frames.frame import FrameGenerator, Frame
 
 from flatland.utils.config import *
 
@@ -8,8 +8,9 @@ from pygame.locals import *
 
 from flatland.default_parameters.agents import *
 
-@BodyGenerator.register_subclass('forward')
-class Forward(PhysicalBody):
+
+@FrameGenerator.register_subclass('forward')
+class Forward(Frame):
 
     def __init__(self, agent_params):
 
@@ -21,20 +22,30 @@ class Forward(PhysicalBody):
 
     def apply_action(self, actions):
 
-        self.longitudinal_velocity = actions.get('longitudinal_velocity', 0)
-        vx = longitudinal_velocity*SIMULATION_STEPS/10.0
+        super().apply_actions()
+
+        self.longitudinal_velocity = self.actions.get('longitudinal_velocity', 0)
+        vx = self.longitudinal_velocity*SIMULATION_STEPS/10.0
         vy = 0
         self.anatomy["base"].body.apply_force_at_local_point(pymunk.Vec2d(vx, vy) * self.base_translation_speed * (1.0 - SPACE_DAMPING) * 100, (0, 0))
 
-        angular_velocity = actions.get('angular_velocity', 0)
-        self.anatomy["base"].body.angular_velocity = angular_velocity * self.base_rotation_speed
+        self.angular_velocity = self.actions.get('angular_velocity', 0)
+        self.anatomy["base"].body.angular_velocity = self.angular_velocity * self.base_rotation_speed
 
-    def energy_spent(self):
+        movement_energy = self.frame.get_movement_energy()
+        self.reward -= self.base_metabolism * movement_energy['base']
+
+        self.health += self.reward
+
+    def get_movement_energy(self):
 
         energy = {}
-        energy['base'] = longitudinal_velocity +
+        energy['base'] = abs(self.longitudinal_velocity) + abs(self.angular_velocity)
 
-    def getStandardKeyMapping(self):
+        return energy
+
+
+    def get_default_key_mapping(self):
 
         mapping = {}
 
@@ -44,7 +55,7 @@ class Forward(PhysicalBody):
 
         return mapping
 
-    def getAvailableActions(self):
+    def get_available_actions(self):
 
         actions = {}
 

@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 
 
+
 ###########################################
 # BUILDING A PLAYGROUND
 ###########################################
@@ -94,19 +95,19 @@ import flatland.agents.agent as agent
 from flatland.default_parameters.agents import *
 
 agent_params = {
-    'body' : {
-        'type': 'forward',
+    'frame' : {
+        'type': 'forward_head',
         'params' : {
             'base_radius': 50
                 }
     },
     'controller' :{
-        'type': 'human'
+        'type': 'keyboard'
     },
-    'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head'} },
-        'touch_1' : touch_default,
-    },
+    'sensors':{},
+    #     'rgb_1': {**rgb_default, **{'bodyAnchor': 'head'} },
+    #     'touch_1' : touch_default,
+    # },
     'starting_position':{
         'type': 'fixed',
         'position' : [200, 200, 0]
@@ -133,7 +134,7 @@ game_parameters = {
     },
     'display': {
         'playground' : True,
-        'physical_bodies' : True,
+        'frames' : True,
     }
 }
 
@@ -152,7 +153,7 @@ while game.game_on:
 
     for agent in game.agents:
 
-        observations = game.agents[agent]['agent'].observations
+        observations = agent.observations
 
         for obs in observations:
 

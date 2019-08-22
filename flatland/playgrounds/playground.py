@@ -119,8 +119,7 @@ class Playground():
 
             pos = agent.starting_position['position']
 
-
-        for part in agent.anatomy:
+        for part_name, part in agent.frame.anatomy.items():
 
             if part.body is not None:
 
@@ -240,9 +239,9 @@ class Playground():
             if self.physical_entities[id_entity].visible:
                 self.physical_entities[id_entity].draw(self.topdown_view)
 
-        for agent_name in self.agents:
+        for agent in self.agents:
 
-            self.agents[agent_name].draw(self.topdown_view)
+            agent.frame.draw(self.topdown_view)
 
     def draw_activation_radius(self):
 
@@ -281,9 +280,7 @@ class Playground():
 
     def release_grasps(self):
 
-        for agent_name in self.agents:
-
-            agent = self.agents[agent_name]
+        for agent in self.agents:
 
             if not agent.is_holding:
 

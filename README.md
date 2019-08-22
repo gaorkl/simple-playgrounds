@@ -23,7 +23,7 @@ New version of flatland.
   - body
   - sensors
   - generic class agent, which has a body, a controller, and sensors
-
+- Modify metabolism, harmonize name for head_velocity, head_speed, ... and computation of energy
 
 # TODO Gui
 - one window per agent with sensors and reward

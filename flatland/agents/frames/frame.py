@@ -1,10 +1,10 @@
 from ...entities.entity import Entity
 import pymunk, pygame
 from flatland.utils import texture
+import math
 
 
-
-class BodyGenerator():
+class FrameGenerator:
 
     """
     Register class to provide a decorator that is used to go through the package and
@@ -35,7 +35,7 @@ class BodyGenerator():
         return cls.subclasses[body_type](params)
 
 
-class BodyParts():
+class FrameParts:
 
     def __init__(self):
 
@@ -44,11 +44,11 @@ class BodyParts():
         self.joint = None
 
 
-class PhysicalBody(Entity):
+class Frame(Entity):
 
     def __init__(self, body_params):
 
-        super(PhysicalBody, self).__init__()
+        super(Frame, self).__init__()
 
         self.base_translation_speed = body_params['base_translation_speed']
         self.base_rotation_speed = body_params['base_rotation_speed']
@@ -58,7 +58,7 @@ class PhysicalBody(Entity):
         self.base_mass = body_params.get("base_mass")
 
 
-        base = BodyParts()
+        base = FrameParts()
 
         inertia = pymunk.moment_for_circle(self.base_mass, 0, self.base_radius, (0, 0))
 
@@ -77,6 +77,11 @@ class PhysicalBody(Entity):
         self.texture = texture.Texture.create(self.base_texture)
         self.initialize_texture()
 
+        self.actions = {}
+
+    def apply_actions(self, actions):
+
+        self.actions = actions
 
     def initialize_texture(self):
 
@@ -93,3 +98,15 @@ class PhysicalBody(Entity):
         self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
         pygame.draw.line(self.mask,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
 
+    def draw(self, surface):
+        """
+        Draw the agent on the environment screen
+        """
+        # Body
+
+        mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)
+        mask_rect = mask_rotated.get_rect()
+        mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
+
+        # Blit the masked texture on the screen
+        surface.blit(mask_rotated, mask_rect, None)

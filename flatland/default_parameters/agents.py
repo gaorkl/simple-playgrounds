@@ -1,7 +1,7 @@
 import math
 
 """
-Different standard parameters for physical_bodies:
+Different standard parameters for frames:
  - forward_default
  - forward_head_default
  - holonomic_default

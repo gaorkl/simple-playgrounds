@@ -1,6 +1,6 @@
 from flatland import playgrounds
 import matplotlib.pyplot as plt
-import flatland.agents.physical_bodies.forward_head as forward_head
+import flatland.agents.frames.collection.forward_head as forward_head
 
 
 def display(img):

@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 
 class ControllerGenerator():
 
@@ -31,12 +30,17 @@ class ControllerGenerator():
         return cls.subclasses[controller_type](params)
 
 
-class Controller(ABC):
+class Controller():
 
-    def __init__(self, available_actions):
+    def __init__(self):
 
-        self.available_actions = available_actions
+        self.require_key_mapping = False
+        self.available_actions = {}
+        self.actions = {}
 
-    @abstractmethod
     def get_actions(self):
         pass
+
+    def set_available_actions(self, available_actions):
+        pass
+

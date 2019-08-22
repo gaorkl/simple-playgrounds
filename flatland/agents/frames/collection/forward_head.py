@@ -1,6 +1,6 @@
 import pymunk, pygame
 from .forward import Forward
-from .physical_body import BodyParts
+from flatland.agents.frames.frame import *
 from flatland.utils import texture
 
 from pygame.locals import *
@@ -8,7 +8,7 @@ from pygame.locals import *
 from flatland.default_parameters.agents import *
 
 
-
+@FrameGenerator.register_subclass('forward_head')
 class ForwardHead(Forward):
 
     def __init__(self, agent_params):
@@ -23,7 +23,7 @@ class ForwardHead(Forward):
 
         self.head_metabolism = agent_params.get("head_metabolism")
 
-        head = BodyParts()
+        head = FrameParts()
 
         base = self.anatomy["base"]
 
@@ -50,6 +50,7 @@ class ForwardHead(Forward):
         self.head_texture = texture.Texture.create(text)
         self.initialize_head_texture()
 
+        self.head_velocity = 0
 
 
 
@@ -82,36 +83,41 @@ class ForwardHead(Forward):
 
         return rel_head
 
-    def apply_action(self, actions):
-        super().apply_action(actions)
+    def apply_action(self):
+        super().apply_action()
 
-        head_velocity = actions.get('head_velocity', 0)
+        self.head_velocity = self.actions.get('head_velocity', 0)
 
-        self.anatomy['head'].body.angle +=  self.head_speed * head_velocity
+        self.anatomy['head'].body.angle +=  self.head_speed * self.head_velocity
 
         if self.get_head_angle() < -self.head_range:
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle + self.head_range
         elif self.get_head_angle() > self.head_range:
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range
 
+        movement_energy = self.frame.get_movement_energy()
+        self.reward -= self.base_metabolism * movement_energy['head']
 
-        self.head_metabolism
+        self.health += self.reward
 
-        self.reward -= self.head_metabolism * (abs(head_velocity))
-        self.health -= self.head_metabolism * (abs(head_velocity))
+    def get_movement_energy(self):
 
+        energy = super().get_movement_energy()
+        energy['head'] = abs(self.head_velocity)
 
-    def getStandardKeyMapping(self):
+        return energy
 
-        mapping = super().getStandardKeyMapping()
+    def get_default_key_mapping(self):
+
+        mapping = super().get_default_key_mapping()
 
         mapping[K_z] = ['press_hold', 'head_velocity', 1]
         mapping[K_x] = ['press_hold', 'head_velocity', -1]
 
         return mapping
 
-    def getAvailableActions(self):
-        actions = super().getAvailableActions()
+    def get_available_actions(self):
+        actions = super().get_available_actions()
 
         actions['head_velocity'] = [-1, 1, 'continuous']
 

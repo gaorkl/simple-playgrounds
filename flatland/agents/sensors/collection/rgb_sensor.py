@@ -1,4 +1,4 @@
-from .sensor import SensorGenerator, Sensor
+from flatland.agents.sensors.sensor import SensorGenerator, Sensor
 import numpy as np
 import cv2
 
