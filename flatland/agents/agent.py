@@ -94,6 +94,11 @@ class Agent():
 
         self.frame.apply_actions(self.action_commands)
 
+        movement_energy = self.frame.get_movement_energy()
+        self.reward -= self.base_metabolism * sum( energy for part, energy in movement_energy.items() )
+
+        self.health += self.reward
+
         self.health += self.reward
 
     def getStandardKeyMapping(self):

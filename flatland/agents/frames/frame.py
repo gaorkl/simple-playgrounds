@@ -79,9 +79,9 @@ class Frame(Entity):
 
         self.actions = {}
 
-    def apply_actions(self, actions):
+    def apply_actions(self, action_commands):
 
-        self.actions = actions
+        self.actions = action_commands
 
     def initialize_texture(self):
 

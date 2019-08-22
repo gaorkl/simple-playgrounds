@@ -83,8 +83,9 @@ class ForwardHead(Forward):
 
         return rel_head
 
-    def apply_action(self):
-        super().apply_action()
+    def apply_actions(self, action_commands):
+
+        super().apply_actions(action_commands)
 
         self.head_velocity = self.actions.get('head_velocity', 0)
 
@@ -95,10 +96,6 @@ class ForwardHead(Forward):
         elif self.get_head_angle() > self.head_range:
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range
 
-        movement_energy = self.frame.get_movement_energy()
-        self.reward -= self.base_metabolism * movement_energy['head']
-
-        self.health += self.reward
 
     def get_movement_energy(self):
 

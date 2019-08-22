@@ -20,9 +20,9 @@ class Forward(Frame):
         self.longitudinal_velocity = 0
         self.angular_velocity = 0
 
-    def apply_action(self, actions):
+    def apply_actions(self, action_commands):
 
-        super().apply_actions()
+        super().apply_actions(action_commands)
 
         self.longitudinal_velocity = self.actions.get('longitudinal_velocity', 0)
         vx = self.longitudinal_velocity*SIMULATION_STEPS/10.0
@@ -32,10 +32,7 @@ class Forward(Frame):
         self.angular_velocity = self.actions.get('angular_velocity', 0)
         self.anatomy["base"].body.angular_velocity = self.angular_velocity * self.base_rotation_speed
 
-        movement_energy = self.frame.get_movement_energy()
-        self.reward -= self.base_metabolism * movement_energy['base']
 
-        self.health += self.reward
 
     def get_movement_energy(self):
 
