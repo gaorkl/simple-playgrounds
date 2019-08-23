@@ -44,7 +44,7 @@ class Forward(Frame):
 
     def get_default_key_mapping(self):
 
-        mapping = {}
+        mapping = super().get_default_key_mapping()
 
         mapping[K_LEFT] = ['press_hold', 'angular_velocity', 1]
         mapping[K_RIGHT] = ['press_hold', 'angular_velocity', -1]
@@ -54,7 +54,7 @@ class Forward(Frame):
 
     def get_available_actions(self):
 
-        actions = {}
+        actions = super().get_available_actions()
 
         actions['longitudinal_velocity'] = [0, 1, 'continuous']
         actions['angular_velocity'] = [-1, 1, 'continuous']

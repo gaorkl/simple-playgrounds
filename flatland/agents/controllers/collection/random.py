@@ -9,7 +9,7 @@ class Random(Controller):
 
     def __init__(self, controller_params):
 
-        super(Random).__init__(controller_params)
+        super(Random).__init__()
         self.require_key_mapping = False
         self.actions = {}
 

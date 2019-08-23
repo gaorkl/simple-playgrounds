@@ -1,4 +1,5 @@
 SIMULATION_STEPS = 4
+ASPECT_RATIO = 4
 SPACE_DAMPING = 0.96
 
 collision_types = {

@@ -2,8 +2,6 @@ import pygame
 import numpy as np
 import cv2
 
-
-
 ###########################################
 # BUILDING A PLAYGROUND
 ###########################################
@@ -98,16 +96,17 @@ agent_params = {
     'frame' : {
         'type': 'forward_head',
         'params' : {
-            'base_radius': 50
+            'base_radius': 15,
+            'base_rotation_speed': 0.5
                 }
     },
     'controller' :{
         'type': 'keyboard'
     },
-    'sensors':{},
-    #     'rgb_1': {**rgb_default, **{'bodyAnchor': 'head'} },
-    #     'touch_1' : touch_default,
-    # },
+    'sensors':{
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head'} },
+        'touch_1' : touch_default,
+    },
     'starting_position':{
         'type': 'fixed',
         'position' : [200, 200, 0]
@@ -148,8 +147,11 @@ clock = pygame.time.Clock()
 while game.game_on:
 
     game.update_observations()
+
     game.set_actions()
+
     game.step()
+
 
     for agent in game.agents:
 
@@ -165,6 +167,5 @@ while game.game_on:
 
     game.display_full_scene()
 
+    clock.tick(30)
 
-
-    clock.tick(20)

@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import K_q
 from flatland.utils.config import *
+import time
 
 class Engine():
 
@@ -33,6 +34,7 @@ class Engine():
     def update_observations(self):
 
         # Compute environment image once
+
         img = self.playground.generate_playground_image_sensor()
 
         # For each agent, compute sensors

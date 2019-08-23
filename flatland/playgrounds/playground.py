@@ -10,6 +10,8 @@ from ..default_parameters.scenes import *
 
 import random
 
+import time
+
 
 class PlaygroundGenerator():
 
@@ -89,6 +91,8 @@ class Playground():
 
         self.agents = []
         self.body_parts_agents = {}
+
+
 
     def initialize_space(self):
 
@@ -226,10 +230,12 @@ class Playground():
 
     def generate_playground_image_sensor(self):
         # Update the screen of the environment
+
         self.topdown_view.fill(THECOLORS["black"])
         self.draw()
 
         imgdata = pygame.surfarray.array3d(self.topdown_view)
+
         return imgdata
 
     def draw(self):
@@ -390,10 +396,10 @@ class Playground():
             # create new link
             agent.is_holding = True
 
-            j1 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (0,5), (0,-5))
-            j2 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (0,-5), (0,5))
-            j3 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (5,5), (0,5))
-            j4 = pymunk.PinJoint(activable.pm_body, agent.anatomy['base'].body, (5,-5), (0,5))
+            j1 = pymunk.PinJoint(activable.pm_body, agent.frame.anatomy['base'].body, (0,5), (0,-5))
+            j2 = pymunk.PinJoint(activable.pm_body, agent.frame.anatomy['base'].body, (0,-5), (0,5))
+            j3 = pymunk.PinJoint(activable.pm_body, agent.frame.anatomy['base'].body, (5,5), (0,5))
+            j4 = pymunk.PinJoint(activable.pm_body, agent.frame.anatomy['base'].body, (5,-5), (0,5))
 
             self.space.add(j1, j2, j3, j4)
 

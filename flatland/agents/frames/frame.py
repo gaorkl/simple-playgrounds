@@ -1,8 +1,9 @@
 from ...entities.entity import Entity
 import pymunk, pygame
 from flatland.utils import texture
+from flatland.utils.config import *
 import math
-
+from pygame.locals import *
 
 class FrameGenerator:
 
@@ -32,7 +33,7 @@ class FrameGenerator:
         if body_type not in cls.subclasses:
             raise ValueError('Body not implemented: ' + body_type)
 
-        return cls.subclasses[body_type](params)
+        return cls.subclasses[body_type](params['params'])
 
 
 class FrameParts:
@@ -57,6 +58,7 @@ class Frame(Entity):
         self.base_radius = body_params.get("base_radius")
         self.base_mass = body_params.get("base_mass")
 
+        self.collision_type = collision_types['agent']
 
         base = FrameParts()
 
@@ -67,7 +69,7 @@ class Frame(Entity):
 
         shape = pymunk.Circle(body, self.base_radius, (0, 0))
         shape.elasticity = 0.1
-        shape.collision_type = 1
+        shape.collision_type = self.collision_type
 
         base.shape = shape
 
@@ -110,3 +112,23 @@ class Frame(Entity):
 
         # Blit the masked texture on the screen
         surface.blit(mask_rotated, mask_rect, None)
+
+    def get_default_key_mapping(self):
+        mapping = {
+            K_g: ['press_hold', 'grasp', 1],
+            K_a: ['press_once', 'activate', 1],
+            K_e: ['press_once', 'eat', 1]
+
+        }
+
+        return mapping
+
+    def get_available_actions(self):
+
+        actions = {
+            'grasp': [0, 1, 'discrete'],
+            'activate': [0, 1, 'discrete'],
+            'eat': [0, 1, 'discrete'],
+        }
+
+        return actions

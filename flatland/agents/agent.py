@@ -64,10 +64,10 @@ class Agent():
 
     def compute_sensors(self, img):
 
-        for sens in self.sensors:
-            self.sensors[sens].update_sensor(img)
+        for sensor_name in self.sensors:
+            self.sensors[sensor_name].update_sensor(img)
 
-            self.observations[sens] = self.sensors[sens].observation
+            self.observations[sensor_name] = self.sensors[sensor_name].observation
 
     def pre_step(self):
 
@@ -101,22 +101,3 @@ class Agent():
 
         self.health += self.reward
 
-    def getStandardKeyMapping(self):
-        mapping = {
-            K_g: ['press_hold', 'grasp', 1],
-            K_a: ['press_once', 'activate', 1],
-            K_e: ['press_once', 'eat', 1]
-
-        }
-
-        return mapping
-
-    def getAvailableActions(self):
-
-        actions = {
-            'grasp': [0, 1, 'discrete'],
-            'activate': [0, 1, 'discrete'],
-            'eat': [0, 1, 'discrete'],
-        }
-
-        return actions

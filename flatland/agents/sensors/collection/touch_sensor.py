@@ -9,6 +9,7 @@ class TouchSensor(Sensor):
     def __init__(self, anatomy, sensor_param):
         super(TouchSensor, self).__init__(anatomy, sensor_param)
 
+        self.fovRange = self.fovRange + self.min_range
 
     def update_sensor(self, img ):
 
