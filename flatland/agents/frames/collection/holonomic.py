@@ -32,6 +32,7 @@ class Holonomic(Forward):
         mapping[K_LEFT] = ['press_hold', 'lateral_velocity', 1]
         mapping[K_RIGHT] = ['press_hold', 'lateral_velocity', -1]
 
+        # TODO: change mapping
         mapping[K_z] = ['press_hold', 'angular_velocity', 1]
         mapping[K_x] = ['press_hold', 'angular_velocity', -1]
 

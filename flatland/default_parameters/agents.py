@@ -19,9 +19,14 @@ head_texture = {
 
 metabolism_default = {
     'health' : 1000,
+    'latent_metabolism' : 0.0001,
     'base_metabolism' : 0.001,
     'action_metabolism': 0.01,
+    'head_metabolism': 0.0005,
 }
+
+#####################
+# Sensors
 
 rgb_default = {
     'type': 'rgb',
@@ -39,6 +44,8 @@ touch_default = {
     'bodyAnchor': "base",
 }
 
+#####################
+# Frames
 
 forward_default = {
     'base_texture':  base_texture,
@@ -46,7 +53,7 @@ forward_default = {
     'base_mass' : 20,
 
     'base_translation_speed': 10.0,
-    'base_rotation_speed': 0.1,
+    'base_rotation_speed': 0.25,
 
 }
 
@@ -57,7 +64,7 @@ forward_head_default = {
     'head_radius': 10,
     'head_mass' : 5,
 
-    'head_rotation_speed': 0.1,
+    'head_rotation_speed': 0.25,
     'head_rotation_range': math.pi/2,
     'head_metabolism' : 0.001,
 

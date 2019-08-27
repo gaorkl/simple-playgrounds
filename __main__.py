@@ -97,7 +97,6 @@ agent_params = {
         'type': 'forward_head',
         'params' : {
             'base_radius': 15,
-            'base_rotation_speed': 0.5
                 }
     },
     'controller' :{

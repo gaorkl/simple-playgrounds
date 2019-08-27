@@ -97,6 +97,7 @@ class ForwardHead(Forward):
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range
 
 
+
     def get_movement_energy(self):
 
         energy = super().get_movement_energy()
