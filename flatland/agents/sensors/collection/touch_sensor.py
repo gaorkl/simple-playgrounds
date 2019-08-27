@@ -7,6 +7,8 @@ import cv2
 class TouchSensor(Sensor):
 
     def __init__(self, anatomy, sensor_param):
+
+        sensor_param['fovRange'] = sensor_param['minRange'] + sensor_param['contactRange']
         super(TouchSensor, self).__init__(anatomy, sensor_param)
 
         self.fovRange = self.fovRange + self.min_range

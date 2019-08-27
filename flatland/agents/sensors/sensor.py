@@ -3,6 +3,7 @@ import math
 import cv2
 import numpy as np
 
+import time
 
 class SensorGenerator:
 
@@ -75,19 +76,44 @@ class Sensor(ABC):
 
         self.observation = None
 
+        self.bbox_initialized = False
 
-        
+
 
     @abstractmethod
     def update_sensor(self, img):
 
         w, h, _ = img.shape
 
+        t1 = time.time()
+
+
         # Position of the sensor
         sensor_x, sensor_y = self.body_anchor.position
         sensor_angle = self.body_anchor.angle + math.pi
 
-        polar_img = cv2.linearPolar(img, (sensor_x, sensor_y), self.fovRange, flags=cv2.INTER_NEAREST)
+        # Crop area around agent early
+        rolled_img = np.roll(img, (int( w/2-sensor_y), int( h/2-sensor_x)) ,( 0,1 ))
+
+        if not self.bbox_initialized:
+
+            self.mid_w_bbox = min(w, self.fovRange)
+            self.mid_h_bbox = min(h, self.fovRange)
+            self.bbox_initialized = True
+
+        cropped_img = rolled_img[ int(w/2) - self.mid_w_bbox : int(w/2) + self.mid_w_bbox + 1,
+                      int(h / 2) - self.mid_h_bbox : int(h / 2) + self.mid_h_bbox + 1
+                      ]
+
+        cv2.imshow('cropped '+ self.name, cropped_img)
+        cv2.waitKey()
+
+        print(cropped_img.shape, self.fovRange)
+        print(self.mid_w_bbox, self.mid_h_bbox)
+        polar_img = cv2.linearPolar(cropped_img, (self.mid_w_bbox, self.mid_h_bbox), self.fovRange , flags=cv2.INTER_NEAREST)
+
+        t2 = time.time()
+
 
         angle_center = w * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
         rolled_img = np.roll(polar_img, int( w - angle_center), axis=0)
@@ -100,14 +126,22 @@ class Sensor(ABC):
                       start_crop:
                       ]
 
+        t3 = time.time()
+
         resized_img = cv2.resize(
             cropped_img,
             (cropped_img.shape[1], int(self.fovResolution)),
             interpolation=cv2.INTER_NEAREST
         )
 
+        t4 = time.time()
+
         self.resized_img = resized_img[::-1, :, ::-1]
         self.cropped_img = cropped_img[::-1, :, ::-1]
+
+        t5 = time.time()
+
+        print( self.name, t2-t1, t3-t2, t4-t3, t5-t4)
 
     @abstractmethod
     def get_shape_observation(self):

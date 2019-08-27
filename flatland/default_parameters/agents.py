@@ -31,7 +31,7 @@ metabolism_default = {
 rgb_default = {
     'type': 'rgb',
     'fovResolution': 128,
-    'fovRange': 400,
+    'fovRange': 100,
     'fovAngle': math.pi,
     'bodyAnchor': "base",
 }
@@ -39,7 +39,7 @@ rgb_default = {
 touch_default = {
     'type': 'touch',
     'fovResolution': 128,
-    'fovRange': 5,
+    'contactRange': 10,
     'fovAngle': 2*math.pi,
     'bodyAnchor': "base",
 }

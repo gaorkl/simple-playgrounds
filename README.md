@@ -18,11 +18,7 @@ New version of flatland.
 
 # TODO agents:
 - for now, every sensor computed independently. But polar need only to be computed once
-- modify library:
-  - controllers
-  - body
-  - sensors
-  - generic class agent, which has a body, a controller, and sensors
+- modify sensors: default rgb and touch sensor params.
 - Modify metabolism, harmonize name for head_velocity, head_speed, ... and computation of energy
 
 # TODO Gui
@@ -33,3 +29,5 @@ New version of flatland.
 # TODO RL:
 - end zone
 - reset environment
+- object for end of episode (wall, ball)
+- puck object, with radius, which gives negative reward
