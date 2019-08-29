@@ -144,16 +144,12 @@ clock = pygame.time.Clock()
 
 import time
 
-t1 = time.time()
 
 # while game.game_on:
 for i in range(300):
     game.update_observations()
-
     game.set_actions()
-
     game.step()
-
     #
     # for agent in game.agents:
     #
@@ -170,5 +166,7 @@ for i in range(300):
     # game.display_full_scene()
 
     # clock.tick(30)
+
+
 
 print( 100 / (time.time() - t1) )
