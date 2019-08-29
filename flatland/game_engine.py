@@ -35,17 +35,13 @@ class Engine():
 
         # Compute environment image once
 
-        t1 = time.time()
         img = self.playground.generate_playground_image_sensor()
-        t2 = time.time()
 
         # For each agent, compute sensors
         for agent in self.agents:
 
             agent.compute_sensors(img)
-        t3 = time.time()
 
-        print( t2-t1, t3-t2)
 
     def set_actions(self):
 

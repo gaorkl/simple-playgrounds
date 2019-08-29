@@ -31,7 +31,7 @@ metabolism_default = {
 rgb_default = {
     'type': 'rgb',
     'fovResolution': 128,
-    'fovRange': 200,
+    'fovRange': 400,
     'fovAngle': math.pi,
     'bodyAnchor': "base",
 }

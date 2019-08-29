@@ -144,9 +144,10 @@ clock = pygame.time.Clock()
 
 import time
 
+t1 = time.time()
 
 # while game.game_on:
-for i in range(300):
+for i in range(1000):
     game.update_observations()
     game.set_actions()
     game.step()
@@ -167,6 +168,4 @@ for i in range(300):
 
     # clock.tick(30)
 
-
-
-print( 100 / (time.time() - t1) )
+print( 1000 / (time.time() - t1) )
