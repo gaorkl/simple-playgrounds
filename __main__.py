@@ -142,30 +142,25 @@ game = Engine( playground = pg, agents = [my_agent], game_parameters = game_para
 
 clock = pygame.time.Clock()
 
-import time
 
-t1 = time.time()
-
-# while game.game_on:
-for i in range(1000):
+while game.game_on:
     game.update_observations()
     game.set_actions()
     game.step()
 
-    # for agent in game.agents:
-    #
-    #     observations = agent.observations
-    #
-    #     for obs in observations:
-    #
-    #         im = np.asarray( observations[obs])
-    #         im = np.expand_dims(im, 0)
-    #         im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
-    #         cv2.imshow( obs, im )
-    #         cv2.waitKey(1)
-    #
-    # game.display_full_scene()
-    #
-    # clock.tick(30)
+    for agent in game.agents:
 
-print( 1000 / (time.time() - t1) )
+        observations = agent.observations
+
+        for obs in observations:
+
+            im = np.asarray( observations[obs])
+            im = np.expand_dims(im, 0)
+            im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
+            cv2.imshow( obs, im )
+            cv2.waitKey(1)
+
+    game.display_full_scene()
+
+    clock.tick(30)
+

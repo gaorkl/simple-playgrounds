@@ -17,8 +17,7 @@ New version of flatland.
 - initialize textures
 
 # TODO agents:
-- for now, every sensor computed independently. But polar need only to be computed once
-- modify sensors: default rgb and touch sensor params.
+- add rbgd, depth, rbg-tamed 
 - Modify metabolism, harmonize name for head_velocity, head_speed, ... and computation of energy
 
 # TODO Gui
@@ -31,3 +30,10 @@ New version of flatland.
 - reset environment
 - object for end of episode (wall, ball)
 - puck object, with radius, which gives negative reward
+
+# TODO entities:
+- key lock and key to open door
+- areas with kill zone
+- agents with kill zones
+- end zone
+- object to zone for reward
