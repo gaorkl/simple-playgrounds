@@ -3,8 +3,6 @@ import math
 import cv2
 import numpy as np
 
-import time
-
 class SensorGenerator:
 
     """
@@ -53,6 +51,8 @@ class Sensor(ABC):
         # Field of View of the Sensor
         self.fovResolution = sensor_param.get('fovResolution', None)
         self.fovRange = sensor_param.get('fovRange', None)
+        self.threshold = 70 if self.fovRange < 70 else self.fovRange
+
         self.fovAngle = sensor_param.get('fovAngle', None)
         self.min_range = sensor_param.get('minRange', None)
 
@@ -85,55 +85,37 @@ class Sensor(ABC):
 
         w, h, _ = img.shape
 
-        t1 = time.time()
-
         # Position of the sensor
         sensor_x, sensor_y = self.body_anchor.position
         sensor_angle = self.body_anchor.angle + math.pi
 
-        # # Crop area around agent early
-        # rolled_img = np.roll(img, (int( w/2-sensor_y), int( h/2-sensor_x)) ,( 0,1 ))
-        #
-        # t2 = time.time()
-        #
-        # if not self.bbox_initialized:
-        #
-        #     # Prevent to crop outside of image
-        #
-        #     self.mid_w_bbox = min(w/2, self.fovRange+1)
-        #     self.mid_h_bbox = min(h/2, self.fovRange+1)
-        #
-        #     # Opencv linerar polar crashes when image is too small
-        #
-        #     self.mid_w_bbox = int(max(self.mid_w_bbox, 80))
-        #     self.mid_h_bbox = int(max(self.mid_h_bbox, 80))
-        #     self.bbox_initialized = True
-        #
-        #
-        # cropped_img = rolled_img[ int(w/2) - self.mid_w_bbox : int(w/2) + self.mid_w_bbox + 1,
-        #               int(h / 2) - self.mid_h_bbox : int(h / 2) + self.mid_h_bbox + 1
-        #               ]
-        t3 = time.time()
 
-        # polar_img = cv2.linearPolar(cropped_img, (self.mid_w_bbox, self.mid_h_bbox), self.fovRange  , flags=cv2.INTER_NEAREST)
-        polar_img = cv2.linearPolar(img, (sensor_x, sensor_y), self.fovRange  , flags=cv2.INTER_NEAREST)
 
-        t4 = time.time()
+        x1 = int(max(0, sensor_x - self.threshold))
+        y1 = int(max(0, sensor_y - self.threshold))
+        x2 = int(min( h, sensor_x + self.threshold + 1))
+        y2 = int(min( w, sensor_y + self.threshold + 1))
 
-        angle_center = w * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
-        rolled_img = np.roll(polar_img, int( w - angle_center), axis=0)
+        new_w = y2 - y1
+        new_h = x2 - x1
 
-        t5 = time.time()
+        center = ( sensor_x - x1, sensor_y - y1 )
 
-        start_crop = int(self.min_range * h / self.fovRange)
+        cropped_img = img[y1:y2, x1:x2]
+
+        polar_img = cv2.linearPolar(cropped_img, center, self.fovRange , flags=cv2.INTER_NEAREST)
+
+        angle_center =  new_w * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
+        rolled_img = np.roll(polar_img, int( new_w - angle_center), axis=0)
+
+        start_crop = int(self.min_range * new_h / self.fovRange)
+        end_crop = int(self.fovRange * new_h / self.fovRange)
 
         cropped_img = rolled_img[
-                      int(w / 2 - w * (self.fovAngle / 2.0) / (2 * math.pi)):int(
-                          w / 2 + w * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
-                      start_crop:
+                      int(new_w / 2 - new_w * (self.fovAngle / 2.0) / (2 * math.pi)):int(
+                          new_w / 2 + new_w * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
+                      start_crop:end_crop
                       ]
-
-        t6 = time.time()
 
         resized_img = cv2.resize(
             cropped_img,
@@ -141,16 +123,9 @@ class Sensor(ABC):
             interpolation=cv2.INTER_NEAREST
         )
 
-        t7 = time.time()
-
         self.resized_img = resized_img[::-1, :, ::-1]
         self.cropped_img = cropped_img[::-1, :, ::-1]
 
-        t8 = time.time()
-
-        print(self.name,  t4-t3, t5-t4, t6-t5, t7-t6, t8-t7 )
-
-    # t2 - t1, t3 - t2,
     @abstractmethod
     def get_shape_observation(self):
         pass

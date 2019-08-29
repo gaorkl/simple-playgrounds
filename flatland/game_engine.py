@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import K_q
 from flatland.utils.config import *
-import time
 
 class Engine():
 

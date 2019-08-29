@@ -100,7 +100,7 @@ agent_params = {
                 }
     },
     'controller' :{
-        'type': 'random'
+        'type': 'keyboard'
     },
     'sensors':{
         'rgb_1': {**rgb_default, **{'bodyAnchor': 'head'} },
@@ -151,7 +151,7 @@ for i in range(1000):
     game.update_observations()
     game.set_actions()
     game.step()
-    #
+
     # for agent in game.agents:
     #
     #     observations = agent.observations
@@ -165,7 +165,7 @@ for i in range(1000):
     #         cv2.waitKey(1)
     #
     # game.display_full_scene()
-
+    #
     # clock.tick(30)
 
 print( 1000 / (time.time() - t1) )
