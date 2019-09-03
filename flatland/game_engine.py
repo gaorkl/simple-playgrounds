@@ -4,14 +4,15 @@ from flatland.utils.config import *
 
 class Engine():
 
-    def __init__(self, playground, agents, game_parameters):
+    def __init__(self, playground, agents, rules, engine_parameters):
 
         '''
         Engine binds a playground, a list of agents, and rules of the game.
 
         :param playground: a Playground object where agents will play
         :param agents: a list of Agent objects
-        :param game_parameters: a dict with the parameters of the game
+        :param rules: a dict with the rules of the game
+        :param engine_parameters
         '''
 
         # Playground already exists
@@ -26,9 +27,17 @@ class Engine():
         self.screen = pygame.display.set_mode((self.playground.width, self.playground.height))
         self.screen.set_alpha(None)
 
-        # Rules
-        self.game_on = True
+        # Rules TODO: add default dict
+        self.replay_until_time_limit = rules.get('play_until_time_limit', False)
+        self.time_limit = rules.get('time_limit', 1000)
 
+        # Engine parameters
+        self.inner_simulation_steps = engine_parameters.get('simulation_steps', SIMULATION_STEPS)
+        self.scale_factor = engine_parameters.get('scale_factor', 1)
+
+        self.game_on = True
+        self.current_elapsed_time = 0
+        self.time = 0
 
     def update_observations(self):
 
@@ -56,13 +65,22 @@ class Engine():
         for agent in self.agents:
             agent.pre_step()
 
-        for _ in range(SIMULATION_STEPS):
-            self.playground.space.step(1. / SIMULATION_STEPS)
+        for _ in range(self.inner_simulation_steps):
+            self.playground.space.step(1. / self.inner_simulation_steps)
 
-        if pygame.key.get_pressed()[K_q]:
-            self.game_on = False
+        self.current_elapsed_time += 1
+        self.time += 1
 
         self.playground.update_playground()
+
+        # Termination
+        if pygame.key.get_pressed()[K_q] or self.time == self.time_limit or self.playground.has_reached_termination:
+
+            if self.replay_until_time_limit:
+                self.game_reset()
+
+            else:
+                self.game_on = False
 
     def display_full_scene(self):
 
@@ -72,3 +90,6 @@ class Engine():
 
         pygame.display.flip()
 
+    def game_reset(self):
+        self.current_elapsed_time = 0
+        self.playground.reset()

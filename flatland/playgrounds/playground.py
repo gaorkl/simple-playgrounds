@@ -92,6 +92,8 @@ class Playground():
         self.agents = []
         self.body_parts_agents = {}
 
+        self.has_reached_termination = False
+
 
 
     def initialize_space(self):

@@ -120,24 +120,22 @@ my_agent = agent.Agent(agent_params)
 
 from flatland.game_engine import Engine
 
-game_parameters = {
-    'rules':{
-        'game_mode' : 'time',
-        'horizon' : 1000
-    },
-    'engine' : {
-        'speed_ratio': 1,
-        'aspect_ratio': 1,
-        'frame_rate': 24
-    },
+engine_parameters = {
+    'inner_simulation_steps': 1,
+    'scale_factor': 1,
+
     'display': {
         'playground' : True,
         'frames' : True,
     }
 }
 
+rules = {
+    'replay_until_time_limit': True,
+    'time_limit' : 1000
+}
 
-game = Engine( playground = pg, agents = [my_agent], game_parameters = game_parameters )
+game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_parameters= engine_parameters )
 
 
 clock = pygame.time.Clock()

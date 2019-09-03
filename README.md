@@ -15,6 +15,7 @@ New version of flatland.
 - create visible / invisible fire areas
 - fire objects
 - initialize textures
+- modify default config, so that it can be specified by user
 
 # TODO agents:
 - add rbgd, depth, rbg-tamed 
