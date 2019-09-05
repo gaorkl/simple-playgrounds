@@ -76,11 +76,15 @@ door_opener = door_opener_default.copy()
 door_opener['door']['position'] = [200, 300, math.pi/2]
 door_opener['position'] = [50, 300, 0]
 
+### Zone
+end_zone = end_zone_default.copy()
+end_zone['position'] = [300, 200, 0]
+
 pg_params = {
     'scene': {
         'shape': [600, 400]
     },
-    'entities': [basic_1, basic_2, edible_1, absorbable_1, absorbable_2, dispenser_1, yielder_1, grasp_1, door_opener]
+    'entities': [basic_1, basic_2, edible_1, absorbable_1, absorbable_2, dispenser_1, yielder_1, grasp_1, door_opener, end_zone]
 }
 
 pg = playground.PlaygroundGenerator.create('rooms_2_edible', pg_params )

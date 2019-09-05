@@ -68,6 +68,9 @@ class Engine():
         for _ in range(self.inner_simulation_steps):
             self.playground.space.step(1. / self.inner_simulation_steps)
 
+        for agent in self.agents:
+            agent.health += (agent.reward - agent.energy_spent)
+
         self.current_elapsed_time += 1
         self.time += 1
 
@@ -82,6 +85,9 @@ class Engine():
             else:
                 self.game_on = False
 
+            for ag in self.agents:
+                print(ag.health)
+
     def display_full_scene(self):
 
         img = self.playground.generate_playground_image()
@@ -91,6 +97,7 @@ class Engine():
         pygame.display.flip()
 
     def game_reset(self):
+
         self.current_elapsed_time = 0
 
         self.playground.remove_agents()

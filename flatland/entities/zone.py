@@ -5,6 +5,26 @@ from flatland.utils import texture
 
 from flatland.entities.entity import Entity
 
+class ZoneGenerator():
+
+    subclasses = {}
+
+    @classmethod
+    def register_subclass(cls, zone_type):
+        def decorator(subclass):
+            cls.subclasses[zone_type] = subclass
+            return subclass
+
+        return decorator
+
+    @classmethod
+    def create(cls, params):
+        zone_type = params['zone_type']
+        if zone_type not in cls.subclasses:
+            #TODO: verify rais eerroe?
+            raise ValueError('Zone type not implemented:' + zone_type)
+
+        return cls.subclasses[zone_type](params)
 
 class Zone(Entity):
 
@@ -22,6 +42,11 @@ class Zone(Entity):
         self.position = params['position']
 
         self.reward = params.get('reward', 0)
+        self.reward_provided = False
+
+        self.activable = False
+        self.movable = False
+        self.graspable = False
 
         if self.physical_shape == 'rectangle':
             self.shape_rectangle = params['shape_rectangle']
@@ -41,9 +66,26 @@ class Zone(Entity):
         shape_sensor = self.generate_pymunk_sensor_shape(self.pm_body)
 
         self.pm_sensor = shape_sensor
-        self.pm_sensor.collision_type = collision_types['zone']
 
+        text = params['texture']
+        self.texture = texture.Texture.create(text)
         self.action_radius_texture = None
+
+        self.pm_sensor.collision_type = collision_types['zone']
+        self.zone_type = params['zone_type']
+
+    def pre_step(self):
+
+        self.reward_provided = False
+
+    def get_reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self.reward
+
+        else:
+            return 0
 
     def compute_vertices(self):
 
@@ -96,16 +138,16 @@ class Zone(Entity):
             radius = int(self.radius)
 
             # Create a texture surface with the right dimensions
-            if self.texture_surface is None:
-                self.texture_surface = self.texture.generate(radius * 2, radius * 2)
+            if self.action_radius_texture is None:
+                self.action_radius_texture = self.texture.generate(radius * 2, radius * 2)
 
             # Create the mask
             mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
-            pygame.draw.circle(mask, (255, 255, 255, 50), (radius, radius), radius)
+            pygame.draw.circle(mask, (255, 255, 255, 20), (radius, radius), radius)
 
             # Apply texture on mask
-            mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+            mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
             mask_rect = mask.get_rect()
             mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
 
@@ -116,14 +158,14 @@ class Zone(Entity):
             width , length = self.shape_rectangle
 
             # Create a texture surface with the right dimensions
-            if self.texture_surface is None:
-                self.texture_surface = self.texture.generate(length, width)
-                self.texture_surface.set_colorkey((0, 0, 0, 50))
+            if self.action_radius_texture is None:
+                self.action_radius_texture = self.texture.generate(length, width)
+                self.action_radius_texture.set_colorkey((0, 0, 0, 20))
 
 
 
             # Rotate and center the texture
-            texture_surface = pygame.transform.rotate(self.texture_surface, self.pm_body.angle * 180 / math.pi)
+            texture_surface = pygame.transform.rotate(self.action_radius_texture, self.pm_body.angle * 180 / math.pi)
             texture_surface_rect = texture_surface.get_rect()
             #texture_surface_rect.center = to_pygame(self.body_body.position, surface)
             texture_surface_rect.center = self.pm_body.position[1], self.pm_body.position[0]
@@ -140,14 +182,14 @@ class Zone(Entity):
             vertices = [ [x[1] + length, x[0] + width ] for x in self.vertices ]
 
             # Create a texture surface with the right dimensions
-            if self.texture_surface is None:
-                self.texture_surface = self.texture.generate(2*length, 2*width )
+            if self.action_radius_texture is None:
+                self.action_radius_texture = self.texture.generate(2 * length, 2 * width)
                 self.mask = pygame.Surface((2*length, 2*width), pygame.SRCALPHA)
                 self.mask.fill((0, 0, 0, 0))
-                pygame.draw.polygon(self.mask, (255, 255, 255, 50), vertices)
+                pygame.draw.polygon(self.mask, (255, 255, 255, 20), vertices)
 
                 # Apply texture on mask
-                self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
+                self.mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
 
             mask_rotated = pygame.transform.rotate(self.mask, self.pm_body.angle * 180 / math.pi)
             mask_rect = mask_rotated.get_rect()
@@ -161,3 +203,15 @@ class Zone(Entity):
 
         else:
             raise ValueError('Not implemented')
+
+@ZoneGenerator.register_subclass('end_zone')
+class EndZone(Zone):
+
+    def __init__(self, params):
+
+        super(EndZone, self).__init__(params)
+
+        self.reward = params['reward']
+
+
+

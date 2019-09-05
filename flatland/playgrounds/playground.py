@@ -3,7 +3,7 @@ import pymunk.pygame_util
 from pygame.color import THECOLORS
 
 from flatland import scenes as  scenes
-from flatland.entities import basic, yielder, actionable
+from flatland.entities import basic, yielder, actionable, zone
 from flatland.utils.config import *
 
 from ..default_parameters.scenes import *
@@ -73,6 +73,8 @@ class Playground():
                                           'graspables': []
                                           }
         self.relations['yielders'] = {}
+
+        self.zones = {}
 
         # Store the temporary pinjoints for grasping
         self.grasped = {}
@@ -216,6 +218,12 @@ class Playground():
             else:
                 raise ValueError('actionable type {} not implemented'.format(actionable_type) )
 
+        elif entity_type == 'zone':
+            new_entity = zone.ZoneGenerator.create(entity_params)
+            id = new_entity.name_id
+            self.space.add(new_entity.pm_body, new_entity.pm_sensor)
+
+
         elif entity_type == 'yielder':
             new_entity = yielder.YielderObject(entity_params)
             id = new_entity.name_id
@@ -237,6 +245,9 @@ class Playground():
 
         if entity_type == 'yielder':
             self.yielders[id] = new_entity
+        elif entity_type == 'zone':
+            self.zones[id] = new_entity
+
         else:
             self.physical_entities[id] = new_entity
 
@@ -284,6 +295,10 @@ class Playground():
 
                 self.physical_entities[id_entity].draw_activation_radius(self.topdown_view)
                 self.physical_entities[id_entity].draw(self.topdown_view)
+
+        for id_entity in self.zones:
+
+            self.zones[id_entity].draw(self.topdown_view)
 
     def yielders_produce(self):
 
@@ -350,8 +365,7 @@ class Playground():
 
 
         # TODO: add reward and reset to zero at each ts
-        agent.reward = reward
-        agent.health += reward
+        agent.reward += reward
 
         return True
 
@@ -461,11 +475,27 @@ class Playground():
 
         return True
 
-    def agent_reaches_end_zone(self):
+    def agent_enters_zone(self, arbiter, space, data):
 
-        self.has_reached_termination = True
+        agent_shape = arbiter.shapes[0]
+        agent = self.body_parts_agents[agent_shape]
+
+        sensor_shape = arbiter.shapes[1]
+        zone_id = [id for id in self.zones if self.zones[id].pm_sensor == sensor_shape][0]
+        zone_reached = self.zones[zone_id]
+
+        if zone_reached.zone_type == 'end_zone':
+            self.has_reached_termination = True
+            reward = zone_reached.get_reward()
+            agent.reward += reward
+
+        else:
+            pass
+
         # agent.reward += termination_reward
         # agent.health += termination reward
+
+        return True
 
 
     def eaten_shrinks(self, space, edible_id, agent):
@@ -500,3 +530,6 @@ class Playground():
 
         h_grasps = self.space.add_collision_handler(collision_types['agent'], collision_types['graspable'])
         h_grasps.pre_solve = self.agent_grasps
+
+        h_zone = self.space.add_collision_handler(collision_types['agent'], collision_types['zone'])
+        h_zone.pre_solve = self.agent_enters_zone

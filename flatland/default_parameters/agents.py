@@ -19,10 +19,10 @@ head_texture = {
 
 metabolism_default = {
     'health' : 1000,
-    'latent_metabolism' : 0.0001,
-    'base_metabolism' : 0.001,
-    'action_metabolism': 0.01,
-    'head_metabolism': 0.0005,
+    'latent_metabolism' : 0.001,
+    'base_metabolism' : 0.01,
+    'action_metabolism': 0.1,
+    'head_metabolism': 0.005,
 }
 
 #####################

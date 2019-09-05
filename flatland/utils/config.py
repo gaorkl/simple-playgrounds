@@ -8,6 +8,6 @@ collision_types = {
     "edible": 3,
     "absorbable": 4,
     "activable": 5,
-    "graspable" : 6,
+    "graspable": 6,
+    "zone": 7,
 }
-

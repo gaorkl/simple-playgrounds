@@ -54,7 +54,8 @@ absorbable_default = {
     'mass': 5,
     'texture': absorbable_texture,
     'movable': True,
-    'absorbable' : True
+    'absorbable' : True,
+    'reward' : 15
 
 }
 
@@ -142,3 +143,20 @@ door_opener_default = {
     'time_open': 200
 }
 
+
+# Zones
+
+end_zone_texture =  {
+    'type': 'color',
+    'color': (0, 250, 0)
+    }
+
+end_zone_default = {
+    'physical_shape': 'circle',
+    'radius': 10,
+    'texture': end_zone_texture,
+
+    'entity_type':'zone',
+    'zone_type': 'end_zone',
+    'reward': 200
+}

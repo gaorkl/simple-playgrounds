@@ -42,7 +42,6 @@ class Agent():
 
 
         # Internals
-        self.reward = 0
         self.is_activating = False
         self.is_eating = False
         self.is_grasping = False
@@ -54,6 +53,9 @@ class Agent():
 
         # Default starting position
         self.starting_position = agent_params.get('starting_position', None)
+
+        self.reward = 0
+        self.energy_spent = 0
 
 
     def add_sensor(self, sensor_param):
@@ -74,11 +76,20 @@ class Agent():
         self.reward = 0
         self.action_commands = {}
 
+    # def post_step(self):
+    #
+    #     self.health += self.reward
+    #     self.health += self.energy
+
+
+
     def get_actions(self):
 
         self.action_commands = self.controller.get_actions()
 
     def apply_action(self):
+
+        self.energy_spent = 0
 
         self.is_activating = bool(self.action_commands.get('activate', 0))
         self.is_eating = bool(self.action_commands.get('eat', 0))
@@ -88,16 +99,14 @@ class Agent():
             self.is_holding = False
 
         # Compute energy and reward
-        if self.is_eating: self.reward -= self.action_metabolism
-        if self.is_activating: self.reward -= self.action_metabolism
-        if self.is_holding: self.reward -= self.action_metabolism
+        if self.is_eating: self.energy_spent += self.action_metabolism
+        if self.is_activating: self.energy_spent += self.action_metabolism
+        if self.is_holding: self.energy_spent += self.action_metabolism
 
         self.frame.apply_actions(self.action_commands)
 
         movement_energy = self.frame.get_movement_energy()
-        self.reward -= self.base_metabolism * sum( energy for part, energy in movement_energy.items() )
+        self.energy_spent += self.base_metabolism * sum( energy for part, energy in movement_energy.items() )
 
-        self.health += self.reward
 
-        self.health += self.reward
 
