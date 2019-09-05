@@ -28,7 +28,7 @@ class Engine():
         self.screen.set_alpha(None)
 
         # Rules TODO: add default dict
-        self.replay_until_time_limit = rules.get('play_until_time_limit', False)
+        self.replay_until_time_limit = rules.get('replay_until_time_limit', False)
         self.time_limit = rules.get('time_limit', 1000)
 
         # Engine parameters
@@ -92,4 +92,10 @@ class Engine():
 
     def game_reset(self):
         self.current_elapsed_time = 0
+
+        self.playground.remove_agents()
         self.playground.reset()
+
+        for agent in self.agents:
+            self.playground.add_agent(agent)
+

@@ -160,5 +160,7 @@ while game.game_on:
 
     game.display_full_scene()
 
+    # print(game.time, my_agent.health)
+
     clock.tick(30)
 

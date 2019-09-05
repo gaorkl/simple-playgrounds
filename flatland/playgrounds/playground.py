@@ -42,6 +42,9 @@ class Playground():
 
     def __init__(self, params ):
 
+        # Save params in case of reset
+        self.params = params
+
         # Generate Scene
         scene_parameters = params.get('scene', {})
         scene_parameters = {**basic_scene_default, **scene_parameters}
@@ -143,6 +146,28 @@ class Playground():
 
             self.body_parts_agents[part.shape] = agent
 
+    def remove_agents(self):
+
+        for agent in self.agents:
+
+            for part_name, part in agent.frame.anatomy.items():
+
+                if part.body is not None:
+                    self.space.remove(part.body)
+                    part.body.velocity = (0,0)
+                    part.body.angular_veocity = 0
+
+                if part.shape is not None:
+                    self.space.remove(part.shape)
+
+                if part.joint is not None:
+                    for j in part.joint:
+                        # self.playground.space.add(part.joint)
+                        self.space.remove(j)
+
+
+
+
     def add_entity(self, entity_params, add_to_basics = True):
         '''
         Create new entity and assign  it to corresponding dictionary
@@ -219,7 +244,7 @@ class Playground():
 
     def reset(self):
         # Reset the environment
-        self.__init__(**self.parameters)
+        self.__init__(self.params)
 
     def generate_playground_image(self):
         # Update the screen of the environment
@@ -435,6 +460,13 @@ class Playground():
             space.add_post_step_callback(self.eaten_shrinks, edible_id, agent )
 
         return True
+
+    def agent_reaches_end_zone(self):
+
+        self.has_reached_termination = True
+        # agent.reward += termination_reward
+        # agent.health += termination reward
+
 
     def eaten_shrinks(self, space, edible_id, agent):
 

@@ -14,10 +14,10 @@ class ActionableObject(BasicObject):
         """
         super(ActionableObject, self).__init__(params)
 
-        self.default_texture = {
-            'type': 'color',
-            'color': (10, 30, 200)
-        }
+        # self.default_texture = {
+        #     'type': 'color',
+        #     'color': (10, 30, 200)
+        # }
 
         self.activable = True
         self.action_radius = params['action_radius']
@@ -29,8 +29,8 @@ class ActionableObject(BasicObject):
 
         shape_sensor = self.generate_pymunk_sensor_shape( self.pm_body )
 
-        if 'default_color' in params:
-            self.pm_shape.color = params['default_color']
+        #if 'default_color' in params:
+        #    self.pm_shape.color = params['default_color']
 
         self.pm_sensor = shape_sensor
 
@@ -126,7 +126,9 @@ class DistractorObject(ActionableObject):
 @ActionableGenerator.register_subclass('edible')
 class EdibleObject(ActionableObject):
 
+
     def __init__(self, params):
+
 
         super(EdibleObject, self).__init__(params)
 
@@ -137,17 +139,52 @@ class EdibleObject(ActionableObject):
         self.reward = params.get('initial_reward', 0)
 
 
-
     def actionate(self):
 
-        # TODO: dirty, very dirty. Should be replaced
-        self.params['radius'] = self.shrink_when_eaten * self.radius
-        self.params['reward'] = self.shrink_when_eaten * self.reward
+        self.reward = self.reward*self.shrink_when_eaten
 
-        # TODO: harmonize angles and positions x,y,theta ... body.position, body.angle ...
-        self.params['position'] = ( self.pm_body.position[0], self.pm_body.position[1], self.pm_body.angle)
+        # TODO: refactor the parent class to generate shapes easily
 
-        self.__init__(self.params)
+        if self.physical_shape == 'rectangle':
+            self.shape_rectangle = [ x* self.shrink_when_eaten for x in self.shape_rectangle ]
+        else :
+            self.radius = self.radius * self.shrink_when_eaten
+
+        if self.physical_shape in ['triangle', 'pentagon'] :
+            self.compute_vertices()
+
+        if self.movable:
+            self.mass = self.mass * self.shrink_when_eaten
+            inertia = self.compute_moments()
+            pm_body = pymunk.Body(self.mass, inertia)
+
+        else:
+            self.mass = None
+            pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+
+
+        pm_body.position = self.position[:2]
+        pm_body.angle = self.position[2]
+
+        self.pm_shape = self.generate_pymunk_shape(pm_body)
+
+        self.pm_shape.friction = 1.
+        # self.shape.group = 1
+        self.pm_shape.elasticity = 0.95
+
+        self.pm_body = pm_body
+
+
+        shape_sensor = self.generate_pymunk_sensor_shape(self.pm_body)
+
+        self.pm_sensor = shape_sensor
+        self.pm_sensor.collision_type = collision_types['edible']
+
+        self.texture_surface = None
+        self.action_radius_texture = None
+
+
+#        self.__init__(self.params)
         #self.initialize_texture()
 
 
