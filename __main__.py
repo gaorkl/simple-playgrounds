@@ -37,6 +37,16 @@ basic_2['texture'] = {
     'n_stripes' : 10
 }
 
+# basic_3 = basic_default.copy()
+# basic_3['texture'] = {
+#     'type': 'uniform',
+#     'min': [110, 140, 200],
+#     'max': [130, 159, 220],
+# }
+# basic_3['physical_shape'] = 'pentagon'
+# basic_3['radius'] = 30
+# basic_3['position'] = [250, 250, 0]
+
 
 
 ### Edibles
@@ -78,7 +88,9 @@ door_opener['position'] = [50, 300, 0]
 
 ### Zone
 end_zone = end_zone_default.copy()
-end_zone['position'] = [300, 200, 0]
+end_zone['position'] = [350, 550, 0]
+end_zone['physical_shape'] = 'rectangle'
+end_zone['shape_rectangle'] = [50,50]
 
 pg_params = {
     'scene': {
@@ -107,7 +119,7 @@ agent_params = {
         'type': 'keyboard'
     },
     'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head'} },
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 512} },
         'touch_1' : touch_default,
     },
     'starting_position':{

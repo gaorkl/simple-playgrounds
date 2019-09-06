@@ -160,18 +160,20 @@ class Zone(Entity):
             # Create a texture surface with the right dimensions
             if self.action_radius_texture is None:
                 self.action_radius_texture = self.texture.generate(length, width)
-                self.action_radius_texture.set_colorkey((0, 0, 0, 20))
 
+            # Create the mask
+            mask = pygame.Surface((length, width), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.rect(mask, (255, 255, 255, 20), ((0,0), (length, width)))
 
-
-            # Rotate and center the texture
-            texture_surface = pygame.transform.rotate(self.action_radius_texture, self.pm_body.angle * 180 / math.pi)
-            texture_surface_rect = texture_surface.get_rect()
-            #texture_surface_rect.center = to_pygame(self.body_body.position, surface)
-            texture_surface_rect.center = self.pm_body.position[1], self.pm_body.position[0]
+            # Apply texture on mask
+            mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
+            mask_rect = mask.get_rect()
+            mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
 
             # Blit the masked texture on the screen
-            surface.blit(texture_surface, texture_surface_rect, None)
+            surface.blit(mask, mask_rect, None)
+
 
         elif self.physical_shape in ['triangle', 'pentagon']:
 

@@ -1,6 +1,7 @@
 import pygame
-from pygame.locals import K_q
+from pygame.locals import K_q, KEYDOWN, KEYUP
 from flatland.utils.config import *
+
 
 class Engine():
 
@@ -39,6 +40,8 @@ class Engine():
         self.current_elapsed_time = 0
         self.time = 0
 
+        self.Q_ready_to_press = True
+
     def update_observations(self):
 
         # Compute environment image once
@@ -47,14 +50,11 @@ class Engine():
 
         # For each agent, compute sensors
         for agent in self.agents:
-
             agent.compute_sensors(img)
-
 
     def set_actions(self):
 
         for agent in self.agents:
-
             agent.get_actions()
             agent.apply_action()
 
@@ -71,13 +71,16 @@ class Engine():
         for agent in self.agents:
             agent.health += (agent.reward - agent.energy_spent)
 
-        self.current_elapsed_time += 1
-        self.time += 1
-
         self.playground.update_playground()
 
         # Termination
-        if pygame.key.get_pressed()[K_q] or self.time == self.time_limit or self.playground.has_reached_termination:
+        if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
+            self.Q_ready_to_press = True
+
+        if self.time == self.time_limit:
+            self.game_on = False
+
+        elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
 
             if self.replay_until_time_limit:
                 self.game_reset()
@@ -85,14 +88,18 @@ class Engine():
             else:
                 self.game_on = False
 
-            for ag in self.agents:
-                print(ag.health)
+            self.Q_ready_to_press = False
+
+
+
+        self.current_elapsed_time += 1
+        self.time += 1
 
     def display_full_scene(self):
 
         img = self.playground.generate_playground_image()
         surf = pygame.surfarray.make_surface(img)
-        self.screen.blit( surf , (0,0), None)
+        self.screen.blit(surf, (0, 0), None)
 
         pygame.display.flip()
 
@@ -105,4 +112,3 @@ class Engine():
 
         for agent in self.agents:
             self.playground.add_agent(agent)
-
