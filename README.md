@@ -38,3 +38,5 @@ New version of flatland.
 - agents with kill zones
 - end zone
 - object to zone for reward
+- moving objects along with a trajectory
+- moving objects with constant speed vector

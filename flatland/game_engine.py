@@ -74,26 +74,33 @@ class Engine():
         self.playground.update_playground()
 
         # Termination
-        if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
-            self.Q_ready_to_press = True
 
-        if self.time == self.time_limit:
-            self.game_on = False
+        if self.game_terminated():
 
-        elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
-
-            if self.replay_until_time_limit:
+            if self.replay_until_time_limit and self.time < self.time_limit:
                 self.game_reset()
 
             else:
                 self.game_on = False
 
-            self.Q_ready_to_press = False
-
-
-
         self.current_elapsed_time += 1
         self.time += 1
+
+    def game_terminated(self):
+
+        if self.time == self.time_limit:
+            return True
+
+        if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
+            self.Q_ready_to_press = True
+
+        elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
+            self.Q_ready_to_press = False
+
+            return True
+
+        return False
+
 
     def display_full_scene(self):
 
