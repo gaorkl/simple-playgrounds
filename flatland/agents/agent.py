@@ -57,6 +57,17 @@ class Agent():
         self.reward = 0
         self.energy_spent = 0
 
+    def owns_shape(self, pm_shape):
+
+        all_shapes = []
+        for part in self.frame.anatomy:
+            all_shapes += part.shapes
+
+        if pm_shape in all_shapes:
+            return True
+
+        else:
+            return False
 
     def add_sensor(self, sensor_param):
 

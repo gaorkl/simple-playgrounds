@@ -137,7 +137,7 @@ door_opener_default = {
     'movable': False,
 
     'entity_type':'actionable',
-    'actionable_type': 'door',
+    'actionable_type': 'door_opener',
     'door': door_default,
     'action_radius': 10,
     'time_open': 200

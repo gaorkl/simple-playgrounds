@@ -20,9 +20,12 @@ class YielderObject():
 
         self.limit = params.get('limit', 4)
 
+        self.yielded_elements = []
+
         # Internal counter to assign identity number to each entity
         self.name_id = 'yielder_' + str(YielderObject.id_number)
         YielderObject.id_number += 1
+
 
     def produce(self):
 

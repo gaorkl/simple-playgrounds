@@ -204,6 +204,8 @@ class DispenserObject(ActionableObject):
 
         self.limit = params['limit']
 
+        self.produced_elements = []
+
 
     def actionate(self):
 
@@ -234,7 +236,7 @@ class GraspableObject(ActionableObject):
 
 
 
-@ActionableGenerator.register_subclass('door')
+@ActionableGenerator.register_subclass('door_opener')
 class DoorObject(ActionableObject):
 
     def __init__(self, params):
@@ -247,19 +249,19 @@ class DoorObject(ActionableObject):
 
         self.time_open = params['time_open']
 
-        self.door_closed = True
+        self.door_opened = False
 
-    def actionate(self):
+    def assign_door(self, door):
 
-        obj = self.object_produced
+        self.door = door
 
-        if self.production_area_shape == 'rectangle':
+    def start_timer(self):
 
-            x = random.uniform( self.production_area[0][0],self.production_area[1][0] )
-            y = random.uniform( self.production_area[0][1],self.production_area[1][1] )
+        self.timer = self.time_open
 
-            obj['position'] = (x,y,0)
+    def update_timer(self):
 
-        return obj
+        self.timer -= 1
+
 
 

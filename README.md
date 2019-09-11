@@ -9,6 +9,7 @@ New version of flatland.
 - harmonize coordinate system and shapes of envir
 - teleport agent (for alban)
 - implement simulation steps, size_envir, multithreading
+- refactor activable / actionable
 
 # TODO entities:
 - create key for door (graspable + door mechanism)

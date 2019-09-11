@@ -124,7 +124,7 @@ agent_params = {
     },
     'starting_position':{
         'type': 'fixed',
-        'position' : [200, 200, 0]
+        'coordinates' : [200, 200, 0]
     }
 }
 
