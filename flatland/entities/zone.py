@@ -3,7 +3,7 @@ from flatland.utils.config import *
 
 from flatland.utils import texture
 
-from flatland.entities.entity import Entity
+from flatland.entities.entity_old import Entity
 
 class ZoneGenerator():
 

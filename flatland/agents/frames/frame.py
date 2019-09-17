@@ -1,4 +1,4 @@
-from ...entities.entity import Entity
+from ...entities.entity_old import Entity
 import pymunk, pygame
 from flatland.utils import texture
 from flatland.utils.config import *
