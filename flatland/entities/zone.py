@@ -74,18 +74,13 @@ class Zone(Entity):
         self.pm_sensor.collision_type = collision_types['zone']
         self.zone_type = params['zone_type']
 
+        self.visible = params.get('visible', False)
+
     def pre_step(self):
 
         self.reward_provided = False
 
-    def get_reward(self):
 
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self.reward
-
-        else:
-            return 0
 
     def compute_vertices(self):
 
@@ -133,6 +128,8 @@ class Zone(Entity):
         """
         Draw the obstacle on the environment screen
         """
+        if self.visible:
+            super().draw( surface)
 
         if self.physical_shape == 'circle':
             radius = int(self.radius)
@@ -144,7 +141,7 @@ class Zone(Entity):
             # Create the mask
             mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
-            pygame.draw.circle(mask, (255, 255, 255, 20), (radius, radius), radius)
+            pygame.draw.circle(mask, (255, 255, 255, 50), (radius, radius), radius)
 
             # Apply texture on mask
             mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
@@ -164,7 +161,7 @@ class Zone(Entity):
             # Create the mask
             mask = pygame.Surface((length, width), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
-            pygame.draw.rect(mask, (255, 255, 255, 20), ((0,0), (length, width)))
+            pygame.draw.rect(mask, (255, 255, 255, 50), ((0,0), (length, width)))
 
             # Apply texture on mask
             mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
@@ -188,7 +185,7 @@ class Zone(Entity):
                 self.action_radius_texture = self.texture.generate(2 * length, 2 * width)
                 self.mask = pygame.Surface((2*length, 2*width), pygame.SRCALPHA)
                 self.mask.fill((0, 0, 0, 0))
-                pygame.draw.polygon(self.mask, (255, 255, 255, 20), vertices)
+                pygame.draw.polygon(self.mask, (255, 255, 255, 50), vertices)
 
                 # Apply texture on mask
                 self.mask.blit(self.action_radius_texture, (0, 0), None, pygame.BLEND_MULT)
@@ -215,5 +212,42 @@ class EndZone(Zone):
 
         self.reward = params['reward']
 
+    def get_reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self.reward
+
+        else:
+            return 0
+
+@ZoneGenerator.register_subclass('reward_zone')
+class RewardZone(Zone):
+
+    def __init__(self, params):
+
+        super(RewardZone, self).__init__(params)
+
+        self.reward = params['reward']
+        self.total_reward = params['total_reward']
+
+    def get_reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+
+            if self.reward < 0 and self.total_reward > 0:
+
+                return 0
+
+            elif self.reward > 0 and self.total_reward < 0:
+
+                return 0
+
+            else:
+                self.total_reward -= self.reward
+                return self.reward
+
+        else: return 0
 
 

@@ -60,8 +60,8 @@ class Agent():
     def owns_shape(self, pm_shape):
 
         all_shapes = []
-        for part in self.frame.anatomy:
-            all_shapes += part.shapes
+        for part_name, part in self.frame.anatomy.items():
+            all_shapes += [part.shape]
 
         if pm_shape in all_shapes:
             return True

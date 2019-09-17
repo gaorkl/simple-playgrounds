@@ -199,6 +199,12 @@ class Playground():
         self.check_timers()
         self.release_grasps()
 
+        for zone in self.zones:
+            zone.pre_step()
+
+
+
+
     def reset(self):
         # Reset the environment
         self.__init__(self.params)
@@ -242,7 +248,6 @@ class Playground():
                 entity.draw(self.topdown_view)
 
         for entity in self.zones:
-
             entity.draw(self.topdown_view)
 
     def yielders_produce(self):
@@ -302,7 +307,7 @@ class Playground():
         agent.reward += reward
 
         self.space.remove(absorbable.pm_body, absorbable.pm_shape)
-        self.physical_entities.pop(absorbable)
+        self.physical_entities.remove(absorbable)
 
         if absorbable in self.absorbables:
             self.absorbables.remove(absorbable)
@@ -408,11 +413,14 @@ class Playground():
         agent = self.get_agent_from_shape(agent_shape)
 
         sensor_shape = arbiter.shapes[1]
-        zone_id = [id for id in self.zones if self.zones[id].pm_sensor == sensor_shape][0]
-        zone_reached = self.zones[zone_id]
+        zone_reached = [zone for zone in self.zones if zone.pm_sensor == sensor_shape][0]
 
         if zone_reached.zone_type == 'end_zone':
             self.has_reached_termination = True
+            reward = zone_reached.get_reward()
+            agent.reward += reward
+
+        elif zone_reached.zone_type == 'reward_zone':
             reward = zone_reached.get_reward()
             agent.reward += reward
 

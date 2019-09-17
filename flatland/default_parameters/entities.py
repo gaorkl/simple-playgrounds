@@ -160,3 +160,35 @@ end_zone_default = {
     'zone_type': 'end_zone',
     'reward': 200
 }
+
+healing_zone_texture =  {
+    'type': 'color',
+    'color': (0, 0, 250)
+    }
+
+healing_zone_default = {
+    'physical_shape': 'circle',
+    'radius': 20,
+    'texture': healing_zone_texture,
+
+    'entity_type':'zone',
+    'zone_type': 'reward_zone',
+    'reward': 2,
+    'total_reward': 200
+}
+
+damaging_zone_texture =  {
+    'type': 'color',
+    'color': (250, 0, 0)
+    }
+
+damaging_zone_default = {
+    'physical_shape': 'circle',
+    'radius': 20,
+    'texture': damaging_zone_texture,
+
+    'entity_type':'zone',
+    'zone_type': 'reward_zone',
+    'reward': -2,
+    'total_reward': -200
+}

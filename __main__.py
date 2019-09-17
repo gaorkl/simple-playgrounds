@@ -92,11 +92,18 @@ end_zone['position'] = [350, 550, 0]
 end_zone['physical_shape'] = 'rectangle'
 end_zone['shape_rectangle'] = [50,50]
 
+healing_zone = healing_zone_default.copy()
+healing_zone['position'] = [300, 200, 0]
+healing_zone['visible'] = True
+
+damaging_zone = damaging_zone_default.copy()
+damaging_zone['position'] = [300, 250, 0]
+
 pg_params = {
     'scene': {
         'shape': [600, 400]
     },
-    'entities': [basic_1, basic_2, edible_1, absorbable_1, absorbable_2, dispenser_1, yielder_1, grasp_1, door_opener, end_zone]
+    'entities': [basic_1, basic_2, edible_1, absorbable_1, absorbable_2, dispenser_1, yielder_1, grasp_1, door_opener, end_zone, healing_zone, damaging_zone]
 }
 
 pg = playground.PlaygroundGenerator.create('rooms_2_edible', pg_params )
@@ -156,6 +163,8 @@ game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_param
 
 clock = pygame.time.Clock()
 
+# import time
+# t1 = time.time()
 
 while game.game_on:
     game.update_observations()
@@ -176,7 +185,8 @@ while game.game_on:
 
     game.display_full_scene()
 
-    # print(game.time, my_agent.health)
+    print(game.time, my_agent.health)
 
     clock.tick(30)
 
+# print( 1000/(time.time() - t1) )
