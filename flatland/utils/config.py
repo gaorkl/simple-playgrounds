@@ -4,10 +4,6 @@ SPACE_DAMPING = 0.96
 
 collision_types = {
     "agent": 1,
-    "basic_object": 2,
-    "edible": 3,
-    "absorbable": 4,
-    "activable": 5,
-    "graspable": 6,
-    "zone": 7,
+    "contact": 2,
+    "interactive": 3,
 }

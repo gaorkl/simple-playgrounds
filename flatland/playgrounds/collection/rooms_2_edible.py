@@ -14,7 +14,7 @@ class TwoRoomsEdiblePlayground(Playground):
         super(TwoRoomsEdiblePlayground, self).__init__(params)
 
         y = self.width * 3 / 4.0
-        x = self.height / 2.0
+        x = self.length / 2.0
 
         edible = edible_default.copy()
         edible['position'] = [x, y, 0]

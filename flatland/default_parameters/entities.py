@@ -18,10 +18,10 @@ edible_default = {
     'texture': edible_texture,
     'movable': True,
 
-    'entity_type':'actionable',
-    'actionable_type': 'edible',
-    'action_radius': 10,
+    'entity_type':'edible',
+    'interaction_range': 10,
     'shrink_when_eaten': 0.9,
+    'min_reward': 5,
 
     'initial_reward': 30
 }
@@ -54,7 +54,7 @@ absorbable_default = {
     'mass': 5,
     'texture': absorbable_texture,
     'movable': True,
-    'absorbable' : True,
+    'entity_type' : 'absorbable',
     'reward' : 15
 
 }

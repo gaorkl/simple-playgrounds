@@ -16,7 +16,7 @@ class BasicScene():
 
         self.walls_texture = self.params['walls_texture']
         self.walls_depth = self.params['walls_depth']
-        self.total_area = self.params['shape']
+        self.width, self.length = self.params['shape']
 
         self.generate_walls()
 
@@ -29,13 +29,13 @@ class BasicScene():
 
         wall_shapes = []
         wall_shapes.append(
-            [(self.walls_depth, self.total_area[1]), (self.total_area[1] / 2.0, self.walls_depth / 2.0, math.pi / 2.0)])
-        wall_shapes.append([(self.walls_depth, self.total_area[1]),
-                             (self.total_area[1] / 2.0, self.total_area[0] - self.walls_depth / 2.0, math.pi / 2.0)])
+            [(self.walls_depth, self.length), (self.length / 2.0, self.walls_depth / 2.0, math.pi / 2.0)])
+        wall_shapes.append([(self.walls_depth, self.length),
+                             (self.length / 2.0, self.width - self.walls_depth / 2.0, math.pi / 2.0)])
         wall_shapes.append(
-            [(self.walls_depth, self.total_area[0]), (self.walls_depth / 2.0, self.total_area[0] / 2.0, 0.0)])
-        wall_shapes.append([(self.walls_depth, self.total_area[0]),
-                            (self.total_area[1] - self.walls_depth / 2.0, self.total_area[0] / 2.0, 0.0)])
+            [(self.walls_depth, self.width), (self.walls_depth / 2.0, self.width / 2.0, 0.0)])
+        wall_shapes.append([(self.walls_depth, self.width),
+                            (self.length - self.walls_depth / 2.0, self.width / 2.0, 0.0)])
 
         self.elements = []
 

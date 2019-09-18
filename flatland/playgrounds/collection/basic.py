@@ -3,7 +3,7 @@ import pymunk.pygame_util
 from pygame.color import THECOLORS
 
 from flatland import scenes as  scenes
-from flatland.entities import basic, yielder, actionable
+from flatland.entities import basic, yielder, activable
 from flatland.utils.config import *
 
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground

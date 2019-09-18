@@ -1,7 +1,7 @@
 import pygame
-from pygame.locals import K_q, KEYDOWN, KEYUP
+from pygame.locals import K_q
 from flatland.utils.config import *
-
+import cv2
 
 class Engine():
 
@@ -23,10 +23,7 @@ class Engine():
         for agent in self.agents:
             self.playground.add_agent(agent)
 
-        # Display screen
-        self.playground_img = None
-        self.screen = pygame.display.set_mode((self.playground.width, self.playground.height))
-        self.screen.set_alpha(None)
+
 
         # Rules TODO: add default dict
         self.replay_until_time_limit = rules.get('replay_until_time_limit', False)
@@ -35,6 +32,20 @@ class Engine():
         # Engine parameters
         self.inner_simulation_steps = engine_parameters.get('simulation_steps', SIMULATION_STEPS)
         self.scale_factor = engine_parameters.get('scale_factor', 1)
+        self.display_mode = engine_parameters.get('display_mode', None)
+
+        # Display screen
+        #self.playground_img = None
+
+        if self.display_mode == 'carthesian_view':
+            self.screen = pygame.display.set_mode((self.playground.length, self.playground.width))
+        elif self.display_mode == 'pygame_view':
+            self.screen = pygame.display.set_mode((self.playground.width, self.playground.length))
+        else:
+            self.screen = pygame.display.set_mode((100, 100))
+            # Add image simlation in progress with details
+
+        self.screen.set_alpha(None)
 
         self.game_on = True
         self.current_elapsed_time = 0
@@ -46,7 +57,7 @@ class Engine():
 
         # Compute environment image once
 
-        img = self.playground.generate_playground_image_sensor()
+        img = self.playground.generate_playground_image()
 
         # For each agent, compute sensors
         for agent in self.agents:
@@ -101,10 +112,13 @@ class Engine():
 
         return False
 
-
     def display_full_scene(self):
 
-        img = self.playground.generate_playground_image()
+        if self.display_mode == 'carthesian_view':
+            img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=True)
+        else:
+            img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=False)
+
         surf = pygame.surfarray.make_surface(img)
         self.screen.blit(surf, (0, 0), None)
 

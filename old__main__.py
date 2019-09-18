@@ -10,62 +10,103 @@ from flatland.default_parameters.entities import *
 
 ### Basic entities
 basic_1 = basic_default.copy()
-basic_1['position'] = [100, 50, math.pi/2]
-basic_1['physical_shape'] = 'rectangle'
-basic_1['shape_rectangle'] = [10,30]
+basic_1['position'] = [80, 80, 0.2]
+basic_1['physical_shape'] = 'triangle'
+basic_1['radius'] = 20
 
-basic_2 = basic_default.copy()
-basic_2['position'] = [100, 100, math.pi/2]
-basic_2['physical_shape'] = 'hexagon'
-basic_2['radius'] = 20
-basic_2['texture'] = {
+
+basic_1['texture'] = {
     'type': 'uniform_grained',
     'min': [150, 0, 50],
     'max': [200, 0, 100],
-    'size_grains': 4
+    'size_grains': 8
 }
 
-basic_3 = basic_default.copy()
-basic_3['position'] = [100, 150, 0]
-basic_3['physical_shape'] = 'pentagon'
-basic_3['radius'] = 20
-basic_3['movable'] = False
 
-basic_3['texture'] = {
+
+basic_2 = basic_default.copy()
+basic_2['position'] = [80, 120, 0]
+basic_2['physical_shape'] = 'pentagon'
+basic_2['radius'] = 30
+basic_2['movable'] = False
+
+basic_2['texture'] = {
     'type': 'polar_stripes',
     'color_1': [0, 0, 150],
-    'color_2': [0, 0, 250],
-    'n_stripes' : 5
+    'color_2': [250, 0, 100],
+    'n_stripes' : 10
 }
 
-###### Absorbable
+# basic_3 = basic_default.copy()
+# basic_3['texture'] = {
+#     'type': 'uniform',
+#     'min': [110, 140, 200],
+#     'max': [130, 159, 220],
+# }
+# basic_3['physical_shape'] = 'pentagon'
+# basic_3['radius'] = 30
+# basic_3['position'] = [250, 250, 0]
 
-absorbable_1 = absorbable_default.copy()
-absorbable_1['position'] = [100, 200, 0.2]
-
-absorbable_2 = absorbable_default.copy()
-absorbable_2['position'] = [100, 250,0.5]
 
 
-### Edible
+### Edibles
 
 edible_1 = edible_default.copy()
-edible_1['position'] = [100, 300, 0.2]
-edible_1['physical_shape'] = 'rectangle'
+edible_1['position'] = [200, 50, 0.2]
+edible_1['physical_shape'] = 'pentagon'
 edible_1['mass'] = 100
-edible_1['shape_rectangle'] = [20, 30]
-edible_1['movable'] = True
-edible_1['graspable'] = True
+edible_1['radius'] = 20
+edible_1['movable'] = False
 
+### Absorbables
+
+absorbable_1 = absorbable_default.copy()
+absorbable_1['position'] = [350, 200, 0.2]
+
+absorbable_2 = absorbable_default.copy()
+absorbable_2['position'] = [350, 220,0.5]
+
+### Dispenser
+
+dispenser_1 = dispenser_default.copy()
+dispenser_1['position'] = [350, 50,0]
+dispenser_1['area'] = [[360, 100],[380, 120]]
+
+### Yielder
+
+yielder_1 = yielder_default.copy()
+yielder_1['area'] = [[100, 400],[200, 600]]
+
+### Graspable
+grasp_1 = graspable_default.copy()
+grasp_1['position'] = [150, 200 ,0]
+
+### Door
+door_opener = door_opener_default.copy()
+door_opener['door']['position'] = [200, 300, math.pi/2]
+door_opener['position'] = [50, 300, 0]
+
+### Zone
+end_zone = end_zone_default.copy()
+end_zone['position'] = [350, 550, 0]
+end_zone['physical_shape'] = 'rectangle'
+end_zone['shape_rectangle'] = [50,50]
+
+healing_zone = healing_zone_default.copy()
+healing_zone['position'] = [300, 200, 0]
+healing_zone['visible'] = True
+
+damaging_zone = damaging_zone_default.copy()
+damaging_zone['position'] = [300, 250, 0]
 
 pg_params = {
     'scene': {
         'shape': [600, 400]
     },
-    'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1]
+    'entities': [basic_1, basic_2, edible_1, absorbable_1, absorbable_2, dispenser_1, yielder_1, grasp_1, door_opener, end_zone, healing_zone, damaging_zone]
 }
 
-pg = playground.PlaygroundGenerator.create('basic', pg_params )
+pg = playground.PlaygroundGenerator.create('rooms_2_edible', pg_params )
 
 #################################################
 ##### BUILDING AN AGENT
@@ -90,7 +131,7 @@ agent_params = {
     },
     'starting_position':{
         'type': 'fixed',
-        'coordinates' : [50, 50, 0]
+        'coordinates' : [200, 200, 0]
     }
 }
 
@@ -105,7 +146,6 @@ from flatland.game_engine import Engine
 engine_parameters = {
     'inner_simulation_steps': 1,
     'scale_factor': 1,
-    'display_mode': 'carthesian_view',
 
     'display': {
         'playground' : True,

@@ -3,13 +3,13 @@ import pymunk.pygame_util
 from pygame.color import THECOLORS
 
 from flatland import scenes as  scenes
-from flatland.entities import basic, yielder, actionable, zone
+from flatland.entities import basic, yielder, activable, zone, edible
 from flatland.utils.game_utils import *
 from flatland.utils.config import *
 
 from ..default_parameters.scenes import *
 
-import random
+import random, numpy
 
 
 class PlaygroundGenerator():
@@ -49,20 +49,22 @@ class Playground():
         scene_parameters = params.get('scene', {})
         scene_parameters = {**basic_scene_default, **scene_parameters}
         self.scene = self.generate_scene(scene_parameters)
-        self.width, self.height = self.scene.total_area
+        self.width, self.length = self.scene.width, self.scene.length
 
         # Initialization of the pymunk space, this space is responsible for modelling all the physics
         self.space = None
         self.initialize_space()
 
         # Screen for display
-        self.topdown_view = pygame.Surface((self.width, self.height))
+        self.topdown_view = pygame.Surface((self.width, self.length))
 
         # Data structures to save list of entities, and relations between them
         self.physical_entities = []
 
+        self.entities = []
         self.basics = []
         self.absorbables = []
+        self.edibles = []
         self.actionables = []
         self.yielders = []
         self.zones = []
@@ -157,16 +159,22 @@ class Playground():
         # Create new entity, give it an id then add it to  list entities
         entity_type = entity_params.get('entity_type', False)
 
-        if entity_type == 'actionable':
+        if entity_type == 'activable':
 
-            new_entity = actionable.ActionableGenerator.create(entity_params)
-            self.space.add(new_entity.pm_body, new_entity.pm_shape, new_entity.pm_sensor)
+            new_entity = activable.ActivableGenerator.create(entity_params)
+            self.space.add(new_entity.pm_body, new_entity.pm_visible_shape, new_entity.pm_interaction_shape)
 
             self.actionables.append(new_entity)
 
             if new_entity.actionable_type == 'door_opener':
                 door = self.add_entity(new_entity.door_params)
                 new_entity.assign_door(door)
+
+        elif entity_type == 'edible':
+            new_entity = edible.Edible(entity_params)
+            self.space.add(new_entity.pm_body, new_entity.pm_visible_shape, new_entity.pm_interaction_shape)
+            self.entities.append(new_entity)
+
 
         elif entity_type == 'zone':
             new_entity = zone.ZoneGenerator.create(entity_params)
@@ -178,15 +186,15 @@ class Playground():
             self.yielders.append(new_entity)
 
         elif entity_type == 'absorbable':
-            new_entity = basic.BasicObject(entity_params)
-            self.space.add(new_entity.pm_body, new_entity.pm_shape)
+            new_entity = basic.Absorbable(entity_params)
+            self.space.add(new_entity.pm_body, new_entity.pm_visible_shape)
             self.absorbables.append(new_entity)
 
         else:
-            new_entity = basic.BasicObject(entity_params)
+            new_entity = basic.Basic(entity_params)
             if add_to_basics: self.basics.append(new_entity)
 
-            self.space.add(new_entity.pm_body, new_entity.pm_shape)
+            self.space.add(new_entity.pm_body, new_entity.pm_visible_shape)
 
         if entity_type not in ['yielder', 'zone']:
             self.physical_entities.append(new_entity)
@@ -209,46 +217,29 @@ class Playground():
         # Reset the environment
         self.__init__(self.params)
 
-    def generate_playground_image(self):
+    def generate_playground_image(self, draw_interaction = False, carthesian_view = False):
         # Update the screen of the environment
         self.topdown_view.fill(THECOLORS["black"])
-        self.draw_visible_entities()
-        self.draw_activation_radius()
-
-        imgdata = pygame.surfarray.array3d(self.topdown_view)
-        return imgdata
-
-    def generate_playground_image_sensor(self):
-        # Update the screen of the environment
-
-        self.topdown_view.fill(THECOLORS["black"])
-        self.draw_visible_entities()
-
-        imgdata = pygame.surfarray.array3d(self.topdown_view)
-
-        return imgdata
-
-    def draw_visible_entities(self):
 
         for entity in self.physical_entities:
 
-            if entity.visible:
-                entity.draw(self.topdown_view)
+            entity.draw(self.topdown_view, draw_interaction)
 
         for agent in self.agents:
             agent.frame.draw(self.topdown_view)
 
-    def draw_activation_radius(self):
 
-        for entity in self.physical_entities:
 
-            if entity.activable:
+        imgdata = pygame.surfarray.array3d(self.topdown_view)
 
-                entity.draw_activation_radius(self.topdown_view)
-                entity.draw(self.topdown_view)
 
-        for entity in self.zones:
-            entity.draw(self.topdown_view)
+        if carthesian_view:
+            imgdata = numpy.rot90(imgdata, 1, (1,0))
+
+            return imgdata
+        else:
+            return imgdata
+
 
     def yielders_produce(self):
 
@@ -282,9 +273,9 @@ class Playground():
                     self.space.remove(joint)
                 agent.grasped = []
 
-    def get_entity_from_shape(self, pm_shape):
+    def get_entity_from_visible_shape(self, pm_shape):
 
-        entity = [entity for entity in self.physical_entities if entity.pm_shape == pm_shape][0]
+        entity = [entity for entity in self.physical_entities if entity.pm_visible_shape == pm_shape][0]
         return entity
 
     def get_agent_from_shape(self, pm_shape):
@@ -295,30 +286,32 @@ class Playground():
 
                 return agent
 
-    def agent_absorbs(self, arbiter, space, data):
 
-        agent_shape = arbiter.shapes[0]
-        agent = self.get_agent_from_shape(agent_shape)
 
-        absorbable_shape = arbiter.shapes[1]
-        absorbable = self.get_entity_from_shape(absorbable_shape)
+    def agent_touches_entity(self, arbiter, space, data):
 
-        reward = absorbable.reward
-        agent.reward += reward
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        touched_entity = self.get_entity_from_visible_shape(arbiter.shapes[1])
 
-        self.space.remove(absorbable.pm_body, absorbable.pm_shape)
-        self.physical_entities.remove(absorbable)
+        if touched_entity.absorbable:
 
-        if absorbable in self.absorbables:
-            self.absorbables.remove(absorbable)
+            reward = touched_entity.reward
+            agent.reward += reward
 
-        for yielder in self.yielders:
-            if absorbable in yielder.yielded_elements:
-                yielder.yielded_elements.remove(absorbable)
+            self.space.remove(touched_entity.pm_body, touched_entity.pm_visible_shape)
 
-        for dispenser in [actionable for actionable in self.actionables if actionable.actionable_type == 'dispenser']:
-            if absorbable in dispenser.produced_elements:
-                dispenser.produced_elements.remove(absorbable)
+            self.physical_entities.remove(touched_entity)
+
+            if touched_entity in self.absorbables:
+                self.absorbables.remove(touched_entity)
+
+            for yielder in self.yielders:
+                if touched_entity in yielder.yielded_elements:
+                    yielder.yielded_elements.remove(touched_entity)
+
+            for dispenser in [actionable for actionable in self.actionables if actionable.actionable_type == 'dispenser']:
+                if touched_entity in dispenser.produced_elements:
+                    dispenser.produced_elements.remove(touched_entity)
 
         return True
 
@@ -390,20 +383,36 @@ class Playground():
 
 
     # TODO: norm PEP8, is_eating -> b_eating ?
-    def agent_eats(self, arbiter, space, data):
+    def agent_interacts(self, arbiter, space, data):
 
-        agent_shape = arbiter.shapes[0]
-        agent = self.get_agent_from_shape(agent_shape)
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
 
-        sensor_shape = arbiter.shapes[1]
-        edible = [edible for edible in self.actionables if edible.pm_sensor == sensor_shape][0]
+        interacting_entity = [entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]][0]
 
-        if agent.is_eating:
+        if agent.is_eating and interacting_entity.edible:
 
             agent.is_eating = False
 
-            space.remove(edible.pm_body, edible.pm_shape, edible.pm_sensor)
-            space.add_post_step_callback(self.eaten_shrinks, edible, agent )
+            space.remove(interacting_entity.pm_body, interacting_entity.pm_visible_shape, interacting_entity.pm_interaction_shape)
+            space.add_post_step_callback(self.eaten_shrinks, interacting_entity, agent )
+
+        elif agent.is_grasping and not agent.is_holding and interacting_entity.movable :
+
+            # create new link
+            agent.is_holding = True
+
+            j1 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (0,5), (0,-5))
+            j2 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (0,-5), (0,5))
+            j3 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (5,5), (0,5))
+            j4 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (5,-5), (0,5))
+
+            self.space.add(j1, j2, j3, j4)
+
+            agent.grasped.append(j1)
+            agent.grasped.append(j2)
+            agent.grasped.append(j3)
+            agent.grasped.append(j4)
+
 
         return True
 
@@ -439,31 +448,27 @@ class Playground():
 
         agent.reward += edible.reward
 
-        if edible.radius > 5 :
+        if edible.reward > edible.min_reward :
 
-            space.add(edible.pm_body, edible.pm_shape, edible.pm_sensor)
-
+            space.add(edible.pm_body, edible.pm_interaction_shape, edible.pm_visible_shape)
 
         else:
             self.physical_entities.remove(edible)
-            self.actionables.remove(edible)
+            self.edibles.remove(edible)
 
         return True
 
     def handle_collisions(self):
 
+        # TODO: replace all collisoin handlers with:
+        # - agent agent
+        # - agent interactive
+        # - interactive interactive
+
         # Collision handlers
-        h_abs = self.space.add_collision_handler(collision_types['agent'], collision_types['absorbable'])
-        h_abs.pre_solve = self.agent_absorbs
+        h_touch = self.space.add_collision_handler(collision_types['agent'], collision_types['contact'])
+        h_touch.pre_solve = self.agent_touches_entity
 
-        h_act = self.space.add_collision_handler(collision_types['agent'], collision_types['activable'])
-        h_act.pre_solve = self.agent_activates
+        h_interact = self.space.add_collision_handler(collision_types['agent'], collision_types['interactive'])
+        h_interact.pre_solve = self.agent_interacts
 
-        h_edible = self.space.add_collision_handler(collision_types['agent'], collision_types['edible'])
-        h_edible.pre_solve = self.agent_eats
-
-        h_grasps = self.space.add_collision_handler(collision_types['agent'], collision_types['graspable'])
-        h_grasps.pre_solve = self.agent_grasps
-
-        h_zone = self.space.add_collision_handler(collision_types['agent'], collision_types['zone'])
-        h_zone.pre_solve = self.agent_enters_zone
