@@ -140,29 +140,6 @@ class Entity():
 
         self.pm_interaction_shape.sensor = True
 
-    def generate_pm_grasp_shape(self):
-
-        if self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon'] :
-            self.grasp_vertices = self.compute_vertices(self.radius_grasp)
-
-
-        if self.physical_shape == 'circle':
-
-            self.pm_grasp_shape = pymunk.Circle(self.pm_body, self.radius_grasp)
-
-        elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-
-            self.pm_grasp_shape = pymunk.Poly(self.pm_body, self.grasp_vertices)
-
-        elif self.physical_shape == 'rectangle':
-
-            self.pm_grasp_shape = pymunk.Poly.create_box(self.pm_body, (self.width_grasp, self.length_grasp))
-
-        else:
-            raise ValueError
-
-        self.pm_grasp_shape.sensor = True
-
 
     def generate_mask(self, interaction = False):
 
