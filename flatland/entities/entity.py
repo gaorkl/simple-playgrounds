@@ -17,6 +17,7 @@ class Entity():
         :param environment: the environment calling the creation of the fruit
         """
 
+        self.entity_type = params['entity_type']
         self.physical_shape = params['physical_shape']
         self.texture_params = params['texture']
 
@@ -58,7 +59,7 @@ class Entity():
             self.visible_mask = self.generate_mask()
 
 
-        ##### PyMunk sensor shape
+        ##### PyMunk sensor shapee
 
         self.interactive = params['interactive']
 
@@ -93,6 +94,9 @@ class Entity():
         self.edible = False
 
         self.graspable = params.get('graspable', False)
+
+        self.pm_elements = [self.pm_body, self.pm_interaction_shape, self.pm_visible_shape]
+        self.pm_elements = (x for x in self.pm_elements if x is not None)
 
 
     def generate_pm_visible_shape(self):
@@ -139,6 +143,7 @@ class Entity():
             raise ValueError
 
         self.pm_interaction_shape.sensor = True
+        self.pm_interaction_shape.collision_type = collision_types['interactive']
 
 
     def generate_mask(self, interaction = False):
@@ -252,3 +257,27 @@ class Entity():
             mask_rect = mask_rotated.get_rect()
             mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
             surface.blit(mask_rotated, mask_rect, None)
+
+    def update(self):
+        pass
+
+
+class EntityGenerator():
+
+    subclasses = {}
+
+    @classmethod
+    def register_subclass(cls, entity_type):
+        def decorator(subclass):
+            cls.subclasses[entity_type] = subclass
+            return subclass
+
+        return decorator
+
+    @classmethod
+    def create(cls, params):
+        entity_type = params['entity_type']
+        if entity_type not in cls.subclasses:
+            raise ValueError('Entity type not implemented:' + entity_type)
+
+        return cls.subclasses[entity_type](params)

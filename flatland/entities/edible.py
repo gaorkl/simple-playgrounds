@@ -1,8 +1,9 @@
 import pymunk, random, pygame
 
-from .entity import Entity
+from .entity import *
 from flatland.utils.config import *
 
+@EntityGenerator.register_subclass('edible')
 class Edible(Entity):
 
     def __init__(self, params):
@@ -15,7 +16,6 @@ class Edible(Entity):
         super(Edible, self).__init__(params)
 
         self.shrink_when_eaten = params['shrink_when_eaten']
-        self.pm_interaction_shape.collision_type = collision_types['interactive']
 
         self.reward = params.get('initial_reward', 0)
         self.min_reward = params.get('min_reward', 0)
@@ -60,6 +60,4 @@ class Edible(Entity):
 
         self.generate_pm_interaction_shape()
         self.interaction_mask = self.generate_mask(interaction=True)
-
-        self.pm_interaction_shape.collision_type = collision_types['interactive']
 

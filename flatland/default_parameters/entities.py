@@ -34,6 +34,7 @@ basic_texture =  {
     }
 
 basic_default = {
+    'entity_type': 'basic',
     'physical_shape': 'circle',
     'radius': 10,
     'mass': 10,
@@ -66,15 +67,14 @@ dispenser_texture =  {
     }
 
 dispenser_default = {
+    'entity_type':'dispenser',
     'physical_shape': 'circle',
     'radius': 15,
     'mass': 10,
     'texture': dispenser_texture,
     'movable': False,
 
-    'entity_type':'actionable',
-    'actionable_type': 'dispenser',
-    'action_radius': 10,
+    'interaction_range': 10,
 
     'object_produced': absorbable_default,
     'area_shape': 'rectangle',
@@ -145,6 +145,12 @@ door_opener_default = {
 
 
 # Zones
+zone_default = {
+    'physical_shape': 'circle',
+    'radius': 10,
+    'movable': False
+
+}
 
 end_zone_texture =  {
     'type': 'color',
@@ -152,12 +158,9 @@ end_zone_texture =  {
     }
 
 end_zone_default = {
-    'physical_shape': 'circle',
-    'radius': 10,
-    'texture': end_zone_texture,
 
-    'entity_type':'zone',
-    'zone_type': 'end_zone',
+    'texture': end_zone_texture,
+    'entity_type':'end_zone',
     'reward': 200
 }
 
@@ -167,12 +170,9 @@ healing_zone_texture =  {
     }
 
 healing_zone_default = {
-    'physical_shape': 'circle',
-    'radius': 20,
-    'texture': healing_zone_texture,
 
-    'entity_type':'zone',
-    'zone_type': 'reward_zone',
+    'texture': healing_zone_texture,
+    'entity_type':'reward_zone',
     'reward': 2,
     'total_reward': 200
 }
@@ -183,12 +183,55 @@ damaging_zone_texture =  {
     }
 
 damaging_zone_default = {
-    'physical_shape': 'circle',
-    'radius': 20,
-    'texture': damaging_zone_texture,
 
-    'entity_type':'zone',
-    'zone_type': 'reward_zone',
+    'texture': damaging_zone_texture,
+    'entity_type':'reward_zone',
     'reward': -2,
     'total_reward': -200
+}
+
+# Basic entities
+
+door_texture =  {
+    'type': 'color',
+    'color': (50, 50, 250)
+    }
+
+door_default = {
+    'entity_type': 'basic',
+    'physical_shape': 'rectangle',
+    'shape_rectangle': [10, 100],
+    'texture': door_texture,
+    'movable': False
+}
+
+button_door_openclose_texture =  {
+    'type': 'color',
+    'color': (50, 100, 150)
+    }
+
+button_door_openclose_default = {
+    'entity_type': 'button_door_openclose',
+    'door': door_default.copy(),
+    'physical_shape': 'square',
+    'radius': 10,
+    'texture': button_door_openclose_texture,
+    'movable': False,
+    'interaction_range': 10,
+}
+
+button_door_opentimer_texture =  {
+    'type': 'color',
+    'color': (50, 100, 150)
+    }
+
+button_door_opentimer_default = {
+    'entity_type': 'button_door_opentimer',
+    'door': door_default.copy(),
+    'physical_shape': 'square',
+    'radius': 10,
+    'texture': button_door_opentimer_texture,
+    'movable': False,
+    'interaction_range': 10,
+    'time_open': 50
 }

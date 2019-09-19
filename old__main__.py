@@ -81,6 +81,7 @@ yielder_1['area'] = [[100, 400],[200, 600]]
 grasp_1 = graspable_default.copy()
 grasp_1['position'] = [150, 200 ,0]
 
+
 ### Door
 door_opener = door_opener_default.copy()
 door_opener['door']['position'] = [200, 300, math.pi/2]

@@ -1,6 +1,13 @@
 # flatland
 New version of flatland.
 
+# TODO entities:
+- fireball / fairy
+- key - lock - door
+- moving objects
+- end_dropzone : bring object to finish game
+- reward_dropzone : bring object to get reward
+
 
 # TODO:
 - Replace Ctr+q with clean exiting which doesnt require a pygame display

@@ -58,11 +58,50 @@ edible_1['movable'] = True
 edible_1['graspable'] = True
 
 
+### Dispenser
+dispenser_1 = dispenser_default.copy()
+dispenser_1['position'] = [100, 350,0]
+dispenser_1['area'] = [[200, 325],[250, 375]]
+dispenser_1['limit'] = 7
+
+### Yielder
+yielder_1 = yielder_default.copy()
+yielder_1['area'] = [[100, 400],[200, 500]]
+
+
+
+### Zone
+end_zone = end_zone_default.copy()
+end_zone['position'] = [250, 50, 0]
+end_zone['physical_shape'] = 'rectangle'
+end_zone['shape_rectangle'] = [50,50]
+
+healing_zone = healing_zone_default.copy()
+healing_zone['position'] = [250, 100, 0]
+healing_zone['visible'] = True
+
+damaging_zone = damaging_zone_default.copy()
+damaging_zone['position'] = [250, 150, 0]
+
+##### Button door
+button_door_1 = button_door_openclose_default.copy()
+button_door_1['position'] = [250, 200, 0]
+button_door_1['door']['position'] = [250, 250, math.pi/2]
+
+##### Button door
+button_door_2 = button_door_opentimer_default.copy()
+button_door_2['position'] = [250, 300, 0]
+button_door_2['door']['position'] = [250, 350, math.pi/2]
+
+
+
 pg_params = {
     'scene': {
         'shape': [600, 400]
     },
-    'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1]
+    'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1, dispenser_1, yielder_1,
+                 end_zone, healing_zone, damaging_zone,
+                 button_door_1, button_door_2]
 }
 
 pg = playground.PlaygroundGenerator.create('basic', pg_params )
@@ -145,7 +184,7 @@ while game.game_on:
 
     game.display_full_scene()
 
-    print(game.time, my_agent.health)
+    # print(game.time, my_agent.health)
 
     clock.tick(30)
 

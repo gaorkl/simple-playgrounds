@@ -1,11 +1,9 @@
 import pymunk, math, pygame
 from flatland.utils.config import *
+from flatland.default_parameters.entities import *
+from flatland.entities.entity import Entity, EntityGenerator
 
-from flatland.utils import texture
-
-from flatland.entities.entity import Entity
-
-
+@EntityGenerator.register_subclass('basic')
 class Basic(Entity):
 
     def __init__(self, params ):
@@ -15,15 +13,18 @@ class Basic(Entity):
         :param environment: the environment calling the creation of the fruit
         """
 
+        params = {**basic_default, **params}
         params['visible'] = True
         params['interactive'] = False
 
         super(Basic, self).__init__(params)
 
+@EntityGenerator.register_subclass('absorbable')
 class Absorbable(Entity):
 
     def __init__(self, params):
 
+        params = {**params, **absorbable_default}
         params['visible'] = True
         params['interactive'] = False
 

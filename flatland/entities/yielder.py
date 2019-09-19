@@ -1,7 +1,8 @@
 import random
+from .entity import EntityGenerator
 
-
-class YielderObject():
+@EntityGenerator.register_subclass('yielder')
+class Yielder():
 
     id_number = 0
 
@@ -11,6 +12,9 @@ class YielderObject():
         :param pos: 2d tuple or 'random', position of the fruit
         :param environment: the environment calling the creation of the fruit
         """
+
+        self.entity_type = 'yielder'
+
         self.object_produced = params['object_produced']
 
         self.production_area_shape = params['area_shape']
@@ -23,8 +27,8 @@ class YielderObject():
         self.yielded_elements = []
 
         # Internal counter to assign identity number to each entity
-        self.name_id = 'yielder_' + str(YielderObject.id_number)
-        YielderObject.id_number += 1
+        self.name_id = 'yielder_' + str(Yielder.id_number)
+        Yielder.id_number += 1
 
 
     def produce(self):

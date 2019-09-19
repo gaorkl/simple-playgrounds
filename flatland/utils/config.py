@@ -6,4 +6,6 @@ collision_types = {
     "agent": 1,
     "contact": 2,
     "interactive": 3,
+    "zone": 4,
+    "gemstone": 5,
 }
