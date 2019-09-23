@@ -92,8 +92,43 @@ button_door_1['door']['position'] = [250, 250, math.pi/2]
 button_door_2 = button_door_opentimer_default.copy()
 button_door_2['position'] = [250, 300, 0]
 button_door_2['door']['position'] = [250, 350, math.pi/2]
+button_door_2['time_limit'] = 100
 
 
+##### Lock_key door
+lock_key_door = lock_key_door_default.copy()
+lock_key_door['position'] = [250, 400, 0]
+lock_key_door['door']['position'] = [250, 450, math.pi/2]
+lock_key_door['key']['position'] = [300, 400, math.pi/2]
+
+##### Moving object
+moving_1 = basic_default.copy()
+moving_1['position'] = [250, 500, math.pi/2]
+moving_1['trajectory'] = {
+    'trajectory_shape': 'line',
+    'radius': 30,
+    'center': [250, 500],
+    'speed' : 100,
+
+}
+
+fireball_1 = fireball_default.copy()
+fireball_1['position'] = [250, 500, math.pi/2]
+fireball_1['trajectory'] = {
+    'trajectory_shape': 'line',
+    'radius': 30,
+    'center': [350, 100],
+    'speed' : 100,
+}
+
+fairy_1 = fairy_default.copy()
+fairy_1['position'] = [250, 500, math.pi/2]
+fairy_1['trajectory'] = {
+    'trajectory_shape': 'pentagon',
+    'radius': 30,
+    'center': [350, 200],
+    'speed' : 100,
+}
 
 pg_params = {
     'scene': {
@@ -101,7 +136,8 @@ pg_params = {
     },
     'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1, dispenser_1, yielder_1,
                  end_zone, healing_zone, damaging_zone,
-                 button_door_1, button_door_2]
+                 button_door_1, button_door_2, lock_key_door,
+                 moving_1, fireball_1, fairy_1]
 }
 
 pg = playground.PlaygroundGenerator.create('basic', pg_params )
@@ -184,7 +220,7 @@ while game.game_on:
 
     game.display_full_scene()
 
-    # print(game.time, my_agent.health)
+    print(game.time, my_agent.health)
 
     clock.tick(30)
 

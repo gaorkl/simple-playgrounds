@@ -19,6 +19,24 @@ class Basic(Entity):
 
         super(Basic, self).__init__(params)
 
+@EntityGenerator.register_subclass('gem')
+class Gem(Entity):
+
+    def __init__(self, params ):
+        """
+        Instantiate an obstacle with the following parameters
+        :param pos: 2d tuple or 'random', position of the fruit
+        :param environment: the environment calling the creation of the fruit
+        """
+
+        params = {**basic_default, **params}
+        params['visible'] = True
+        params['interactive'] = True
+
+        super(Gem, self).__init__(params)
+
+        self.pm_visible_shape.collision_type = collision_types['gem']
+
 @EntityGenerator.register_subclass('absorbable')
 class Absorbable(Entity):
 

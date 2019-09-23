@@ -1,5 +1,6 @@
 from .entity import *
 from flatland.default_parameters.entities import *
+from flatland.utils.config import collision_types
 
 @EntityGenerator.register_subclass('end_zone')
 class EndZone(Entity):
@@ -44,6 +45,10 @@ class RewardZone(Entity):
 
         self.reward = params['reward']
         self.total_reward = params['total_reward']
+        self.reward_provided = False
+
+    def pre_step(self):
+
         self.reward_provided = False
 
     def get_reward(self):

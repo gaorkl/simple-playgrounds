@@ -7,5 +7,5 @@ collision_types = {
     "contact": 2,
     "interactive": 3,
     "zone": 4,
-    "gemstone": 5,
+    "gem": 5,
 }

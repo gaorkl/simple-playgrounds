@@ -118,7 +118,7 @@ class LockKeyDoor(Entity):
 
     def __init__(self, params):
 
-        params = {**button_door_openclose_default, **params}
+        params = {**lock_key_door_default, **params}
         params['visible'] = True
         params['interactive'] = True
 
@@ -127,20 +127,18 @@ class LockKeyDoor(Entity):
         self.activable = True
 
         self.door_params = params['door']
+        self.key_params = params['key']
         self.door_opened = False
 
         self.door = None
+        self.key = None
 
 
     def activate(self):
 
-        if self.door_opened:
-            self.door_opened = False
-            self.door.visible = True
-
-        else:
             self.door_opened = True
             self.door.visible = False
+
 
 class Activable(Basic):
 

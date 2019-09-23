@@ -6,7 +6,7 @@ from flatland.utils import texture
 #from flatland.entities.entity_old import Entity
 
 
-geometric_shapes = {'triangle':3, 'square':4, 'pentagon':5, 'hexagon':6 }
+geometric_shapes = {'line':2, 'circle':60, 'triangle':3, 'square':4, 'pentagon':5, 'hexagon':6 }
 
 class Entity():
 
@@ -47,8 +47,21 @@ class Entity():
             self.mass = None
             self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
-        self.pm_body.position = params['position'][0:2]
-        self.pm_body.angle = params['position'][2]
+
+
+        self.moving = False
+
+        self.trajectory_params = params.get('trajectory', None)
+        if self.trajectory_params is not None:
+            self.moving = True
+            self.generate_trajectory()
+            self.pm_body.position = self.trajectory_points[0]
+            self.pm_body.angle = params['position'][2]
+
+        else:
+
+            self.pm_body.position = params['position'][0:2]
+            self.pm_body.angle = params['position'][2]
 
         ##### PyMunk visible shape
 
@@ -97,6 +110,43 @@ class Entity():
 
         self.pm_elements = [self.pm_body, self.pm_interaction_shape, self.pm_visible_shape]
         self.pm_elements = (x for x in self.pm_elements if x is not None)
+
+
+
+
+    def generate_trajectory(self):
+
+        self.trajectory_points = []
+        self.index_trajectory = 0
+
+        if 'waypoints' not in self.trajectory_params:
+
+            number_sides = geometric_shapes[self.trajectory_params['trajectory_shape']]
+
+            radius = self.trajectory_params['radius']
+            center = self.trajectory_params['center']
+
+            waypoints = []
+            for n in range(number_sides):
+                waypoints.append([center[0] + radius * math.cos(n * 2 * math.pi / number_sides),
+                                 center[1] + radius * math.sin(n * 2 * math.pi / number_sides)])
+
+        else:
+            waypoints = self.trajectory_params['waypoints']
+
+        speed = self.trajectory_params['speed']
+        n_points = int(1.0*speed / len(waypoints))
+
+        for index_pt in range(-1, len(waypoints)  -1 ):
+
+            pt_1 = waypoints[index_pt]
+            pt_2 = waypoints[index_pt + 1]
+
+            pts_x = [ pt_1[0] + x * (pt_2[0] - pt_1[0])/n_points for x in range(n_points)]
+            pts_y = [ pt_1[1] + x * (pt_2[1] - pt_1[1])/n_points for x in range(n_points)]
+
+            for i in range(n_points):
+                self.trajectory_points.append( [pts_x[i], pts_y[i]])
 
 
     def generate_pm_visible_shape(self):
@@ -259,7 +309,19 @@ class Entity():
             surface.blit(mask_rotated, mask_rect, None)
 
     def update(self):
+
+        if self.moving :
+
+            self.index_trajectory += 1
+            if self.index_trajectory == len(self.trajectory_points):
+                self.index_trajectory = 0
+
+            self.pm_body.position = self.trajectory_points[self.index_trajectory]
+
+    def pre_step(self):
         pass
+
+
 
 
 class EntityGenerator():

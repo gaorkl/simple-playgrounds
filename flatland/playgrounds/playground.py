@@ -168,52 +168,9 @@ class Playground():
             if new_entity.entity_type in ['button_door_openclose', 'button_door_opentimer' ]:
                 new_entity.door = self.add_entity(new_entity.door_params)
 
-            if new_entity.entity_type is 'button_door_openkey':
+            elif new_entity.entity_type is 'lock_key_door':
                 new_entity.door = self.add_entity(new_entity.door_params)
                 new_entity.key = self.add_entity(new_entity.key_params)
-
-        #     self.space.add(new_entity.pm_body, new_entity.pm_visible_shape)
-        #     self.entities.append(new_entity)
-
-
-        # if entity_type == 'activable':
-        #
-        #     new_entity = activable.ActivableGenerator.create(entity_params)
-        #     self.space.add(new_entity.pm_body, new_entity.pm_visible_shape, new_entity.pm_interaction_shape)
-        #
-        #     self.actionables.append(new_entity)
-        #
-        #     if new_entity.actionable_type == 'door_opener':
-        #         door = self.add_entity(new_entity.door_params)
-        #         new_entity.assign_door(door)
-        #
-        # elif entity_type == 'edible':
-        #     new_entity = edible.Edible(entity_params)
-        #     self.space.add(new_entity.pm_body, new_entity.pm_visible_shape, new_entity.pm_interaction_shape)
-        #     self.entities.append(new_entity)
-        #
-        #
-        # elif entity_type == 'zone':
-        #     new_entity = zone.ZoneGenerator.create(entity_params)
-        #     self.space.add(new_entity.pm_body, new_entity.pm_sensor)
-        #     self.zones.append(new_entity)
-        #
-        # elif entity_type == 'yielder':
-        #     new_entity = yielder.YielderObject(entity_params)
-        #     self.yielders.append(new_entity)
-        #
-        # elif entity_type == 'absorbable':
-        #     new_entity = basic.Absorbable(entity_params)
-        #     self.space.add(new_entity.pm_body, new_entity.pm_visible_shape)
-        #     self.entities.append(new_entity)
-        #
-        # else:
-        #     new_entity = basic.Basic(entity_params)
-        #     self.space.add(new_entity.pm_body, new_entity.pm_visible_shape)
-        #     self.entities.append(new_entity)
-
-        #if entity_type not in ['yielder', 'zone']:
-        #    self.physical_entities.append(new_entity)
 
         return new_entity
 
@@ -226,8 +183,8 @@ class Playground():
         self.check_timers()
         self.release_grasps()
 
-        for zone in self.zones:
-            zone.pre_step()
+        for entity in self.entities:
+            entity.pre_step()
 
     def reset(self):
         # Reset the environment
@@ -243,10 +200,7 @@ class Playground():
         for agent in self.agents:
             agent.frame.draw(self.topdown_view)
 
-
-
         imgdata = pygame.surfarray.array3d(self.topdown_view)
-
 
         if carthesian_view:
             imgdata = numpy.rot90(imgdata, 1, (1,0))
@@ -324,7 +278,8 @@ class Playground():
 
         agent = self.get_agent_from_shape(arbiter.shapes[0])
 
-        interacting_entity = [entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]][0]
+        # TODO: replace with this everywhere:
+        interacting_entity = next( iter([entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]]), None)
 
         if agent.is_eating and interacting_entity.edible:
 
@@ -405,7 +360,7 @@ class Playground():
             reward = zone_reached.get_reward()
             agent.reward += reward
 
-        elif zone_reached.entity_type == 'reward_zone':
+        elif zone_reached.entity_type in ['reward_zone', 'fireball', 'fairy' ]:
             reward = zone_reached.get_reward()
             agent.reward += reward
 
@@ -417,6 +372,22 @@ class Playground():
 
         return True
 
+    def gem_interacts(self, arbiter, space, data):
+
+        gem = [entity for entity in self.entities if entity.pm_visible_shape == arbiter.shapes[0]][0]
+        interacting_entity = [entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]][0]
+
+        if interacting_entity.entity_type is 'lock_key_door' and gem is interacting_entity.key :
+            interacting_entity.activate()
+            door = interacting_entity.door
+            space.remove(door.pm_body, door.pm_visible_shape)
+            interacting_entity.door_opened = True
+
+            space.remove(gem.pm_body, gem.pm_visible_shape, gem.pm_interaction_shape)
+            self.entities.remove(door)
+            self.entities.remove(gem)
+
+        return True
 
 
 
@@ -437,4 +408,6 @@ class Playground():
         h_zone = self.space.add_collision_handler(collision_types['agent'], collision_types['zone'])
         h_zone.pre_solve = self.agent_enters_zone
 
-        # Collision between objects (keys) and
+        # Collision with gems
+        h_gem_interactive = self.space.add_collision_handler(collision_types['gem'], collision_types['interactive'])
+        h_gem_interactive.pre_solve = self.gem_interacts
