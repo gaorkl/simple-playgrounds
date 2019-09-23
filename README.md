@@ -9,6 +9,10 @@ New version of flatland.
 - teleport agent to position (and set all agent speeds to zero)
 - add cost of activation / grasp for objects
 
+# TODO RL:
+- wrapper openai & gym
+- wrapper library state representation
+
 # TODO:
 - Replace Ctr+q with clean exiting which doesnt require a pygame display
 - Add a cost of activation for actionable objects ?
