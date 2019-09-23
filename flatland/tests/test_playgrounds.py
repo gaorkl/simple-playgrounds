@@ -11,7 +11,7 @@ def display(img):
 
 
 ####################################################
-# Selecting different scenes for a basic playground
+# Selecting different scene_layouts for a basic playground
 
 pg = playground.PlaygroundGenerator.create('basic')
 img = pg.generate_playground_image()

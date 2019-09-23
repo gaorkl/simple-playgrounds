@@ -1,12 +1,14 @@
 import pymunk, random, pygame
 
 from .entity import *
-from flatland.utils.config import *
+from flatland.default_parameters.entities import *
 
 @EntityGenerator.register_subclass('edible')
 class Edible(Entity):
 
     def __init__(self, params):
+
+        params = {**edible_default, **params}
 
         params['visible'] = True
         params['interactive'] = True

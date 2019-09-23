@@ -1,8 +1,7 @@
-import pymunk, pygame
 import pymunk.pygame_util
 from pygame.color import THECOLORS
 
-from flatland import scenes as  scenes
+from .scene_layout import SceneGenerator
 from flatland.entities.entity import *
 from flatland.utils.game_utils import *
 from flatland.utils.config import *
@@ -30,12 +29,14 @@ class PlaygroundGenerator():
         return decorator
 
     @classmethod
-    def create(cls, playground_name, params = {}):
+    def create(cls, playground_params):
+
+        playground_name = playground_params['playground_type']
 
         if playground_name not in cls.subclasses:
             raise ValueError('Playground not implemented:' + playground_name)
 
-        return cls.subclasses[playground_name](params)
+        return cls.subclasses[playground_name](playground_params)
 
 
 class Playground():
@@ -48,6 +49,7 @@ class Playground():
         # Generate Scene
         scene_parameters = params.get('scene', {})
         scene_parameters = {**basic_scene_default, **scene_parameters}
+
         self.scene = self.generate_scene(scene_parameters)
         self.width, self.length = self.scene.width, self.scene.length
 
@@ -75,7 +77,7 @@ class Playground():
         self.timers = {}
 
         # Add entities declared in the scene
-        for elem in self.scene.elements:
+        for elem in self.scene.entity_parameters:
             self.add_entity(elem)
 
         # Add entities declared in the Playground
@@ -101,8 +103,7 @@ class Playground():
 
     def generate_scene(self, scene_params):
 
-        scene_type = scene_params['scene_type']
-        return scenes.SceneGenerator.create( scene_type , scene_params)
+        return SceneGenerator.create( scene_params)
 
     def add_agent(self, agent):
 

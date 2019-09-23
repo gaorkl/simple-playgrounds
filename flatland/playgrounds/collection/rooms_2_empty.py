@@ -1,7 +1,7 @@
 from ..playground import PlaygroundGenerator
 from flatland.playgrounds.playground import Playground
 
-from ... import scenes as  scenes
+from ..scene_layout import SceneGenerator
 
 
 @PlaygroundGenerator.register_subclass('rooms_2_empty')
@@ -13,6 +13,6 @@ class BasicFieldPlayground(Playground):
 
     def generate_scene(self, scene_params):
 
-        return scenes.SceneGenerator.create( 'rooms_2' , scene_params)
+        return SceneGenerator.create( scene_params)
 
 

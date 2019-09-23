@@ -1,5 +1,6 @@
 import random
 from .entity import EntityGenerator
+from ..default_parameters.entities import *
 
 @EntityGenerator.register_subclass('yielder')
 class Yielder():
@@ -12,6 +13,8 @@ class Yielder():
         :param pos: 2d tuple or 'random', position of the fruit
         :param environment: the environment calling the creation of the fruit
         """
+
+        params = {**yielder_default, **params}
 
         self.entity_type = 'yielder'
 

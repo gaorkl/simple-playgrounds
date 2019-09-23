@@ -3,7 +3,7 @@ class ControllerGenerator():
 
     """
     Register class to provide a decorator that is used to go through the package and
-    register available scenes.
+    register available scene_layouts.
     """
 
     subclasses = {}

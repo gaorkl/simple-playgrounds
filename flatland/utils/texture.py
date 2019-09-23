@@ -85,7 +85,7 @@ class UniformGrainedTexture(Texture):
         """
 
         random_image = np.random.uniform(self.min, self.max, (int(width*1.0/self.size_grains), int(height*1.0/self.size_grains), 3)).astype('int')
-        random_image = cv2.resize(random_image, ( int(width), int(height) ), interpolation=cv2.INTER_NEAREST)
+        random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
         surf = pygame.surfarray.make_surface(random_image)
         return surf
 

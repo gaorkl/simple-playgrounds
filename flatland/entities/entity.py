@@ -125,11 +125,12 @@ class Entity():
 
             radius = self.trajectory_params['radius']
             center = self.trajectory_params['center']
+            angle = self.trajectory_params.get('angle', 0)
 
             waypoints = []
             for n in range(number_sides):
-                waypoints.append([center[0] + radius * math.cos(n * 2 * math.pi / number_sides),
-                                 center[1] + radius * math.sin(n * 2 * math.pi / number_sides)])
+                waypoints.append([center[0] + radius * math.cos(n * 2 * math.pi / number_sides + angle),
+                                 center[1] + radius * math.sin(n * 2 * math.pi / number_sides + angle)])
 
         else:
             waypoints = self.trajectory_params['waypoints']
