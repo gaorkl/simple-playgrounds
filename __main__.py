@@ -8,9 +8,9 @@ import cv2
 import flatland.playgrounds.playground as playground
 
 pg_params = {
-    'playground_type': 'basic_endzone',
+    'playground_type': 'basic_endzone_contact_fireball',
     'scene': {
-        'scene_shape': [200, 200]
+        'scene_shape': [100, 300]
     },
 }
 
@@ -35,7 +35,7 @@ agent_params = {
     },
     'sensors':{
         'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 512} },
-        'touch_1' : touch_default,
+        #'touch_1' : touch_default,
     },
     'starting_position':{
         'type': 'fixed',

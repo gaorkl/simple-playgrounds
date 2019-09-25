@@ -6,17 +6,20 @@ Different standard parameters for entities
 
 # Edibles
 
+
 edible_texture =  {
-    'type': 'color',
-    'color': (200, 100, 50)
+    'type': 'centered_random_tiles',
+    'min': [40, 120, 150],
+    'max': [80, 150, 190],
+    'size_tiles' : 10
     }
 
 edible_default = {
     'physical_shape': 'circle',
-    'radius': 10,
+    'radius': 15,
     'mass': 10,
     'texture': edible_texture.copy(),
-    'movable': True,
+    'movable': False,
 
     'entity_type':'edible',
     'interaction_range': 10,
@@ -46,7 +49,7 @@ basic_default = {
 
 absorbable_texture =  {
     'type': 'color',
-    'color': (250, 00, 50)
+    'color': (200, 100, 50)
     }
 
 absorbable_default = {
@@ -62,9 +65,12 @@ absorbable_default = {
 
 # Dispenser
 dispenser_texture =  {
-    'type': 'color',
-    'color': (50, 100, 200)
+    'type': 'centered_random_tiles',
+    'min': [200, 80, 180],
+    'max': [240, 120, 220],
+    'size_tiles' : 10
     }
+
 
 dispenser_default = {
     'entity_type':'dispenser',
@@ -94,54 +100,7 @@ yielder_default = {
 
 }
 
-# Graspable
-
-graspable_texture =  {
-    'type': 'color',
-    'color': (250, 0, 250)
-    }
-
-graspable_default = {
-
-    'physical_shape': 'pentagon',
-    'radius': 10,
-    'mass': 5,
-    'texture': graspable_texture,
-    'movable': True,
-
-    'entity_type':'actionable',
-    'actionable_type': 'graspable',
-    'action_radius': 10,
-}
-
 ###
-
-door_texture =  {
-    'type': 'color',
-    'color': (0, 0, 250)
-    }
-
-door_default = {
-    'physical_shape': 'rectangle',
-    'shape_rectangle': [10, 100],
-    'texture': door_texture.copy(),
-    'movable': False
-}
-
-
-door_opener_default = {
-
-    'physical_shape': 'circle',
-    'radius': 10,
-    'texture': door_texture.copy(),
-    'movable': False,
-
-    'entity_type':'actionable',
-    'actionable_type': 'door_opener',
-    'door': door_default.copy(),
-    'action_radius': 10,
-    'time_open': 200
-}
 
 
 # Zones
@@ -153,8 +112,10 @@ zone_default = {
 }
 
 end_zone_texture =  {
-    'type': 'color',
-    'color': (0, 250, 0)
+    'type': 'centered_random_tiles',
+    'min': [0, 225, 0],
+    'max': [0, 255, 0],
+    'size_tiles' : 3
     }
 
 end_zone_default = {
@@ -190,11 +151,26 @@ damaging_zone_default = {
     'total_reward': -200
 }
 
+contact_endzone_default = {
+
+    'physical_shape': 'circle',
+    'radius': 10,
+    'movable': False,
+
+
+    'texture': end_zone_texture.copy(),
+    'entity_type': 'contact_endzone',
+    'reward': 200
+}
+
+
 # Basic entities
 
 door_texture =  {
-    'type': 'color',
-    'color': (50, 50, 250)
+    'type': 'random_tiles',
+    'min': [110, 110, 110],
+    'max': [130, 130, 130],
+    'size_tiles' : 10
     }
 
 door_default = {
@@ -268,8 +244,10 @@ lock_key_door_default = {
 
 #######
 fireball_texture =  {
-    'type': 'color',
-    'color': (250, 0, 0)
+    'type': 'centered_random_tiles',
+    'min': [200, 0, 0],
+    'max': [255, 100, 0],
+    'size_tiles' : 4
     }
 
 fireball_default = {
@@ -287,8 +265,10 @@ fireball_default = {
 }
 
 fairy_texture =  {
-    'type': 'color',
-    'color': (0, 100, 250)
+    'type': 'centered_random_tiles',
+    'min': [0, 150, 200],
+    'max': [0, 200, 250],
+    'size_tiles' : 3
     }
 
 fairy_default = {

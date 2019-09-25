@@ -30,8 +30,8 @@ class Engine():
         self.time_limit = rules.get('time_limit', 1000)
 
         # Engine parameters
-        self.inner_simulation_steps = engine_parameters.get('simulation_steps', SIMULATION_STEPS)
-        self.scale_factor = engine_parameters.get('scale_factor', 1)
+        self.inner_simulation_steps = SIMULATION_STEPS
+        #self.scale_factor = engine_parameters.get('scale_factor', 1)
         self.display_mode = engine_parameters.get('display_mode', None)
 
         # Display screen
@@ -57,11 +57,13 @@ class Engine():
 
         # Compute environment image once
 
-        img = self.playground.generate_playground_image()
 
         # For each agent, compute sensors
         for agent in self.agents:
+
+            img = self.playground.generate_playground_image(sensor_agent = agent)
             agent.compute_sensors(img)
+
 
     def set_actions(self):
 

@@ -1,6 +1,5 @@
-SIMULATION_STEPS = 10
-ASPECT_RATIO = 4
-SPACE_DAMPING = 0.96
+SIMULATION_STEPS = 4
+SPACE_DAMPING = 0.9
 
 collision_types = {
     "agent": 1,

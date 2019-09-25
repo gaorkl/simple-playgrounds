@@ -5,10 +5,10 @@ Different standard parameters for scene_layouts
 """
 
 walls_texture = {
-    'type': 'uniform_grained',
+    'type': 'random_tiles',
     'min': [140, 140, 0],
     'max': [160, 160, 0],
-    'size_grains': 4
+    'size_tiles': 4
 }
 
 basic_scene_default = {

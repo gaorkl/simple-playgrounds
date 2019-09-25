@@ -52,3 +52,32 @@ class Absorbable(Entity):
         self.pm_visible_shape.collision_type = collision_types['contact']
 
         self.absorbable = True
+
+@EntityGenerator.register_subclass('contact_endzone')
+class ContactEndZone(Entity):
+
+    def __init__(self, params):
+
+        params = {**params, **contact_endzone_default}
+        params['visible'] = True
+        params['interactive'] = False
+
+        super(ContactEndZone, self).__init__(params)
+
+        self.reward = params['reward']
+        self.pm_visible_shape.collision_type = collision_types['contact']
+
+        self.reward_provided = False
+
+    def pre_step(self):
+
+        self.reward_provided = False
+
+    def get_reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self.reward
+
+        else:
+            return 0

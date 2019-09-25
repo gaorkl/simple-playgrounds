@@ -19,10 +19,10 @@ basic_2['position'] = [100, 100, math.pi/2]
 basic_2['physical_shape'] = 'rectangle'
 basic_2['shape_rectangle'] = [30,100]
 basic_2['texture'] = {
-    'type': 'uniform_grained',
+    'type': 'random_tiles',
     'min': [150, 0, 50],
     'max': [200, 0, 100],
-    'size_grains': 4
+    'size_tiles': 4
 }
 
 basic_3 = basic_default.copy()
@@ -32,10 +32,11 @@ basic_3['radius'] = 20
 basic_3['movable'] = False
 
 basic_3['texture'] = {
-    'type': 'polar_stripes',
-    'color_1': [0, 0, 150],
-    'color_2': [0, 0, 250],
-    'n_stripes' : 5
+    'type': 'centered_random_tiles',
+    'radius' : 30,
+    'min': [0, 50, 150],
+    'max': [0, 100, 190],
+    'size_tiles' : 5
 }
 
 ###### Absorbable
@@ -52,10 +53,11 @@ absorbable_2['position'] = [100, 250,0.5]
 edible_1 = edible_default.copy()
 edible_1['position'] = [100, 300, 0.2]
 edible_1['physical_shape'] = 'rectangle'
-edible_1['mass'] = 100
-edible_1['shape_rectangle'] = [20, 30]
-edible_1['movable'] = True
-edible_1['graspable'] = True
+edible_1['shape_rectangle'] = [50, 60]
+edible_1['texture']['type']= 'random_tiles'
+# edible_1['mass'] = 100
+# edible_1['movable'] = True
+# edible_1['graspable'] = True
 
 
 ### Dispenser
@@ -82,6 +84,9 @@ healing_zone['visible'] = True
 
 damaging_zone = damaging_zone_default.copy()
 damaging_zone['position'] = [250, 150, 0]
+
+contact_endzone = contact_endzone_default.copy()
+contact_endzone['position'] = [350, 550, 0]
 
 ##### Button door
 button_door_1 = button_door_openclose_default.copy()
@@ -128,7 +133,7 @@ fairy_1['trajectory'] = {
     'trajectory_shape': 'pentagon',
     'radius': 30,
     'center': [350, 200],
-    'speed' : 100,
+    'speed' : 200,
 }
 
 pg_params = {
@@ -138,7 +143,7 @@ pg_params = {
         'scene_shape': [600, 800]
     },
     'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1, dispenser_1, yielder_1,
-                 end_zone, healing_zone, damaging_zone,
+                 end_zone, healing_zone, damaging_zone, contact_endzone,
                  button_door_1, button_door_2, lock_key_door,
                  moving_1, fireball_1, fairy_1]
 }
@@ -153,6 +158,7 @@ import flatland.agents.agent as agent
 from flatland.default_parameters.agents import *
 
 agent_params = {
+    'name': 'mercotte',
     'frame' : {
         'type': 'forward_head',
         'params' : {
@@ -174,6 +180,7 @@ agent_params = {
 
 my_agent = agent.Agent(agent_params)
 
+
 ####################################################
 ####### Create game with playground and parameters
 ####################################################
@@ -181,8 +188,6 @@ my_agent = agent.Agent(agent_params)
 from flatland.game_engine import Engine
 
 engine_parameters = {
-    'inner_simulation_steps': 1,
-    'scale_factor': 1,
     'display_mode': 'carthesian_view',
 
     'display': {

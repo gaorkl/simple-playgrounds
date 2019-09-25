@@ -97,8 +97,9 @@ class Playground():
 
         self.space = pymunk.Space()
         self.space.gravity = pymunk.Vec2d(0., 0.)
-        self.space.collision_persistence = 1
-        self.space.collision_slop = 0
+        #self.space.collision_persistence = 1
+        #self.space.collision_slop = 0.001
+        #self.space.collision_bias = 0.001
         self.space.damping = SPACE_DAMPING
 
     def generate_scene(self, scene_params):
@@ -191,7 +192,7 @@ class Playground():
         # Reset the environment
         self.__init__(self.params)
 
-    def generate_playground_image(self, draw_interaction = False, carthesian_view = False):
+    def generate_playground_image(self, draw_interaction = False, carthesian_view = False, sensor_agent = None):
         # Update the screen of the environment
         self.topdown_view.fill(THECOLORS["black"])
 
@@ -199,7 +200,8 @@ class Playground():
             entity.draw(self.topdown_view, draw_interaction)
 
         for agent in self.agents:
-            agent.frame.draw(self.topdown_view)
+            if agent is not sensor_agent:
+                agent.frame.draw(self.topdown_view)
 
         imgdata = pygame.surfarray.array3d(self.topdown_view)
 
@@ -209,6 +211,8 @@ class Playground():
             return imgdata
         else:
             return imgdata
+
+
 
 
     def yielders_produce(self):
@@ -271,6 +275,11 @@ class Playground():
             for entity in self.yielders:
                 if touched_entity in entity.yielded_elements:
                     entity.yielded_elements.remove(touched_entity)
+
+        elif touched_entity.entity_type in 'contact_endzone':
+            self.has_reached_termination = True
+            reward = touched_entity.get_reward()
+            agent.reward += reward
 
         return True
 

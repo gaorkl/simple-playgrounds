@@ -16,10 +16,10 @@ class Holonomic(Forward):
         super().apply_action(actions)
 
         longitudinal_velocity = actions.get('longitudinal_velocity', 0)
-        vx = longitudinal_velocity * SIMULATION_STEPS / 10.0
+        vx = longitudinal_velocity* SIMULATION_STEPS
 
         lateral_velocity = actions.get('lateral_velocity', 0)
-        vy = lateral_velocity * SIMULATION_STEPS / 10.0
+        vy = lateral_velocity* SIMULATION_STEPS
 
         self.anatomy["base"].body.apply_force_at_local_point(pymunk.Vec2d(vx, vy) * self.speed * (1.0 - SPACE_DAMPING) * 100, (0, 0))
 

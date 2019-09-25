@@ -25,7 +25,7 @@ class Forward(Frame):
         super().apply_actions(action_commands)
 
         self.longitudinal_velocity = self.actions.get('longitudinal_velocity', 0)
-        vx = self.longitudinal_velocity*SIMULATION_STEPS/10.0
+        vx = self.longitudinal_velocity*SIMULATION_STEPS
         vy = 0
         self.anatomy["base"].body.apply_force_at_local_point(pymunk.Vec2d(vx, vy) * self.base_translation_speed * (1.0 - SPACE_DAMPING) * 100, (0, 0))
 

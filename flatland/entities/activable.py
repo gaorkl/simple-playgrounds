@@ -53,7 +53,7 @@ class ButtonDoorOpenClose(Entity):
 
         self.activable = True
 
-        self.door_params = params['door']
+        self.door_params = {**door_default, **params['door']}
         self.door_opened = False
 
         self.door = None
@@ -82,7 +82,7 @@ class ButtonDoorOpenTimer(Entity):
 
         self.activable = True
 
-        self.door_params = params['door']
+        self.door_params = {**door_default, **params['door']}
         self.time_open = params['time_open']
 
 
@@ -126,8 +126,10 @@ class LockKeyDoor(Entity):
 
         self.activable = True
 
-        self.door_params = params['door']
-        self.key_params = params['key']
+        self.door_params = {**door_default, **params['door']}
+        print(self.door_params)
+        self.key_params = {**door_default, **params['key']}
+
         self.door_opened = False
 
         self.door = None

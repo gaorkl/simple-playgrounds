@@ -68,7 +68,7 @@ class Frame(Entity):
         base.body = body
 
         shape = pymunk.Circle(body, self.base_radius, (0, 0))
-        shape.elasticity = 0.1
+        shape.elasticity = 0.5
         shape.collision_type = self.collision_type
 
         base.shape = shape
@@ -87,8 +87,7 @@ class Frame(Entity):
 
     def initialize_texture(self):
 
-        # Trick to compute sensors without overlapping when converting to logpolar
-        radius = int(self.base_radius) - 3
+        radius = int(self.base_radius)
 
         # Create a texture surface with the right dimensions
         self.texture_surface = self.texture.generate(radius * 2, radius * 2)

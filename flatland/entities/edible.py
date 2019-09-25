@@ -23,7 +23,7 @@ class Edible(Entity):
         self.min_reward = params.get('min_reward', 0)
         self.edible = True
 
-    def actionate(self):
+    def activate(self):
 
         # Change reward, size and mass
 
@@ -50,7 +50,7 @@ class Edible(Entity):
             self.visible_vertices = self.compute_vertices(self.radius)
 
         self.generate_pm_visible_shape()
-        self.visible_mask = self.generate_mask()
+        self.visible_mask = self.generate_visible_mask()
 
         ##### PyMunk sensor shape
         if self.physical_shape == 'rectangle':
@@ -61,5 +61,5 @@ class Edible(Entity):
             self.radius_interaction = self.radius + self.interaction_range
 
         self.generate_pm_interaction_shape()
-        self.interaction_mask = self.generate_mask(interaction=True)
+        self.interaction_mask = self.generate_interaction_mask()
 

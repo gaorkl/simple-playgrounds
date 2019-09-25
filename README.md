@@ -3,6 +3,8 @@ New version of flatland.
 
 # TODO:
 - start position: random in area (circle, square, gaussian), random pick in list positions, random pick in list areas
+- fixed, list_fixed, area, list_areas
+- each playground should suggest starting positions
 - also random position for object placements
 - basic environments
 - change default parameters and use config / yaml ?

@@ -15,6 +15,8 @@ class Agent():
 
         agent_params = {**agent_params, **metabolism_default }
 
+        self.name =  agent_params.get('name')
+
         self.health = agent_params.get('health')
         self.base_metabolism = agent_params.get('base_metabolism')
         self.action_metabolism = agent_params.get('action_metabolism')
@@ -71,7 +73,8 @@ class Agent():
 
     def add_sensor(self, sensor_param):
 
-        sensor_param['minRange'] = self.frame.base_radius   # To avoid errors while logpolar converting
+        if sensor_param['type'] is 'touch':
+            sensor_param['minRange'] = self.frame.base_radius   # To avoid errors while logpolar converting
         new_sensor = sensor.SensorGenerator.create(self.frame.anatomy, sensor_param)
         self.sensors[new_sensor.name] = new_sensor
 

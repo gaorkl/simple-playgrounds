@@ -5,7 +5,7 @@ import pygame, cv2
 from scipy.stats import truncnorm
 import numpy.random as rand
 import numpy as np
-import math
+import math, random
 
 class Texture(object):
 
@@ -67,14 +67,14 @@ class UniformTexture(Texture):
         return surf
 
 
-@Texture.register_subclass('uniform_grained')
-class UniformGrainedTexture(Texture):
+@Texture.register_subclass('random_tiles')
+class RandomTilesTexture(Texture):
 
     def __init__(self, **params):
-        super(UniformGrainedTexture, self).__init__()
+        super(RandomTilesTexture, self).__init__()
         self.min = params['min']
         self.max = params['max']
-        self.size_grains = params['size_grains']
+        self.size_tiles = params['size_tiles']
 
     def generate(self, width, height):
         """
@@ -84,7 +84,7 @@ class UniformGrainedTexture(Texture):
         :return: the pygame Surface
         """
 
-        random_image = np.random.uniform(self.min, self.max, (int(width*1.0/self.size_grains), int(height*1.0/self.size_grains), 3)).astype('int')
+        random_image = np.random.uniform(self.min, self.max, (int(width*1.0/self.size_tiles), int(height*1.0/self.size_tiles), 3)).astype('int')
         random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
         surf = pygame.surfarray.make_surface(random_image)
         return surf
@@ -123,6 +123,45 @@ class PolarStripesTexture(Texture):
                     img[i, j, :] = self.color_1
                 else:
                     img[i, j, :] = self.color_2
+
+        surf = pygame.surfarray.make_surface(img)
+        return surf
+
+@Texture.register_subclass('centered_random_tiles')
+class CenteredRandomTilesTexture(Texture):
+
+    def __init__(self, **params):
+        super(CenteredRandomTilesTexture, self).__init__()
+        self.min = params['min']
+        self.max = params['max']
+        self.radius = params['radius']
+        self.size_tiles = params['size_tiles']
+        self.n_stripes = int(2*math.pi*self.radius / self.size_tiles)
+
+    def generate(self, width, height):
+        """
+        Generate a pyame Surface with pixels following a circular striped pattern from the center of the parent entity
+        :param width: the width of the generated surface
+        :param height: the height of the generated surface
+        :return: the pygame Surface
+        """
+
+        width = int(width)
+        height = int(height)
+
+        img = np.zeros( (width, height , 3) )
+
+        colors = [ [ random.randint( self.min[i],self.max[i] ) for i in range(3)] for c in range(self.n_stripes) ]
+
+        x = width/2
+        y = height/2
+
+        for i in range(width):
+            for j in range(height):
+
+                angle = int( np.arctan2( j - y, i - x)  / (2*math.pi/self.n_stripes) )
+
+                img[i, j, :] = colors[angle]
 
         surf = pygame.surfarray.make_surface(img)
         return surf

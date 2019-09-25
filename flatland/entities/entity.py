@@ -23,8 +23,11 @@ class Entity():
 
         if self.physical_shape == 'rectangle':
             self.width, self.length = params['shape_rectangle']
+            self.texture_params['radius'] = max(self.width, self.length)
         else:
             self.radius = params['radius']
+            self.texture_params['radius'] = self.radius
+
 
         if self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon'] :
             self.visible_vertices = self.compute_vertices(self.radius)
@@ -66,18 +69,19 @@ class Entity():
         ##### PyMunk visible shape
 
         self.visible = params['visible']
+        self.texture_visible_surface = None
 
         if self.visible:
             self.generate_pm_visible_shape()
-            self.visible_mask = self.generate_mask()
+            self.visible_mask = self.generate_visible_mask()
 
 
         ##### PyMunk sensor shapee
 
         self.interactive = params['interactive']
+        self.texture_interactive_surface = None
 
         if self.interactive:
-
 
             if self.visible :
                 self.interaction_range = params['interaction_range']
@@ -98,7 +102,7 @@ class Entity():
                     self.radius_interaction = params['radius']
 
             self.generate_pm_interaction_shape()
-            self.interaction_mask = self.generate_mask(interaction=True)
+            self.interaction_mask = self.generate_interaction_mask()
 
         #### Default interaction:
 
@@ -152,7 +156,6 @@ class Entity():
 
     def generate_pm_visible_shape(self):
 
-
         if self.physical_shape == 'circle':
 
             self.pm_visible_shape = pymunk.Circle(self.pm_body, self.radius)
@@ -197,37 +200,35 @@ class Entity():
         self.pm_interaction_shape.collision_type = collision_types['interactive']
 
 
-    def generate_mask(self, interaction = False):
+    def generate_visible_mask(self):
 
         text = texture.Texture.create(self.texture_params)
 
-        if interaction:
-            alpha = 50
-        else:
-            alpha = 255
+        alpha = 255
 
 
         if self.physical_shape == 'rectangle':
 
-            if interaction:
-                width, length = self.width_interaction, self.length_interaction
+            width, length = int(self.width), int(self.length)
 
+            if self.texture_visible_surface is None:
+                self.texture_visible_surface = text.generate(length, width)
             else:
-                width, length = self.width, self.length
+                self.texture_visible_surface = pygame.transform.scale(self.texture_visible_surface, ((length, width)))
 
-            texture_surface = text.generate(length, width)
             mask = pygame.Surface((length, width), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
             pygame.draw.rect(mask, (255, 255, 255, alpha), ((0, 0), (length, width)))
 
         elif self.physical_shape == 'circle':
 
-            if interaction:
-                radius = self.radius_interaction
-            else:
-                radius = self.radius
+            radius = int(self.radius)
 
-            texture_surface = text.generate(radius * 2, radius * 2)
+            if self.texture_visible_surface is None:
+                self.texture_visible_surface =  text.generate(radius * 2, radius * 2)
+            else:
+                self.texture_visible_surface = pygame.transform.scale(self.texture_visible_surface, ((radius * 2, radius * 2)))
+
             mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
             pygame.draw.circle(mask, (255, 255, 255, alpha), (radius, radius), radius)
@@ -236,26 +237,74 @@ class Entity():
         # TODO: safe guard case other than implemented
         else:
 
-            if interaction:
-                bb = self.pm_interaction_shape.cache_bb()
-            else:
-                bb = self.pm_visible_shape.cache_bb()
+            bb = self.pm_visible_shape.cache_bb()
 
             length = bb.top - bb.bottom
             width = bb.right - bb.left
 
-            if interaction:
-                vertices = [[x[1] + length, x[0] + width] for x in self.interaction_vertices]
-            else:
-                vertices = [[x[1] + length, x[0] + width] for x in self.visible_vertices]
+            vertices = [[x[1] + length, x[0] + width] for x in self.visible_vertices]
 
-            texture_surface = text.generate(2 * length, 2 * width)
+            if self.texture_visible_surface is None:
+                self.texture_visible_surface = text.generate(2 * length, 2 * width)
+            else:
+                self.texture_visible_surface = pygame.transform.scale(self.texture_visible_surface, ((2*length, 2*width)))
+
             mask = pygame.Surface((2 * length, 2 * width), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
         # Apply texture on mask
-        mask.blit(texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        mask.blit(self.texture_visible_surface, (0, 0), None, pygame.BLEND_MULT)
+
+        return mask
+
+
+    def generate_interaction_mask(self):
+
+        text = texture.Texture.create(self.texture_params)
+
+        alpha = 50
+
+        if self.physical_shape == 'rectangle':
+
+            width, length = int(self.width_interaction), int(self.length_interaction)
+
+            if self.texture_interactive_surface is None:
+                self.texture_interactive_surface = text.generate(length, width)
+
+            mask = pygame.Surface((length, width), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.rect(mask, (255, 255, 255, alpha), ((0, 0), (length, width)))
+
+        elif self.physical_shape == 'circle':
+
+            radius = int(self.radius_interaction)
+
+            if self.texture_interactive_surface is None:
+                self.texture_interactive_surface =  text.generate(radius * 2, radius * 2)
+
+            mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.circle(mask, (255, 255, 255, alpha), (radius, radius), radius)
+
+        else:
+
+            bb = self.pm_interaction_shape.cache_bb()
+
+            length = bb.top - bb.bottom
+            width = bb.right - bb.left
+
+            vertices = [[x[1] + length, x[0] + width] for x in self.interaction_vertices]
+
+            if self.texture_interactive_surface is None:
+                self.texture_interactive_surface = text.generate(2 * length, 2 * width)
+
+            mask = pygame.Surface((2 * length, 2 * width), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
+
+        # Apply texture on mask
+        mask.blit(self.texture_interactive_surface, (0, 0), None, pygame.BLEND_MULT)
 
         return mask
 

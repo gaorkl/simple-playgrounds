@@ -54,7 +54,7 @@ class Sensor(ABC):
         self.threshold = 70 if self.fovRange < 70 else self.fovRange
 
         self.fovAngle = sensor_param.get('fovAngle', None)
-        self.min_range = sensor_param.get('minRange', None)
+        self.min_range = sensor_param.get('minRange', 0)
 
         
         # Anchor of the sensor
