@@ -34,7 +34,7 @@ agent_params = {
         'type': 'keyboard'
     },
     'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 512} },
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 1024} },
         #'touch_1' : touch_default,
     },
     'starting_position':{
@@ -88,7 +88,7 @@ while game.game_on:
 
             im = np.asarray( observations[obs])
             im = np.expand_dims(im, 0)
-            im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
+            im = cv2.resize( im, (1024, 50), interpolation=cv2.INTER_NEAREST )
             cv2.imshow( obs, im )
             cv2.waitKey(1)
 

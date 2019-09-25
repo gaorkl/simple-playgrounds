@@ -103,7 +103,7 @@ class Sensor(ABC):
 
         cropped_img = img[y1:y2, x1:x2]
 
-        polar_img = cv2.linearPolar(cropped_img, center, self.fovRange , flags=cv2.INTER_NEAREST)
+        polar_img = cv2.linearPolar(cropped_img, center, 2000 , flags=cv2.INTER_NEAREST)
 
         angle_center =  new_w * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
         rolled_img = np.roll(polar_img, int( new_w - angle_center), axis=0)
