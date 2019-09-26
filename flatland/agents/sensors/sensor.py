@@ -51,7 +51,6 @@ class Sensor(ABC):
         # Field of View of the Sensor
         self.fovResolution = sensor_param.get('fovResolution', None)
         self.fovRange = sensor_param.get('fovRange', None)
-        self.threshold = 70 if self.fovRange < 70 else self.fovRange
 
         self.fovAngle = sensor_param.get('fovAngle', None)
         self.min_range = sensor_param.get('minRange', 0)
@@ -78,6 +77,11 @@ class Sensor(ABC):
 
         self.bbox_initialized = False
 
+        pixels_per_degrees = self.fovResolution / ( 360 *  self.fovAngle / (2*math.pi ) )
+
+        self.w_projection_img = max( 2*int(pixels_per_degrees * 180)+1, 2*self.fovRange+1 )
+        self.h_projection_img =   2*self.fovRange +1
+        self.projection_img = np.zeros( (self.w_projection_img , self.h_projection_img  , 3) )
 
 
     @abstractmethod
@@ -89,31 +93,31 @@ class Sensor(ABC):
         sensor_x, sensor_y = self.body_anchor.position
         sensor_angle = self.body_anchor.angle + math.pi
 
+        center_agent = ( sensor_x , sensor_y  )
 
+        #cropped_img = img[y1:y2, x1:x2]
 
-        x1 = int(max(0, sensor_x - self.threshold))
-        y1 = int(max(0, sensor_y - self.threshold))
-        x2 = int(min( h, sensor_x + self.threshold + 1))
-        y2 = int(min( w, sensor_y + self.threshold + 1))
+        x_left =  int(min( sensor_x,  (self.h_projection_img - 1 ) / 2.0 ))
+        x_right =  int(min( img.shape[1] - sensor_x , (self.h_projection_img - 1 ) / 2.0))
+        y_left =  int(min( sensor_y,  (self.w_projection_img - 1 ) / 2.0 ))
+        y_right =  int(min( img.shape[0] - sensor_y , (self.w_projection_img - 1 ) / 2.0))
 
-        new_w = y2 - y1
-        new_h = x2 - x1
+        self.projection_img[ int((self.w_projection_img + 1 ) / 2.0 - y_left) :  int((self.w_projection_img + 1 ) / 2.0 + y_right) ,
+        int((self.h_projection_img + 1 ) / 2.0 - x_left): int((self.h_projection_img + 1 ) / 2.0 + x_right ),:] \
+            = img[  int(sensor_y - y_left): int(sensor_y + y_right), int(sensor_x -  x_left): int(sensor_x + x_right) :]
 
-        center = ( sensor_x - x1, sensor_y - y1 )
+        center = (int((self.h_projection_img + 1 ) / 2.0), int((self.w_projection_img + 1 ) / 2.0)) #center_agent[0] + self.w_projection_img, center_agent[1]+ self.h_projection_img)
+        polar_img = cv2.linearPolar(self.projection_img, center, self.fovRange , flags=cv2.INTER_NEAREST)
 
-        cropped_img = img[y1:y2, x1:x2]
+        angle_center =  self.w_projection_img * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
+        rolled_img = np.roll(polar_img, int( self.w_projection_img - angle_center), axis=0)
 
-        polar_img = cv2.linearPolar(cropped_img, center, 2000 , flags=cv2.INTER_NEAREST)
-
-        angle_center =  new_w * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
-        rolled_img = np.roll(polar_img, int( new_w - angle_center), axis=0)
-
-        start_crop = int(self.min_range * new_h / self.fovRange)
-        end_crop = int(self.fovRange * new_h / self.fovRange)
+        start_crop = int(self.min_range * self.h_projection_img / self.fovRange)
+        end_crop = int(self.fovRange * self.h_projection_img / self.fovRange)
 
         cropped_img = rolled_img[
-                      int(new_w / 2 - new_w * (self.fovAngle / 2.0) / (2 * math.pi)):int(
-                          new_w / 2 + new_w * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
+                      int(self.w_projection_img / 2 - self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)):int(
+                          self.w_projection_img / 2 + self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
                       start_crop:end_crop
                       ]
 
@@ -123,8 +127,9 @@ class Sensor(ABC):
             interpolation=cv2.INTER_NEAREST
         )
 
-        self.resized_img = resized_img[::-1, :, ::-1]
-        self.cropped_img = cropped_img[::-1, :, ::-1]
+
+        self.resized_img = resized_img[::-1, :, ::-1]/255.0
+        self.cropped_img = cropped_img[::-1, :, ::-1]/255.0
 
     @abstractmethod
     def get_shape_observation(self):
