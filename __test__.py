@@ -169,7 +169,7 @@ agent_params = {
         'type': 'keyboard'
     },
     'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 512} },
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128} },
         'touch_1' : touch_default,
     },
     'starting_position':{

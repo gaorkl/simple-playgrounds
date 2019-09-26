@@ -3,8 +3,8 @@ import math
 import cv2
 import numpy as np
 
-class SensorGenerator:
 
+class SensorGenerator:
     """
     Register class to provide a decorator that is used to go through the package and
     register available playgrounds.
@@ -65,9 +65,6 @@ class Sensor(ABC):
         self.d_theta = sensor_param.get('d_theta', None)
         self.d_relativeOrientation = sensor_param.get('d_relativeOrientation', None)
 
-
-
-
         self.get_shape_observation()
 
         self.resized_img = None
@@ -79,9 +76,7 @@ class Sensor(ABC):
 
         pixels_per_degrees = self.fovResolution / ( 360 *  self.fovAngle / (2*math.pi ) )
 
-        self.w_projection_img = max( 2*int(pixels_per_degrees * 180)+1, 2*self.fovRange+1 )
-        self.h_projection_img =   2*self.fovRange +1
-        self.projection_img = np.zeros( (self.w_projection_img , self.h_projection_img  , 3) )
+        self.w_projection_img = int(360*pixels_per_degrees)
 
 
     @abstractmethod
@@ -93,32 +88,23 @@ class Sensor(ABC):
         sensor_x, sensor_y = self.body_anchor.position
         sensor_angle = self.body_anchor.angle + math.pi
 
-        center_agent = ( sensor_x , sensor_y  )
+        img_resized_fov = cv2.resize( img, (img.shape[1], self.w_projection_img), interpolation=cv2.INTER_NEAREST )
 
-        #cropped_img = img[y1:y2, x1:x2]
+        center_agent = ( sensor_x, sensor_y * self.w_projection_img / w)
 
-        x_left =  int(min( sensor_x,  (self.h_projection_img - 1 ) / 2.0 ))
-        x_right =  int(min( img.shape[1] - sensor_x , (self.h_projection_img - 1 ) / 2.0))
-        y_left =  int(min( sensor_y,  (self.w_projection_img - 1 ) / 2.0 ))
-        y_right =  int(min( img.shape[0] - sensor_y , (self.w_projection_img - 1 ) / 2.0))
-
-        self.projection_img[ int((self.w_projection_img + 1 ) / 2.0 - y_left) :  int((self.w_projection_img + 1 ) / 2.0 + y_right) ,
-        int((self.h_projection_img + 1 ) / 2.0 - x_left): int((self.h_projection_img + 1 ) / 2.0 + x_right ),:] \
-            = img[  int(sensor_y - y_left): int(sensor_y + y_right), int(sensor_x -  x_left): int(sensor_x + x_right) :]
-
-        center = (int((self.h_projection_img + 1 ) / 2.0), int((self.w_projection_img + 1 ) / 2.0)) #center_agent[0] + self.w_projection_img, center_agent[1]+ self.h_projection_img)
-        polar_img = cv2.linearPolar(self.projection_img, center, self.fovRange , flags=cv2.INTER_NEAREST)
+        #print( img_resized_fov.shape)
+        polar_img = cv2.linearPolar(img_resized_fov, center_agent, self.fovRange, flags=cv2.INTER_NEAREST)
 
         angle_center =  self.w_projection_img * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
         rolled_img = np.roll(polar_img, int( self.w_projection_img - angle_center), axis=0)
 
-        start_crop = int(self.min_range * self.h_projection_img / self.fovRange)
-        end_crop = int(self.fovRange * self.h_projection_img / self.fovRange)
+        start_crop = int(self.min_range * h / self.fovRange)
+        #end_crop = self.fovRange# min( int(self.fovRange), h)
 
         cropped_img = rolled_img[
-                      int(self.w_projection_img / 2 - self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)):int(
-                          self.w_projection_img / 2 + self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
-                      start_crop:end_crop
+                      int(self.w_projection_img / 2 - self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)):
+                      int( self.w_projection_img / 2 + self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
+                      start_crop:
                       ]
 
         resized_img = cv2.resize(
