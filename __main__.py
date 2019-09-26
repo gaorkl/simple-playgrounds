@@ -10,7 +10,7 @@ import flatland.playgrounds.playground as playground
 pg_params = {
     'playground_type': 'basic_endzone_contact_fireball',
     'scene': {
-        'scene_shape': [100, 300]
+        'scene_shape': [100, 500]
     },
 }
 
@@ -31,11 +31,12 @@ agent_params = {
                 }
     },
     'controller' :{
-        'type': 'keyboard'
+        'type': 'random'
     },
     'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 1024} },
-        #'touch_1' : touch_default,
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
+        #'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
+        'touch_1' : touch_default,
     },
     'starting_position':{
         'type': 'fixed',
@@ -72,30 +73,30 @@ game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_param
 
 clock = pygame.time.Clock()
 
-# import time
-# t1 = time.time()
+import time
+t1 = time.time()
 
 while game.game_on:
     game.update_observations()
     game.set_actions()
     game.step()
 
-    for agent in game.agents:
+    # for agent in game.agents:
+    #
+    #     observations = agent.observations
+    #
+    #     for obs in observations:
+    #
+    #         im = np.asarray( observations[obs])
+    #         im = np.expand_dims(im, 0)
+    #         im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
+    #         cv2.imshow( obs, im )
+    #         cv2.waitKey(1)
+    #
+    # game.display_full_scene()
+    #
+    # print(game.time, my_agent.health)
+    #
+    # clock.tick(30)
 
-        observations = agent.observations
-
-        for obs in observations:
-
-            im = np.asarray( observations[obs])
-            im = np.expand_dims(im, 0)
-            im = cv2.resize( im, (1024, 50), interpolation=cv2.INTER_NEAREST )
-            cv2.imshow( obs, im )
-            cv2.waitKey(1)
-
-    game.display_full_scene()
-
-    print(game.time, my_agent.health)
-
-    clock.tick(30)
-
-# print( 1000/(time.time() - t1) )
+print( 1000/(time.time() - t1) )
