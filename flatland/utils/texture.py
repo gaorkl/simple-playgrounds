@@ -62,7 +62,6 @@ class UniformTexture(Texture):
         """
 
         random_image = np.random.uniform(self.min, self.max, (int(width), int(height), 3)).astype('int')
-        print(random_image.shape)
         surf = pygame.surfarray.make_surface(random_image)
         return surf
 

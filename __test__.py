@@ -169,7 +169,7 @@ agent_params = {
         'type': 'keyboard'
     },
     'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 356, 'fovRange': 1000} },
         #'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
         'touch_1' : touch_default,
     },
@@ -199,7 +199,7 @@ engine_parameters = {
 
 rules = {
     'replay_until_time_limit': True,
-    'time_limit' : 1000
+    'time_limit' : 10000
 }
 
 game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_parameters= engine_parameters )

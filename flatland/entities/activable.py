@@ -127,7 +127,6 @@ class LockKeyDoor(Entity):
         self.activable = True
 
         self.door_params = {**door_default, **params['door']}
-        print(self.door_params)
         self.key_params = {**door_default, **params['key']}
 
         self.door_opened = False

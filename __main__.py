@@ -31,11 +31,11 @@ agent_params = {
                 }
     },
     'controller' :{
-        'type': 'keyboard'
+        'type': 'random'
     },
     'sensors':{
         #'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
-        'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
+        'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 1000} },
         'touch_1' : touch_default,
     },
     'starting_position':{
@@ -80,23 +80,23 @@ while game.game_on:
     game.update_observations()
     game.set_actions()
     game.step()
-
-    for agent in game.agents:
-
-        observations = agent.observations
-
-        for obs in observations:
-
-            im = np.asarray( observations[obs])
-            im = np.expand_dims(im, 0)
-            im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
-            cv2.imshow( obs, im )
-            cv2.waitKey(1)
-
-    game.display_full_scene()
-
-    print(game.time, my_agent.health)
-
-    clock.tick(30)
+    #
+    # for agent in game.agents:
+    #
+    #     observations = agent.observations
+    #
+    #     for obs in observations:
+    #
+    #         im = np.asarray( observations[obs])
+    #         im = np.expand_dims(im, 0)
+    #         im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
+    #         cv2.imshow( obs, im )
+    #         cv2.waitKey(1)
+    #
+    # game.display_full_scene()
+    #
+    # print(game.time, my_agent.health)
+    #
+    # clock.tick(30)
 
 print( 1000/(time.time() - t1) )
