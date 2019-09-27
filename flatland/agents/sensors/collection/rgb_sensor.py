@@ -13,10 +13,10 @@ class RgbSensor(Sensor):
         super().update_sensor( img)
 
         # Get value sensor
-        mask = self.resized_img != 0
-        sensor_id = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.cropped_img.shape[1] - 1), axis=1)
+        mask = self.pixels_sensor != 0
+        sensor_id = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.pixels_sensor.shape[1] - 1), axis=1)
         
-        self.observation = self.resized_img[np.arange(int(self.fovResolution)), sensor_id, :]
+        self.observation = self.pixels_sensor[np.arange(int(self.fovResolution)), sensor_id, :]
 
 
     def get_shape_observation(self):

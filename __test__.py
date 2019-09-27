@@ -169,7 +169,8 @@ agent_params = {
         'type': 'keyboard'
     },
     'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128} },
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
+        #'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
         'touch_1' : touch_default,
     },
     'starting_position':{
@@ -206,8 +207,8 @@ game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_param
 
 clock = pygame.time.Clock()
 
-# import time
-# t1 = time.time()
+import time
+t1 = time.time()
 
 while game.game_on:
     game.update_observations()
@@ -222,7 +223,7 @@ while game.game_on:
 
             im = np.asarray( observations[obs])
             im = np.expand_dims(im, 0)
-            im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
+            im = cv2.resize( im, (im.shape[1] * 4, 50), interpolation=cv2.INTER_NEAREST )
             cv2.imshow( obs, im )
             cv2.waitKey(1)
 
@@ -232,4 +233,4 @@ while game.game_on:
 
     clock.tick(30)
 
-# print( 1000/(time.time() - t1) )
+print( 1000/(time.time() - t1) )

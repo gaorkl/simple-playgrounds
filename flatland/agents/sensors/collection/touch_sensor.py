@@ -17,13 +17,14 @@ class TouchSensor(Sensor):
         super().update_sensor( img )
 
         # Get value sensor
-        mask = self.resized_img != 0
-        sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.cropped_img.shape[1] - 1), axis=1)
+        if np.sum( self.pixels_sensor) != 0:
+            mask = self.pixels_sensor != 0
+            sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.pixels_sensor.shape[1] - 1), axis=1)
 
+            self.observation = (self.pixels_sensor.shape[1] - sensor) / self.pixels_sensor.shape[1]
 
-
-        self.observation = (self.cropped_img.shape[1] - sensor) / self.cropped_img.shape[1]
-
+        else:
+            self.observation = np.zeros( (self.pixels_sensor.shape[0] ))
 
     def get_shape_observation(self):
         return self.fovResolution, 3

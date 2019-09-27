@@ -74,9 +74,9 @@ class Sensor(ABC):
 
         self.bbox_initialized = False
 
-        pixels_per_degrees = self.fovResolution / ( 360 *  self.fovAngle / (2*math.pi ) )
+        self.pixels_per_degrees = self.fovResolution / ( 360 *  self.fovAngle / (2*math.pi ) )
 
-        self.w_projection_img = int(360*pixels_per_degrees)
+        self.w_projection_img = int(360*self.pixels_per_degrees)
 
 
     @abstractmethod
@@ -88,34 +88,41 @@ class Sensor(ABC):
         sensor_x, sensor_y = self.body_anchor.position
         sensor_angle = self.body_anchor.angle + math.pi
 
-        img_resized_fov = cv2.resize( img, (img.shape[1], self.w_projection_img), interpolation=cv2.INTER_NEAREST )
+        x1 = int(max(0, sensor_x - self.fovRange))
+        y1 = int(max(0, sensor_y - self.fovRange))
+        x2 = int(min( h, sensor_x +self.fovRange ))
+        y2 = int(min( w, sensor_y +self.fovRange ))
 
-        center_agent = ( sensor_x, sensor_y * self.w_projection_img / w)
 
-        #print( img_resized_fov.shape)
-        polar_img = cv2.linearPolar(img_resized_fov, center_agent, self.fovRange, flags=cv2.INTER_NEAREST)
+        center = ( sensor_x - x1, sensor_y - y1 )
 
-        angle_center =  self.w_projection_img * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
-        rolled_img = np.roll(polar_img, int( self.w_projection_img - angle_center), axis=0)
+        cropped_img = img[y1:y2, x1:x2]
 
-        start_crop = int(self.min_range * h / self.fovRange)
-        #end_crop = self.fovRange# min( int(self.fovRange), h)
+        if cropped_img.shape[0] < self.w_projection_img:
+            scale_ratio = float(self.w_projection_img) / cropped_img.shape[0]
+            center = (center[0] * scale_ratio, center[1] * scale_ratio)
+            scaled_img = cv2.resize( cropped_img, ( int(cropped_img.shape[1]*scale_ratio), int(cropped_img.shape[0]*scale_ratio)), interpolation=cv2.INTER_NEAREST )
+
+        else:
+            scale_ratio = 1.0
+            scaled_img = cropped_img
+
+        polar_img = cv2.linearPolar(scaled_img, center, self.fovRange*scale_ratio, flags=cv2.INTER_NEAREST)
+
+        angle_center =  scaled_img.shape[0] * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
+        rolled_img = np.roll(polar_img, int( scaled_img.shape[0] - angle_center), axis=0)
+
+        start_crop = int( self.min_range *  scaled_img.shape[1] / self.fovRange)
+
+        n_pixels = (self.fovAngle / 2 ) * (180 / math.pi) * self.pixels_per_degrees
 
         cropped_img = rolled_img[
-                      int(self.w_projection_img / 2 - self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)):
-                      int( self.w_projection_img / 2 + self.w_projection_img * (self.fovAngle / 2.0) / (2 * math.pi)) + 1,
+                      int(scaled_img.shape[0]/ 2.0 - n_pixels) :
+                      int(scaled_img.shape[0] / 2.0 + n_pixels) ,
                       start_crop:
                       ]
 
-        resized_img = cv2.resize(
-            cropped_img,
-            (cropped_img.shape[1], int(self.fovResolution)),
-            interpolation=cv2.INTER_NEAREST
-        )
-
-
-        self.resized_img = resized_img[::-1, :, ::-1]/255.0
-        self.cropped_img = cropped_img[::-1, :, ::-1]/255.0
+        self.pixels_sensor = cropped_img[::-1, :, ::-1]/255.0
 
     @abstractmethod
     def get_shape_observation(self):
