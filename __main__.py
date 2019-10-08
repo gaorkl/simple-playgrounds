@@ -39,7 +39,7 @@ agent_params = {
         'touch_1' : touch_default,
     },
     'starting_position': {
-        'type': 'random_list_area',
+        'type': 'list_areas',
         'list': [
             {
                 'x_range': [25, 50],
