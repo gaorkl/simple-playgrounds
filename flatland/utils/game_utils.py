@@ -16,6 +16,11 @@ def generate_position(position):
             min_angle + random.rand() * (max_angle - min_angle),
         ]
 
+    elif position['type'] == 'random_in_list':
+        n = len(position['list'])
+        i = random.randint(0, n)
+        pos = position['list'][i]
+
     else:
         raise ValueError('Initial position type not implemented: ' + position['type'])
 

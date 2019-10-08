@@ -39,10 +39,8 @@ agent_params = {
         'touch_1' : touch_default,
     },
     'starting_position': {
-        'type': 'random_in_area',
-        'x_range': [25, 200],
-        'y_range': [25, 75],
-        'angle_range': [-1, 1]
+        'type': 'random_in_list',
+        'list': [[25, 25, 1], [75, 75, -1]]
     }
 }
 
