@@ -170,7 +170,7 @@ agent_params = {
     },
     'sensors':{
         'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 356, 'fovRange': 1000} },
-        #'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
+        'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
         'touch_1' : touch_default,
     },
     'starting_position':{
