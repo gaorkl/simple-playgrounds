@@ -8,7 +8,7 @@ import cv2
 import flatland.playgrounds.playground as playground
 
 pg_params = {
-    'playground_type': 'basic_endzone',
+    'playground_type': 'basic_endzone_contact_fireball',
     'scene': {
         'scene_shape': [100, 500]
     },
@@ -24,27 +24,39 @@ import flatland.agents.agent as agent
 from flatland.default_parameters.agents import *
 
 agent_params = {
-    'frame' : {
+    'frame': {
         'type': 'forward_head',
-        'params' : {
+        'params': {
             'base_radius': 15,
                 }
     },
-    'controller' :{
-        'type': 'random'
+    'controller': {
+        'type': 'keyboard'
     },
-    'sensors':{
-        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
-        'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 1000} },
+    'sensors': {
+        #'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
+        'rgb_2': {**rgb_default, 'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 1000 },
         'touch_1' : touch_default,
     },
-    'starting_position':{
-        'type': 'fixed',
-        'coordinates' : [50, 50, 0]
+    'starting_position': {
+        'type': 'list_areas',
+        'list': [
+            {
+                'x_range': [25, 50],
+                'y_range': [25, 50],
+                'angle_range':[-1, 0]
+            },
+            {
+                'x_range': [50, 75],
+                'y_range': [50, 75],
+                'angle_range': [0, 1]
+            }
+        ]
     }
 }
 
 my_agent = agent.Agent(agent_params)
+
 
 ####################################################
 ####### Create game with playground and parameters
@@ -65,10 +77,10 @@ engine_parameters = {
 
 rules = {
     'replay_until_time_limit': True,
-    'time_limit' : 1000
+    'time_limit': 1000
 }
 
-game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_parameters= engine_parameters )
+game = Engine(playground=pg, agents=[my_agent], rules=rules, engine_parameters=engine_parameters )
 
 
 clock = pygame.time.Clock()
@@ -92,8 +104,7 @@ while game.game_on:
             im = cv2.resize( im, (512, 50), interpolation=cv2.INTER_NEAREST )
             cv2.imshow( obs, im )
             cv2.waitKey(1)
-
-    game.display_full_scene()
+        game.display_full_scene()
 
     print(game.time, my_agent.health)
 
