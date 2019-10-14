@@ -39,17 +39,26 @@ agent_params = {
         'touch_1' : touch_default,
     },
     'starting_position': {
-        'type': 'list_areas',
+        'type': 'list',
         'list': [
             {
-                'x_range': [25, 50],
-                'y_range': [25, 50],
-                'angle_range':[-1, 0]
+                'type': 'circle',
+                'probability': .7,
+                'center': [50, 50],
+                'radius': 25,
+                'angle_range':[-1, 1]
             },
             {
-                'x_range': [50, 75],
+                'type': 'rectangle',
+                'probability': .2,
+                'x_range': [150, 175],
                 'y_range': [50, 75],
                 'angle_range': [0, 1]
+            },
+            {
+                'type': 'fixed',
+                'probability': .1,
+                'coordinates': [250, 50, 0]
             }
         ]
     }
