@@ -11,18 +11,19 @@ walls_texture = {
     'size_tiles': 4
 }
 
-basic_scene_default = {
-    'scene_type': 'basic',
-    'scene_shape': (400, 400),
+room_scene_default = {
+    'scene_type': 'room',
+    'room_shape': (200, 200),
     'walls_depth': 10,
     'walls_texture': walls_texture.copy()
     }
 
-two_rooms_scene_default = {
-    'scene_type': 'two_rooms',
-    'scene_shape': (400, 800),
+linear_rooms_scene_default = {
+    'scene_type': 'linear_rooms',
+    'room_shape': (200, 300),
+    'number_rooms': 2,
     'walls_depth': 10,
     'walls_texture': walls_texture.copy(),
     'doorstep_type': 'random',
-    'doorstep_size' : 100
+    'doorstep_size' : 50
     }

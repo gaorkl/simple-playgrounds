@@ -48,7 +48,7 @@ class Playground():
 
         # Generate Scene
         scene_parameters = params.get('scene', {})
-        scene_parameters = {**basic_scene_default, **scene_parameters}
+        scene_parameters = {**room_scene_default, **scene_parameters}
 
         self.scene = self.generate_scene(scene_parameters)
         self.width, self.length = self.scene.width, self.scene.length
