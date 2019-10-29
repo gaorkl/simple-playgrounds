@@ -160,9 +160,9 @@ from flatland.default_parameters.agents import *
 agent_params = {
     'name': 'mercotte',
     'frame' : {
-        'type': 'forward_head',
+        'type': 'forward_head_arms',
         'params' : {
-            'base_radius': 15,
+            'base_radius': 25,
                 }
     },
     'controller' :{

@@ -1,5 +1,5 @@
 import pymunk, pygame
-from .forward import Forward
+from .forward_head import ForwardHead
 from flatland.agents.frames.frame import *
 from flatland.utils import texture
 
@@ -8,52 +8,71 @@ from pygame.locals import *
 from flatland.default_parameters.agents import *
 
 
-@FrameGenerator.register_subclass('forward_head')
-class ForwardHead(Forward):
+@FrameGenerator.register_subclass('forward_head_arms')
+class ForwardHeadArms(ForwardHead):
 
     def __init__(self, agent_params):
 
-        agent_params = {**forward_head_default, **agent_params}
-        super(ForwardHead, self).__init__(agent_params)
+        agent_params = {**forward_head_arms_default, **agent_params}
+        super(ForwardHeadArms, self).__init__(agent_params)
 
-        self.head_range = agent_params.get('head_rotation_range')
-        self.head_speed = agent_params.get('head_rotation_speed')
-        self.head_radius = agent_params.get("head_radius")
-        self.head_mass = agent_params.get("head_mass")
 
-        self.head_metabolism = agent_params.get("head_metabolism")
+        self.arm1_range = agent_params.get('arm_rotation_range')
+        self.arm1_speed = agent_params.get('arm_rotation_speed')
+        self.arm1_radius = agent_params.get("arm_radius")
+        self.arm1_mass = agent_params.get("arm_mass")
+        self.arm1_metabolism = agent_params.get("arm_metabolism")
 
-        head = FrameParts()
+        arm1 = FrameParts()
 
         base = self.anatomy["base"]
 
-        inertia = pymunk.moment_for_circle(self.head_mass, 0, self.head_radius, (0, 0))
+        inertia = pymunk.moment_for_segment(self.arm1_mass, (?,?), (?,?), self.arm1_radius)
 
-        body = pymunk.Body(self.head_mass, inertia)
-        body.position = [self.anatomy['base'].body.position[0]+20, self.anatomy['base'].body.position[1]]
+        dist_to_body = 35
+
+        body = pymunk.Body(self.arm1_mass, inertia)
+        body.position = [self.anatomy['base'].body.position[0], \
+        self.anatomy['base'].body.position[1]+dist_to_body]
         #import pdb;pdb.set_trace()
         body.angle = self.anatomy['base'].body.angle 
 
-        head.body = body
+        arm1.body = body
 
-        shape = pymunk.Circle(body, self.head_radius, (0, 0))
-        shape.sensor = True
+        shape = pymunk.Segment(body, (?, ?), (?,?), self.arm1_radius)
+        shape.sensor = False
 
-        head.shape = shape
+        arm1.shape = shape
 
-        head.joint = [pymunk.PinJoint(head.body, base.body, (0, 0), (20,0)),
-                       pymunk.SimpleMotor(head.body, base.body, 0)
+        arm1.joint = [ pymunk.PivotJoint(arm1.body, base.body, (0, dist_to_body)),
+                       pymunk.SimpleMotor(arm1.body, base.body, 0)
                        ]
 
-        self.anatomy["head"] = head
+        self.anatomy["arm1"] = arm1
 
-        text = agent_params.get('head_texture')
-        self.head_texture = texture.Texture.create(text)
-        self.initialize_head_texture()
+        text = agent_params.get('arm_texture')
+        self.arm1_texture = texture.Texture.create(text)
+        self.initialize_arm_texture()
 
-        self.head_velocity = 0
+        self.arm_velocity = 0
 
 
+    def initialize_arm_texture(self):
+
+        # Head
+        radius = int(self.arm1_radius)
+
+        # Create a texture surface with the right dimensions
+        self.arm1_texture_surface = self.arm1_texture.generate(radius * 2, radius * 2)
+
+        # Create the mask
+        self.mask_arm1 = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        self.mask_arm1.fill((0, 0, 0, 0))
+        pygame.draw.rect(self.mask_arm1, (255, 255, 255, 255), (?,?,?,?))
+
+        # Apply texture on mask
+        self.mask_arm1.blit(self.arm1_texture_surface, (0, 0), None, pygame.BLEND_MULT)
+        pygame.draw.line(self.mask_arm1, pygame.color.THECOLORS["blue"], (radius, radius), (radius, 2 * radius), 2)
 
     def initialize_head_texture(self):
 
@@ -125,10 +144,10 @@ class ForwardHead(Forward):
     def draw(self, surface):
         super().draw(surface)
 
-        mask = pygame.transform.rotate(self.mask_head, self.anatomy['head'].body.angle * 180 / math.pi)
+        mask = pygame.transform.rotate(self.mask_arm1, self.anatomy['arm1'].body.angle * 180 / math.pi)
 
         mask_rect = mask.get_rect()
-        mask_rect.center = self.anatomy['head'].body.position[1], self.anatomy['head'].body.position[0]
+        mask_rect.center = self.anatomy['arm1'].body.position[1], self.anatomy['arm1'].body.position[0]
 
         # Blit the masked texture on the screen
         surface.blit(mask, mask_rect, None)

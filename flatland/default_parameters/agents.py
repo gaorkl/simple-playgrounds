@@ -17,6 +17,11 @@ head_texture = {
     'color': (200, 0, 200)
 }
 
+arms_texture = {
+    'type': 'color',
+    'color': (250, 0, 250)
+}
+
 metabolism_default = {
     'health' : 1000,
     'latent_metabolism' : 0.001,
@@ -71,3 +76,18 @@ forward_head_default = {
 }
 
 forward_head_default = {**forward_default, **forward_head_default}
+
+
+forward_head_arms_default = {
+    'arm_texture':  arms_texture,
+    'arm_radius': 10,
+    'arm_mass' : 5,
+
+    'arm_rotation_speed': 0.25,
+    'arm_rotation_range': math.pi/2,
+    'arm_metabolism' : 0.001,
+
+}
+
+forward_head_arm_default = {**forward_head_default, **forward_head_arms_default}
+
