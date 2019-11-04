@@ -27,8 +27,8 @@ class ForwardHeadArms(ForwardHead):
 
         base = self.anatomy["base"]
 
-        self.arm1_length = 40
-        self.arm1_width = 10
+        self.arm1_length = 10
+        self.arm1_width = 40
 
         inertia = pymunk.moment_for_box(self.arm1_mass, (self.arm1_width, self.arm1_length))
 
@@ -47,7 +47,7 @@ class ForwardHeadArms(ForwardHead):
 
         arm1.shape = shape
 
-        arm1.joint = [ pymunk.PivotJoint(arm1.body, base.body, (dist_to_body, 0)),
+        arm1.joint = [ pymunk.PinJoint(arm1.body, base.body, (0, self.arm1_width/2), (dist_to_body, 0)),
                        pymunk.SimpleMotor(arm1.body, base.body, 0)
                        ]
 
