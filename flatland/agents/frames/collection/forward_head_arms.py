@@ -27,24 +27,27 @@ class ForwardHeadArms(ForwardHead):
 
         base = self.anatomy["base"]
 
-        inertia = pymunk.moment_for_segment(self.arm1_mass, (?,?), (?,?), self.arm1_radius)
+        self.arm1_length = 40
+        self.arm1_width = 10
 
-        dist_to_body = 35
+        inertia = pymunk.moment_for_box(self.arm1_mass, (self.arm1_width, self.arm1_length))
+
+        dist_to_body = 50
 
         body = pymunk.Body(self.arm1_mass, inertia)
-        body.position = [self.anatomy['base'].body.position[0], \
-        self.anatomy['base'].body.position[1]+dist_to_body]
+        body.position = [self.anatomy['base'].body.position[0]+dist_to_body, \
+        self.anatomy['base'].body.position[1]]
         #import pdb;pdb.set_trace()
         body.angle = self.anatomy['base'].body.angle 
 
         arm1.body = body
 
-        shape = pymunk.Segment(body, (?, ?), (?,?), self.arm1_radius)
+        shape = pymunk.Poly.create_box(body, (self.arm1_width, self.arm1_length))
         shape.sensor = False
 
         arm1.shape = shape
 
-        arm1.joint = [ pymunk.PivotJoint(arm1.body, base.body, (0, dist_to_body)),
+        arm1.joint = [ pymunk.PivotJoint(arm1.body, base.body, (dist_to_body, 0)),
                        pymunk.SimpleMotor(arm1.body, base.body, 0)
                        ]
 
@@ -57,7 +60,7 @@ class ForwardHeadArms(ForwardHead):
         self.arm_velocity = 0
 
 
-    def initialize_arm_texture(self):
+    """def initialize_arm_texture(self):
 
         # Head
         radius = int(self.arm1_radius)
@@ -68,11 +71,38 @@ class ForwardHeadArms(ForwardHead):
         # Create the mask
         self.mask_arm1 = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
         self.mask_arm1.fill((0, 0, 0, 0))
-        pygame.draw.rect(self.mask_arm1, (255, 255, 255, 255), (?,?,?,?))
+        pygame.draw.rect(self.mask_arm1, (255, 255, 255, 255), (0,10,100,110))
 
         # Apply texture on mask
         self.mask_arm1.blit(self.arm1_texture_surface, (0, 0), None, pygame.BLEND_MULT)
         pygame.draw.line(self.mask_arm1, pygame.color.THECOLORS["blue"], (radius, radius), (radius, 2 * radius), 2)
+
+
+        width, length = int(self.width), int(self.length)
+
+        if self.texture_visible_surface is None:
+            self.texture_visible_surface = text.generate(length, width)
+        else:
+            self.texture_visible_surface = pygame.transform.scale(self.texture_visible_surface, ((length, width)))
+
+        self.mask_arm1 = pygame.Surface((length, width), pygame.SRCALPHA)
+        self.mask_arm1.fill((0, 0, 0, 0))
+        pygame.draw.rect(self.mask_arm1, (255, 255, 255, alpha), ((0, 0), (length, width)))"""
+
+
+    def initialize_arm_texture(self):
+
+        width, length = int(self.arm1_width), int(self.arm1_length)
+
+        #if self.texture_visible_surface is None:
+        if True:
+            self.texture_visible_surface = self.arm1_texture.generate(length, width)
+        else:
+            self.texture_visible_surface = pygame.transform.scale(self.texture_visible_surface, ((length, width)))
+
+        self.mask_arm1 = pygame.Surface((length, width), pygame.SRCALPHA)
+        self.mask_arm1.fill((0, 0, 0, 0))
+        pygame.draw.rect(self.mask_arm1, (255, 255, 255, 255), ((0, 0), (length, width)))
 
     def initialize_head_texture(self):
 
