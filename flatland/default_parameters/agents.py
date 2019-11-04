@@ -54,7 +54,7 @@ touch_default = {
 
 forward_default = {
     'base_texture':  base_texture,
-    'base_radius': 20,
+    'base_radius': 15,
     'base_mass' : 20,
 
     'base_translation_speed': 1.0,
@@ -66,7 +66,7 @@ holonomic_default = forward_default.copy()
 
 forward_head_default = {
     'head_texture':  head_texture,
-    'head_radius': 10,
+    'head_radius': 14,
     'head_mass' : 5,
 
     'head_rotation_speed': 0.25,

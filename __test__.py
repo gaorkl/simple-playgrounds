@@ -162,7 +162,6 @@ agent_params = {
     'frame' : {
         'type': 'forward_head_arms',
         'params' : {
-            'base_radius': 25,
                 }
     },
     'controller' :{

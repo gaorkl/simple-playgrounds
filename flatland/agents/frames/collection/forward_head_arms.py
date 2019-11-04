@@ -16,6 +16,7 @@ class ForwardHeadArms(ForwardHead):
         agent_params = {**forward_head_arms_default, **agent_params}
         super(ForwardHeadArms, self).__init__(agent_params)
 
+        base = self.anatomy['base']
 
         self.arm1_range = agent_params.get('arm_rotation_range')
         self.arm1_speed = agent_params.get('arm_rotation_speed')
@@ -25,20 +26,18 @@ class ForwardHeadArms(ForwardHead):
 
         arm1 = FrameParts()
 
-        base = self.anatomy["base"]
-
-        self.arm1_length = 10
-        self.arm1_width = 40
+        self.arm1_length = 20
+        self.arm1_width = 5
 
         inertia = pymunk.moment_for_box(self.arm1_mass, (self.arm1_width, self.arm1_length))
 
-        dist_to_body = 50
+        dist_to_body = self.base_radius+self.arm1_length/2.0 + 3
 
         body = pymunk.Body(self.arm1_mass, inertia)
-        body.position = [self.anatomy['base'].body.position[0]+dist_to_body, \
-        self.anatomy['base'].body.position[1]]
+        body.position = [0,  dist_to_body]
+        #self.anatomy['base'].body.position[1] ]
         #import pdb;pdb.set_trace()
-        body.angle = self.anatomy['base'].body.angle 
+        #body.angle = self.anatomy['base'].body.angle
 
         arm1.body = body
 
@@ -47,7 +46,8 @@ class ForwardHeadArms(ForwardHead):
 
         arm1.shape = shape
 
-        arm1.joint = [ pymunk.PinJoint(arm1.body, base.body, (0, self.arm1_width/2), (dist_to_body, 0)),
+        arm1.joint = [ pymunk.PinJoint(arm1.body, base.body,  ( 0, -self.arm1_length / 2), (5, 0)),
+                       pymunk.PinJoint(arm1.body, base.body, ( 0, -self.arm1_length / 2), (-5, 0)),
                        pymunk.SimpleMotor(arm1.body, base.body, 0)
                        ]
 

@@ -116,8 +116,8 @@ class Playground():
 
             if part.body is not None:
 
-                part.body.position = starting_position[:2]
-                part.body.angle = starting_position[2]
+                part.body.position = [ starting_position[0] + part.body.position[0], starting_position[1] + part.body.position[1]]
+                part.body.angle = starting_position[2] + part.body.angle
                 self.space.add(part.body)
 
             if part.shape is not None:

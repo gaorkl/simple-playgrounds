@@ -27,12 +27,12 @@ class ForwardHead(Forward):
 
         base = self.anatomy["base"]
 
-        inertia = pymunk.moment_for_circle(self.head_mass, 0, self.head_radius, (0, 0))
+        inertia = pymunk.moment_for_circle( self.head_mass, 0, self.head_radius, (0, 0) )
 
         body = pymunk.Body(self.head_mass, inertia)
-        body.position = [self.anatomy['base'].body.position[0]+20, self.anatomy['base'].body.position[1]]
+        #body.position = [self.anatomy['base'].body.position[0], self.anatomy['base'].body.position[1]]
         #import pdb;pdb.set_trace()
-        body.angle = self.anatomy['base'].body.angle 
+        #body.angle = self.anatomy['base'].body.angle
 
         head.body = body
 
@@ -41,7 +41,7 @@ class ForwardHead(Forward):
 
         head.shape = shape
 
-        head.joint = [pymunk.PinJoint(head.body, base.body, (0, 0), (20,0)),
+        head.joint = [pymunk.PinJoint(head.body, base.body, (0, 0), (0,0)),
                        pymunk.SimpleMotor(head.body, base.body, 0)
                        ]
 
