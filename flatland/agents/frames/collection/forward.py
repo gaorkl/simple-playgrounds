@@ -49,6 +49,7 @@ class Forward(Frame):
         mapping[K_LEFT] = ['press_hold', 'angular_velocity', 1]
         mapping[K_RIGHT] = ['press_hold', 'angular_velocity', -1]
         mapping[K_UP] = ['press_hold', 'longitudinal_velocity', 1]
+        mapping[K_DOWN] = ['press_hold', 'longitudinal_velocity', -1]
 
         return mapping
 
@@ -56,7 +57,7 @@ class Forward(Frame):
 
         actions = super().get_available_actions()
 
-        actions['longitudinal_velocity'] = [0, 1, 'continuous']
+        actions['longitudinal_velocity'] = [-1, 1, 'continuous']
         actions['angular_velocity'] = [-1, 1, 'continuous']
 
         return actions

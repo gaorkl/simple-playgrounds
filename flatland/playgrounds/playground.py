@@ -8,7 +8,10 @@ from flatland.utils.config import *
 
 from ..default_parameters.scenes import *
 
-import random, numpy
+import random
+import numpy
+
+
 
 
 class PlaygroundGenerator():
@@ -200,8 +203,18 @@ class Playground():
             entity.draw(self.topdown_view, draw_interaction)
 
         for agent in self.agents:
+            #if agent is not sensor_agent:
             if agent is not sensor_agent:
-                agent.frame.draw(self.topdown_view)
+                agent.frame.draw(self.topdown_view, visible_to_self=False)
+            else:
+                agent.frame.draw(self.topdown_view, visible_to_self=True)
+            """else:
+                #import pdb;pdb.set_trace()
+                body_parts = agent.frame.anatomy.keys()
+                for part in body_parts:
+                    #if part.self_visible:
+                    if part == 'arm1_2':
+                        agent.frame.anatomy[part].draw(self.topdown_view, visible_to_self=True)"""
 
         imgdata = pygame.surfarray.array3d(self.topdown_view)
 
@@ -211,8 +224,6 @@ class Playground():
             return imgdata
         else:
             return imgdata
-
-
 
 
     def yielders_produce(self):

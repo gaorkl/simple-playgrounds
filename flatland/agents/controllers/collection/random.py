@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import random
 
+
 from flatland.agents.controllers.controller import ControllerGenerator, Controller
 
 @ControllerGenerator.register_subclass('random')

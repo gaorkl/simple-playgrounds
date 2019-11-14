@@ -1,6 +1,7 @@
 from ..default_parameters.scenes import *
 import random
 
+
 class SceneGenerator():
 
     """

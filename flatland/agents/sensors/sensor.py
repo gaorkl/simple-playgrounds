@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 
 
+
 class SensorGenerator:
     """
     Register class to provide a decorator that is used to go through the package and

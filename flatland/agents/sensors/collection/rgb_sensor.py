@@ -2,6 +2,7 @@ from flatland.agents.sensors.sensor import SensorGenerator, Sensor
 import numpy as np
 import cv2
 import time
+
 @SensorGenerator.register('rgb')
 class RgbSensor(Sensor):
 
