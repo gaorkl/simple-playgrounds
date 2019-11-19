@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from stable_baselines.bench import Monitor
 
 
-log_dir = "log/"
+log_dir = "C:\\Users\\sbrn692\\OneDrive - City, University of London\\logs\\"
 
 
 
@@ -42,7 +42,7 @@ agent_params = {
 
 }
 
-my_agent = agent.Agent(agent_params)
+
 
 
 ####################################################
@@ -67,42 +67,61 @@ rules = {
     'time_limit': 500
 }
 
-
-
-pg_params = {
-    'playground_type': 'no_touching',
-}
-
-pg = playground.PlaygroundGenerator.create( pg_params )
-
-game = Engine(playground=pg, agents=[my_agent], rules=rules, engine_parameters=engine_parameters )
+import time
 
 from  flatland.gym_wrapper import CustomEnv
-from stable_baselines import TRPO
-from stable_baselines.common.vec_env import DummyVecEnv
+from stable_baselines import TRPO, SAC, TD3
+
+### Iteration
+for iteration in range(10):
+
+    for envir_name in ['no_touching', 'room_contact_endzone',  'room_endzone']:
 
 
-env = CustomEnv(game, my_agent)
-env = Monitor(env, log_dir, allow_early_resets=True)
+        pg_params = {
+            'playground_type': envir_name
+        }
 
-# Instantiate the agent
-model = TRPO('MlpPolicy', env, verbose=1)
-# Train the agent
+        exp_name = envir_name + '_' + str(iteration)
 
-time_steps = 1e5
+        my_agent = agent.Agent(agent_params)
+        pg = playground.PlaygroundGenerator.create( pg_params )
+        game = Engine(playground=pg, agents=[my_agent], rules=rules, engine_parameters=engine_parameters )
 
-for i in range(10):
-    model.learn(total_timesteps=int(time_steps/5))
-    model.save("trpo_test")
+        env = CustomEnv(game, my_agent)
 
-    #model.load("trpo_test")
-    # Enjoy trained agent
-    obs = env.reset()
-    for i in range(1000):
-        action, _states = model.predict(obs)
-        obs, rewards, done, info = env.step(action)
-        if done: env.reset()
-        env.render()
+        log_name = log_dir +   exp_name + '_log.csv'
+        env = Monitor(env, log_name, allow_early_resets=True)
 
-results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "DDPG LunarLander")
-plt.show()
+        # Instantiate the agent
+        model = TRPO('MlpPolicy', env, verbose=1)
+        # Train the agent
+
+        time_steps = 1e4
+
+        t0 = time.time()
+        model.learn(total_timesteps=int(time_steps))
+        t1 = time.time()
+
+        time_name = log_dir +   exp_name + '_time.dat'
+
+        with open(time_name, 'w') as f:
+
+            f.write( str( t1 - t0))
+
+# for i in range(1):
+#
+#     model.learn(total_timesteps=int(time_steps))
+#     model.save("trpo_test")
+#
+#     #model.load("trpo_test")
+#     # Enjoy trained agent
+#     obs = env.reset()
+#     for i in range(1000):
+#         action, _states = model.predict(obs)
+#         obs, rewards, done, info = env.step(action)
+#         if done: env.reset()
+#         env.render()
+#
+# results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "DDPG LunarLander")
+# plt.show()
