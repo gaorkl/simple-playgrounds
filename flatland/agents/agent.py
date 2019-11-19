@@ -8,6 +8,7 @@ from .controllers import controller
 from .frames import frame
 from ..default_parameters.agents import *
 
+
 class Agent():
 
     def __init__(self, agent_params):
@@ -88,18 +89,25 @@ class Agent():
     def pre_step(self):
 
         self.reward = 0
-        self.action_commands = {}
+        self.spot_reward = 0
+        #self.action_commands = {}
 
     # def post_step(self):
     #
     #     self.health += self.reward
     #     self.health += self.energy
 
+    def get_actions(self, actions=None):
 
+        if actions is None:
+            self.action_commands = self.controller.get_actions()
 
-    def get_actions(self):
+        else:
+            self.action_commands = actions
 
-        self.action_commands = self.controller.get_actions()
+    def get_actions_2(self, actions):
+
+        self.action_commands = actions
 
     def apply_action(self):
 

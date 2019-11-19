@@ -8,9 +8,9 @@ import cv2
 import flatland.playgrounds.playground as playground
 
 pg_params = {
-    'playground_type': 'basic_endzone_contact_fireball',
+    'playground_type': 'room_endzone',
     'scene': {
-        'scene_shape': [100, 500]
+        'scene_shape': [200, 200]
     },
 }
 
@@ -99,6 +99,8 @@ t1 = time.time()
 
 while game.game_on:
     game.update_observations()
+    for agent in game.agents:
+        agent.get_actions()
     game.set_actions()
     game.step()
 

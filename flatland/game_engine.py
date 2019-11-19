@@ -43,7 +43,7 @@ class Engine():
             self.screen = pygame.display.set_mode((self.playground.width, self.playground.length))
         else:
             self.screen = pygame.display.set_mode((100, 100))
-            # Add image simlation in progress with details
+            # Add image simulation in progress with details
 
         self.screen.set_alpha(None)
 
@@ -68,7 +68,7 @@ class Engine():
     def set_actions(self):
 
         for agent in self.agents:
-            agent.get_actions()
+            #agent.get_actions()
             agent.apply_action()
 
     def step(self):
@@ -83,6 +83,8 @@ class Engine():
 
         for agent in self.agents:
             agent.health += (agent.reward - agent.energy_spent)
+
+            agent.spot_reward =  agent.reward
 
         self.playground.update_playground()
 

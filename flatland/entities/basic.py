@@ -42,7 +42,7 @@ class Absorbable(Entity):
 
     def __init__(self, params):
 
-        params = {**params, **absorbable_default}
+        params = { **absorbable_default, **params}
         params['visible'] = True
         params['interactive'] = False
 
@@ -58,7 +58,7 @@ class ContactEndZone(Entity):
 
     def __init__(self, params):
 
-        params = {**params, **contact_endzone_default}
+        params = { **contact_endzone_default,**params}
         params['visible'] = True
         params['interactive'] = False
 

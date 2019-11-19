@@ -110,7 +110,7 @@ class Playground():
 
         self.agents.append(agent)
 
-        starting_position = generate_position(agent.starting_position)
+        starting_position = generate_position(self.starting_position)
 
         for part_name, part in agent.frame.anatomy.items():
 
@@ -185,8 +185,9 @@ class Playground():
         self.check_timers()
         self.release_grasps()
 
-        for entity in self.entities:
-            entity.pre_step()
+        #for entity in self.entities:
+
+        #    entity.pre_step()
 
     def reset(self):
         # Reset the environment
