@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from stable_baselines.bench import Monitor
 
 
-log_dir = "C:\\Users\\sbrn692\\OneDrive - City, University of London\\logs\\"
+log_dir = "logs/"
 
 
 
@@ -70,7 +70,7 @@ rules = {
 import time
 
 from  flatland.gym_wrapper import CustomEnv
-from stable_baselines import TRPO, SAC, TD3
+from stable_baselines import SAC
 
 ### Iteration
 for iteration in range(10):
@@ -94,10 +94,10 @@ for iteration in range(10):
         env = Monitor(env, log_name, allow_early_resets=True)
 
         # Instantiate the agent
-        model = TRPO('MlpPolicy', env, verbose=1)
+        model = SAC('MlpPolicy', env, verbose=1)
         # Train the agent
 
-        time_steps = 1e4
+        time_steps = 1e5
 
         t0 = time.time()
         model.learn(total_timesteps=int(time_steps))
