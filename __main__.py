@@ -34,9 +34,10 @@ agent_params = {
         'type': 'keyboard'
     },
     'sensors':{
-        #'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
         'rgb_2': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 250} },
-        #'touch_1' : touch_default,
+        'rgb_3': {**rgb_default, **{'bodyAnchor': 'head', 'fovAngle': math.pi/2.0, 'fovRange': 250} },
+        'touch_1' : touch_default,
     },
     'starting_position':{
         'type': 'fixed',
