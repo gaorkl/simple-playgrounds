@@ -50,10 +50,10 @@ touch_default = {
 forward_default = {
     'base_texture':  base_texture,
     'base_radius': 20,
-    'base_mass' : 20,
+    'base_mass' : 10,
 
     'base_translation_speed': 1.0,
-    'base_rotation_speed': 0.25,
+    'base_rotation_speed': 0.5,
 
 }
 
