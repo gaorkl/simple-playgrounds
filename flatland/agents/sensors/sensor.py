@@ -98,6 +98,8 @@ class Sensor(ABC):
 
         cropped_img = img[y1:y2, x1:x2]
 
+
+
         if cropped_img.shape[0] < self.w_projection_img:
             scale_ratio = float(self.w_projection_img) / cropped_img.shape[0]
             center = (center[0] * scale_ratio, center[1] * scale_ratio)
@@ -107,7 +109,7 @@ class Sensor(ABC):
             scale_ratio = 1.0
             scaled_img = cropped_img
 
-        polar_img = cv2.linearPolar(scaled_img, center, self.fovRange*scale_ratio, flags=cv2.INTER_NEAREST)
+        polar_img = cv2.linearPolar(scaled_img, center, self.fovRange*scale_ratio, flags=cv2.INTER_NEAREST+cv2.WARP_FILL_OUTLIERS )
 
         angle_center =  scaled_img.shape[0] * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
         rolled_img = np.roll(polar_img, int( scaled_img.shape[0] - angle_center), axis=0)
