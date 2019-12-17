@@ -70,7 +70,7 @@ rules = {
 import time
 
 from  flatland.gym_wrapper import CustomEnv
-from stable_baselines import SAC
+from stable_baselines import SAC, TRPO
 #
 # ### Iteration
 # for iteration in range(10):
@@ -119,20 +119,22 @@ game = Engine(playground=pg, agents=[my_agent], rules=rules, engine_parameters=e
 
 env = CustomEnv(game, my_agent)
 
-log_name = 'log.csv'
-env = Monitor(env, log_name, allow_early_resets=True)
+env = Monitor(env, log_dir, allow_early_resets=True)
 
 # Instantiate the agent
-model = SAC('MlpPolicy', env, verbose=1)
+model = TRPO('MlpPolicy', env, verbose=1)
 # Train the agent
 
-time_steps = 4e4
+time_steps = 5e4
 
 
 for i in range(1):
 
     model.learn(total_timesteps=int(time_steps))
     model.save("trpo_test")
+
+    results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "Results")
+    plt.show()
 
     #model.load("trpo_test")
     # Enjoy trained agent
@@ -143,5 +145,3 @@ for i in range(1):
         if done: env.reset()
         env.render()
 
-results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "Results")
-plt.show()
