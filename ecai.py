@@ -71,57 +71,77 @@ import time
 
 from  flatland.gym_wrapper import CustomEnv
 from stable_baselines import SAC
+#
+# ### Iteration
+# for iteration in range(10):
+#
+#     for envir_name in ['no_touching', 'room_contact_endzone',  'room_endzone']:
+#
+#
+#         pg_params = {
+#             'playground_type': envir_name
+#         }
+#
+#         exp_name = envir_name + '_' + str(iteration)
+#
+#         my_agent = agent.Agent(agent_params)
+#         pg = playground.PlaygroundGenerator.create( pg_params )
+#         game = Engine(playground=pg, agents=[my_agent], rules=rules, engine_parameters=engine_parameters )
+#
+#         env = CustomEnv(game, my_agent)
+#
+#         log_name = log_dir +   exp_name + '_log.csv'
+#         env = Monitor(env, log_name, allow_early_resets=True)
+#
+#         # Instantiate the agent
+#         model = SAC('MlpPolicy', env, verbose=1)
+#         # Train the agent
+#
+#         time_steps = 1e4
+#
+#         t0 = time.time()
+#         model.learn(total_timesteps=int(time_steps))
+#         t1 = time.time()
+#
+#         time_name = log_dir +   exp_name + '_time.dat'
+#
+#         with open(time_name, 'w') as f:
+#
+#             f.write( str( t1 - t0))
 
-### Iteration
-for iteration in range(10):
-
-    for envir_name in ['no_touching', 'room_contact_endzone',  'room_endzone']:
-
-
-        pg_params = {
-            'playground_type': envir_name
+pg_params = {
+            'playground_type': 'room_contact_endzone'
         }
 
-        exp_name = envir_name + '_' + str(iteration)
+my_agent = agent.Agent(agent_params)
+pg = playground.PlaygroundGenerator.create( pg_params )
+game = Engine(playground=pg, agents=[my_agent], rules=rules, engine_parameters=engine_parameters )
 
-        my_agent = agent.Agent(agent_params)
-        pg = playground.PlaygroundGenerator.create( pg_params )
-        game = Engine(playground=pg, agents=[my_agent], rules=rules, engine_parameters=engine_parameters )
+env = CustomEnv(game, my_agent)
 
-        env = CustomEnv(game, my_agent)
+log_name = 'log.csv'
+env = Monitor(env, log_name, allow_early_resets=True)
 
-        log_name = log_dir +   exp_name + '_log.csv'
-        env = Monitor(env, log_name, allow_early_resets=True)
+# Instantiate the agent
+model = SAC('MlpPolicy', env, verbose=1)
+# Train the agent
 
-        # Instantiate the agent
-        model = SAC('MlpPolicy', env, verbose=1)
-        # Train the agent
+time_steps = 4e4
 
-        time_steps = 1e5
 
-        t0 = time.time()
-        model.learn(total_timesteps=int(time_steps))
-        t1 = time.time()
+for i in range(1):
 
-        time_name = log_dir +   exp_name + '_time.dat'
+    model.learn(total_timesteps=int(time_steps))
+    model.save("trpo_test")
 
-        with open(time_name, 'w') as f:
+    #model.load("trpo_test")
+    # Enjoy trained agent
+    obs = env.reset()
+    for i in range(1000):
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
+        if done: env.reset()
+        env.render()
 
-            f.write( str( t1 - t0))
-
-# for i in range(1):
-#
-#     model.learn(total_timesteps=int(time_steps))
-#     model.save("trpo_test")
-#
-#     #model.load("trpo_test")
-#     # Enjoy trained agent
-#     obs = env.reset()
-#     for i in range(1000):
-#         action, _states = model.predict(obs)
-#         obs, rewards, done, info = env.step(action)
-#         if done: env.reset()
-#         env.render()
-#
-# results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "DDPG LunarLander")
-# plt.show()
+results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "Results")
+plt.show()
