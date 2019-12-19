@@ -9,7 +9,7 @@ class RoomEndZone(Playground):
 
         scenes_params = {
             'scene': {
-            'scene_type': 'basic',
+            'scene_type': 'room',
             'scene_shape': [200, 200]
              },
         }
@@ -103,7 +103,7 @@ class RoomContactEndZone(Playground):
 
         scenes_params = {
             'scene': {
-            'scene_type': 'basic',
+            'scene_type': 'room',
             'scene_shape': [200, 200]
              },
         }
@@ -183,7 +183,7 @@ class NoTouching(Playground):
 
         scenes_params = {
             'scene': {
-            'scene_type': 'basic',
+            'scene_type': 'room',
             'scene_shape': [200, 200]
              },
         }
