@@ -2,6 +2,7 @@ from ..default_parameters.scenes import *
 import random
 import numpy as np
 
+
 class SceneGenerator():
 
     """

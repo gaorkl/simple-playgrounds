@@ -99,18 +99,19 @@ class Frame(Entity):
         self.mask.blit(self.texture_surface, (0, 0), None, pygame.BLEND_MULT)
         pygame.draw.line(self.mask,  pygame.color.THECOLORS["blue"] , (radius,radius), (radius, 2*radius), 2)
 
-    def draw(self, surface):
+    def draw(self, surface, visible_to_self=False):
         """
         Draw the agent on the environment screen
         """
         # Body
+        if not visible_to_self:
+            #print('here')
+            mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)
+            mask_rect = mask_rotated.get_rect()
+            mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
 
-        mask_rotated = pygame.transform.rotate(self.mask, self.anatomy['base'].body.angle * 180 / math.pi)
-        mask_rect = mask_rotated.get_rect()
-        mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
-
-        # Blit the masked texture on the screen
-        surface.blit(mask_rotated, mask_rect, None)
+            # Blit the masked texture on the screen
+            surface.blit(mask_rotated, mask_rect, None)
 
     def get_default_key_mapping(self):
         mapping = {

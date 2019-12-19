@@ -54,11 +54,11 @@ touch_default = {
 
 forward_default = {
     'base_texture':  base_texture,
-    'base_radius': 15,
+    'base_radius': 25,
     'base_mass' : 20,
 
-    'base_translation_speed': 1.0,
-    'base_rotation_speed': 0.5,
+    'base_translation_speed': 4.0,
+    'base_rotation_speed': 0.25,
 
 }
 
@@ -66,8 +66,8 @@ holonomic_default = forward_default.copy()
 
 forward_head_default = {
     'head_texture':  head_texture,
-    'head_radius': 14,
-    'head_mass' : 5,
+    'head_radius': 8,
+    'head_mass' : 0.0000001,
 
     'head_rotation_speed': 0.25,
     'head_rotation_range': math.pi/2,
@@ -81,10 +81,10 @@ forward_head_default = {**forward_default, **forward_head_default}
 forward_head_arms_default = {
     'arm_texture':  arms_texture,
     'arm_radius': 10,
-    'arm_mass' : 5,
+    'arm_mass' : 1,
 
     'arm_rotation_speed': 0.25,
-    'arm_rotation_range': math.pi/2,
+    'arm_rotation_range': math.pi/3,
     'arm_metabolism' : 0.001,
 
 }

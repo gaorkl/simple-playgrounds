@@ -7,6 +7,7 @@ import numpy.random as rand
 import numpy as np
 import math, random
 
+
 class Texture(object):
 
     subclasses = {}

@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 import cv2
 import random
+import time
 
 seed = 45
 
@@ -146,7 +147,7 @@ fairy_1['trajectory'] = {
 pg_params = {
     'playground_type': 'basic_empty',
     'scene': {
-        'scene_type': 'room',
+        'scene_type': 'basic',
         'scene_shape': [600, 800]
     },
     'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1, yielder_1,
@@ -156,7 +157,6 @@ pg_params = {
 }
 
 
-pg = playground.PlaygroundGenerator.create( pg_params )
 
 #################################################
 ##### BUILDING AN AGENT
@@ -173,7 +173,7 @@ agent_params = {
                 }
     },
     'controller' :{
-        'type': 'keyboard'
+        'type': 'smsbdrl_no_zero'
     },
     'sensors':{
         'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 356, 'fovRange': 1000} },
@@ -186,7 +186,6 @@ agent_params = {
     }
 }
 
-my_agent = agent.Agent(agent_params)
 
 
 ####################################################
@@ -209,42 +208,62 @@ rules = {
     'time_limit' : 10000
 }
 
-game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_parameters= engine_parameters )
 
 
-clock = pygame.time.Clock()
+def create_world_and_run_action_sequence(pg_params, agent_params, rules, engine_parameters):
+
+    pg = playground.PlaygroundGenerator.create(pg_params)
+    import flatland.agents.agent as agent
 
 
-import time
-t1 = time.time()
+    my_agent = agent.Agent(agent_params)
 
-while game.game_on:
+    game = Engine( playground = pg, agents = [my_agent], rules = rules, engine_parameters= engine_parameters )
 
-    game.update_observations()
-    game.set_actions()
-    game.step()
+    clock = pygame.time.Clock()
+    
+    t1 = time.time()
+
+    i = 0
+
+    while game.game_on and 49 >= i:
+
+        i += 1
+
+        game.update_observations()
+        game.set_actions()
+        game.step()
+
+        for agent in game.agents:
+
+            observations = agent.observations
+
+            for obs in observations:
+
+                im = np.asarray( observations[obs])
+                im = np.expand_dims(im, 0)
+                im = cv2.resize(im, (im.shape[1] * 4, 50), interpolation=cv2.INTER_NEAREST)
+                #import pdb;pdb.set_trace()
+                im = im * agent.frame.eyelid
+                cv2.imshow( obs, im )
+                cv2.waitKey(1)
 
 
-    for agent in game.agents:
+        game.display_full_scene()
 
-        observations = agent.observations
+        #print(game.time, my_agent.health)
 
-        for obs in observations:
+        clock.tick(30)
 
-            im = np.asarray( observations[obs])
-            im = np.expand_dims(im, 0)
-            im = cv2.resize(im, (im.shape[1] * 4, 50), interpolation=cv2.INTER_NEAREST)
-            #import pdb;pdb.set_trace()
-            im = im * agent.frame.eyelid
-            cv2.imshow( obs, im )
-            cv2.waitKey(1)
+    print( 1000/(time.time() - t1) )
+
+    return observations
+
+final_obs = create_world_and_run_action_sequence(pg_params, agent_params, rules, engine_parameters)
+final_obs2 = create_world_and_run_action_sequence(pg_params, agent_params, rules, engine_parameters)
+
+import pdb;pdb.set_trace()
 
 
-    game.display_full_scene()
 
-    #print(game.time, my_agent.health)
 
-    clock.tick(30)
-
-print( 1000/(time.time() - t1) )
- 
