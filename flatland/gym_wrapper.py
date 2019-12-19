@@ -35,7 +35,6 @@ class CustomEnv(gym.Env):
           'head_velocity': 0
       }
 
-
       self.agent.get_actions(agent_actions)
       self.game.set_actions()
 

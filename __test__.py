@@ -139,7 +139,7 @@ fairy_1['trajectory'] = {
 pg_params = {
     'playground_type': 'basic_empty',
     'scene': {
-        'scene_type': 'basic',
+        'scene_type': 'room',
         'scene_shape': [600, 800]
     },
     'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1, yielder_1,

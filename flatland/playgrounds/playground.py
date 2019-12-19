@@ -93,6 +93,13 @@ class Playground():
 
         self.has_reached_termination = False
 
+        self.starting_position = {
+            'type': 'rectangle',
+            'x_range': [self.width / 2.0 - 15, self.width / 2.0 + 15],
+            'y_range': [self.length / 2.0 - 15, self.length / 2.0 + 15],
+            'angle_range': [0, 3.14 * 2],
+        }
+
     def initialize_space(self):
 
         self.space = pymunk.Space()

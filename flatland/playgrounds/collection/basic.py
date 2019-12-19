@@ -10,6 +10,7 @@ class BasicEmpty(Playground):
         super(BasicEmpty, self).__init__(params)
 
 
+
 @PlaygroundGenerator.register_subclass('basic_endzone')
 class BasicEndZone(Playground):
 
