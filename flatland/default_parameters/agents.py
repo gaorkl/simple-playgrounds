@@ -17,6 +17,11 @@ head_texture = {
     'color': (200, 0, 200)
 }
 
+arms_texture = {
+    'type': 'color',
+    'color': (250, 0, 250)
+}
+
 metabolism_default = {
     'health' : 1000,
     'latent_metabolism' : 0.001,
@@ -49,8 +54,8 @@ touch_default = {
 
 forward_default = {
     'base_texture':  base_texture,
-    'base_radius': 20,
-    'base_mass' : 10,
+    'base_radius': 15,
+    'base_mass' : 20,
 
     'base_translation_speed': 1.0,
     'base_rotation_speed': 0.5,
@@ -61,7 +66,7 @@ holonomic_default = forward_default.copy()
 
 forward_head_default = {
     'head_texture':  head_texture,
-    'head_radius': 10,
+    'head_radius': 14,
     'head_mass' : 5,
 
     'head_rotation_speed': 0.25,
@@ -71,3 +76,18 @@ forward_head_default = {
 }
 
 forward_head_default = {**forward_default, **forward_head_default}
+
+
+forward_head_arms_default = {
+    'arm_texture':  arms_texture,
+    'arm_radius': 10,
+    'arm_mass' : 5,
+
+    'arm_rotation_speed': 0.25,
+    'arm_rotation_range': math.pi/2,
+    'arm_metabolism' : 0.001,
+
+}
+
+forward_head_arm_default = {**forward_head_default, **forward_head_arms_default}
+

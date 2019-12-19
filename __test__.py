@@ -10,12 +10,12 @@ from flatland.default_parameters.entities import *
 
 ### Basic entities
 basic_1 = basic_default.copy()
-basic_1['position'] = [100, 50, math.pi/2]
+basic_1['position'] = [350, 350, math.pi/2]
 basic_1['physical_shape'] = 'rectangle'
-basic_1['shape_rectangle'] = [10,30]
+basic_1['shape_rectangle'] = [20,100]
 
 basic_2 = basic_default.copy()
-basic_2['position'] = [100, 100, math.pi/2]
+basic_2['position'] = [200, 100, math.pi/2]
 basic_2['physical_shape'] = 'rectangle'
 basic_2['shape_rectangle'] = [30,100]
 basic_2['texture'] = {
@@ -74,75 +74,75 @@ yielder_1['area'] = [[100, 400],[200, 500]]
 
 ### Zone
 end_zone = end_zone_default.copy()
-end_zone['position'] = [250, 50, 0]
+end_zone['position'] = [500, 50, 0]
 end_zone['physical_shape'] = 'rectangle'
 end_zone['shape_rectangle'] = [50,50]
 
 healing_zone = healing_zone_default.copy()
-healing_zone['position'] = [250, 100, 0]
+healing_zone['position'] = [500, 100, 0]
 healing_zone['visible'] = True
 
 damaging_zone = damaging_zone_default.copy()
-damaging_zone['position'] = [250, 150, 0]
+damaging_zone['position'] = [500, 150, 0]
 
 contact_endzone = contact_endzone_default.copy()
-contact_endzone['position'] = [350, 550, 0]
+contact_endzone['position'] = [500, 550, 0]
 
 ##### Button door
 button_door_1 = button_door_openclose_default.copy()
-button_door_1['position'] = [250, 200, 0]
-button_door_1['door']['position'] = [250, 250, math.pi/2]
+button_door_1['position'] = [600, 200, 0]
+button_door_1['door']['position'] = [600, 250, math.pi/2]
 
 ##### Button door
 button_door_2 = button_door_opentimer_default.copy()
-button_door_2['position'] = [250, 300, 0]
-button_door_2['door']['position'] = [250, 350, math.pi/2]
+button_door_2['position'] = [600, 350, 0]
+button_door_2['door']['position'] = [600, 400, math.pi/2]
 button_door_2['time_limit'] = 100
 
 
 ##### Lock_key door
 lock_key_door = lock_key_door_default.copy()
-lock_key_door['position'] = [250, 400, 0]
-lock_key_door['door']['position'] = [250, 450, math.pi/2]
-lock_key_door['key']['position'] = [300, 400, math.pi/2]
+lock_key_door['position'] = [600, 500, 0]
+lock_key_door['door']['position'] = [600, 550, math.pi/2]
+lock_key_door['key']['position'] = [600, 450, math.pi/2]
 
 ##### Moving object
 moving_1 = basic_default.copy()
-moving_1['position'] = [250, 500, math.pi/2]
+moving_1['position'] = [500, 500, math.pi/2]
 moving_1['trajectory'] = {
     'trajectory_shape': 'line',
     'radius': 50,
-    'center': [250, 500],
+    'center': [500, 500],
     'speed' : 100,
 
 }
 
 fireball_1 = fireball_default.copy()
-fireball_1['position'] = [250, 500, math.pi/2]
+fireball_1['position'] = [400, 500, math.pi/2]
 fireball_1['trajectory'] = {
     'trajectory_shape': 'line',
     'radius': 60,
-    'center': [350, 100],
+    'center': [400, 100],
     'angle' : math.pi/2,
     'speed' : 100,
 }
 
 fairy_1 = fairy_default.copy()
-fairy_1['position'] = [250, 500, math.pi/2]
+fairy_1['position'] = [400, 500, math.pi/2]
 fairy_1['trajectory'] = {
     'trajectory_shape': 'pentagon',
     'radius': 30,
-    'center': [350, 200],
+    'center': [400, 200],
     'speed' : 200,
 }
 
 pg_params = {
     'playground_type': 'basic_empty',
     'scene': {
-        'scene_type': 'two_rooms',
+        'scene_type': 'basic',
         'scene_shape': [600, 800]
     },
-    'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1, dispenser_1, yielder_1,
+    'entities': [basic_1, basic_2, basic_3, absorbable_1, absorbable_2, edible_1, yielder_1,
                  end_zone, healing_zone, damaging_zone, contact_endzone,
                  button_door_1, button_door_2, lock_key_door,
                  moving_1, fireball_1, fairy_1]
@@ -160,9 +160,8 @@ from flatland.default_parameters.agents import *
 agent_params = {
     'name': 'mercotte',
     'frame' : {
-        'type': 'forward_head',
+        'type': 'forward_head_arms',
         'params' : {
-            'base_radius': 15,
                 }
     },
     'controller' :{

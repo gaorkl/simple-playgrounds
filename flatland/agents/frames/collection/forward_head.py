@@ -27,11 +27,12 @@ class ForwardHead(Forward):
 
         base = self.anatomy["base"]
 
-        inertia = pymunk.moment_for_circle(self.head_mass, 0, self.head_radius, (0, 0))
+        inertia = pymunk.moment_for_circle( self.head_mass, 0, self.head_radius, (0, 0) )
 
         body = pymunk.Body(self.head_mass, inertia)
-        body.position = self.anatomy['base'].body.position
-        body.angle = self.anatomy['base'].body.angle
+        #body.position = [self.anatomy['base'].body.position[0], self.anatomy['base'].body.position[1]]
+        #import pdb;pdb.set_trace()
+        #body.angle = self.anatomy['base'].body.angle
 
         head.body = body
 
@@ -40,7 +41,7 @@ class ForwardHead(Forward):
 
         head.shape = shape
 
-        head.joint = [ pymunk.PinJoint(head.body, base.body, (0, 0), (0, 0)),
+        head.joint = [pymunk.PinJoint(head.body, base.body, (0, 0), (0,0)),
                        pymunk.SimpleMotor(head.body, base.body, 0)
                        ]
 
@@ -127,7 +128,7 @@ class ForwardHead(Forward):
         mask = pygame.transform.rotate(self.mask_head, self.anatomy['head'].body.angle * 180 / math.pi)
 
         mask_rect = mask.get_rect()
-        mask_rect.center = self.anatomy['base'].body.position[1], self.anatomy['base'].body.position[0]
+        mask_rect.center = self.anatomy['head'].body.position[1], self.anatomy['head'].body.position[0]
 
         # Blit the masked texture on the screen
         surface.blit(mask, mask_rect, None)
