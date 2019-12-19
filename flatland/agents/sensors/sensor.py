@@ -99,9 +99,10 @@ class Sensor(ABC):
 
         cropped_img = img[y1:y2, x1:x2]
 
-
+        cv2.imshow('test', cropped_img)
 
         if cropped_img.shape[0] < self.w_projection_img:
+
             scale_ratio = float(self.w_projection_img) / cropped_img.shape[0]
             center = (center[0] * scale_ratio, center[1] * scale_ratio)
             scaled_img = cv2.resize( cropped_img, ( int(cropped_img.shape[1]*scale_ratio), int(cropped_img.shape[0]*scale_ratio)), interpolation=cv2.INTER_NEAREST )

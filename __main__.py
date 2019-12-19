@@ -25,7 +25,7 @@ from flatland.default_parameters.agents import *
 
 agent_params = {
     'frame': {
-        'type': 'forward_head',
+        'type': 'forward',
         'params': {
             'base_radius': 15,
                 }
@@ -35,33 +35,9 @@ agent_params = {
     },
     'sensors': {
         #'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
-        'rgb_2': {**rgb_default, 'bodyAnchor': 'head', 'fovResolution': 64, 'fovRange': 1000 },
-        'touch_1' : touch_default,
+        'rgb_2': {**rgb_default, 'bodyAnchor': 'base', 'fovResolution': 64, 'fovRange': 1000 },
+        #'touch_1' : touch_default,
     },
-    'starting_position': {
-        'type': 'list',
-        'list': [
-            {
-                'type': 'circle',
-                'probability': .7,
-                'center': [50, 50],
-                'radius': 25,
-                'angle_range':[-1, 1]
-            },
-            {
-                'type': 'rectangle',
-                'probability': .2,
-                'x_range': [150, 175],
-                'y_range': [50, 75],
-                'angle_range': [0, 1]
-            },
-            {
-                'type': 'fixed',
-                'probability': .1,
-                'coordinates': [250, 50, 0]
-            }
-        ]
-    }
 }
 
 my_agent = agent.Agent(agent_params)
@@ -117,7 +93,7 @@ while game.game_on:
             cv2.waitKey(1)
         game.display_full_scene()
 
-    print(game.time, my_agent.health)
+    #print(game.time, my_agent.frame.anatomy['base'].body.position)
 
     clock.tick(30)
 

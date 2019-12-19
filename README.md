@@ -12,7 +12,7 @@ New version of flatland.
 
 
 # Game engine
-- keep textures when reset
+- keep textures when reset: create reset_pg, reset_entities, ...
 - config file
 - start position: random in area (circle, square, gaussian), random pick in list positions, random pick in list areas
 - fixed, list_fixed, area, list_areas

@@ -1,5 +1,5 @@
 import numpy as np
-
+import random
 
 def generate_position(position):
 
@@ -27,9 +27,9 @@ def generate_position(position):
         min_y, max_y = position['y_range']
         min_angle, max_angle = position['angle_range']
         pos = [
-            min_x + np.random.rand() * (max_x - min_x),
-            min_y + np.random.rand() * (max_y - min_y),
-            min_angle + np.random.rand() * (max_angle - min_angle),
+            random.uniform(min_x, max_x),
+            random.uniform(min_y, max_y),
+            random.uniform(min_angle, max_angle),
         ]
 
     elif position['type'] == 'list':

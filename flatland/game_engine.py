@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import K_q
-from flatland.utils.config import *
+from .utils.config import *
 import cv2
 
 class Engine():

@@ -2,9 +2,9 @@ import pymunk.pygame_util
 from pygame.color import THECOLORS
 
 from .scene_layout import SceneGenerator
-from flatland.entities.entity import *
-from flatland.utils.game_utils import *
-from flatland.utils.config import *
+from ..entities.entity import *
+from ..utils.game_utils import *
+from ..utils.config import *
 
 from ..default_parameters.scenes import *
 
@@ -98,8 +98,8 @@ class Playground():
 
         self.starting_position = {
             'type': 'rectangle',
-            'x_range': [self.width / 2.0 - 15, self.width / 2.0 + 15],
-            'y_range': [self.length / 2.0 - 15, self.length / 2.0 + 15],
+            'x_range':[self.length / 2.0 - 15, self.length / 2.0 + 15],
+            'y_range':  [self.width / 2.0 - 15, self.width / 2.0 + 15],
             'angle_range': [0, 3.14 * 2],
         }
 
@@ -148,6 +148,8 @@ class Playground():
                     self.space.remove(part.body)
                     part.body.velocity = (0,0)
                     part.body.angular_velocity = 0
+                    part.body.position = [0,0]
+                    part.body.angle = 0
 
                 if part.shape is not None:
                     self.space.remove(part.shape)

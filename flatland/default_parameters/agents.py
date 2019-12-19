@@ -57,7 +57,7 @@ forward_default = {
     'base_radius': 25,
     'base_mass' : 20,
 
-    'base_translation_speed': 4.0,
+    'base_translation_speed': 1.0,
     'base_rotation_speed': 0.25,
 
 }
