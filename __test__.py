@@ -173,7 +173,7 @@ agent_params = {
                 }
     },
     'controller' :{
-        'type': 'smsbdrl'
+        'type': 'keyboard'
     },
     'sensors':{
         'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 356, 'fovRange': 1000} },
@@ -247,3 +247,4 @@ while game.game_on:
     clock.tick(30)
 
 print( 1000/(time.time() - t1) )
+ 

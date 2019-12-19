@@ -117,6 +117,8 @@ class Agent():
         if self.is_activating: self.energy_spent += self.action_metabolism
         if self.is_holding: self.energy_spent += self.action_metabolism
 
+        #print(self.action_commands, "actionnnnnnnns")
+
         self.frame.apply_actions(self.action_commands)
 
         movement_energy = self.frame.get_movement_energy()

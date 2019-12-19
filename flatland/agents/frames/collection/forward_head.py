@@ -92,10 +92,10 @@ class ForwardHead(Forward):
 
         self.anatomy['head'].body.angle +=  self.head_speed * self.head_velocity
 
-        if self.get_head_angle() < -self.head_range:
+        '''if self.get_head_angle() < -self.head_range:
             self.anatomy['head'].body.angle = self.anatomy['base'].body.angle + self.head_range
         elif self.get_head_angle() > self.head_range:
-            self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range
+            self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range'''
 
 
 

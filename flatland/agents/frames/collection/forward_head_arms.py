@@ -313,7 +313,7 @@ class ForwardHeadArms(ForwardHead):
         if self.get_arm2_2_angle() >= self.arm1_range:
             self.anatomy['arm2_2'].body.angle = self.anatomy['arm2'].body.angle - self.arm2_range
 
-        self.eyelid += self.actions.get('eyelid', 0)/100
+        self.eyelid += self.actions.get('eyelid', 0)/20
 
         #print(self.eyelid,self.actions.get('eyelid', 0))
 
@@ -362,6 +362,9 @@ class ForwardHeadArms(ForwardHead):
 
     def draw(self, surface, visible_to_self=False):
         super().draw(surface, visible_to_self=visible_to_self)
+
+        #print(self.anatomy['head'].body.angle, 'angle')
+        #print(self.eyelid, 'eyelid')
 
         mask = pygame.transform.rotate(self.mask_arm1, self.anatomy['arm1'].body.angle * 180 / math.pi)
 
