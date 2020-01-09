@@ -99,8 +99,6 @@ class Sensor(ABC):
 
         cropped_img = img[y1:y2, x1:x2]
 
-        cv2.imshow('test', cropped_img)
-
         if cropped_img.shape[0] < self.w_projection_img:
 
             scale_ratio = float(self.w_projection_img) / cropped_img.shape[0]

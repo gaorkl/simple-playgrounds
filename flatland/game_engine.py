@@ -1,7 +1,12 @@
 import pygame
 from pygame.locals import K_q
 from .utils.config import *
-import cv2
+import time
+
+import os
+# Center the pygame window and make it pop up
+os.environ['SDL_VIDEO_CENTERED'] = '1'
+
 
 class Engine():
 
@@ -44,6 +49,9 @@ class Engine():
         else:
             self.screen = pygame.display.set_mode((100, 100))
             # Add image simulation in progress with details
+
+        # wait for a while to show the window.
+        time.sleep(2)
 
         self.screen.set_alpha(None)
 
@@ -137,3 +145,7 @@ class Engine():
 
         for agent in self.agents:
             self.playground.add_agent(agent)
+
+    def terminate(self):
+
+        pygame.display.quit()
