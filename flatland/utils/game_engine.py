@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import K_q
-from .utils.config import *
+from flatland.utils.config import *
 import time
 
 import os

@@ -1,3 +1,8 @@
+To install: 
+(sudo) pip install -e /path/to/package
+
+
+
 # flatland
 New version of flatland.
 
