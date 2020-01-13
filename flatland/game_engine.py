@@ -46,12 +46,11 @@ class Engine():
             self.screen = pygame.display.set_mode((self.playground.length, self.playground.width))
         elif self.display_mode == 'pygame_view':
             self.screen = pygame.display.set_mode((self.playground.width, self.playground.length))
+        elif self.display_mode == 'no_window':
+            self.screen = pygame.Surface((self.playground.length, self.playground.width))
         else:
             self.screen = pygame.display.set_mode((100, 100))
             # Add image simulation in progress with details
-
-        # wait for a while to show the window.
-        time.sleep(2)
 
         self.screen.set_alpha(None)
 
@@ -114,13 +113,13 @@ class Engine():
         if self.time == self.time_limit:
             return True
 
-        if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
-            self.Q_ready_to_press = True
-
-        elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
-            self.Q_ready_to_press = False
-
-            return True
+        # if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
+        #     self.Q_ready_to_press = True
+        #
+        # elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
+        #     self.Q_ready_to_press = False
+        #
+        #     return True
 
         return False
 
@@ -134,7 +133,8 @@ class Engine():
         surf = pygame.surfarray.make_surface(img)
         self.screen.blit(surf, (0, 0), None)
 
-        pygame.display.flip()
+        if self.display_mode != 'no_window':
+            pygame.display.flip()
 
     def game_reset(self):
 
