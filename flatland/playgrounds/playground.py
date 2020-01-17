@@ -205,7 +205,7 @@ class Playground():
         # Reset the environment
         self.__init__(self.params)
 
-    def generate_playground_image(self, draw_interaction = False, carthesian_view = False, sensor_agent = None):
+    def generate_playground_image(self, draw_interaction = False, sensor_agent = None):
         # Update the screen of the environment
         self.topdown_view.fill(THECOLORS["black"])
 
@@ -228,12 +228,10 @@ class Playground():
 
         imgdata = pygame.surfarray.array3d(self.topdown_view)
 
-        if carthesian_view:
-            imgdata = numpy.rot90(imgdata, 1, (1,0))
+        imgdata = numpy.rot90(imgdata, 1, (1,0))
+        imgdata = imgdata[::-1, :, ::-1]
 
-            return imgdata
-        else:
-            return imgdata
+        return imgdata
 
 
     def yielders_produce(self):

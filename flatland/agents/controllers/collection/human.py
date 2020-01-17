@@ -8,7 +8,7 @@ class Keyboard(Controller):
 
     def __init__(self, controller_params):
 
-        super().__init__()
+        super().__init__(controller_params)
 
         self.key_mapping = controller_params.get('key_mapping', {} )
         self.require_key_mapping = True
@@ -21,11 +21,7 @@ class Keyboard(Controller):
             if self.key_mapping[k][0] == 'press_once':
                 self.press_state[k] = True
 
-    def set_available_actions(self, available_actions):
 
-        self.available_actions = available_actions
-        for act in available_actions:
-            self.actions[act] = 0
 
     def reset_press_once_actions(self):
         for k in self.key_mapping:

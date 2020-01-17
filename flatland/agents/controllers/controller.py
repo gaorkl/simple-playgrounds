@@ -32,8 +32,9 @@ class ControllerGenerator():
 
 class Controller():
 
-    def __init__(self):
+    def __init__(self, params):
 
+        self.type = params['type']
         self.require_key_mapping = False
         self.available_actions = {}
         self.actions = {}
@@ -42,5 +43,15 @@ class Controller():
         pass
 
     def set_available_actions(self, available_actions):
-        pass
+        self.available_actions = available_actions
+        for act in available_actions:
+            self.actions[act] = 0
+
+@ControllerGenerator.register_subclass('ai')
+class AI(Controller):
+    def __init__(self, controller_params):
+
+        super().__init__(controller_params)
+
+
 

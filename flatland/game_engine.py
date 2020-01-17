@@ -39,19 +39,22 @@ class Engine():
         #self.scale_factor = engine_parameters.get('scale_factor', 1)
         self.display_mode = engine_parameters.get('display_mode', None)
 
+
         # Display screen
         #self.playground_img = None
 
-        if self.display_mode == 'carthesian_view':
-            self.screen = pygame.display.set_mode((self.playground.length, self.playground.width))
-        elif self.display_mode == 'pygame_view':
-            self.screen = pygame.display.set_mode((self.playground.width, self.playground.length))
-        elif self.display_mode == 'no_window':
-            self.screen = pygame.Surface((self.playground.length, self.playground.width))
-        else:
-            self.screen = pygame.display.set_mode((100, 100))
-            # Add image simulation in progress with details
+        self.need_command_display = False
+        for agent in self.agents:
+            if agent.controller.type == 'keyboard':
+                self.need_command_display = True
 
+
+
+        if self.need_command_display:
+            self.command = pygame.display.set_mode((75, 75))
+
+        # Screen for visualization
+        self.screen = pygame.Surface((self.playground.length, self.playground.width))
         self.screen.set_alpha(None)
 
         self.game_on = True
@@ -113,28 +116,25 @@ class Engine():
         if self.time == self.time_limit:
             return True
 
-        # if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
-        #     self.Q_ready_to_press = True
-        #
-        # elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
-        #     self.Q_ready_to_press = False
-        #
-        #     return True
+        if self.need_command_display:
+            if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
+                self.Q_ready_to_press = True
+
+            elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
+                self.Q_ready_to_press = False
+                return True
 
         return False
 
     def display_full_scene(self):
 
-        if self.display_mode == 'carthesian_view':
-            img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=True)
-        else:
-            img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=False)
+        img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=True)
+        #img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=False)
 
         surf = pygame.surfarray.make_surface(img)
         self.screen.blit(surf, (0, 0), None)
 
-        if self.display_mode != 'no_window':
-            pygame.display.flip()
+        pygame.display.flip()
 
     def game_reset(self):
 

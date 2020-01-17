@@ -89,6 +89,20 @@ class RoomEndZone(Playground):
         }
         self.add_entity(basic_3)
 
+        basic_4 = basic_default.copy()
+        basic_4['position'] = [60, 120, math.pi / 2]
+        basic_4['physical_shape'] = 'pentagon'
+        basic_4['movable'] = False
+        basic_4['radius'] = 15
+        basic_4['texture'] = {
+            'type': 'centered_random_tiles',
+            'radius': 30,
+            'min': [150, 150, 150],
+            'max': [160, 200, 190],
+            'size_tiles': 5
+        }
+        self.add_entity(basic_4)
+
         self.starting_position = {
             'type': 'rectangle',
             'x_range' : [50, 150],

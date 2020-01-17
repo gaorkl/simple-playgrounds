@@ -87,17 +87,17 @@ class Sensor(ABC):
 
         # Position of the sensor
         sensor_x, sensor_y = self.body_anchor.position
-        sensor_angle = self.body_anchor.angle + math.pi
+        sensor_angle =   (math.pi/2 - self.body_anchor.angle)#%(2*math.pi)
 
-        x1 = int(max(0, sensor_x - self.fovRange))
-        y1 = int(max(0, sensor_y - self.fovRange))
-        x2 = int(min( h, sensor_x +self.fovRange ))
-        y2 = int(min( w, sensor_y +self.fovRange ))
+        x1 = int(max(0, (w - sensor_x) - self.fovRange))
+        x2 = int(min( w, (w - sensor_x) +self.fovRange ))
 
+        y1 = int(max(0, (h - sensor_y) - self.fovRange))
+        y2 = int(min( h, (h - sensor_y) +self.fovRange ))
 
-        center = ( sensor_x - x1, sensor_y - y1 )
+        center = ( ( (h - sensor_y) - y1),  ( ( w - sensor_x) - x1) )
 
-        cropped_img = img[y1:y2, x1:x2]
+        cropped_img = img[x1:x2, y1:y2]
 
         if cropped_img.shape[0] < self.w_projection_img:
 
@@ -124,7 +124,7 @@ class Sensor(ABC):
                       start_crop:
                       ]
 
-        self.pixels_sensor = cropped_img[::-1, :, ::-1]/255.0
+        self.pixels_sensor = cropped_img[:, :, : ]
 
     @abstractmethod
     def get_shape_observation(self):
