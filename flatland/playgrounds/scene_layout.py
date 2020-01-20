@@ -156,7 +156,16 @@ class LinearRooms(Basic):
 
         return position_doorstep
 
+
+
     def generate_internal_walls_entity_parameters(self):
+
+        internal_walls_texture = {
+            'type': 'random_tiles',
+            'min': [0, 140, 200],
+            'max': [0, 160, 250],
+            'size_tiles': 4
+        }
 
         wall = {
             'entity_type': 'basic',
@@ -169,7 +178,7 @@ class LinearRooms(Basic):
             depth_length, position = wall_shape
             wall['shape_rectangle'] = depth_length
             wall['position'] = position
-            wall['texture'] = self.walls_texture
+            wall['texture'] = internal_walls_texture
 
             self.entity_parameters.append(wall.copy())
 

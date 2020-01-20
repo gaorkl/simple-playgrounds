@@ -186,6 +186,9 @@ class Playground():
                 new_entity.door = self.add_entity(new_entity.door_params)
                 new_entity.key = self.add_entity(new_entity.key_params)
 
+            elif new_entity.entity_type is 'pod':
+                new_entity.key = self.add_entity(new_entity.key_params)
+
         return new_entity
 
     def update_playground(self):
@@ -415,6 +418,17 @@ class Playground():
             space.remove(gem.pm_body, gem.pm_visible_shape, gem.pm_interaction_shape)
             self.entities.remove(door)
             self.entities.remove(gem)
+
+        if interacting_entity.entity_type is 'pod' and gem is interacting_entity.key :
+            self.has_reached_termination = True
+            reward = interacting_entity.get_reward()
+
+
+            # to be changed when multiagents with competition: only closest agent should have reward
+            for agent in self.agents:
+                agent.reward += reward
+
+
 
         return True
 

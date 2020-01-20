@@ -140,3 +140,37 @@ class LockKeyDoor(Entity):
         self.door_opened = True
         self.door.visible = False
 
+
+@EntityGenerator.register_subclass('pod')
+class Pod(Entity):
+
+    def __init__(self, params):
+
+        params = {**pod_default, **params}
+        params['visible'] = True
+        params['interactive'] = True
+
+        super(Pod, self).__init__(params)
+
+        self.activable = True
+
+        self.key_params = {**key_pod_default, **params['key_pod']}
+
+        self.reward = params.get('reward', 0)
+        self.reward_provided = False
+
+
+    def pre_step(self):
+
+        self.reward_provided = False
+
+    def get_reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self.reward
+
+        else:
+            return 0
+
+

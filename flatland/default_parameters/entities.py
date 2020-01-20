@@ -284,3 +284,41 @@ fairy_default = {
     'mass': 10,
     'movable': True
 }
+
+
+key_pod_texture =  {
+    'type': 'color',
+    'color': (50, 100, 150)
+    }
+
+
+key_pod_default = {
+            'entity_type': 'gem',
+            'physical_shape': 'square',
+            'radius': 10,
+            'mass': 20,
+            'texture': key_pod_texture.copy(),
+            'movable': True,
+            'graspable': True,
+            'interaction_range': 10,
+        }
+
+pod_texture =  {
+    'type': 'color',
+    'color': (70, 180, 200)
+    }
+
+
+pod_default = {
+
+    'physical_shape': 'square',
+    'radius': 20,
+    'movable': False,
+    'interaction_range': 10,
+
+    'texture': pod_texture.copy(),
+    'entity_type': 'pod',
+    'reward': 50,
+
+    'key_pod': key_pod_default.copy()
+}
