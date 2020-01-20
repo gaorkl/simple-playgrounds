@@ -114,9 +114,10 @@ class Sensor(ABC):
         angle_center =  scaled_img.shape[0] * (sensor_angle % (2 * math.pi)) / (2 * math.pi)
         rolled_img = np.roll(polar_img, int( scaled_img.shape[0] - angle_center), axis=0)
 
+
         start_crop = int( self.min_range *  scaled_img.shape[1] / self.fovRange)
 
-        n_pixels = (self.fovAngle / 2 ) * (180 / math.pi) * self.pixels_per_degrees
+        n_pixels = int(scaled_img.shape[0] * (self.fovAngle / 2 ) / (2 * math.pi))
 
         cropped_img = rolled_img[
                       int(scaled_img.shape[0]/ 2.0 - n_pixels) :
@@ -124,7 +125,11 @@ class Sensor(ABC):
                       start_crop:
                       ]
 
+
+
         self.pixels_sensor = cropped_img[:, :, : ]
+
+
 
     @abstractmethod
     def get_shape_observation(self):

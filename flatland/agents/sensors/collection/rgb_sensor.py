@@ -16,8 +16,13 @@ class RgbSensor(Sensor):
         # Get value sensor
         mask = self.pixels_sensor != 0
         sensor_id = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.pixels_sensor.shape[1] - 1), axis=1)
-        
-        self.observation = self.pixels_sensor[np.arange(int(self.fovResolution)), sensor_id, :]
+        self.observation = self.pixels_sensor[np.arange(int(self.pixels_sensor.shape[0])), sensor_id, :]
+
+        im = np.asarray(self.observation)
+        im = np.expand_dims(im, 0)
+        self.observation = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+
+
 
 
     def get_shape_observation(self):

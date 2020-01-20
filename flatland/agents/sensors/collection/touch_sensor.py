@@ -23,6 +23,10 @@ class TouchSensor(Sensor):
 
             self.observation = (self.pixels_sensor.shape[1] - sensor) / self.pixels_sensor.shape[1]
 
+            im = np.asarray(self.observation)
+            im = np.expand_dims(im, 0)
+            self.observation = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+
         else:
             self.observation = np.zeros( (self.pixels_sensor.shape[0] ))
 
