@@ -40,10 +40,10 @@ class Yielder():
 
         if self.production_area_shape == 'rectangle':
 
-            #x = random.uniform( self.production_area[0][0],self.production_area[1][0] )
-            #y = random.uniform( self.production_area[0][1],self.production_area[1][1] )
-            x = self.production_area[0][0]
-            y = self.production_area[0][1]
+            x = random.uniform( self.production_area[0][0],self.production_area[1][0] )
+            y = random.uniform( self.production_area[0][1],self.production_area[1][1] )
+            #x = self.production_area[0][0]
+            #y = self.production_area[0][1]
 
             obj['position'] = (x,y,0)
 
