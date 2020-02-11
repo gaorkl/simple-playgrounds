@@ -48,6 +48,7 @@ class Dispenser(Entity):
 
         return replace
 
+#TODO: class button-door, then sublcasses
 
 @EntityGenerator.register_subclass('button_door_openclose')
 class ButtonDoorOpenClose(Entity):
@@ -167,21 +168,30 @@ class LockKeyDoor(Entity):
         self.door_opened = True
         self.door.visible = False
 
+    def reset(self):
 
-@EntityGenerator.register_subclass('pod')
-class Pod(Entity):
+        self.door_opened = False
+        self.door.visible = True
+        replace = super().reset()
+
+        return replace
+
+
+
+@EntityGenerator.register_subclass('chest')
+class Chest(Entity):
 
     def __init__(self, params):
 
-        params = {**pod_default, **params}
+        params = {**chest_default, **params}
         params['visible'] = True
         params['interactive'] = True
 
-        super(Pod, self).__init__(params)
+        super(Chest, self).__init__(params)
 
         self.activable = True
 
-        self.key_params = {**key_pod_default, **params['key_pod']}
+        self.key_params = {**key_chest_default, **params['key_pod']}
 
         self.reward = params.get('reward', 0)
         self.reward_provided = False
@@ -200,4 +210,10 @@ class Pod(Entity):
         else:
             return 0
 
+    def reset(self):
+
+        self.reward_provided = False
+        replace = super().reset()
+
+        return replace
 

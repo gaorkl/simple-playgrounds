@@ -14,7 +14,7 @@ New version of flatland.
 - visualization agent, fpv, topdown view
 - harmonize view (carthesian) and coordinates
 - video recording
-
+- log/print important messages (reset, ...)
 
 # Game engine
 - keep textures when reset: create reset_pg, reset_entities, ...

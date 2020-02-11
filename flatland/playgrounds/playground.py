@@ -188,7 +188,7 @@ class Playground():
                 new_entity.door = self.add_entity(new_entity.door_params)
                 new_entity.key = self.add_entity(new_entity.key_params)
 
-            elif new_entity.entity_type is 'pod':
+            elif new_entity.entity_type is 'chest':
                 new_entity.key = self.add_entity(new_entity.key_params)
 
 
@@ -214,8 +214,7 @@ class Playground():
         # Remove entities not in initial definition of environments
         # Reset entities which are in environment initialization
 
-        print(self.entities)
-        print(self.disappeared)
+        print('reset playground')
 
         for entity in self.entities.copy():
 
@@ -465,17 +464,25 @@ class Playground():
 
         if interacting_entity.entity_type is 'lock_key_door' and gem is interacting_entity.key :
             interacting_entity.activate()
-            door = interacting_entity.door
-            space.remove(door.pm_body, door.pm_visible_shape)
             interacting_entity.door_opened = True
 
-            space.remove(gem.pm_body, gem.pm_visible_shape, gem.pm_interaction_shape)
+            door = interacting_entity.door
+            space.remove(*door.pm_elements)
+
+            space.remove(*gem.pm_elements)
+
             self.entities.remove(door)
             self.entities.remove(gem)
 
-        if interacting_entity.entity_type is 'pod' and gem is interacting_entity.key :
-            self.has_reached_termination = True
+            self.disappeared.append(door)
+            self.disappeared.append(gem)
+
+        if interacting_entity.entity_type is 'chest' and gem is interacting_entity.key :
             reward = interacting_entity.get_reward()
+            space.remove(*gem.pm_elements)
+            self.entities.remove(gem)
+            self.disappeared.append(gem)
+            interacting_entity.reward_provided = True
 
 
             # to be changed when multiagents with competition: only closest agent should have reward

@@ -81,3 +81,10 @@ class ContactEndZone(Entity):
 
         else:
             return 0
+
+    def reset(self):
+        self.reward_provided = False
+
+        replace = super().reset()
+
+        return replace
