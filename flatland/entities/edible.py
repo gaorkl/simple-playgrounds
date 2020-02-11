@@ -63,3 +63,22 @@ class Edible(Entity):
         self.generate_pm_interaction_shape()
         self.interaction_mask = self.generate_interaction_mask()
 
+    def reset(self, new_position = None):
+
+        # TODO: bad hack, should be cleaned.
+
+        super().reset()
+
+        self.reward = self.params.get('initial_reward', 0) / self.shrink_when_eaten
+        self.mass = self.params['mass'] / self.shrink_when_eaten
+
+        if self.physical_shape == 'rectangle':
+            self.width, self.length = self.params['shape_rectangle']
+            self.width = self.width / self.shrink_when_eaten
+
+        else:
+            self.radius = self.params['radius'] / self.shrink_when_eaten
+
+
+        self.activate()
+

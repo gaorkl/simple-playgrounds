@@ -31,6 +31,16 @@ class EndZone(Entity):
         else:
             return 0
 
+    def reset(self):
+        self.reward = self.params.get('reward', 0)
+        self.reward_provided = False
+
+        replace = super().reset()
+
+        return replace
+
+
+
 @EntityGenerator.register_subclass('reward_zone')
 class RewardZone(Entity):
 

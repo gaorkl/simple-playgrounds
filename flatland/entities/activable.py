@@ -39,7 +39,15 @@ class Dispenser(Entity):
 
             obj['position'] = (x,y,0)
 
-        return obj
+        return obj.copy()
+
+    def reset(self):
+
+        self.produced_elements = []
+        replace = super().reset()
+
+        return replace
+
 
 @EntityGenerator.register_subclass('button_door_openclose')
 class ButtonDoorOpenClose(Entity):
@@ -69,6 +77,15 @@ class ButtonDoorOpenClose(Entity):
         else:
             self.door_opened = True
             self.door.visible = False
+
+    def reset(self):
+
+        self.door_opened = False
+        self.door.visible = True
+        replace = super().reset()
+
+        return replace
+
 
 @EntityGenerator.register_subclass('button_door_opentimer')
 class ButtonDoorOpenTimer(Entity):
@@ -112,6 +129,16 @@ class ButtonDoorOpenTimer(Entity):
 
         if self.timer == 0:
             self.door.visible = True
+
+    def reset(self):
+
+        self.timer = self.time_open
+        self.door_opened = False
+        self.door.visible = True
+        replace = super().reset()
+
+        return replace
+
 
 
 @EntityGenerator.register_subclass('lock_key_door')

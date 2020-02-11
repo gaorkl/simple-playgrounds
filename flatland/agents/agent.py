@@ -76,6 +76,7 @@ class Agent():
 
         if sensor_param['type'] is 'touch':
             sensor_param['minRange'] = self.frame.base_radius   # To avoid errors while logpolar converting
+
         new_sensor = sensor.SensorGenerator.create(self.frame.anatomy, sensor_param)
         self.sensors[new_sensor.name] = new_sensor
 
@@ -89,29 +90,16 @@ class Agent():
     def pre_step(self):
 
         self.reward = 0
-        self.spot_reward = 0
-        #self.action_commands = {}
+        self.energy_spent = 0
 
-    # def post_step(self):
-    #
-    #     self.health += self.reward
-    #     self.health += self.energy
+    def get_controller_actions(self):
 
-    def get_actions(self, actions=None):
+        return self.controller.get_actions()
 
-        if actions is None:
-            self.action_commands = self.controller.get_actions()
-
-        else:
-            self.action_commands = actions
-
-    def get_actions_2(self, actions):
+    def apply_action_to_physical_body(self, actions):
 
         self.action_commands = actions
 
-    def apply_action(self):
-
-        self.energy_spent = 0
 
         self.is_activating = bool(self.action_commands.get('activate', 0))
         self.is_eating = bool(self.action_commands.get('eat', 0))
@@ -125,12 +113,19 @@ class Agent():
         if self.is_activating: self.energy_spent += self.action_metabolism
         if self.is_holding: self.energy_spent += self.action_metabolism
 
-        #print(self.action_commands, "actionnnnnnnns")
-
         self.frame.apply_actions(self.action_commands)
 
         movement_energy = self.frame.get_movement_energy()
         self.energy_spent += self.base_metabolism * sum( energy for part, energy in movement_energy.items() )
+
+
+    def reset(self):
+
+        self.is_activating = False
+        self.is_eating = False
+        self.is_grasping = False
+        self.grasped = []
+        self.is_holding = False
 
 
 

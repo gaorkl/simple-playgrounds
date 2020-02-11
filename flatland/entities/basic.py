@@ -14,8 +14,8 @@ class Basic(Entity):
         """
 
         params = {**basic_default, **params}
-        params['visible'] = True
-        params['interactive'] = False
+#        params['visible'] = True
+#        params['interactive'] = False
 
         super(Basic, self).__init__(params)
 

@@ -13,7 +13,6 @@ import numpy
 
 
 
-
 class PlaygroundGenerator():
 
     """
@@ -67,11 +66,8 @@ class Playground():
         self.physical_entities = []
 
         self.entities = []
-        self.basics = []
-        self.absorbables = []
-        self.actionables = []
         self.yielders = []
-        self.zones = []
+        self.disappeared = []
 
         # Store the temporary pinjoints for grasping
         self.grasped = {}
@@ -128,6 +124,8 @@ class Playground():
 
                 part.body.position = [ starting_position[0] + part.body.position[0], starting_position[1] + part.body.position[1]]
                 part.body.angle = starting_position[2] + part.body.angle
+                part.body.velocity = (0, 0)
+                part.body.angular_velocity = 0
                 self.space.add(part.body)
 
             if part.shape is not None:
@@ -159,8 +157,10 @@ class Playground():
                         # self.playground.space.add(part.joint)
                         self.space.remove(j)
 
+        self.agents = []
 
-    def add_entity(self, entity_params, add_to_basics = True):
+
+    def add_entity(self, entity_params, is_temporary_entity = False):
         '''
         Create new entity and assign  it to corresponding dictionary
         Different dictionaries to deal with different logics
@@ -170,13 +170,15 @@ class Playground():
         '''
 
         # Create new entity, add it to space
+        entity_params['is_temporary_entity'] = is_temporary_entity
+
         new_entity = EntityGenerator.create(entity_params)
 
         if new_entity.entity_type is 'yielder':
             self.yielders.append(new_entity)
 
         else:
-            self.space.add(new_entity.pm_elements)
+            self.space.add(*new_entity.pm_elements)
             self.entities.append(new_entity)
 
             if new_entity.entity_type in ['button_door_openclose', 'button_door_opentimer' ]:
@@ -189,7 +191,9 @@ class Playground():
             elif new_entity.entity_type is 'pod':
                 new_entity.key = self.add_entity(new_entity.key_params)
 
+
         return new_entity
+
 
     def update_playground(self):
 
@@ -206,7 +210,45 @@ class Playground():
 
     def reset(self):
         # Reset the environment
-        self.__init__(self.params)
+
+        # Remove entities not in initial definition of environments
+        # Reset entities which are in environment initialization
+
+        print(self.entities)
+        print(self.disappeared)
+
+        for entity in self.entities.copy():
+
+            replace = entity.reset()
+
+            self.space.remove(*entity.pm_elements)
+
+            if replace:
+                self.space.add(*entity.pm_elements)
+            else:
+                self.entities.remove(entity)
+
+
+
+        for entity in self.disappeared.copy():
+
+            replace = entity.reset()
+
+            if replace:
+                self.space.add(*entity.pm_elements)
+
+                self.disappeared.remove(entity)
+                self.entities.append(entity)
+
+            else:
+                self.disappeared.remove(entity)
+
+        # Reset flags and counters
+        self.grasped = {}
+        self.timers = {}
+        self.has_reached_termination = False
+
+
 
     def generate_playground_image(self, draw_interaction = False, sensor_agent = None):
         # Update the screen of the environment
@@ -243,7 +285,7 @@ class Playground():
 
             if (random.random() < yielder.probability) and ( len(yielder.yielded_elements) < yielder.limit):
                 new_obj_params = yielder.produce()
-                new_obj = self.add_entity(new_obj_params, add_to_basics=False)
+                new_obj = self.add_entity(new_obj_params, is_temporary_entity=True)
                 yielder.yielded_elements.append(new_obj)
 
     def check_timers(self):
@@ -251,7 +293,9 @@ class Playground():
         for entity in self.entities:
 
             if entity.entity_type == 'button_door_opentimer' and entity.timer == 0 :
-                self.space.add(entity.door.pm_body, entity.door.pm_visible_shape)
+                self.space.add(*entity.door.pm_elements)
+                self.entities.append(entity.door)
+                self.disappeared.remove(entity.door)
                 entity.close_door()
 
     def release_grasps(self):
@@ -287,8 +331,12 @@ class Playground():
             reward = touched_entity.reward
             agent.reward += reward
 
-            self.space.remove(touched_entity.pm_body, touched_entity.pm_visible_shape)
+            self.space.remove(*touched_entity.pm_elements)
             self.entities.remove(touched_entity)
+
+            if (not touched_entity.is_temporary_entity):
+                self.disappeared.append(touched_entity)
+
 
             for entity in self.entities:
                 if entity.entity_type is 'dispenser' and touched_entity in entity.produced_elements:
@@ -326,7 +374,7 @@ class Playground():
 
             if len(interacting_entity.produced_elements) < interacting_entity.limit:
                 new_entity_params = interacting_entity.activate()
-                new_entity = self.add_entity(new_entity_params)
+                new_entity = self.add_entity(new_entity_params, is_temporary_entity=True)
                 interacting_entity.produced_elements.append(new_entity)
 
         elif agent.is_activating and (interacting_entity.entity_type is 'button_door_openclose'):
@@ -336,10 +384,13 @@ class Playground():
             door = interacting_entity.door
 
             if interacting_entity.door_opened:
-                space.remove(door.pm_body, door.pm_visible_shape)
-
+                space.remove(*door.pm_elements)
+                self.entities.remove(door)
+                self.disappeared.append(door)
             else:
-                space.add(door.pm_body, door.pm_visible_shape)
+                space.add(*door.pm_elements)
+                self.entities.append(door)
+                self.disappeared.remove(door)
 
         elif agent.is_activating and (interacting_entity.entity_type is 'button_door_opentimer'):
 
@@ -347,9 +398,10 @@ class Playground():
             door = interacting_entity.door
 
             if not interacting_entity.door_opened :
-                space.remove(door.pm_body, door.pm_visible_shape)
+                space.remove(*door.pm_elements)
+                self.entities.remove(door)
+                self.disappeared.append(door)
                 interacting_entity.door_opened = True
-
 
 
 
@@ -375,9 +427,11 @@ class Playground():
 
         if edible.reward > edible.min_reward :
 
-            space.add(edible.pm_body, edible.pm_interaction_shape, edible.pm_visible_shape)
+            space.add(*edible.pm_elements)
 
         else:
+            if not edible.is_temporary_entity:
+                self.disappeared.append(edible)
             self.entities.remove(edible)
 
         return True

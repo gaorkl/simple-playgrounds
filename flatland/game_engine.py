@@ -28,65 +28,57 @@ class Engine():
         for agent in self.agents:
             self.playground.add_agent(agent)
 
-
-
-        # Rules TODO: add default dict
+        # Rules
         self.replay_until_time_limit = rules.get('replay_until_time_limit', False)
         self.time_limit = rules.get('time_limit', 1000)
 
         # Engine parameters
-        self.inner_simulation_steps = SIMULATION_STEPS
-        #self.scale_factor = engine_parameters.get('scale_factor', 1)
+        self.inner_simulation_steps = engine_parameters.get('inner_simulation_steps', SIMULATION_STEPS)
         self.display_mode = engine_parameters.get('display_mode', None)
 
 
         # Display screen
-        #self.playground_img = None
-
         self.need_command_display = False
         for agent in self.agents:
             if agent.controller.type == 'keyboard':
                 self.need_command_display = True
 
-
-
         if self.need_command_display:
             self.command = pygame.display.set_mode((75, 75))
+            self.Q_ready_to_press = True
 
-        # Screen for visualization
+        # Screen for Pygame
         self.screen = pygame.Surface((self.playground.length, self.playground.width))
         self.screen.set_alpha(None)
 
         self.game_on = True
         self.current_elapsed_time = 0
-        self.time = 0
+        self.total_elapsed_time = 0
 
-        self.Q_ready_to_press = True
+
 
     def update_observations(self):
 
-        # Compute environment image once
-
+        # TODO: Compute environment image once, then add agents when necessary
 
         # For each agent, compute sensors
         for agent in self.agents:
-
             img = self.playground.generate_playground_image(sensor_agent = agent)
             agent.compute_sensors(img)
 
 
-    def set_actions(self):
+    # def apply_actions(self):
+    #
+    #     for agent in self.agents:
+    #         agent.apply_action_to_physical_body()
 
-        for agent in self.agents:
-            #agent.get_actions()
-            agent.apply_action()
 
-    def step(self):
-
-        self.playground_img = None
+    def step(self, actions):
 
         for agent in self.agents:
             agent.pre_step()
+
+            agent.apply_action_to_physical_body( actions[agent.name] )
 
         for _ in range(self.inner_simulation_steps):
             self.playground.space.step(1. / self.inner_simulation_steps)
@@ -94,49 +86,55 @@ class Engine():
         for agent in self.agents:
             agent.health += (agent.reward - agent.energy_spent)
 
-            agent.spot_reward =  agent.reward
-
         self.playground.update_playground()
 
         # Termination
-
         if self.game_terminated():
 
-            if self.replay_until_time_limit and self.time < self.time_limit:
+
+            if self.replay_until_time_limit and self.total_elapsed_time < self.time_limit:
                 self.game_reset()
 
             else:
                 self.game_on = False
 
+        self.total_elapsed_time += 1
         self.current_elapsed_time += 1
-        self.time += 1
 
     def game_terminated(self):
 
-        if self.time == self.time_limit:
+        if self.current_elapsed_time == self.time_limit:
             return True
+
+        if self.playground.has_reached_termination:
+            return True
+
 
         if self.need_command_display:
             if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == False:
                 self.Q_ready_to_press = True
 
-            elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) or self.playground.has_reached_termination:
+            elif (pygame.key.get_pressed()[K_q] and self.Q_ready_to_press == True) :
                 self.Q_ready_to_press = False
                 return True
 
         return False
 
+    def generate_playground_image(self):
+
+        img = self.playground.generate_playground_image(draw_interaction=True)
+        return img
+
     def display_full_scene(self):
 
-        img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=True)
-        #img = self.playground.generate_playground_image(draw_interaction=True, carthesian_view=False)
-
+        img = self.generate_playground_image()
         surf = pygame.surfarray.make_surface(img)
         self.screen.blit(surf, (0, 0), None)
 
         pygame.display.flip()
 
     def game_reset(self):
+
 
         self.current_elapsed_time = 0
 

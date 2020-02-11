@@ -17,9 +17,12 @@ class Entity():
         :param environment: the environment calling the creation of the fruit
         """
 
+        self.params = params
+
         self.entity_type = params['entity_type']
         self.physical_shape = params['physical_shape']
         self.texture_params = params['texture']
+        self.is_temporary_entity = params['is_temporary_entity']
 
         if self.physical_shape == 'rectangle':
             self.width, self.length = params['shape_rectangle']
@@ -38,8 +41,13 @@ class Entity():
         self.pm_visible_shape = None
 
         ##### PyMunk Body
+        self.graspable = params.get('graspable', False)
+        self.interactive = params.get('interactive', False)
+        self.movable = params.get('movable', False)
 
-        self.movable = params['movable']
+        if self.graspable:
+            self.interactive = True
+            self.movable = True
 
         if self.movable:
             self.mass = params['mass']
@@ -50,7 +58,7 @@ class Entity():
             self.mass = None
             self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
-
+        self.initial_position = params['position']
 
         self.moving = False
 
@@ -68,7 +76,7 @@ class Entity():
 
         ##### PyMunk visible shape
 
-        self.visible = params['visible']
+        self.visible = params.get('visible', True)
         self.texture_visible_surface = None
 
         if self.visible:
@@ -76,9 +84,8 @@ class Entity():
             self.visible_mask = self.generate_visible_mask()
 
 
-        ##### PyMunk sensor shapee
+        ##### PyMunk sensor shape
 
-        self.interactive = params['interactive']
         self.texture_interactive_surface = None
 
         if self.interactive:
@@ -110,10 +117,10 @@ class Entity():
         self.activable = False
         self.edible = False
 
-        self.graspable = params.get('graspable', False)
 
         self.pm_elements = [self.pm_body, self.pm_interaction_shape, self.pm_visible_shape]
-        self.pm_elements = (x for x in self.pm_elements if x is not None)
+        self.pm_elements = [x for x in self.pm_elements if x is not None]
+
 
 
 
@@ -372,6 +379,19 @@ class Entity():
         pass
 
 
+    def reset(self):
+
+        self.pm_body.position = self.initial_position[0:2]
+        self.pm_body.angle = self.initial_position[2]
+        self.pm_body.velocity = (0, 0)
+        self.pm_body.angular_velocity = 0
+
+        if self.is_temporary_entity:
+            replace = False
+        else:
+            replace = True
+
+        return replace
 
 
 class EntityGenerator():

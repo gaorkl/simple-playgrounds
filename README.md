@@ -27,6 +27,7 @@ New version of flatland.
 - change default parameters and use config / yaml ?
 - teleport agent to position (and set all agent speeds to zero)
 - add cost of activation / grasp for objects
+- remove entity-frame
 
 # Todo PG:
 - Scene layouts linear, array, random maze
@@ -54,3 +55,7 @@ New version of flatland.
 # TODO Gui
 - one window per agent with sensors and reward
 - integration with ipynb
+
+# TODO Edible:
+- Make one mask, keep it.
+- Cut the projection instead, so that image is kept, and it is easier to handle
