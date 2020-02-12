@@ -47,6 +47,14 @@ class Controller():
         for act in available_actions:
             self.actions[act] = 0
 
+    def get_empty_action_dict(self):
+
+        actions = {}
+        for a in self.available_actions:
+            actions[a] = 0
+
+        return actions
+
 @ControllerGenerator.register_subclass('ai')
 class AI(Controller):
     def __init__(self, controller_params):

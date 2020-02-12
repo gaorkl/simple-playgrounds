@@ -10,7 +10,7 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 class Engine():
 
-    def __init__(self, playground, agents, rules, engine_parameters):
+    def __init__(self, playground, agents, rules = {}, engine_parameters = {}):
 
         '''
         Engine binds a playground, a list of agents, and rules of the game.
