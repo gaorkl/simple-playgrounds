@@ -42,7 +42,7 @@ basic_default = {
     'radius': 10,
     'mass': 10,
     'texture': basic_texture.copy(),
-    'movable': True
+    'movable': False
 }
 
 # Absorbables
