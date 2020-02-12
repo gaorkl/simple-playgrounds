@@ -80,4 +80,10 @@ class RewardZone(Entity):
 
         else: return 0
 
+    def reset(self):
+        self.total_reward = self.params['total_reward']
+        self.reward_provided = False
 
+        replace = super().reset()
+
+        return replace

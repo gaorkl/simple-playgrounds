@@ -2,7 +2,7 @@ from flatland.playgrounds.playground import *
 from test_pg import *
 
 pg_params = {
-    'playground_type': 'chest-test',
+    'playground_type': 'david',
 
 }
 
@@ -22,9 +22,10 @@ agent_params = {
         'type': 'keyboard'
     },
     'sensors': {
-        #'rgb_1': {**rgb_default, **{'bodyAnchor': 'head', 'fovResolution': 128, 'fovRange': 1000} },
-        'rgb_2': {**rgb_default, **{'bodyAnchor': 'base', 'fovResolution': 64, 'fovRange': 300, }},
-        #'touch_1' : touch_default,
+        'rgb_1': {**rgb_default, **{'bodyAnchor': 'base', 'fovResolution': 128, 'fovRange': 1000} },
+        'laser_1': {**laser_default, **{'bodyAnchor': 'base', 'fovRange': 300 }},
+        'touch_1' : touch_default,
+        'depth_1' : depth_default,
     },
 }
 
@@ -72,9 +73,15 @@ while game.game_on:
         observations = agent.observations
 
         for obs in observations:
-            im = cv2.resize(observations[obs], (512, 50), interpolation=cv2.INTER_NEAREST)
-            cv2.imshow(obs, im)
-            cv2.waitKey(1)
+
+            if 'laser' in  obs:
+                print(observations[obs])
+
+            else:
+
+                im = cv2.resize(observations[obs], (512, 50), interpolation=cv2.INTER_NEAREST)
+                cv2.imshow(obs, im)
+                cv2.waitKey(1)
 
         if agent.reward != 0: print(agent.reward)
 

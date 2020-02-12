@@ -199,6 +199,7 @@ class Playground():
 
         for entity in self.entities:
             entity.update()
+            entity.pre_step()
 
         self.yielders_produce()
         self.check_timers()
@@ -241,6 +242,9 @@ class Playground():
 
             else:
                 self.disappeared.remove(entity)
+
+        for entity in self.yielders:
+            entity.reset()
 
         # Reset flags and counters
         self.grasped = {}

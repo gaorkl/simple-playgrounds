@@ -46,6 +46,16 @@ class MovingVisibleRewardZone(Entity):
         else:
             return 0
 
+    def reset(self):
+
+        self.reward_provided = False
+        self.total_reward = self.params['total_reward']
+
+        replace = super().reset()
+
+        return replace
+
+
 @EntityGenerator.register_subclass('fairy')
 class Fairy(MovingVisibleRewardZone):
 

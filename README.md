@@ -15,9 +15,12 @@ New version of flatland.
 - harmonize view (carthesian) and coordinates
 - video recording
 - log/print important messages (reset, ...)
+- one starting position per agent
+- clarify room shape, scene shape
+- noise
+
 
 # Game engine
-- keep textures when reset: create reset_pg, reset_entities, ...
 - config file
 - start position: random in area (circle, square, gaussian), random pick in list positions, random pick in list areas
 - fixed, list_fixed, area, list_areas

@@ -49,6 +49,24 @@ touch_default = {
     'bodyAnchor': "base",
 }
 
+depth_default = {
+    'type': 'depth',
+    'fovResolution': 128,
+    'fovRange': 300,
+    'fovAngle': 2*math.pi,
+    'bodyAnchor': "base",
+}
+
+laser_default = {
+    'type': 'laser',
+    'laserPointAngle': math.pi/100,
+    'laserPointNumber': 9,
+    'fovRange': 300,
+    'fovAngle': math.pi,
+    'bodyAnchor': "base",
+}
+
+
 #####################
 # Frames
 

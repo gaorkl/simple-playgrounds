@@ -381,8 +381,14 @@ class Entity():
 
     def reset(self):
 
-        self.pm_body.position = self.initial_position[0:2]
-        self.pm_body.angle = self.initial_position[2]
+        if self.moving:
+            self.index_trajectory = 0
+            self.pm_body.position = self.trajectory_points[self.index_trajectory]
+
+        else:
+            self.pm_body.position = self.initial_position[0:2]
+            self.pm_body.angle = self.initial_position[2]
+
         self.pm_body.velocity = (0, 0)
         self.pm_body.angular_velocity = 0
 

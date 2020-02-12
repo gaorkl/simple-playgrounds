@@ -48,3 +48,8 @@ class Yielder():
             obj['position'] = (x,y,0)
 
         return obj
+
+    def reset(self):
+        self.yielded_elements = []
+
+
