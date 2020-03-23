@@ -1,5 +1,5 @@
-from .entity import *
-from flatland.default_parameters.entities import *
+from flatland.entities.entity import *
+from flatland.entities.entities import *
 from flatland.utils.config import collision_types
 
 @EntityGenerator.register_subclass('end_zone')

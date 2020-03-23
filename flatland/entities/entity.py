@@ -1,9 +1,7 @@
 import pymunk, math, pygame
 from flatland.utils.config import *
-from abc import ABC
+from flatland.utils.game_utils import *
 from flatland.utils import texture
-
-#from flatland.entities.entity_old import Entity
 
 
 geometric_shapes = {'line':2, 'circle':60, 'triangle':3, 'square':4, 'pentagon':5, 'hexagon':6 }
@@ -17,15 +15,27 @@ class Entity():
         :param environment: the environment calling the creation of the fruit
         """
 
+
         self.params = params
 
-        self.entity_type = params['entity_type']
         self.physical_shape = params['physical_shape']
+        self.graspable = params.get('graspable', False)
+        self.interactive = params.get('interactive', False)
+        self.movable = params.get('movable', False)
+        self.is_temporary_entity = params.get('is_temporary_entity', False)
+
+
         self.texture_params = params['texture']
-        self.is_temporary_entity = params['is_temporary_entity']
+
+        if isinstance(self.texture_params, list):
+            self.texture_params = {
+                'texture_type' : 'color',
+                'color' : self.texture_params
+            }
+
 
         if self.physical_shape == 'rectangle':
-            self.width, self.length = params['shape_rectangle']
+            self.width, self.length = params['width_length']
             self.texture_params['radius'] = max(self.width, self.length)
         else:
             self.radius = params['radius']
@@ -40,10 +50,7 @@ class Entity():
         self.pm_interaction_shape = None
         self.pm_visible_shape = None
 
-        ##### PyMunk Body
-        self.graspable = params.get('graspable', False)
-        self.interactive = params.get('interactive', False)
-        self.movable = params.get('movable', False)
+
 
         if self.graspable:
             self.interactive = True
@@ -58,21 +65,21 @@ class Entity():
             self.mass = None
             self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
-        self.initial_position = params['position']
-
         self.moving = False
 
         self.trajectory_params = params.get('trajectory', None)
+
         if self.trajectory_params is not None:
             self.moving = True
             self.generate_trajectory()
             self.pm_body.position = self.trajectory_points[0]
-            self.pm_body.angle = params['position'][2]
+            # In the case of trajectories, orientation of object is fixed.
+            self.pm_body.angle = 0
 
         else:
-
-            self.pm_body.position = params['position'][0:2]
-            self.pm_body.angle = params['position'][2]
+            self.initial_position = generate_position(params['position'])
+            self.pm_body.position = self.initial_position[0:2]
+            self.pm_body.angle = self.initial_position[2]
 
         ##### PyMunk visible shape
 
@@ -122,9 +129,6 @@ class Entity():
         self.pm_elements = [x for x in self.pm_elements if x is not None]
 
 
-
-
-
     def generate_trajectory(self):
 
         self.trajectory_points = []
@@ -136,7 +140,7 @@ class Entity():
 
             radius = self.trajectory_params['radius']
             center = self.trajectory_params['center']
-            angle = self.trajectory_params.get('angle', 0)
+            angle = self.trajectory_params.get('angle', 0) * math.pi / 180
 
             waypoints = []
             for n in range(number_sides):
@@ -246,8 +250,8 @@ class Entity():
 
             bb = self.pm_visible_shape.cache_bb()
 
-            length = bb.top - bb.bottom
-            width = bb.right - bb.left
+            length = int(bb.top - bb.bottom)
+            width = int(bb.right - bb.left)
 
             vertices = [[x[1] + length, x[0] + width] for x in self.visible_vertices]
 
@@ -267,6 +271,7 @@ class Entity():
 
 
     def generate_interaction_mask(self):
+
 
         text = texture.Texture.create(self.texture_params)
 
@@ -386,6 +391,9 @@ class Entity():
             self.pm_body.position = self.trajectory_points[self.index_trajectory]
 
         else:
+
+            self.initial_position = generate_position(self.params['position'])
+
             self.pm_body.position = self.initial_position[0:2]
             self.pm_body.angle = self.initial_position[2]
 
@@ -413,9 +421,12 @@ class EntityGenerator():
         return decorator
 
     @classmethod
-    def create(cls, params):
-        entity_type = params['entity_type']
+    def create(cls, entity_type, entity_config):
+
+        if entity_type is None:
+            entity_type = entity_config.get('entity_type')
+
         if entity_type not in cls.subclasses:
             raise ValueError('Entity type not implemented:' + entity_type)
 
-        return cls.subclasses[entity_type](params)
+        return cls.subclasses[entity_type](entity_config)

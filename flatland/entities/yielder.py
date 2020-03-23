@@ -1,6 +1,6 @@
 import random
 from .entity import EntityGenerator
-from ..default_parameters.entities import *
+from flatland.entities.entities import *
 
 @EntityGenerator.register_subclass('yielder')
 class Yielder():

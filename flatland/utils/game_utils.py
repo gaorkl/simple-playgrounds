@@ -3,7 +3,10 @@ import random
 
 def generate_position(position):
 
-    if position['type'] == 'fixed':
+    if isinstance(position, tuple) or isinstance(position, list):
+        pos = position
+
+    elif position['type'] == 'fixed':
         pos = position['coordinates']
 
     elif position['type'] == 'circle':

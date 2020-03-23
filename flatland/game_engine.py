@@ -3,10 +3,6 @@ from pygame.locals import K_q
 from flatland.utils.config import *
 import time
 
-import os
-# Center the pygame window and make it pop up
-os.environ['SDL_VIDEO_CENTERED'] = '1'
-
 
 class Engine():
 
@@ -40,7 +36,7 @@ class Engine():
         # Display screen
         self.need_command_display = False
         for agent in self.agents:
-            if agent.controller.type == 'keyboard':
+            if agent.controller.controller_type == 'keyboard':
                 self.need_command_display = True
 
         if self.need_command_display:
@@ -71,6 +67,12 @@ class Engine():
     #
     #     for agent in self.agents:
     #         agent.apply_action_to_physical_body()
+
+
+    def multiple_steps(self, actions, n_steps = 1):
+
+        for stp in range(n_steps):
+            self.step(actions)
 
 
     def step(self, actions):

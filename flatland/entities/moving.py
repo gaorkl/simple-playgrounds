@@ -1,6 +1,10 @@
-from flatland.default_parameters.entities import *
 from flatland.entities.entity import Entity, EntityGenerator
 from flatland.utils.config import collision_types
+import os, yaml
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, 'moving_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
 
 class MovingVisibleRewardZone(Entity):
 
@@ -13,6 +17,15 @@ class MovingVisibleRewardZone(Entity):
 
         params['visible'] = True
         params['interactive'] = True
+        params['movable'] = True
+
+        if 'center_trajectory' in params:
+            params['trajectory']['center'] = params['center_trajectory']
+        elif 'waypoints' in params:
+            params['trajectory']['waypoints'] = params['waypoints']
+        else:
+            raise ValueError('Traj not defined correctly')
+
 
         super(MovingVisibleRewardZone, self).__init__(params)
 
@@ -59,9 +72,11 @@ class MovingVisibleRewardZone(Entity):
 @EntityGenerator.register_subclass('fairy')
 class Fairy(MovingVisibleRewardZone):
 
-    def __init__(self, params):
+    def __init__(self, custom_params):
 
-        params = {**fairy_default, **params}
+        self.entity_type = 'fairy'
+
+        params = {**default_config['fairy'], **custom_params}
 
         super(Fairy, self).__init__(params)
 
@@ -69,7 +84,10 @@ class Fairy(MovingVisibleRewardZone):
 @EntityGenerator.register_subclass('fireball')
 class Fireball(MovingVisibleRewardZone):
 
-    def __init__(self, params):
-        params = {**fairy_default, **params}
+    def __init__(self, custom_params):
+
+        self.entity_type = 'fairy'
+
+        params = {**default_config['fireball'], **custom_params}
 
         super(Fireball, self).__init__(params)

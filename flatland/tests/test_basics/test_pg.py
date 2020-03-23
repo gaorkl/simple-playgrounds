@@ -1,5 +1,64 @@
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground
-from flatland.default_parameters.entities import *
+from flatland.playgrounds.collection.empty import Room
+
+
+@PlaygroundGenerator.register_subclass('basic_01')
+class Basic_01(Room):
+
+    def __init__(self, scene_params):
+
+        super(Basic_01, self).__init__(scene_params)
+
+        self.add_entity('rectangle', position = [150, 160, 0.56])
+        self.add_entity('circle', position = [50, 60, 0], movable = True, mass = 100, texture = [150, 150, 150])
+        self.add_entity('square', position = [150, 60, 0], movable = True, mass = 10)
+        self.add_entity('pentagon', position = [50, 160, 0])
+        self.add_entity('hexagon', position = [100, 100, 0])
+
+
+@PlaygroundGenerator.register_subclass('contact_01')
+class Contact_01(Room):
+
+    def __init__(self, scene_params=None):
+
+        super(Contact_01, self).__init__(scene_params)
+
+        self.add_entity('absorbable', position = [150, 160, 0.56])
+        self.add_entity('contact_endzone', position = [50, 60, 0], radius = 5)
+        self.add_entity('contact_endzone', position = [150, 60, 0], reward=100)
+
+@PlaygroundGenerator.register_subclass('moving_01')
+class Moving_01(Room):
+
+    def __init__(self, scene_params=None):
+
+        super(Moving_01, self).__init__(scene_params)
+
+        self.add_entity('fairy', center_trajectory = [60,60])
+        self.add_entity('fairy', waypoints = [ [50, 50], [50, 150], [150, 50], [150, 150] ])
+
+        trajectory_fireball = {
+            'trajectory_shape': 'hexagon',
+            'radius': 30,
+            'angle': 180,
+            'speed': 100
+        }
+        self.add_entity('fireball', center_trajectory = [100, 100], trajectory = trajectory_fireball )
+
+
+@PlaygroundGenerator.register_subclass('activable_01')
+class Activable_01(Room):
+
+    def __init__(self, scene_params = None):
+
+        super(Activable_01, self).__init__(scene_params)
+
+        self.add_entity('edible', position = [50,50,0])
+        self.add_entity('contact_endzone', position=[150, 60, 0], radius=5)
+
+        #self.add_entity('dispenser', position = [100, 100], center_area = [150, 100])
+
+        #self.add_entity('chest', position = [150, 150], position_key = [160, 180])
 
 
 @PlaygroundGenerator.register_subclass('david')
@@ -19,12 +78,19 @@ class David(Playground):
 
         ### Basic entities
         basic_1 = basic_default.copy()
-        basic_1['position'] = [150, 160, 0.56]
+        basic_1['position'] = {
+            'type': 'fixed',
+            'coordinates': [150, 160, 0.56]
+            }
+
         basic_1['physical_shape'] = 'rectangle'
         basic_1['shape_rectangle'] = [20, 40]
 
         basic_2 = basic_default.copy()
-        basic_2['position'] = [160, 40, math.pi / 7]
+        basic_2['position'] = {
+            'type': 'fixed',
+            'coordinates': [160, 40, math.pi / 7]
+        }
         basic_2['physical_shape'] = 'rectangle'
         basic_2['shape_rectangle'] = [30, 40]
         basic_2['texture'] = {
@@ -35,7 +101,10 @@ class David(Playground):
         }
 
         basic_3 = basic_default.copy()
-        basic_3['position'] = [60, 170, 0.5]
+        basic_3['position'] =  {
+            'type': 'fixed',
+            'coordinates':[60, 170, 0.5]}
+
         basic_3['physical_shape'] = 'pentagon'
         basic_3['radius'] = 20
         basic_3['movable'] = True
@@ -47,9 +116,14 @@ class David(Playground):
         }
 
         basic_4 = basic_default.copy()
-        basic_4['position'] = [40, 60, 1.3]
+        basic_4['position'] =  {
+            'type': 'rectangle',
+            'x_range':[40, 80],
+            'y_range':[60, 90],
+            'angle_range': [0.5, 1.9]}
+
         basic_4['physical_shape'] = 'circle'
-        basic_4['radius'] = 20
+        basic_4['radius'] = 5
         basic_4['movable'] = True
 
         for ent in [basic_1, basic_2, basic_3, basic_4]:
@@ -57,12 +131,7 @@ class David(Playground):
             self.add_entity(ent)
 
 
-        self.starting_position = {
-            'type': 'rectangle',
-            'x_range': [50, 150],
-            'y_range': [50, 150],
-            'angle_range': [0, 3.14 * 2],
-        }
+
 
 
 

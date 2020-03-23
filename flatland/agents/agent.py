@@ -1,48 +1,50 @@
-import math
-import pygame
-
-from pygame.locals import *
-
 from .sensors import sensor
-from .controllers import controller
 from .frames import frame
-from ..default_parameters.agents import *
+from .controllers import controller
 
+import os, yaml
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, 'agent_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
 
 class Agent():
 
-    def __init__(self, agent_params):
+    index_name = 0
+
+    def __init__(self, agent_type , controller_type = 'keyboard', **custom_config):
         super(Agent, self).__init__()
 
-        agent_params = {**agent_params, **metabolism_default }
+        self.agent_type = agent_type
+        if 'name' in custom_config:
+            self.name =  custom_config.get('name')
+        else:
+            self.name = 'agent_' + str(type(self).index_name)
+            type(self).index_name += 1
 
-        self.name =  agent_params.get('name')
+        # Metabolism
+        if custom_config is None:
+            custom_config = {}
 
-        self.health = agent_params.get('health')
-        self.base_metabolism = agent_params.get('base_metabolism')
-        self.action_metabolism = agent_params.get('action_metabolism')
+        agent_metabolism_params = {**default_config['metabolism'], **custom_config.get('metabolism', {}) }
+        self.health = agent_metabolism_params.get('health')
+        self.base_metabolism = agent_metabolism_params.get('base_metabolism')
+        self.action_metabolism = agent_metabolism_params.get('action_metabolism')
 
-        # Create Frame
-        frame_params = agent_params.get('frame', {})
-        self.frame = frame.FrameGenerator.create(frame_params)
+        # Frame
+        self.frame = frame.FrameGenerator.create(self.agent_type, custom_config.get('frame', {}))
         self.available_actions = self.frame.get_available_actions()
 
-        # Add all necessary sensors
-        self.sensors = {}
-        for sensor_name, sensor_params in agent_params.get('sensors', {}).items():
-            sensor_params['name'] = sensor_name
-            self.add_sensor(sensor_params)
-
         # Select Controller
-        controller_params = agent_params.get('controller', {})
-        self.controller = controller.ControllerGenerator.create(controller_params)
-
+        self.controller = controller.ControllerGenerator.create(controller_type)
         self.controller.set_available_actions(self.available_actions)
 
         if self.controller.require_key_mapping:
             default_key_mapping = self.frame.get_default_key_mapping()
             self.controller.assign_key_mapping(default_key_mapping)
 
+        # Dictionary for sensors
+        self.sensors = {}
 
         # Internals
         self.is_activating = False
@@ -50,15 +52,15 @@ class Agent():
         self.is_grasping = False
         self.grasped = []
         self.is_holding = False
+        self.reward = 0
+        self.energy_spent = 0
 
         self.observations = {}
         self.action_commands = {}
 
         # Default starting position
-        self.starting_position = agent_params.get('starting_position', None)
+        self.starting_position = None
 
-        self.reward = 0
-        self.energy_spent = 0
 
     def owns_shape(self, pm_shape):
 
@@ -72,13 +74,21 @@ class Agent():
         else:
             return False
 
-    def add_sensor(self, sensor_param):
+    def add_sensor(self, sensor_type, sensor_name, sensor_config = None, **sensor_params):
 
-        if sensor_param['type'] is 'touch':
-            sensor_param['minRange'] = self.frame.base_radius   # To avoid errors while logpolar converting
+        if sensor_type is 'touch':
+            sensor_params['minRange'] = self.frame.base_radius   # To avoid errors while logpolar converting
 
-        new_sensor = sensor.SensorGenerator.create(self.frame.anatomy, sensor_param)
-        self.sensors[new_sensor.name] = new_sensor
+        if sensor_config == None:
+            sensor_config = {}
+
+            sensor_params = {**sensor_config, **sensor_params}
+
+        sensor_params['name'] = sensor_name
+        sensor_params['type'] = sensor_type
+
+        new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
+        self.sensors[sensor_name] = new_sensor
 
     def compute_sensors(self, img):
 

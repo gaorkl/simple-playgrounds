@@ -2,8 +2,11 @@ from abc import abstractmethod, ABC
 import math
 import cv2
 import numpy as np
+import os, yaml
 
-
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, 'sensor_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
 
 class SensorGenerator:
     """
@@ -22,9 +25,7 @@ class SensorGenerator:
         return decorator
 
     @classmethod
-    def create(cls, anatomy, sensor_param ):
-
-        sensor_type = sensor_param["type"]
+    def create(cls, sensor_type, anatomy, sensor_param):
 
         if sensor_type not in cls.subclasses:
             raise ValueError('Sensor not implemented:' + sensor_type)
@@ -45,20 +46,28 @@ def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
 
 class Sensor(ABC):
 
-    def __init__(self, anatomy, sensor_param):
+    def __init__(self, anatomy, custom_config):
 
-        self.name = sensor_param.get('name', None)
+
+        self.name = custom_config.get('name', None)
+        self.sensor_type = custom_config.get('type', None)
+
+        # Metabolism
+        if custom_config is None:
+            custom_config = {}
+
+        sensor_param = {**default_config[self.sensor_type], **custom_config}
 
         # Field of View of the Sensor
-        self.fovResolution = sensor_param.get('fovResolution', None)
-        self.fovRange = sensor_param.get('fovRange', None)
+        self.fovResolution = sensor_param.get('resolution', None)
+        self.fovRange = sensor_param.get('range', None)
 
-        self.fovAngle = sensor_param.get('fovAngle', None)
+        self.fovAngle = sensor_param.get('fov', None) * math.pi/180
         self.min_range = sensor_param.get('minRange', 0)
 
         
         # Anchor of the sensor
-        body_anchor = sensor_param.get('bodyAnchor', None)
+        body_anchor = sensor_param.get('anchor', None)
         self.body_anchor = anatomy[body_anchor].body
 
         # Relative location (polar) and angle wrt body

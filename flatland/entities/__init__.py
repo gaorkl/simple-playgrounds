@@ -1,2 +1,2 @@
-from . import basic, edible, activable, yielder, zone, moving
+from . import basic, contact, moving, activable
 from . import entity

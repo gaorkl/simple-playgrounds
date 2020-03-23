@@ -1,5 +1,4 @@
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground
-from ...default_parameters.entities import *
 import random
 
 @PlaygroundGenerator.register_subclass('room_endzone')

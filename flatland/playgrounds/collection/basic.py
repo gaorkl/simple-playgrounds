@@ -1,5 +1,4 @@
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground
-from ...default_parameters.entities import *
 
 
 @PlaygroundGenerator.register_subclass('basic_empty')

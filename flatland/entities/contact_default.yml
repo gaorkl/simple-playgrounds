@@ -1,0 +1,13 @@
+# Contact Entities
+contact_endzone_texture : &contact-endzone-texture
+  'texture_type': 'uniform'
+  'color_min': [10, 200, 50]
+  'color_max': [20, 250, 70]
+
+
+contact_endzone:
+  'physical_shape': 'square'
+  'radius': 20
+  'texture': *contact-endzone-texture
+  'reward': 200
+

@@ -1,11 +1,12 @@
-import pymunk, pygame
 from .forward import Forward
 from flatland.agents.frames.frame import *
 from flatland.utils import texture
 
 from pygame.locals import *
 
-from flatland.default_parameters.agents import *
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, '../frame_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
 
 
 @FrameGenerator.register_subclass('forward_head')
@@ -13,15 +14,23 @@ class ForwardHead(Forward):
 
     def __init__(self, agent_params):
 
-        agent_params = {**forward_head_default, **agent_params}
+        self.agent_type = 'forward_head'
         super(ForwardHead, self).__init__(agent_params)
 
-        self.head_range = agent_params.get('head_rotation_range')
-        self.head_speed = agent_params.get('head_rotation_speed')
-        self.head_radius = agent_params.get("head_radius")
-        self.head_mass = agent_params.get("head_mass")
+        # Head
+        if agent_params is not None:
+            head_params = agent_params.get('head', {})
+        else:
+            head_params = {}
 
-        self.head_metabolism = agent_params.get("head_metabolism")
+        self.head_params = {**default_config['head'], **head_params}
+
+        self.head_range = self.head_params.get('rotation_range') * math.pi/180
+        self.head_speed = self.head_params.get('rotation_speed')
+        self.head_radius = self.head_params.get('radius')
+        self.head_mass = self.head_params.get("mass")
+
+        self.head_metabolism = head_params.get("metabolism")
 
         head = FrameParts()
 
@@ -47,7 +56,7 @@ class ForwardHead(Forward):
 
         self.anatomy["head"] = head
 
-        text = agent_params.get('head_texture')
+        text = self.head_params.get('texture')
         self.head_texture = texture.Texture.create(text)
         self.initialize_head_texture()
 
@@ -92,10 +101,10 @@ class ForwardHead(Forward):
 
         self.anatomy['head'].body.angle +=  self.head_speed * self.head_velocity
 
-        if self.get_head_angle() < -self.head_range:
-            self.anatomy['head'].body.angle = self.anatomy['base'].body.angle + self.head_range
-        elif self.get_head_angle() > self.head_range:
-            self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range
+        if self.get_head_angle() < -self.head_range/2:
+            self.anatomy['head'].body.angle = self.anatomy['base'].body.angle + self.head_range/2
+        elif self.get_head_angle() > self.head_range/2:
+            self.anatomy['head'].body.angle = self.anatomy['base'].body.angle - self.head_range/2
 
 
 

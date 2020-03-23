@@ -8,9 +8,11 @@ from flatland.agents.controllers.controller import ControllerGenerator, Controll
 @ControllerGenerator.register_subclass('random')
 class Random(Controller):
 
-    def __init__(self, controller_params):
+    def __init__(self):
 
-        super().__init__(controller_params)
+
+        self.controller_type = 'random'
+        super().__init__()
         self.require_key_mapping = False
         self.actions = {}
 

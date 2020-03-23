@@ -1,6 +1,4 @@
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground
-from flatland.default_parameters.entities import *
-import random
 
 death_zone_texture = {
             'type': 'centered_random_tiles',

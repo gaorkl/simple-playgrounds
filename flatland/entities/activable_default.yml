@@ -1,0 +1,126 @@
+# Edibles
+edible_texture : &edible-texture
+  texture_type: centered_random_tiles
+  color_min: [40, 120, 150]
+  color_max: [80, 150, 190]
+  size_tiles : 10
+  radius: 20
+
+edible :
+  physical_shape: pentagon
+  radius: 15
+  mass: 10
+  texture: *edible-texture
+  interaction_range: 10
+  shrink_ratio_when_eaten: 0.9
+  initial_reward: 30
+  min_reward: 5
+
+
+#
+## Dispenser
+#dispenser_texture : &dispenser-texture
+#    'texture_type': 'centered_random_tiles'
+#    'min': [200, 80, 180]
+#    'max': [240, 120, 220]
+#    'size_tiles' : 10
+#
+#dispenser :
+#    'entity_type':'dispenser'
+#    'texture': *dispenser-texture
+#    'interaction_range': 10
+#    'object_produced': *absorbable
+#    'production_limit': 15
+#
+## Doors
+#door_texture : &door-texture
+#  'texture_type': 'random_tiles'
+#  'min': [110, 110, 110]
+#  'max': [130, 130, 130]
+#  'size_tiles' : 10
+#
+#switch_texture : &switch-texture
+#    'texture_type': 'color',
+#    'color': (50, 100, 150)
+#
+#door : &door
+#  'entity_type': 'basic'
+#  'physical_shape': 'rectangle'
+#  'shape_rectangle': [10, 80]
+#  'texture': *door-texture
+#
+#switch_door_open :
+#  'entity_type': 'switch_door_open'
+#  'physical_shape': 'circle'
+#  'radius': 15
+#  'interaction_range': 10
+#  'texture': *switch-texture
+#  'door': *door
+#
+#switch_door_timer :
+#  'entity_type': 'switch_door_timer',
+#  'physical_shape': 'circle'
+#  'radius': 15
+#  'interaction_range': 10,
+#  'time_open': 50
+#  'door': *door,
+#  'texture': *switch-texture
+#
+#key_texture : &key-texture
+#    'texture_type': 'color'
+#    'color': (50, 120, 110)
+#
+#lock_texture : &lock-texture
+#    'texture_type': 'color',
+#    'color': (50, 160, 120)
+#
+#key: &key
+#  'entity_type': 'gem',
+#  'physical_shape': 'circle',
+#  'radius': 5
+#  'mass': 10
+#  'texture': *key-texture
+#  'movable': True
+#  'graspable': True
+#  'interaction_range': 10,
+#
+#
+#lock_door:
+#  'entity_type': 'lock_door'
+#  'physical_shape': 'circle'
+#  'radius': 15
+#  'texture': *lock-texture
+#  'movable': False,
+#  'interaction_range': 10,
+#  'door': *door
+#  'key': *key
+#
+#
+#key_chest_texture: &key-chest-texture
+#  'type': 'color'
+#  'color': (130, 100, 150)
+#
+#
+#key_chest: &key-chest
+#  'entity_type': 'gem'
+#  'physical_shape': 'pentagon'
+#  'radius': 10
+#  'mass': 10
+#  'texture': *key-chest-texture
+#  'movable': True
+#  'graspable': True
+#  'interaction_range': 10
+#
+#chest_texture: &chest-texture
+#    'type': 'color',
+#    'color': (70, 180, 200)
+#
+#chest:
+#  'entity_type': 'chest'
+#  'physical_shape': 'square'
+#  'radius': 20
+#  'movable': False
+#  'interaction_range': 10
+#  'texture': *chest-texture
+#  'reward': 50
+#  'key': *key-chest

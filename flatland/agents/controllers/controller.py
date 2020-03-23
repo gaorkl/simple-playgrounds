@@ -17,9 +17,7 @@ class ControllerGenerator():
         return decorator
 
     @classmethod
-    def create(cls, params):
-
-        controller_type = params.get('type', None)
+    def create(cls, controller_type):
 
         if controller_type is None:
             raise ValueError('Controller not selected')
@@ -27,14 +25,13 @@ class ControllerGenerator():
         if controller_type not in cls.subclasses:
             raise ValueError('Controller not implemented: ' + controller_type)
 
-        return cls.subclasses[controller_type](params)
+        return cls.subclasses[controller_type]()
 
 
 class Controller():
 
-    def __init__(self, params):
+    def __init__(self):
 
-        self.type = params['type']
         self.require_key_mapping = False
         self.available_actions = {}
         self.actions = {}

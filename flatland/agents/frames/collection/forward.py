@@ -1,12 +1,7 @@
-import pymunk, pygame
-
+import pymunk
 from flatland.agents.frames.frame import FrameGenerator, Frame
-
 from flatland.utils.config import *
-
 from pygame.locals import *
-
-from flatland.default_parameters.agents import *
 
 
 @FrameGenerator.register_subclass('forward')
@@ -14,7 +9,7 @@ class Forward(Frame):
 
     def __init__(self, agent_params):
 
-        agent_params = {**forward_default, **agent_params}
+        self.agent_type = 'forward'
         super(Forward, self).__init__(agent_params)
 
         self.longitudinal_velocity = 0

@@ -1,11 +1,8 @@
-import pymunk, pygame
 from .forward_head import ForwardHead
 from flatland.agents.frames.frame import *
 from flatland.utils import texture
 
 from pygame.locals import *
-
-from flatland.default_parameters.agents import *
 
 
 @FrameGenerator.register_subclass('forward_head_arms')
@@ -13,7 +10,7 @@ class ForwardHeadArms(ForwardHead):
 
     def __init__(self, agent_params):
 
-        agent_params = {**forward_head_arms_default, **agent_params}
+        self.agent_type = 'forward_head_arms'
         super(ForwardHeadArms, self).__init__(agent_params)
 
         base = self.anatomy['base']

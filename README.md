@@ -18,7 +18,8 @@ New version of flatland.
 - one starting position per agent
 - clarify room shape, scene shape
 - noise
-
+- config file in yaml
+- harmonize angles degree and rads
 
 # Game engine
 - config file
@@ -59,6 +60,5 @@ New version of flatland.
 - one window per agent with sensors and reward
 - integration with ipynb
 
-# TODO Edible:
-- Make one mask, keep it.
-- Cut the projection instead, so that image is kept, and it is easier to handle
+# TODO sensors:
+- hight level sensors (positions and speed of others in fov)

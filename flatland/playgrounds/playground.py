@@ -6,7 +6,6 @@ from ..entities.entity import *
 from ..utils.game_utils import *
 from ..utils.config import *
 
-from ..default_parameters.scenes import *
 
 import random
 import numpy
@@ -31,28 +30,19 @@ class PlaygroundGenerator():
         return decorator
 
     @classmethod
-    def create(cls, playground_params):
-
-        playground_name = playground_params['playground_type']
+    def create(cls, playground_name, **scene_params):
 
         if playground_name not in cls.subclasses:
             raise ValueError('Playground not implemented:' + playground_name)
 
-        return cls.subclasses[playground_name](playground_params)
-
+        return cls.subclasses[playground_name](scene_params)
 
 class Playground():
 
-    def __init__(self, params ):
-
-        # Save params in case of reset
-        self.params = params
+    def __init__(self, scene_params ):
 
         # Generate Scene
-        scene_parameters = params.get('scene', {})
-        scene_parameters = {**room_scene_default, **scene_parameters}
-
-        self.scene = self.generate_scene(scene_parameters)
+        self.scene = self.generate_scene(scene_params)
         self.width, self.length = self.scene.width, self.scene.length
 
         # Initialization of the pymunk space, this space is responsible for modelling all the physics
@@ -76,13 +66,8 @@ class Playground():
         self.timers = {}
 
         # Add entities declared in the scene
-        for elem in self.scene.entity_parameters:
-            self.add_entity(elem)
-
-        # Add entities declared in the Playground
-        if 'entities' in params:
-            for ent in params['entities']:
-                self.add_entity(ent)
+        for ent_params in self.scene.scene_entities:
+            self.add_entity(entity_config= ent_params)
 
         # TODO: Replace by class for registring, and import all collisions in a separate file
         self.handle_collisions()
@@ -92,20 +77,11 @@ class Playground():
 
         self.has_reached_termination = False
 
-        self.starting_position = {
-            'type': 'rectangle',
-            'x_range':[self.length / 2.0 - 15, self.length / 2.0 + 15],
-            'y_range':  [self.width / 2.0 - 15, self.width / 2.0 + 15],
-            'angle_range': [0, 3.14 * 2],
-        }
 
     def initialize_space(self):
 
         self.space = pymunk.Space()
         self.space.gravity = pymunk.Vec2d(0., 0.)
-        #self.space.collision_persistence = 1
-        #self.space.collision_slop = 0.001
-        #self.space.collision_bias = 0.001
         self.space.damping = SPACE_DAMPING
 
     def generate_scene(self, scene_params):
@@ -115,15 +91,20 @@ class Playground():
     def add_agent(self, agent):
 
         self.agents.append(agent)
+        self.place_agent_in_playground(agent)
 
-        starting_position = generate_position(self.starting_position)
+    def place_agent_in_playground(self, agent, position = None):
+
+        if position is None:
+
+            position = generate_position(agent.starting_position)
 
         for part_name, part in agent.frame.anatomy.items():
 
             if part.body is not None:
 
-                part.body.position = [ starting_position[0] + part.body.position[0], starting_position[1] + part.body.position[1]]
-                part.body.angle = starting_position[2] + part.body.angle
+                part.body.position = [ position[0] + part.body.position[0], position[1] + part.body.position[1]]
+                part.body.angle = position[2] + part.body.angle
                 part.body.velocity = (0, 0)
                 part.body.angular_velocity = 0
                 self.space.add(part.body)
@@ -144,10 +125,10 @@ class Playground():
 
                 if part.body is not None:
                     self.space.remove(part.body)
-                    part.body.velocity = (0,0)
-                    part.body.angular_velocity = 0
                     part.body.position = [0,0]
                     part.body.angle = 0
+                    part.body.velocity = (0, 0)
+                    part.body.angular_velocity = 0
 
                 if part.shape is not None:
                     self.space.remove(part.shape)
@@ -160,19 +141,23 @@ class Playground():
         self.agents = []
 
 
-    def add_entity(self, entity_params, is_temporary_entity = False):
+
+    def add_entity(self, entity_type = None, entity_config = None, **params):
+
         '''
-        Create new entity and assign  it to corresponding dictionary
-        Different dictionaries to deal with different logics
-
-        :param entity_params: dictionary representing parameters of an entity. Human readable format.
-        :return:
+        Create a new entity and adds it to space, and to the different entity lists
+        :param entity_type: type of entity (dispenser, edible, absorbable...)
+        :param user_config: dictionary, additional configuration provided by the user. Will overwrite default config
+        :param params: any other parameters set by the users. Will overwrite user config
+        :return: the new entity
         '''
 
-        # Create new entity, add it to space
-        entity_params['is_temporary_entity'] = is_temporary_entity
+        if entity_config == None:
+            entity_config = {}
 
-        new_entity = EntityGenerator.create(entity_params)
+        entity_params = {**entity_config, **params}
+
+        new_entity = EntityGenerator.create(entity_type, entity_params)
 
         if new_entity.entity_type is 'yielder':
             self.yielders.append(new_entity)
@@ -190,7 +175,6 @@ class Playground():
 
             elif new_entity.entity_type is 'chest':
                 new_entity.key = self.add_entity(new_entity.key_params)
-
 
         return new_entity
 
@@ -227,7 +211,6 @@ class Playground():
                 self.space.add(*entity.pm_elements)
             else:
                 self.entities.remove(entity)
-
 
 
         for entity in self.disappeared.copy():

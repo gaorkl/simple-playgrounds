@@ -1,9 +1,15 @@
-from ...entities.entity_frame import Entity
+from flatland.agents.entity_frame import Entity
 import pymunk, pygame
 from flatland.utils import texture
 from flatland.utils.config import *
 import math
 from pygame.locals import *
+import yaml, os
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, 'frame_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
+
 
 class FrameGenerator:
 
@@ -23,17 +29,13 @@ class FrameGenerator:
         return decorator
 
     @classmethod
-    def create(cls, params):
+    def create(cls, body_type, params):
 
-        body_type = params.get('type', None)
-
-        if body_type is None:
-            raise ValueError('Body not selected')
 
         if body_type not in cls.subclasses:
             raise ValueError('Body not implemented: ' + body_type)
 
-        return cls.subclasses[body_type](params['params'])
+        return cls.subclasses[body_type](params)
 
 
 class FrameParts:
@@ -47,23 +49,28 @@ class FrameParts:
 
 class Frame(Entity):
 
-    def __init__(self, body_params):
+    def __init__(self, custom_params):
 
         super(Frame, self).__init__()
 
-        self.base_translation_speed = body_params['base_translation_speed']
-        self.base_rotation_speed = body_params['base_rotation_speed']
-
-        # Define the radius
-        self.base_radius = body_params.get("base_radius")
-        self.base_mass = body_params.get("base_mass")
 
         self.collision_type = collision_types['agent']
 
+
+        # Base
+        if custom_params is not None:
+            base_params = custom_params.get('base', {})
+        else:
+            base_params = {}
+
+        self.base_params = {**default_config['base'], **base_params }
+        self.base_translation_speed = self.base_params['translation_speed']
+        self.base_rotation_speed = self.base_params['rotation_speed']
+        self.base_radius = self.base_params.get("radius")
+        self.base_mass = self.base_params.get("mass")
+
         base = FrameParts()
-
         inertia = pymunk.moment_for_circle(self.base_mass, 0, self.base_radius, (0, 0))
-
         body = pymunk.Body(self.base_mass, inertia)
         base.body = body
 
@@ -75,7 +82,7 @@ class Frame(Entity):
 
         self.anatomy = {"base": base}
 
-        self.base_texture = body_params['base_texture']
+        self.base_texture = self.base_params['texture']
         self.texture = texture.Texture.create(self.base_texture)
         self.initialize_texture()
 

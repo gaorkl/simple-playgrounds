@@ -1,90 +1,78 @@
-import pymunk, math, pygame
-from flatland.utils.config import *
-from flatland.default_parameters.entities import *
 from flatland.entities.entity import Entity, EntityGenerator
+from flatland.utils.config import *
+
+import yaml
+import os
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, 'basic_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
 
 @EntityGenerator.register_subclass('basic')
 class Basic(Entity):
 
-    def __init__(self, params ):
-        """
-        Instantiate an obstacle with the following parameters
-        :param pos: 2d tuple or 'random', position of the fruit
-        :param environment: the environment calling the creation of the fruit
-        """
+    def __init__(self, custom_config):
 
-        params = {**basic_default, **params}
-#        params['visible'] = True
-#        params['interactive'] = False
+        self.entity_type = 'basic'
+        super(Basic, self).__init__(custom_config)
 
-        super(Basic, self).__init__(params)
 
-@EntityGenerator.register_subclass('gem')
-class Gem(Entity):
+@EntityGenerator.register_subclass('rectangle')
+class Rectangle(Basic):
 
-    def __init__(self, params ):
-        """
-        Instantiate an obstacle with the following parameters
-        :param pos: 2d tuple or 'random', position of the fruit
-        :param environment: the environment calling the creation of the fruit
-        """
+    def __init__(self, custom_config):
+        custom_config = {**default_config['rectangle'], **custom_config}
 
-        params = {**basic_default, **params}
-        params['visible'] = True
-        params['interactive'] = True
+        super(Rectangle, self).__init__(custom_config)
 
-        super(Gem, self).__init__(params)
 
-        self.pm_visible_shape.collision_type = collision_types['gem']
+@EntityGenerator.register_subclass('circle')
+class Circle(Basic):
+
+    def __init__(self, custom_config):
+        custom_config = {**default_config['circle'], **custom_config}
+
+        super(Circle, self).__init__(custom_config)
+
+@EntityGenerator.register_subclass('square')
+class Square(Basic):
+
+    def __init__(self, custom_config):
+        custom_config = {**default_config['square'], **custom_config}
+
+        super(Square, self).__init__(custom_config)
+
+
+@EntityGenerator.register_subclass('pentagon')
+class Pentagon(Basic):
+
+    def __init__(self, custom_config):
+        custom_config = {**default_config['pentagon'], **custom_config}
+
+        super(Pentagon, self).__init__(custom_config)
+
+
+@EntityGenerator.register_subclass('hexagon')
+class Hexagon(Basic):
+
+    def __init__(self, custom_config):
+        custom_config = {**default_config['hexagon'], **custom_config}
+
+        super(Hexagon, self).__init__(custom_config)
+
+
 
 @EntityGenerator.register_subclass('absorbable')
 class Absorbable(Entity):
 
-    def __init__(self, params):
+    def __init__(self, custom_config):
 
-        params = { **absorbable_default, **params}
-        params['visible'] = True
-        params['interactive'] = False
+        self.entity_type = 'absorbable'
 
-        super(Absorbable, self).__init__(params)
+        custom_config = {**default_config['absorbable'], **custom_config}
+        super(Absorbable, self).__init__(custom_config)
 
-        self.reward = params['reward']
+        self.reward = custom_config['reward']
         self.pm_visible_shape.collision_type = collision_types['contact']
 
         self.absorbable = True
-
-@EntityGenerator.register_subclass('contact_endzone')
-class ContactEndZone(Entity):
-
-    def __init__(self, params):
-
-        params = { **contact_endzone_default,**params}
-        params['visible'] = True
-        params['interactive'] = False
-
-        super(ContactEndZone, self).__init__(params)
-
-        self.reward = params['reward']
-        self.pm_visible_shape.collision_type = collision_types['contact']
-
-        self.reward_provided = False
-
-    def pre_step(self):
-
-        self.reward_provided = False
-
-    def get_reward(self):
-
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self.reward
-
-        else:
-            return 0
-
-    def reset(self):
-        self.reward_provided = False
-
-        replace = super().reset()
-
-        return replace
