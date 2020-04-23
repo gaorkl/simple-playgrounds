@@ -15,6 +15,8 @@ class Agent():
     def __init__(self, agent_type , controller_type = 'keyboard', **custom_config):
         super(Agent, self).__init__()
 
+        print(custom_config)
+
         self.agent_type = agent_type
         if 'name' in custom_config:
             self.name =  custom_config.get('name')

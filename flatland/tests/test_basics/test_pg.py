@@ -15,6 +15,19 @@ class Basic_01(Room):
         self.add_entity('pentagon', position = [50, 160, 0])
         self.add_entity('hexagon', position = [100, 100, 0])
 
+@PlaygroundGenerator.register_subclass('basic_02')
+class Basic_02(Room):
+
+    def __init__(self, scene_params):
+
+        super(Basic_02, self).__init__(scene_params)
+
+        self.add_entity('rectangle', position = [150, 160, 0.56])
+        self.add_entity('circle', position = [50, 60, 0], movable = True, mass = 100, texture = [150, 150, 150])
+        self.add_entity('square', position = [150, 60, 0], movable = True, mass = 10)
+        self.add_entity('pentagon', position = [50, 160, 0])
+        self.add_entity('hexagon', position = [100, 100, 0], texture = [150, 200, 250])
+
 
 @PlaygroundGenerator.register_subclass('contact_01')
 class Contact_01(Room):

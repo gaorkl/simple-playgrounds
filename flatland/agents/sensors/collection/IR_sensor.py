@@ -1,23 +1,30 @@
 from flatland.agents.sensors.sensor import SensorGenerator, Sensor
 import numpy as np
 import cv2
-import math
+import os, yaml
 
-@SensorGenerator.register('laser')
-class LaserSensor(Sensor):
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, 'sensor_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
+
+
+@SensorGenerator.register('infra-red')
+class InfraRedSensor(Sensor):
 
     def __init__(self, anatomy, sensor_param):
 
 
-        self.angle_laser_point = sensor_param['laserPointAngle']
-        self.number_laser_point = sensor_param['laserPointNumber']
+        sensor_param = {**default_config['infra-red'], **sensor_param}
+
+        self.angle_laser_point = sensor_param['point_angle']
+        self.number_laser_point = sensor_param['number']
 
         if self.number_laser_point < 1:
             raise ValueError('number_laser_point should be higher than 1')
 
-        sensor_param['fovResolution'] = int(sensor_param['fovAngle'] / sensor_param['laserPointAngle'])
+        sensor_param['resolution'] = int(sensor_param['fov'] / sensor_param['point_angle'])
 
-        super(LaserSensor, self).__init__(anatomy, sensor_param)
+        super(InfraRedSensor, self).__init__(anatomy, sensor_param)
 
         self.index_sensors = []
         for i in range(self.number_laser_point):

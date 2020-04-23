@@ -2,7 +2,7 @@ from flatland.tests.test_basics.test_pg import *
 from flatland.agents import agent
 
 # pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
-pg = PlaygroundGenerator.create('contact_01', room_shape = [250, 200])
+pg = PlaygroundGenerator.create('basic_02', room_shape = [200, 200])
 
 agents = []
 #
@@ -23,8 +23,12 @@ agents = []
 #     agents.append(my_agent)
 #
 
-my_agent = agent.Agent('forward', name = 'mercotte', controller_type = 'keyboard')
-my_agent.add_sensor('depth', 'depth_1', fov_resolution = 128)
+my_agent = agent.Agent('forward', name = 'mercotte', controller_type = 'keyboard', frame = { 'base': {'radius' : 10}})
+my_agent.add_sensor('depth', 'depth_1', resolution = 128)
+my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
+my_agent.add_sensor('rgb', 'rgb_2', resolution = 128)
+my_agent.add_sensor('touch', 'touch_1', resolution = 64)
+my_agent.add_sensor('infra-red', 'IR_1', number = 5, fov = 90)
 my_agent.starting_position = {
             'type': 'rectangle',
             'x_range': [80, 120],
@@ -77,9 +81,8 @@ while game.game_on:
 
         for obs in observations:
 
-            if 'laser' in  obs:
-                #print(observations[obs])
-                pass
+            if 'IR' in  obs:
+                print(observations[obs])
 
             else:
 

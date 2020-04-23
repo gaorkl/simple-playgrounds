@@ -19,11 +19,11 @@ depth :
   fov: 180
   anchor: base
 
-IR_array:
-  point_angle: math.pi/100
+infra-red:
+  point_angle: 3
   number: 9
   range: 300
-  fov: 120
+  fov: 180
   anchor: base
 
 
