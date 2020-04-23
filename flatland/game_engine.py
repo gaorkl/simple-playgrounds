@@ -59,8 +59,23 @@ class Engine():
 
         # For each agent, compute sensors
         for agent in self.agents:
-            img = self.playground.generate_playground_image(sensor_agent = agent)
-            agent.compute_sensors(img)
+
+            #data , arg = vision, geometric, class generator
+            img = None
+            entities = None
+            agents = None
+
+            if agent.has_visual_sensor:
+                img = self.playground.generate_playground_image(sensor_agent = agent)
+
+            if agent.has_geometric_sensor:
+                entities = self.playground.entities
+                agents = self.playground.agents
+
+            agent.compute_sensors(img, entities, agents)
+
+        #Brait
+        # TODO: add support for geometric sensors, don't generate img if not needed
 
 
     # def apply_actions(self):

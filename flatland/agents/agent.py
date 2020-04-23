@@ -1,4 +1,5 @@
 from .sensors import sensor
+from .geometric_sensors import geometric_sensor
 from .frames import frame
 from .controllers import controller
 
@@ -61,6 +62,10 @@ class Agent():
         # Default starting position
         self.starting_position = None
 
+        # Information about sensor types
+        self.has_geometric_sensor = False
+        self.has_visual_sensor = False
+
 
     def owns_shape(self, pm_shape):
 
@@ -87,13 +92,26 @@ class Agent():
         sensor_params['name'] = sensor_name
         sensor_params['type'] = sensor_type
 
-        new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
+
+        #Brait
+        if sensor_type is 'lidar':
+            new_sensor = geometric_sensor.LidarSensor(self.frame.anatomy, sensor_params)
+            self.has_geometric_sensor = True
+        else:
+            new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
+            self.has_visual_sensor = True
         self.sensors[sensor_name] = new_sensor
 
-    def compute_sensors(self, img):
+    #Brait
+    #Pas donner que l'image
+    def compute_sensors(self, img, entities, agents):
 
         for sensor_name in self.sensors:
-            self.sensors[sensor_name].update_sensor(img)
+
+            if self.sensors[sensor_name].sensor_type == "lidar":
+                self.sensors[sensor_name].update_sensor(entities, agents)
+            else:
+                self.sensors[sensor_name].update_sensor(img)
 
             self.observations[sensor_name] = self.sensors[sensor_name].observation
 
@@ -136,6 +154,3 @@ class Agent():
         self.is_grasping = False
         self.grasped = []
         self.is_holding = False
-
-
-
