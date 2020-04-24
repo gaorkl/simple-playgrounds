@@ -1,5 +1,46 @@
 import numpy as np
-import random
+import random, math
+
+class AreaSampler:
+
+    def __init__(self, area_params):
+
+        self.area_shape = area_params['area_shape']
+        self.distribution = area_params['distribution']
+        self.center = area_params['center']
+
+        # Area shape
+        if self.area_shape == 'rectangle':
+            self.width, self.length = area_params['shape']
+
+        elif self.area_shape == 'circle':
+            self.radius = area_params['radius']
+
+        else:
+            raise ValueError('area shape not implemented')
+
+        # Distribution of positions
+        if self.distribution == 'gaussian':
+            self.variance = area_params['variance']
+
+
+    def sample(self):
+
+        if self.area_shape == 'rectangle':
+
+            if self.distribution == 'uniform':
+
+                x = random.uniform( self.center[0] - self.width/2 ,self.center[0] + self.width/2 )
+                y = random.uniform( self.center[1] - self.length/2 ,self.center[1] + self.length/2 )
+                theta = random.uniform( -math.pi, math.pi )
+
+            elif self.distribution == 'gaussian':
+
+                pass
+
+
+        return x,y,theta
+
 
 def generate_position(position):
 

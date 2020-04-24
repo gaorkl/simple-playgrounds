@@ -55,10 +55,10 @@ class Scene():
         """
         walls = []
 
-        walls.append([ self.length, (self.length / 2.0, self.wall_depth / 2.0, math.pi / 2.0)])
-        walls.append([ self.length, (self.length / 2.0, self.width - self.wall_depth / 2.0, math.pi / 2.0)])
-        walls.append([ self.width, (self.wall_depth / 2.0, self.width / 2.0, 0.0)])
-        walls.append([ self.width, (self.length - self.wall_depth / 2.0, self.width / 2.0, 0.0)])
+        walls.append([ self.length, (self.wall_depth / 2.0, self.length / 2.0, math.pi / 2.0)])
+        walls.append([ self.length, (self.width - self.wall_depth / 2.0, self.length / 2.0,  math.pi / 2.0)])
+        walls.append([ self.width, ( self.width / 2.0, self.wall_depth / 2.0, 0.0)])
+        walls.append([ self.width, ( self.width / 2.0, self.length - self.wall_depth / 2.0, 0.0)])
 
         return walls
 

@@ -57,9 +57,12 @@ class Engine():
 
         # TODO: Compute environment image once, then add agents when necessary
 
+        self.playground.generate_entities_image()
+
         # For each agent, compute sensors
         for agent in self.agents:
-            img = self.playground.generate_playground_image(sensor_agent = agent)
+
+            img = self.playground.generate_agent_image(sensor_agent = agent)
             agent.compute_sensors(img)
 
 

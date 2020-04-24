@@ -51,6 +51,7 @@ class Playground():
 
         # Screen for display
         self.topdown_view = pygame.Surface((self.width, self.length))
+        self.topdown_entities = pygame.Surface((self.width, self.length))
 
         # Data structures to save list of entities, and relations between them
         self.physical_entities = []
@@ -78,6 +79,7 @@ class Playground():
         self.has_reached_termination = False
 
 
+
     def initialize_space(self):
 
         self.space = pymunk.Space()
@@ -95,18 +97,18 @@ class Playground():
 
     def place_agent_in_playground(self, agent, position = None):
 
+        agent.size_playground = self.width, self.length
+
         if position is None:
 
             position = generate_position(agent.starting_position)
 
+        agent.position = position
+        agent.velocity = [0,0,0]
+
         for part_name, part in agent.frame.anatomy.items():
 
             if part.body is not None:
-
-                part.body.position = [ position[0] + part.body.position[0], position[1] + part.body.position[1]]
-                part.body.angle = position[2] + part.body.angle
-                part.body.velocity = (0, 0)
-                part.body.angular_velocity = 0
                 self.space.add(part.body)
 
             if part.shape is not None:
@@ -114,7 +116,6 @@ class Playground():
 
             if part.joint is not None:
                 for j in part.joint:
-                    # self.playground.space.add(part.joint)
                     self.space.add(j)
 
     def remove_agents(self):
@@ -152,6 +153,7 @@ class Playground():
         :return: the new entity
         '''
 
+
         if entity_config == None:
             entity_config = {}
 
@@ -159,10 +161,16 @@ class Playground():
 
         new_entity = EntityGenerator.create(entity_type, entity_params)
 
+        new_entity.size_playground = [self.width, self.length]
+
+        new_entity.position = entity_params['position']
+
         if new_entity.entity_type is 'yielder':
             self.yielders.append(new_entity)
 
         else:
+
+
             self.space.add(*new_entity.pm_elements)
             self.entities.append(new_entity)
 
@@ -203,9 +211,9 @@ class Playground():
 
         for entity in self.entities.copy():
 
-            replace = entity.reset()
-
             self.space.remove(*entity.pm_elements)
+
+            replace = entity.reset()
 
             if replace:
                 self.space.add(*entity.pm_elements)
@@ -233,6 +241,34 @@ class Playground():
         self.grasped = {}
         self.timers = {}
         self.has_reached_termination = False
+
+
+    def generate_entities_image(self, draw_interaction = False):
+
+        # Update the screen of the environment
+        self.topdown_entities.fill(THECOLORS["black"])
+
+        for entity in self.entities:
+            entity.draw(self.topdown_entities, draw_interaction)
+
+
+    def generate_agent_image(self, sensor_agent):
+
+        agent_image = self.topdown_entities.copy()
+
+        for agent in self.agents:
+            #if agent is not sensor_agent:
+            if agent is not sensor_agent:
+                agent.frame.draw(agent_image, visible_to_self=False)
+            else:
+                agent.frame.draw(agent_image, visible_to_self=True)
+
+        imgdata = pygame.surfarray.array3d(agent_image)
+
+        imgdata = numpy.rot90(imgdata, 1, (1,0))
+        imgdata = imgdata[::-1, :, ::-1]
+
+        return imgdata
 
 
 
@@ -358,9 +394,9 @@ class Playground():
 
             agent.is_activating = False
 
-            if len(interacting_entity.produced_elements) < interacting_entity.limit:
+            if len(interacting_entity.produced_elements) < interacting_entity.prodution_limit:
                 new_entity_params = interacting_entity.activate()
-                new_entity = self.add_entity(new_entity_params, is_temporary_entity=True)
+                new_entity = self.add_entity('absorbable', new_entity_params, is_temporary_entity=True)
                 interacting_entity.produced_elements.append(new_entity)
 
         elif agent.is_activating and (interacting_entity.entity_type is 'button_door_openclose'):

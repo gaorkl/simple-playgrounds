@@ -1,8 +1,8 @@
 from flatland.tests.test_basics.test_pg import *
 from flatland.agents import agent
 
-# pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
-pg = PlaygroundGenerator.create('basic_02', room_shape = [200, 200])
+#pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
+pg = PlaygroundGenerator.create('basic_01', room_shape = [400, 200])
 
 agents = []
 #
@@ -31,9 +31,9 @@ my_agent.add_sensor('touch', 'touch_1', resolution = 64)
 my_agent.add_sensor('infra-red', 'IR_1', number = 5, fov = 90)
 my_agent.starting_position = {
             'type': 'rectangle',
-            'x_range': [80, 120],
-            'y_range': [80, 120],
-            'angle_range': [0, 3.14 * 2],
+            'x_range': [80, 100],
+            'y_range': [100, 120],
+            'angle_range': [0, 1],
         }
 
 agents.append(my_agent)
@@ -71,7 +71,7 @@ while game.game_on:
     for agent in game.agents:
         actions[agent.name] = agent.get_controller_actions()
 
-    game.multiple_steps(actions, 1)
+    game.step(actions)
     game.update_observations()
 
 
@@ -82,7 +82,8 @@ while game.game_on:
         for obs in observations:
 
             if 'IR' in  obs:
-                print(observations[obs])
+                # print(observations[obs])
+                pass
 
             else:
 
@@ -92,7 +93,10 @@ while game.game_on:
 
         if agent.reward != 0: print(agent.reward)
 
-        print(agent.name, agent.health)
+    # for entity in game.playground.entities:
+    #     if entity.velocity[0] != 0:
+    #         print(entity.position)
+    #         print(entity.velocity)
 
     img = game.generate_playground_image()
     cv2.imshow('test', img)

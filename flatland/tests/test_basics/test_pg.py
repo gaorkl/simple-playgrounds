@@ -9,7 +9,7 @@ class Basic_01(Room):
 
         super(Basic_01, self).__init__(scene_params)
 
-        self.add_entity('rectangle', position = [150, 160, 0.56])
+        self.add_entity('rectangle', width_length = [20, 40], position = [150, 160, 0.7])
         self.add_entity('circle', position = [50, 60, 0], movable = True, mass = 100, texture = [150, 150, 150])
         self.add_entity('square', position = [150, 60, 0], movable = True, mass = 10)
         self.add_entity('pentagon', position = [50, 160, 0])
@@ -69,7 +69,15 @@ class Activable_01(Room):
         self.add_entity('edible', position = [50,50,0])
         self.add_entity('contact_endzone', position=[150, 60, 0], radius=5)
 
-        #self.add_entity('dispenser', position = [100, 100], center_area = [150, 100])
+
+        area = {
+            'area_shape' : 'rectangle',
+            'center' : [50, 150],
+            'shape' : [100, 50],
+            'distribution': 'uniform'
+        }
+
+        self.add_entity('dispenser', position = [100, 100, 0], area = area)
 
         #self.add_entity('chest', position = [150, 150], position_key = [160, 180])
 
