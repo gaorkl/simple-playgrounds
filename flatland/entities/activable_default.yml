@@ -46,6 +46,7 @@ dispenser :
   interaction_range: 10
   entity_produced: *pellet
   production_limit: 15
+  mass : 10
 
 
 #

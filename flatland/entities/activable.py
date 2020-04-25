@@ -1,5 +1,5 @@
 from flatland.entities.entity import Entity, EntityGenerator
-from flatland.utils.game_utils import AreaSampler
+from flatland.utils.position_sampler import PositionAreaSampler
 import pymunk
 
 import os, yaml
@@ -127,8 +127,13 @@ class Dispenser(Entity):
 
         self.entity_produced = params['entity_produced']
 
-        self.production_area = params['area']
-        self.location_sampler = AreaSampler(self.production_area)
+        self.local_dispenser = False
+        self.location_sampler = params.get('area', None)
+
+        if self.location_sampler is None:
+            self.local_dispenser = True
+            self.location_sampler = PositionAreaSampler(area_shape ='circle', center = [self.position[0], self.position[1]], radius =self.radius + 10)
+
 
         self.prodution_limit = params['production_limit']
 
@@ -137,7 +142,12 @@ class Dispenser(Entity):
     def activate(self):
 
         obj = self.entity_produced
-        position = self.location_sampler.sample()
+
+        if self.local_dispenser:
+            position = self.location_sampler.sample( [self.position[0], self.position[1] ])
+        else:
+            position = self.location_sampler.sample( )
+
         obj['position'] = position
 
         return obj.copy()

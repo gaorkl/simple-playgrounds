@@ -1,5 +1,6 @@
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground
 from flatland.playgrounds.collection.empty import Room
+from flatland.utils.position_sampler import PositionAreaSampler
 
 
 @PlaygroundGenerator.register_subclass('basic_01')
@@ -67,17 +68,27 @@ class Activable_01(Room):
         super(Activable_01, self).__init__(scene_params)
 
         self.add_entity('edible', position = [50,50,0])
-        self.add_entity('contact_endzone', position=[150, 60, 0], radius=5)
+        self.add_entity('contact_endzone', position=[150, 60, 0], radius=10)
 
+        dispenser_position = PositionAreaSampler(area_shape ='rectangle', center = [200, 100], shape = [20, 20])
+        self.add_entity('dispenser', position = dispenser_position, movable = True)
 
-        area = {
-            'area_shape' : 'rectangle',
-            'center' : [50, 150],
-            'shape' : [100, 50],
-            'distribution': 'uniform'
-        }
-
+        area = PositionAreaSampler(area_shape ='rectangle', center = [50, 150], shape = [100, 50])
         self.add_entity('dispenser', position = [100, 100, 0], area = area)
+
+        area_2 = PositionAreaSampler(area_shape ='gaussian', center = [300, 100], variance = 900, radius = 100)
+        self.add_entity('dispenser', position = [100, 150, 0], area = area_2, production_limit = 100)
+
+
+        # area_2 = {
+        #     'area_shape' : 'circle',
+        #     'center' : [300, 100],
+        #     'radius' : 50,
+        #     'theta_range' : [-1, 1]
+        # }
+        #
+        # self.add_entity('dispenser', position = [200, 100, 0], area = area_2)
+
 
         #self.add_entity('chest', position = [150, 150], position_key = [160, 180])
 

@@ -1,6 +1,6 @@
 import pymunk, math, pygame
 from flatland.utils.config import *
-from flatland.utils.game_utils import *
+from flatland.utils.position_sampler import *
 from flatland.utils import texture
 
 
@@ -76,8 +76,8 @@ class Entity():
 
         else:
             self.moving = False
-            self.initial_position = generate_position(params['position'])
-            self.position = self.initial_position
+            self.initial_position = params['position']
+            self.position = self.get_initial_position()
 
         ##### PyMunk visible shape
 
@@ -127,6 +127,17 @@ class Entity():
         self.pm_elements = [x for x in self.pm_elements if x is not None]
 
 
+    def get_initial_position(self):
+
+        # differentiate between case where initial position is fixed and case where it is random
+
+        if isinstance( self.initial_position, list ) or isinstance( self.initial_position, tuple ) :
+
+            return self.initial_position
+
+        else:
+
+            return self.initial_position.sample()
 
 
     @property
@@ -429,18 +440,13 @@ class Entity():
 
         if self.moving:
             self.index_trajectory = 0
-            self.pm_body.position = self.trajectory_points[self.index_trajectory]
+            self.position = self.trajectory_points[self.index_trajectory]
 
         else:
+            self.position = self.get_initial_position()
 
-            self.initial_position = generate_position(self.params['position'])
-
-            self.pm_body.position = self.initial_position[0:2]
-            self.pm_body.angle = self.initial_position[2]
-
-        self.pm_body.velocity = (0, 0)
-        self.pm_body.angular_velocity = 0
-
+        self.velocity = [0, 0, 0]
+        
         if self.is_temporary_entity:
             replace = False
         else:

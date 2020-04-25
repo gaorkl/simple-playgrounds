@@ -2,7 +2,7 @@ from flatland.tests.test_basics.test_pg import *
 from flatland.agents import agent
 
 #pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
-pg = PlaygroundGenerator.create('basic_01', room_shape = [400, 200])
+pg = PlaygroundGenerator.create('activable_01', room_shape = [400, 200])
 
 agents = []
 #

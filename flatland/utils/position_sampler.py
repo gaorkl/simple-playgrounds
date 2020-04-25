@@ -1,13 +1,14 @@
 import numpy as np
 import random, math
 
-class AreaSampler:
+class PositionAreaSampler:
 
-    def __init__(self, area_params):
+    def __init__(self, **area_params):
 
         self.area_shape = area_params['area_shape']
-        self.distribution = area_params['distribution']
         self.center = area_params['center']
+
+        self.theta_min, self.theta_max = area_params.get('theta_range', [-math.pi, math.pi])
 
         # Area shape
         if self.area_shape == 'rectangle':
@@ -16,28 +17,51 @@ class AreaSampler:
         elif self.area_shape == 'circle':
             self.radius = area_params['radius']
 
+        elif self.area_shape == 'gaussian':
+            self.radius = area_params['radius']
+            self.variance = area_params['variance']
+
         else:
             raise ValueError('area shape not implemented')
 
-        # Distribution of positions
-        if self.distribution == 'gaussian':
-            self.variance = area_params['variance']
 
+    def sample(self, center = None):
 
-    def sample(self):
+        if center is not None:
+            self.center = center
 
         if self.area_shape == 'rectangle':
+            x = random.uniform( self.center[0] - self.width/2 ,self.center[0] + self.width/2 )
+            y = random.uniform( self.center[1] - self.length/2 ,self.center[1] + self.length/2 )
+            theta = random.uniform( self.theta_min, self.theta_max )
 
-            if self.distribution == 'uniform':
 
-                x = random.uniform( self.center[0] - self.width/2 ,self.center[0] + self.width/2 )
-                y = random.uniform( self.center[1] - self.length/2 ,self.center[1] + self.length/2 )
-                theta = random.uniform( -math.pi, math.pi )
+        elif self.area_shape == 'circle':
 
-            elif self.distribution == 'gaussian':
+            x = math.inf
 
-                pass
+            y = math.inf
 
+            theta = random.uniform(self.theta_min, self.theta_max)
+
+            while ((x - self.center[0]) ** 2 + (y - self.center[1]) ** 2 > self.radius ** 2):
+                x = random.uniform(self.center[0] - self.radius / 2, self.center[0] + self.radius / 2)
+
+                y = random.uniform(self.center[1] - self.radius / 2, self.center[1] + self.radius / 2)
+
+        elif self.area_shape == 'gaussian':
+
+            print('tada')
+
+            x = math.inf
+            y = math.inf
+            theta = random.uniform(self.theta_min, self.theta_max)
+
+            while ( (x - self.center[0])**2 + (y - self.center[1])**2 > self.radius**2):
+
+                x, y = np.random.multivariate_normal(self.center, [[self.variance, 0], [0, self.variance]] )
+
+            print(x,y)
 
         return x,y,theta
 

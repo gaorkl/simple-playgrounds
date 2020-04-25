@@ -3,7 +3,7 @@ from pygame.color import THECOLORS
 
 from .scene_layout import SceneGenerator
 from ..entities.entity import *
-from ..utils.game_utils import *
+from ..utils.position_sampler import *
 from ..utils.config import *
 
 
@@ -159,11 +159,13 @@ class Playground():
 
         entity_params = {**entity_config, **params}
 
+
+        # TODO: clean :
         new_entity = EntityGenerator.create(entity_type, entity_params)
 
         new_entity.size_playground = [self.width, self.length]
 
-        new_entity.position = entity_params['position']
+        new_entity.position = new_entity.get_initial_position()
 
         if new_entity.entity_type is 'yielder':
             self.yielders.append(new_entity)
