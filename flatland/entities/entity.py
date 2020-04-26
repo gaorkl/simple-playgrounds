@@ -50,7 +50,7 @@ class Entity():
         self.pm_interaction_shape = None
         self.pm_visible_shape = None
 
-        self.size_playground = [0, 0]
+        self.size_playground = params.get('size_playground')
 
         if self.graspable:
             self.interactive = True
@@ -137,6 +137,7 @@ class Entity():
 
         else:
 
+            #TODO: safeguard position
             return self.initial_position.sample()
 
 

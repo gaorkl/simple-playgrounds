@@ -23,18 +23,17 @@ agents = []
 #     agents.append(my_agent)
 #
 
-my_agent = agent.Agent('forward', name = 'mercotte', controller_type = 'keyboard', frame = { 'base': {'radius' : 10}})
+
+initial_position = PositionAreaSampler(area_shape='circle', center=[120, 120], radius=30)
+my_agent = agent.Agent('forward', name = 'mercotte', controller_type = 'keyboard', frame = { 'base': {'radius' : 10}},
+                       position =initial_position)
+
 my_agent.add_sensor('depth', 'depth_1', resolution = 128)
 my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
 my_agent.add_sensor('rgb', 'rgb_2', resolution = 128)
 my_agent.add_sensor('touch', 'touch_1', resolution = 64)
 my_agent.add_sensor('infra-red', 'IR_1', number = 5, fov = 90)
-my_agent.starting_position = {
-            'type': 'rectangle',
-            'x_range': [80, 100],
-            'y_range': [100, 120],
-            'angle_range': [0, 1],
-        }
+
 
 agents.append(my_agent)
 

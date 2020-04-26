@@ -95,16 +95,11 @@ class Playground():
         self.agents.append(agent)
         self.place_agent_in_playground(agent)
 
-    def place_agent_in_playground(self, agent, position = None):
+    def place_agent_in_playground(self, agent):
 
-        agent.size_playground = self.width, self.length
+        agent.size_playground = [self.width, self.length]
+        agent.position = agent.get_initial_position()
 
-        if position is None:
-
-            position = generate_position(agent.starting_position)
-
-        agent.position = position
-        agent.velocity = [0,0,0]
 
         for part_name, part in agent.frame.anatomy.items():
 
@@ -158,14 +153,9 @@ class Playground():
             entity_config = {}
 
         entity_params = {**entity_config, **params}
+        entity_params['size_playground'] = [self.width, self.length]
 
-
-        # TODO: clean :
         new_entity = EntityGenerator.create(entity_type, entity_params)
-
-        new_entity.size_playground = [self.width, self.length]
-
-        new_entity.position = new_entity.get_initial_position()
 
         if new_entity.entity_type is 'yielder':
             self.yielders.append(new_entity)

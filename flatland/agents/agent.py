@@ -60,10 +60,25 @@ class Agent():
         self.observations = {}
         self.action_commands = {}
 
-        # Default starting position
-        self.starting_position = None
 
-        self.size_playground = [0,0]
+        # Default starting position
+        self.initial_position = custom_config.get('position', None)
+
+
+
+
+    def get_initial_position(self):
+
+        # differentiate between case where initial position is fixed and case where it is random
+
+        if isinstance( self.initial_position, list ) or isinstance( self.initial_position, tuple ) :
+
+            return self.initial_position
+
+        else:
+
+            return self.initial_position.sample()
+
 
     @property
     def position(self):
