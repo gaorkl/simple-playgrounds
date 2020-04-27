@@ -64,6 +64,7 @@ class Engine():
             img = None
             entities = None
             agents = None
+            current_agent = None
 
             if agent.has_visual_sensor:
                 img = self.playground.generate_playground_image(sensor_agent = agent)
@@ -71,8 +72,9 @@ class Engine():
             if agent.has_geometric_sensor:
                 entities = self.playground.entities
                 agents = self.playground.agents
+                current_agent = agent
 
-            agent.compute_sensors(img, entities, agents)
+            agent.compute_sensors(img, current_agent, entities, agents)
 
         #Brait
         # TODO: add support for geometric sensors, don't generate img if not needed

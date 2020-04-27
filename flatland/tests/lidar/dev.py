@@ -33,18 +33,20 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
 
     agents = []
 
+    initial_position = PositionAreaSampler(area_shape='circle', center=[120, 120], radius=30)
+
     #Generating agents
     for i in range(nbAgents):
 
-        my_agent = Agent('forward', controller_type='random')
+        my_agent = Agent('forward', controller_type='keyboard', position =initial_position)
         my_agent.add_sensor('lidar', 'lidar_1', someArgument = "argument")
 
-        my_agent.starting_position = {
-            'type': 'rectangle',
-            'x_range': [20, 80],
-            'y_range': [20, 80],
-            'angle_range': [0, 3.14 * 2],
-        }
+        # my_agent.starting_position = {
+        #     'type': 'rectangle',
+        #     'x_range': [20, 80],
+        #     'y_range': [20, 80],
+        #     'angle_range': [0, 3.14 * 2],
+        # }
 
         agents.append(my_agent)
 
@@ -58,7 +60,7 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
             actions[agent.name] = agent.get_controller_actions()
 
         #Updating game steps and observations
-        game.multiple_steps(actions, 1)
+        game.step(actions)
         game.update_observations()
 
         #Visualisation
@@ -66,8 +68,8 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
         if display:
             img = game.generate_playground_image()
             cv2.imshow('Flatland', img)
-            cv2.waitKey(1)
+            cv2.waitKey(300) #15
 
-    game.terminate()
+    #game.terminate()
 
-perf = run(nbAgents = 2, map = "moving_01", mapSize = 300, display = True, steps = 5)
+perf = run(nbAgents = 2, map = "activable_01", mapSize = 300, display = True, steps = 3)

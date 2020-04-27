@@ -51,7 +51,6 @@ class PositionAreaSampler:
 
         elif self.area_shape == 'gaussian':
 
-            print('tada')
 
             x = math.inf
             y = math.inf

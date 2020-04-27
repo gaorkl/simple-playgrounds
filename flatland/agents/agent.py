@@ -1,4 +1,5 @@
 from .sensors import sensor
+from .geometric_sensors import geometric_sensor
 from .frames import frame
 from .controllers import controller
 
@@ -64,7 +65,9 @@ class Agent():
         # Default starting position
         self.initial_position = custom_config.get('position', None)
 
-
+        # Information about sensor types
+        self.has_geometric_sensor = False
+        self.has_visual_sensor = False
 
 
     def get_initial_position(self):
@@ -130,9 +133,7 @@ class Agent():
                 part.body.velocity = (vx, vy)
                 part.body.angular_velocity = vphi
 
-        # Information about sensor types
-        self.has_geometric_sensor = False
-        self.has_visual_sensor = False
+
 
 
     def owns_shape(self, pm_shape):
@@ -172,13 +173,12 @@ class Agent():
 
     #Brait
     #Pas donner que l'image
-    def compute_sensors(self, img, entities, agents):
+    def compute_sensors(self, img, current_agent, entities, agents):
 
         for sensor_name in self.sensors:
-            self.sensors[sensor_name].update_sensor(img)
 
             if self.sensors[sensor_name].sensor_type == "lidar":
-                self.sensors[sensor_name].update_sensor(entities, agents)
+                self.sensors[sensor_name].update_sensor(current_agent, entities, agents)
             else:
                 self.sensors[sensor_name].update_sensor(img)
 
