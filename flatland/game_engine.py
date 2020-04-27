@@ -57,6 +57,7 @@ class Engine():
 
         # TODO: Compute environment image once, then add agents when necessary
 
+        #Brait
         # For each agent, compute sensors
         for agent in self.agents:
 
@@ -75,9 +76,6 @@ class Engine():
                 current_agent = agent
 
             agent.compute_sensors(img, current_agent, entities, agents)
-
-        #Brait
-        # TODO: add support for geometric sensors, don't generate img if not needed
 
 
     # def apply_actions(self):

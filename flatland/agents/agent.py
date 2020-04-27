@@ -65,6 +65,7 @@ class Agent():
         # Default starting position
         self.initial_position = custom_config.get('position', None)
 
+        #Brait
         # Information about sensor types
         self.has_geometric_sensor = False
         self.has_visual_sensor = False

@@ -72,4 +72,5 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
 
     #game.terminate()
 
+#Brait - code à lancer pour tester le capteur
 perf = run(nbAgents = 2, map = "activable_01", mapSize = 300, display = True, steps = 3)
