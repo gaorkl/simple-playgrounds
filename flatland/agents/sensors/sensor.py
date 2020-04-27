@@ -4,9 +4,6 @@ import cv2
 import numpy as np
 import os, yaml
 
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-with open(os.path.join(__location__, 'sensor_default.yml'), 'r') as yaml_file:
-    default_config = yaml.load(yaml_file)
 
 class SensorGenerator:
     """
@@ -46,17 +43,12 @@ def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
 
 class Sensor(ABC):
 
-    def __init__(self, anatomy, custom_config):
+    def __init__(self, anatomy, sensor_param):
 
 
-        self.name = custom_config.get('name', None)
-        self.sensor_type = custom_config.get('type', None)
+        self.name = sensor_param.get('name', None)
+        self.sensor_type = sensor_param.get('type', None)
 
-        # Metabolism
-        if custom_config is None:
-            custom_config = {}
-
-        sensor_param = {**default_config[self.sensor_type], **custom_config}
 
         # Field of View of the Sensor
         self.fovResolution = sensor_param.get('resolution', None)
@@ -87,6 +79,8 @@ class Sensor(ABC):
         self.pixels_per_degrees = self.fovResolution / ( 360 *  self.fovAngle / (2*math.pi ) )
 
         self.w_projection_img = int(360*self.pixels_per_degrees)
+
+        self.sensor_params = sensor_param
 
 
     @abstractmethod

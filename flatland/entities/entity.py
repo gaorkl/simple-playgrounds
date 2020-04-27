@@ -1,6 +1,6 @@
 import pymunk, math, pygame
 from flatland.utils.config import *
-from flatland.utils.game_utils import *
+from flatland.utils.position_sampler import *
 from flatland.utils import texture
 
 
@@ -35,7 +35,7 @@ class Entity():
 
 
         if self.physical_shape == 'rectangle':
-            self.width, self.length = params['width_length']
+            self.length, self.width = params['width_length']
             self.texture_params['radius'] = max(self.width, self.length)
         else:
             self.radius = params['radius']
@@ -50,7 +50,7 @@ class Entity():
         self.pm_interaction_shape = None
         self.pm_visible_shape = None
 
-
+        self.size_playground = params.get('size_playground')
 
         if self.graspable:
             self.interactive = True
@@ -65,21 +65,19 @@ class Entity():
             self.mass = None
             self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
-        self.moving = False
+
 
         self.trajectory_params = params.get('trajectory', None)
 
         if self.trajectory_params is not None:
             self.moving = True
             self.generate_trajectory()
-            self.pm_body.position = self.trajectory_points[0]
-            # In the case of trajectories, orientation of object is fixed.
-            self.pm_body.angle = 0
+            self.position = self.trajectory_points[0]
 
         else:
-            self.initial_position = generate_position(params['position'])
-            self.pm_body.position = self.initial_position[0:2]
-            self.pm_body.angle = self.initial_position[2]
+            self.moving = False
+            self.initial_position = params['position']
+            self.position = self.get_initial_position()
 
         ##### PyMunk visible shape
 
@@ -129,6 +127,61 @@ class Entity():
         self.pm_elements = [x for x in self.pm_elements if x is not None]
 
 
+    def get_initial_position(self):
+
+        # differentiate between case where initial position is fixed and case where it is random
+
+        if isinstance( self.initial_position, list ) or isinstance( self.initial_position, tuple ) :
+
+            return self.initial_position
+
+        else:
+
+            #TODO: safeguard position
+            return self.initial_position.sample()
+
+
+    @property
+    def position(self):
+
+        x, y = self.pm_body.position
+        phi = self.pm_body.angle
+
+        coord_x = self.size_playground[0] - y
+        coord_y = x
+        coord_phi = (phi + math.pi / 2) % (2 * math.pi)
+
+        return coord_x, coord_y, coord_phi
+
+    @position.setter
+    def position(self, position):
+
+        coord_x, coord_y, coord_phi = position
+
+        y = self.size_playground[0] - coord_x
+        x = coord_y
+        phi = coord_phi - math.pi / 2
+
+
+        self.pm_body.position = x, y
+        self.pm_body.angle = phi
+
+    @property
+    def velocity(self):
+        vx, vy = self.pm_body.velocity
+        vphi = self.pm_body.angular_velocity
+
+        vx, vy = -vy, vx
+        return vx, vy, vphi
+
+    @velocity.setter
+    def velocity(self, velocity):
+        vx, vy, vphi = velocity
+
+        self.pm_body.velocity = (vx, vy)
+        self.pm_body.angular_velocity = vphi
+
+
     def generate_trajectory(self):
 
         self.trajectory_points = []
@@ -162,7 +215,7 @@ class Entity():
             pts_y = [ pt_1[1] + x * (pt_2[1] - pt_1[1])/n_points for x in range(n_points)]
 
             for i in range(n_points):
-                self.trajectory_points.append( [pts_x[i], pts_y[i]])
+                self.trajectory_points.append( [pts_x[i], pts_y[i], 0])
 
 
     def generate_pm_visible_shape(self):
@@ -388,18 +441,13 @@ class Entity():
 
         if self.moving:
             self.index_trajectory = 0
-            self.pm_body.position = self.trajectory_points[self.index_trajectory]
+            self.position = self.trajectory_points[self.index_trajectory]
 
         else:
+            self.position = self.get_initial_position()
 
-            self.initial_position = generate_position(self.params['position'])
-
-            self.pm_body.position = self.initial_position[0:2]
-            self.pm_body.angle = self.initial_position[2]
-
-        self.pm_body.velocity = (0, 0)
-        self.pm_body.angular_velocity = 0
-
+        self.velocity = [0, 0, 0]
+        
         if self.is_temporary_entity:
             replace = False
         else:

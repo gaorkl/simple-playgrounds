@@ -1,4 +1,5 @@
 from flatland.entities.entity import Entity, EntityGenerator
+from flatland.utils.position_sampler import PositionAreaSampler
 import pymunk
 
 import os, yaml
@@ -28,6 +29,19 @@ class Edible(Entity):
         self.min_reward = params.get('min_reward', 0)
         self.edible = True
 
+    def generate_shapes_and_masks(self):
+
+        if self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
+            self.visible_vertices = self.compute_vertices(self.radius)
+
+        self.generate_pm_visible_shape()
+        self.visible_mask = self.generate_visible_mask()
+
+        self.generate_pm_interaction_shape()
+        self.interaction_mask = self.generate_interaction_mask()
+
+        self.pm_elements = [self.pm_body, self.pm_visible_shape, self.pm_interaction_shape]
+
     def activate(self):
 
         # Change reward, size and mass
@@ -51,11 +65,6 @@ class Edible(Entity):
         else :
             self.radius = self.radius * self.shrink_ratio_when_eaten
 
-        if self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-            self.visible_vertices = self.compute_vertices(self.radius)
-
-        self.generate_pm_visible_shape()
-        self.visible_mask = self.generate_visible_mask()
 
         ##### PyMunk sensor shape
         if self.physical_shape == 'rectangle':
@@ -63,85 +72,92 @@ class Edible(Entity):
             self.length_interaction = self.length + self.interaction_range
 
         else:
-            self.interaction_vertices = self.compute_vertices(self.radius_interaction)
             self.radius_interaction = self.radius + self.interaction_range
+            self.interaction_vertices = self.compute_vertices(self.radius_interaction)
 
-        self.generate_pm_interaction_shape()
-        self.interaction_mask = self.generate_interaction_mask()
-
-        self.pm_elements = [self.pm_body, self.pm_visible_shape, self.pm_interaction_shape]
+        self.generate_shapes_and_masks()
 
     def reset(self, new_position = None):
 
-
-
+        replace = super().reset()
 
         self.reward = self.params.get('initial_reward', 0)
         self.mass = self.params['mass']
 
+        position = self.pm_body.position
+        angle = self.pm_body.angle
+
+        if self.movable:
+            inertia = self.compute_moments()
+            self.pm_body = pymunk.Body(self.mass, inertia)
+            self.pm_body.position = position
+            self.pm_body.angle = angle
+
+
         if self.physical_shape == 'rectangle':
             self.width, self.length = self.params['shape_rectangle']
             self.width = self.width
+            self.width_interaction = self.width + self.interaction_range
+            self.length_interaction = self.length + self.interaction_range
+
 
         else:
             self.radius = self.params['radius']
+            self.radius_interaction = self.radius + self.interaction_range
+            self.interaction_vertices = self.compute_vertices(self.radius_interaction)
 
-        self.generate_pm_visible_shape()
-        self.visible_mask = self.generate_visible_mask()
 
-        self.generate_pm_interaction_shape()
-        self.interaction_mask = self.generate_interaction_mask()
-
-        replace = super().reset()
-
-        self.pm_elements = [self.pm_body, self.pm_visible_shape, self.pm_interaction_shape]
+        self.generate_shapes_and_masks()
 
         return replace
 
 
-#
-#
-# @EntityGenerator.register_subclass('dispenser')
-# class Dispenser(Entity):
-#
-#     def __init__(self, params):
-#
-#         params = {**dispenser_default, **params}
-#         params['visible'] = True
-#         params['interactive'] = True
-#
-#         super(Dispenser, self).__init__(params)
-#
-#         self.pm_interaction_shape.collision_type = collision_types['interactive']
-#
-#         self.object_produced = params['object_produced']
-#
-#         self.production_area_shape = params['area_shape']
-#         self.production_area = params['area']
-#
-#         self.limit = params['limit']
-#
-#         self.produced_elements = []
-#
-#     def activate(self):
-#
-#         obj = self.object_produced
-#
-#         if self.production_area_shape == 'rectangle':
-#
-#             x = random.uniform( self.production_area[0][0],self.production_area[1][0] )
-#             y = random.uniform( self.production_area[0][1],self.production_area[1][1] )
-#
-#             obj['position'] = (x,y,0)
-#
-#         return obj.copy()
-#
-#     def reset(self):
-#
-#         self.produced_elements = []
-#         replace = super().reset()
-#
-#         return replace
+@EntityGenerator.register_subclass('dispenser')
+class Dispenser(Entity):
+
+    def __init__(self, custom_params):
+
+        self.entity_type = 'dispenser'
+
+        params = {**default_config['dispenser'], **custom_params}
+        params['visible'] = True
+        params['interactive'] = True
+
+        super(Dispenser, self).__init__(params)
+
+        self.entity_produced = params['entity_produced']
+
+        self.local_dispenser = False
+        self.location_sampler = params.get('area', None)
+
+        if self.location_sampler is None:
+            self.local_dispenser = True
+            self.location_sampler = PositionAreaSampler(area_shape ='circle', center = [self.position[0], self.position[1]], radius =self.radius + 10)
+
+
+        self.prodution_limit = params['production_limit']
+
+        self.produced_elements = []
+
+    def activate(self):
+
+        obj = self.entity_produced
+
+        if self.local_dispenser:
+            position = self.location_sampler.sample( [self.position[0], self.position[1] ])
+        else:
+            position = self.location_sampler.sample( )
+
+        obj['position'] = position
+
+        return obj.copy()
+
+    def reset(self):
+
+        self.produced_elements = []
+        replace = super().reset()
+
+        return replace
 #
 # #TODO: class button-door, then sublcasses
 #

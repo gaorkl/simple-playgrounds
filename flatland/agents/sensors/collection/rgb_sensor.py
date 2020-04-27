@@ -1,12 +1,20 @@
 from flatland.agents.sensors.sensor import SensorGenerator, Sensor
 import numpy as np
 import cv2
-import time
+import os, yaml
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+with open(os.path.join(__location__, 'sensor_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
+
 
 @SensorGenerator.register('rgb')
 class RgbSensor(Sensor):
 
     def __init__(self, anatomy, sensor_param):
+
+        sensor_param = {**default_config['rgb'], **sensor_param}
+
         super(RgbSensor, self).__init__(anatomy, sensor_param)
 
     def update_sensor(self, img):

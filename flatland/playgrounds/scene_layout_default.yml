@@ -1,17 +1,17 @@
 # Walls:
 wall_texture : &wall-texture
-  'texture_type': 'random_tiles'
-  'color_min': [140, 140, 0]
-  'color_max': [160, 160, 0]
-  'size_tiles': 4
+  texture_type: 'random_tiles'
+  color_min: [140, 140, 0]
+  color_max: [160, 160, 0]
+  size_tiles: 4
 
 room:
-  'room_shape': [200, 200]
-  'wall':
-    'entity_type': 'basic'
-    'physical_shape': 'rectangle'
-    'depth': 10
-    'texture': *wall-texture
+  room_shape: [200, 200]
+  wall:
+    entity_type: 'basic'
+    physical_shape: 'rectangle'
+    depth: 10
+    texture: *wall-texture
 
 
 #

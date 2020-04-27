@@ -1,9 +1,9 @@
 from .sensors import sensor
-from .geometric_sensors import geometric_sensor
 from .frames import frame
 from .controllers import controller
 
 import os, yaml
+import math
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 with open(os.path.join(__location__, 'agent_default.yml'), 'r') as yaml_file:
@@ -15,6 +15,7 @@ class Agent():
 
     def __init__(self, agent_type , controller_type = 'keyboard', **custom_config):
         super(Agent, self).__init__()
+
 
         self.agent_type = agent_type
         if 'name' in custom_config:
@@ -59,8 +60,75 @@ class Agent():
         self.observations = {}
         self.action_commands = {}
 
+
         # Default starting position
-        self.starting_position = None
+        self.initial_position = custom_config.get('position', None)
+
+
+
+
+    def get_initial_position(self):
+
+        # differentiate between case where initial position is fixed and case where it is random
+
+        if isinstance( self.initial_position, list ) or isinstance( self.initial_position, tuple ) :
+
+            return self.initial_position
+
+        else:
+
+            return self.initial_position.sample()
+
+
+    @property
+    def position(self):
+
+        x,y = self.frame.anatomy['base'].body.position
+        phi = self.frame.anatomy['base'].body.angle
+
+        coord_x = self.size_playground[0] - y
+        coord_y = x
+        coord_phi = (phi + math.pi/2) % (2*math.pi)
+
+        return coord_x, coord_y, coord_phi
+
+    @position.setter
+    def position(self, position):
+        coord_x, coord_y, coord_phi = position
+
+        y = self.size_playground[0] - coord_x
+        x = coord_y
+        phi = coord_phi - math.pi / 2
+
+
+        for part_name, part in self.frame.anatomy.items():
+
+            if part.body is not None:
+
+                part.body.position = [ x + part.body.position[0], y + part.body.position[1]]
+                part.body.angle = phi + part.body.angle
+
+
+        #self.frame.anatomy['base'].body.position = x, y
+        #self.frame.anatomy['base'].body.angle = phi
+
+    @property
+    def velocity(self):
+        vx, vy = self.frame.anatomy['base'].body.velocity
+        vphi = self.frame.anatomy['base'].body.angular_velocity
+
+        vx, vy = -vy, vx
+        return vx, vy, vphi
+
+    @velocity.setter
+    def velocity(self, velocity):
+        vx, vy, vphi = velocity
+
+        for part_name, part in self.frame.anatomy.items():
+
+            if part.body is not None:
+                part.body.velocity = (vx, vy)
+                part.body.angular_velocity = vphi
 
         # Information about sensor types
         self.has_geometric_sensor = False
@@ -107,6 +175,7 @@ class Agent():
     def compute_sensors(self, img, entities, agents):
 
         for sensor_name in self.sensors:
+            self.sensors[sensor_name].update_sensor(img)
 
             if self.sensors[sensor_name].sensor_type == "lidar":
                 self.sensors[sensor_name].update_sensor(entities, agents)
