@@ -55,7 +55,8 @@ class Engine():
 
     def update_observations(self):
 
-        # TODO: Compute environment image once, then add agents when necessary
+        #Compute environment image once, then add agents when necessary
+        self.playground.generate_entities_image()
 
         #Brait
         # For each agent, compute sensors
@@ -68,7 +69,7 @@ class Engine():
             current_agent = None
 
             if agent.has_visual_sensor:
-                img = self.playground.generate_playground_image(sensor_agent = agent)
+                img = self.playground.generate_agent_image(sensor_agent = agent)
 
             if agent.has_geometric_sensor:
                 entities = self.playground.entities

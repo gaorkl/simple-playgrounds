@@ -136,7 +136,6 @@ class Agent():
 
 
 
-
     def owns_shape(self, pm_shape):
 
         all_shapes = []
