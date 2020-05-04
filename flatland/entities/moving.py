@@ -3,7 +3,7 @@ from flatland.utils.config import collision_types
 import os, yaml
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-with open(os.path.join(__location__, 'moving_default.yml'), 'r') as yaml_file:
+with open(os.path.join(__location__, 'configs/moving_default.yml'), 'r') as yaml_file:
     default_config = yaml.load(yaml_file)
 
 class MovingVisibleRewardZone(Entity):

@@ -65,8 +65,8 @@ absorbable_texture : &absorbable-texture
     color: [200, 100, 50]
 
 absorbable :
-  physical_shape: triangle
-  radius: 5
+  physical_shape: hexagon
+  radius: 4
   mass: 5
   texture: *absorbable-texture
   movable: True

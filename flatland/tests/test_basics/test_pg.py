@@ -2,6 +2,7 @@ from flatland.playgrounds.playground import PlaygroundGenerator, Playground
 from flatland.playgrounds.collection.empty import Room
 from flatland.utils.position_sampler import PositionAreaSampler
 
+import math
 
 @PlaygroundGenerator.register_subclass('basic_01')
 class Basic_01(Room):
@@ -65,6 +66,8 @@ class Activable_01(Room):
 
     def __init__(self, scene_params = None):
 
+        scene_params['room_shape'] = [300,300]
+
         super(Activable_01, self).__init__(scene_params)
 
         self.add_entity('edible', position = [50,50,0])
@@ -79,18 +82,49 @@ class Activable_01(Room):
         area_2 = PositionAreaSampler(area_shape ='gaussian', center = [300, 100], variance = 900, radius = 100)
         self.add_entity('dispenser', position = [100, 150, 0], area = area_2, production_limit = 100)
 
-
-        # area_2 = {
-        #     'area_shape' : 'circle',
-        #     'center' : [300, 100],
-        #     'radius' : 50,
-        #     'theta_range' : [-1, 1]
-        # }
-        #
-        # self.add_entity('dispenser', position = [200, 100, 0], area = area_2)
+        key_chest = self.add_entity('key', position = [100, 250, 0] )
+        self.add_entity('chest', key = key_chest, position = [100, 200, 0] )
 
 
-        #self.add_entity('chest', position = [150, 150], position_key = [160, 180])
+@PlaygroundGenerator.register_subclass('doors_01')
+class Doors_01(Room):
+
+    def __init__(self, scene_params=None):
+
+        scene_params['room_shape'] = [300, 200]
+
+        super(Doors_01, self).__init__(scene_params)
+
+        self.add_entity('contact_endzone', position=[10, 10, 0], radius=10)
+
+        door_1 = self.add_entity('door', position = [100, 130, math.pi/2])
+        self.add_entity('openclose_switch', door = door_1, position = [100, 30, 0])
+        self.add_entity('openclose_switch', door = door_1, position = [100, 70, 0])
+
+        door_2 = self.add_entity('door', position = [150, 130, math.pi/2])
+        self.add_entity( 'timer_switch', door = door_2, time_open = 15, position = [150, 50, 0])
+
+        door_3 = self.add_entity('door', position = [200, 130, math.pi/2])
+        key_3 = self.add_entity('key', position = [200, 50, math.pi/2], graspable = True, interaction_range = 5)
+        self.add_entity('lock', door = door_3, key = key_3, position = [250, 100, 0], position_lock = [250, 50, 0])
+
+
+@PlaygroundGenerator.register_subclass('yielder_01')
+class Yielders_01(Room):
+
+    def __init__(self, scene_params=None):
+
+        scene_params['room_shape'] = [200, 200]
+
+        super(Yielders_01, self).__init__(scene_params)
+
+        self.add_entity('contact_endzone', position=[10, 10, 0], radius=10)
+
+        area_1 = PositionAreaSampler(area_shape ='rectangle', center = [50, 50], shape = [100, 50])
+        self.add_entity('yielder', area = area_1)
+
+
+
 
 
 @PlaygroundGenerator.register_subclass('david')

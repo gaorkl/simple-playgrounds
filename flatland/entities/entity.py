@@ -2,6 +2,7 @@ import pymunk, math, pygame
 from flatland.utils.config import *
 from flatland.utils.position_sampler import *
 from flatland.utils import texture
+import os, yaml
 
 
 geometric_shapes = {'line':2, 'circle':60, 'triangle':3, 'square':4, 'pentagon':5, 'hexagon':6 }
@@ -19,9 +20,13 @@ class Entity():
         self.params = params
 
         self.physical_shape = params['physical_shape']
+
         self.graspable = params.get('graspable', False)
         self.interactive = params.get('interactive', False)
         self.movable = params.get('movable', False)
+        self.visible = params.get('visible', True)
+
+
         self.is_temporary_entity = params.get('is_temporary_entity', False)
 
 
@@ -66,7 +71,6 @@ class Entity():
             self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
 
-
         self.trajectory_params = params.get('trajectory', None)
 
         if self.trajectory_params is not None:
@@ -80,8 +84,6 @@ class Entity():
             self.position = self.get_initial_position()
 
         ##### PyMunk visible shape
-
-        self.visible = params.get('visible', True)
         self.texture_visible_surface = None
 
         if self.visible:
@@ -126,6 +128,15 @@ class Entity():
         self.pm_elements = [self.pm_body, self.pm_interaction_shape, self.pm_visible_shape]
         self.pm_elements = [x for x in self.pm_elements if x is not None]
 
+    def parse_configuration(self, entity_type, key):
+
+        fname = 'configs/' + entity_type + '_default.yml'
+
+        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        with open(os.path.join(__location__, fname), 'r') as yaml_file:
+            default_config = yaml.load(yaml_file)
+
+        return default_config[key]
 
     def get_initial_position(self):
 
@@ -137,7 +148,6 @@ class Entity():
 
         else:
 
-            #TODO: safeguard position
             return self.initial_position.sample()
 
 

@@ -2,7 +2,7 @@ from flatland.tests.test_basics.test_pg import *
 from flatland.agents import agent
 
 #pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
-pg = PlaygroundGenerator.create('activable_01', room_shape = [400, 200])
+pg = PlaygroundGenerator.create('doors_01')
 
 agents = []
 #
@@ -24,9 +24,11 @@ agents = []
 #
 
 
-initial_position = PositionAreaSampler(area_shape='circle', center=[120, 120], radius=30)
-my_agent = agent.Agent('forward', name = 'mercotte', controller_type = 'keyboard', frame = { 'base': {'radius' : 10}},
-                       position =initial_position)
+initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=40)
+my_agent = agent.Agent('forward', name = 'mercotte',
+                       controller_type = 'keyboard',
+                       frame = { 'base': {'radius' : 10}},
+                       position=initial_position)
 
 my_agent.add_sensor('depth', 'depth_1', resolution = 128)
 my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)

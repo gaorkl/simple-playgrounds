@@ -78,6 +78,8 @@ class Playground():
 
         self.has_reached_termination = False
 
+        self.agent_starting_area = None
+
 
 
     def initialize_space(self):
@@ -90,6 +92,27 @@ class Playground():
 
         return SceneGenerator.create( scene_params)
 
+    def get_valid_position(self, agent, min_distance_to_wall = 0):
+
+        maximum_tries = 100
+        minimum_distance_to_border = min_distance_to_wall + self.scene.wall_depth
+
+        position = math.inf, math.inf, 0
+        found_position = False
+
+        for i in range(maximum_tries):
+
+            if (position[0] < minimum_distance_to_border or position[0] > self.width - minimum_distance_to_border
+                    or position[1] < minimum_distance_to_border or position[
+                        1] > self.length - minimum_distance_to_border):
+
+                position = agent.initial_position
+
+            else:
+                found_position = True
+                break
+        return position, found_position
+
     def add_agent(self, agent):
 
         self.agents.append(agent)
@@ -98,8 +121,24 @@ class Playground():
     def place_agent_in_playground(self, agent):
 
         agent.size_playground = [self.width, self.length]
-        agent.position = agent.get_initial_position()
 
+
+        if agent.initial_position is not None:
+            pass
+
+        elif self.agent_starting_area is not None:
+            agent.initial_position = self.agent_starting_area
+
+        else:
+            agent.initial_position = [self.width / 2, self.length / 2, 0]
+
+        position, found_position = self.get_valid_position(agent, min_distance_to_wall = 20)
+
+        if not found_position:
+
+            raise ValueError('Position of agent '+agent.name+ ' could not be set')
+
+        agent.position = position
 
         for part_name, part in agent.frame.anatomy.items():
 
@@ -162,19 +201,21 @@ class Playground():
 
         else:
 
+            new_entity.position = new_entity.get_initial_position()
+
 
             self.space.add(*new_entity.pm_elements)
             self.entities.append(new_entity)
 
-            if new_entity.entity_type in ['button_door_openclose', 'button_door_opentimer' ]:
-                new_entity.door = self.add_entity(new_entity.door_params)
-
-            elif new_entity.entity_type is 'lock_key_door':
-                new_entity.door = self.add_entity(new_entity.door_params)
-                new_entity.key = self.add_entity(new_entity.key_params)
-
-            elif new_entity.entity_type is 'chest':
-                new_entity.key = self.add_entity(new_entity.key_params)
+            # if new_entity.entity_type in ['button_door_openclose', 'button_door_opentimer' ]:
+            #     new_entity.door = self.add_entity(new_entity.door_params)
+            #
+            # elif new_entity.entity_type is 'lock_key_door':
+            #     new_entity.door = self.add_entity(new_entity.door_params)
+            #     new_entity.key = self.add_entity(new_entity.key_params)
+            #
+            # elif new_entity.entity_type is 'chest':
+            #     new_entity.key = self.add_entity(new_entity.key_params)
 
         return new_entity
 
@@ -297,20 +338,23 @@ class Playground():
 
         for yielder in self.yielders:
 
-            if (random.random() < yielder.probability) and ( len(yielder.yielded_elements) < yielder.limit):
-                new_obj_params = yielder.produce()
-                new_obj = self.add_entity(new_obj_params, is_temporary_entity=True)
-                yielder.yielded_elements.append(new_obj)
+            if (random.random() < yielder.probability) and ( len(yielder.produced_entities) < yielder.limit):
+                new_obj_type, new_obj_params = yielder.produce()
+                new_obj = self.add_entity(new_obj_type, new_obj_params, is_temporary_entity=True)
+                yielder.produced_entities.append(new_obj)
 
     def check_timers(self):
 
         for entity in self.entities:
 
-            if entity.entity_type == 'button_door_opentimer' and entity.timer == 0 :
-                self.space.add(*entity.door.pm_elements)
-                self.entities.append(entity.door)
-                self.disappeared.remove(entity.door)
-                entity.close_door()
+            if entity.entity_type == 'switch' and hasattr(entity, 'timer') :
+
+                if entity.door.opened and entity.timer == 0:
+                    self.space.add(*entity.door.pm_elements)
+                    self.entities.append(entity.door)
+                    self.disappeared.remove(entity.door)
+                    entity.door.close_door()
+                    entity.reset_timer()
 
     def release_grasps(self):
 
@@ -353,12 +397,12 @@ class Playground():
 
 
             for entity in self.entities:
-                if entity.entity_type is 'dispenser' and touched_entity in entity.produced_elements:
-                    entity.produced_elements.remove(touched_entity)
+                if entity.entity_type is 'dispenser' and touched_entity in entity.produced_entities:
+                    entity.produced_entities.remove(touched_entity)
 
             for entity in self.yielders:
-                if touched_entity in entity.yielded_elements:
-                    entity.yielded_elements.remove(touched_entity)
+                if touched_entity in entity.produced_entities:
+                    entity.produced_entities.remove(touched_entity)
 
         elif touched_entity.entity_type in 'contact_endzone':
             self.has_reached_termination = True
@@ -386,36 +430,54 @@ class Playground():
 
             agent.is_activating = False
 
-            if len(interacting_entity.produced_elements) < interacting_entity.prodution_limit:
+            if len(interacting_entity.produced_entities) < interacting_entity.prodution_limit:
                 new_entity_params = interacting_entity.activate()
                 new_entity = self.add_entity('absorbable', new_entity_params, is_temporary_entity=True)
-                interacting_entity.produced_elements.append(new_entity)
+                interacting_entity.produced_entities.append(new_entity)
 
-        elif agent.is_activating and (interacting_entity.entity_type is 'button_door_openclose'):
+        elif agent.is_activating and (interacting_entity.entity_type is 'switch'):
 
             agent.is_activating = False
-            interacting_entity.activate()
             door = interacting_entity.door
 
-            if interacting_entity.door_opened:
-                space.remove(*door.pm_elements)
-                self.entities.remove(door)
-                self.disappeared.append(door)
+            interacting_entity.activate()
+
+            if door.opened:
+
+                if door in self.entities:
+                    space.remove(*door.pm_elements)
+                    self.entities.remove(door)
+                    self.disappeared.append(door)
             else:
                 space.add(*door.pm_elements)
                 self.entities.append(door)
                 self.disappeared.remove(door)
 
-        elif agent.is_activating and (interacting_entity.entity_type is 'button_door_opentimer'):
-
-            interacting_entity.activate()
-            door = interacting_entity.door
-
-            if not interacting_entity.door_opened :
-                space.remove(*door.pm_elements)
-                self.entities.remove(door)
-                self.disappeared.append(door)
-                interacting_entity.door_opened = True
+        # elif agent.is_activating and (interacting_entity.entity_type is 'button_door_openclose'):
+        #
+        #     agent.is_activating = False
+        #     interacting_entity.activate()
+        #     door = interacting_entity.door
+        #
+        #     if interacting_entity.door_opened:
+        #         space.remove(*door.pm_elements)
+        #         self.entities.remove(door)
+        #         self.disappeared.append(door)
+        #     else:
+        #         space.add(*door.pm_elements)
+        #         self.entities.append(door)
+        #         self.disappeared.remove(door)
+        #
+        # elif agent.is_activating and (interacting_entity.entity_type is 'button_door_opentimer'):
+        #
+        #     interacting_entity.activate()
+        #     door = interacting_entity.door
+        #
+        #     if not interacting_entity.door_opened :
+        #         space.remove(*door.pm_elements)
+        #         self.entities.remove(door)
+        #         self.disappeared.append(door)
+        #         interacting_entity.door_opened = True
 
 
 
@@ -477,20 +539,21 @@ class Playground():
         gem = [entity for entity in self.entities if entity.pm_visible_shape == arbiter.shapes[0]][0]
         interacting_entity = [entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]][0]
 
-        if interacting_entity.entity_type is 'lock_key_door' and gem is interacting_entity.key :
+        if interacting_entity.entity_type is 'lock' and gem is interacting_entity.key :
             interacting_entity.activate()
-            interacting_entity.door_opened = True
 
             door = interacting_entity.door
             space.remove(*door.pm_elements)
-
             space.remove(*gem.pm_elements)
+            space.remove(*interacting_entity.pm_elements)
 
             self.entities.remove(door)
             self.entities.remove(gem)
+            self.entities.remove(interacting_entity)
 
             self.disappeared.append(door)
             self.disappeared.append(gem)
+            self.disappeared.append(interacting_entity)
 
         if interacting_entity.entity_type is 'chest' and gem is interacting_entity.key :
             reward = interacting_entity.get_reward()

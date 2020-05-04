@@ -1,12 +1,10 @@
 from flatland.entities.entity import Entity, EntityGenerator
+from flatland.utils.config import *
+
 from flatland.utils.position_sampler import PositionAreaSampler
 import pymunk
 
-import os, yaml
 
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-with open(os.path.join(__location__, 'activable_default.yml'), 'r') as yaml_file:
-    default_config = yaml.load(yaml_file)
 
 @EntityGenerator.register_subclass('edible')
 class Edible(Entity):
@@ -15,18 +13,19 @@ class Edible(Entity):
 
         self.entity_type = 'edible'
 
-        params = {**default_config['edible'], **custom_params}
+        default_config = self.parse_configuration('activable', 'edible')
+        entity_params = {**default_config, **custom_params}
 
+        entity_params['visible'] = True
+        entity_params['interactive'] = True
 
-        params['visible'] = True
-        params['interactive'] = True
+        super(Edible, self).__init__(entity_params)
 
-        super(Edible, self).__init__(params)
+        self.shrink_ratio_when_eaten = entity_params['shrink_ratio_when_eaten']
 
-        self.shrink_ratio_when_eaten = params['shrink_ratio_when_eaten']
+        self.reward = entity_params['initial_reward']
+        self.min_reward = entity_params['min_reward']
 
-        self.reward = params.get('initial_reward', 0)
-        self.min_reward = params.get('min_reward', 0)
         self.edible = True
 
     def generate_shapes_and_masks(self):
@@ -119,25 +118,28 @@ class Dispenser(Entity):
 
         self.entity_type = 'dispenser'
 
-        params = {**default_config['dispenser'], **custom_params}
-        params['visible'] = True
-        params['interactive'] = True
+        default_config = self.parse_configuration('activable', 'dispenser')
+        entity_params = {**default_config, **custom_params}
 
-        super(Dispenser, self).__init__(params)
+        entity_params['visible'] = True
+        entity_params['interactive'] = True
 
-        self.entity_produced = params['entity_produced']
+        super(Dispenser, self).__init__(entity_params)
+
+        absorbable_config = self.parse_configuration('basic', 'absorbable')
+        self.entity_produced = entity_params.get('entity_produced', absorbable_config)
 
         self.local_dispenser = False
-        self.location_sampler = params.get('area', None)
+        self.location_sampler = entity_params.get('area', None)
 
         if self.location_sampler is None:
             self.local_dispenser = True
             self.location_sampler = PositionAreaSampler(area_shape ='circle', center = [self.position[0], self.position[1]], radius =self.radius + 10)
 
 
-        self.prodution_limit = params['production_limit']
+        self.prodution_limit = entity_params['production_limit']
 
-        self.produced_elements = []
+        self.produced_entities = []
 
     def activate(self):
 
@@ -154,194 +156,198 @@ class Dispenser(Entity):
 
     def reset(self):
 
-        self.produced_elements = []
+        self.produced_entities = []
         replace = super().reset()
 
         return replace
-#
-# #TODO: class button-door, then sublcasses
-#
-# @EntityGenerator.register_subclass('button_door_openclose')
-# class ButtonDoorOpenClose(Entity):
-#
-#     def __init__(self, params):
-#
-#         params = {**button_door_openclose_default, **params}
-#         params['visible'] = True
-#         params['interactive'] = True
-#
-#         super(ButtonDoorOpenClose, self).__init__(params)
-#
-#         self.activable = True
-#
-#         self.door_params = {**door_default, **params['door']}
-#         self.door_opened = False
-#
-#         self.door = None
-#
-#
-#     def activate(self):
-#
-#         if self.door_opened:
-#             self.door_opened = False
-#             self.door.visible = True
-#
-#         else:
-#             self.door_opened = True
-#             self.door.visible = False
-#
-#     def reset(self):
-#
-#         self.door_opened = False
-#         self.door.visible = True
-#         replace = super().reset()
-#
-#         return replace
-#
-#
-# @EntityGenerator.register_subclass('button_door_opentimer')
-# class ButtonDoorOpenTimer(Entity):
-#
-#     def __init__(self, params):
-#
-#         params = {**button_door_opentimer_default, **params}
-#         params['visible'] = True
-#         params['interactive'] = True
-#
-#         super(ButtonDoorOpenTimer, self).__init__(params)
-#
-#         self.activable = True
-#
-#         self.door_params = {**door_default, **params['door']}
-#         self.time_open = params['time_open']
-#
-#
-#         self.timer = self.time_open
-#         self.door = None
-#         self.door_opened = False
-#
-#     def close_door(self):
-#
-#         self.door_opened = False
-#         self.reset_timer()
-#
-#     def activate(self):
-#
-#         self.door.visible = False
-#         self.reset_timer()
-#
-#     def reset_timer(self):
-#
-#         self.timer = self.time_open
-#
-#     def update(self):
-#
-#         if self.door_opened:
-#             self.timer -= 1
-#
-#         if self.timer == 0:
-#             self.door.visible = True
-#
-#     def reset(self):
-#
-#         self.timer = self.time_open
-#         self.door_opened = False
-#         self.door.visible = True
-#         replace = super().reset()
-#
-#         return replace
-#
-#
-#
-# @EntityGenerator.register_subclass('lock_key_door')
-# class LockKeyDoor(Entity):
-#
-#     def __init__(self, params):
-#
-#         params = {**lock_key_door_default, **params}
-#         params['visible'] = True
-#         params['interactive'] = True
-#
-#         super(LockKeyDoor, self).__init__(params)
-#
-#         self.activable = True
-#
-#         self.door_params = {**door_default, **params['door']}
-#         self.key_params = {**door_default, **params['key']}
-#
-#         self.door_opened = False
-#
-#         self.door = None
-#         self.key = None
-#
-#     def activate(self):
-#
-#         self.door_opened = True
-#         self.door.visible = False
-#
-#     def reset(self):
-#
-#         self.door_opened = False
-#         self.door.visible = True
-#         replace = super().reset()
-#
-#         return replace
-#
-#
-#
-# @EntityGenerator.register_subclass('chest')
-# class Chest(Entity):
-#
-#     def __init__(self, params):
-#
-#         params = {**chest_default, **params}
-#         params['visible'] = True
-#         params['interactive'] = True
-#
-#         super(Chest, self).__init__(params)
-#
-#         self.activable = True
-#
-#         self.key_params = {**key_chest_default, **params['key_pod']}
-#
-#         self.reward = params.get('reward', 0)
-#         self.reward_provided = False
-#
-#
-#     def pre_step(self):
-#
-#         self.reward_provided = False
-#
-#     def get_reward(self):
-#
-#         if not self.reward_provided:
-#             self.reward_provided = True
-#             return self.reward
-#
-#         else:
-#             return 0
-#
-#     def reset(self):
-#
-#         self.reward_provided = False
-#         replace = super().reset()
-#
-#         return replace
-#
-# @EntityGenerator.register_subclass('gem')
-# class Gem(Entity):
-#
-#     def __init__(self, params ):
-#         """
-#         Instantiate an obstacle with the following parameters
-#         :param pos: 2d tuple or 'random', position of the fruit
-#         :param environment: the environment calling the creation of the fruit
-#         """
-#
-#         params = {**basic_default, **params}
-#         params['visible'] = True
-#         params['interactive'] = True
-#
-#         super(Gem, self).__init__(params)
-#
-#         self.pm_visible_shape.collision_type = collision_types['gem']
+
+
+@EntityGenerator.register_subclass('door')
+class Door(Entity):
+
+    def __init__(self, custom_params):
+
+        self.entity_type = 'door'
+
+        default_config = self.parse_configuration('activable', 'door')
+        entity_params = {**default_config, **custom_params}
+
+        entity_params['visible'] = True
+        entity_params['interactive'] = False
+
+        super(Door, self).__init__(entity_params)
+
+        self.opened = False
+
+
+    def open_door(self):
+
+        self.opened = True
+        self.visible = False
+
+
+    def close_door(self):
+        self.opened = False
+        self.visible = True
+
+
+    def reset(self):
+
+        self.close_door()
+        replace = super().reset()
+
+        return replace
+
+@EntityGenerator.register_subclass('openclose_switch')
+class OpenCloseSwitch(Entity):
+
+    def __init__(self, custom_params):
+
+        self.entity_type = 'switch'
+
+        default_config = self.parse_configuration('activable', 'switch')
+        entity_params = {**default_config, **custom_params}
+
+        entity_params['visible'] = True
+        entity_params['interactive'] = True
+
+        super(OpenCloseSwitch, self).__init__(entity_params)
+
+        self.door = entity_params['door']
+
+    def activate(self):
+
+         if self.door.opened:
+             self.door.close_door()
+
+         else:
+             self.door.open_door()
+
+
+@EntityGenerator.register_subclass('timer_switch')
+class TimerSwitch(Entity):
+
+    def __init__(self, custom_params):
+
+        self.entity_type = 'switch'
+
+        default_config = self.parse_configuration('activable', 'switch')
+        entity_params = {**default_config, **custom_params}
+
+        entity_params['visible'] = True
+        entity_params['interactive'] = True
+
+        super(TimerSwitch, self).__init__(entity_params)
+
+        self.activable = True
+
+        self.door = entity_params['door']
+
+        self.time_open = entity_params['time_open']
+        self.timer = self.time_open
+
+
+    def activate(self):
+
+        self.door.open_door()
+        self.reset_timer()
+
+    def reset_timer(self):
+
+        self.timer = self.time_open
+
+    def update(self):
+
+        if self.door.opened:
+            self.timer -= 1
+
+
+    def reset(self):
+
+        self.timer = self.time_open
+        self.door.close_door()
+
+        replace = super().reset()
+
+        return replace
+
+
+
+@EntityGenerator.register_subclass('lock')
+class Lock(Entity):
+
+    def __init__(self, custom_params):
+
+        self.entity_type = 'lock'
+
+        default_config = self.parse_configuration('activable', 'lock')
+        entity_params = {**default_config, **custom_params}
+
+        entity_params['visible'] = True
+        entity_params['interactive'] = True
+
+        super(Lock, self).__init__(entity_params)
+
+        self.door = entity_params['door']
+        self.key = entity_params['key']
+
+
+    def activate(self):
+
+        self.door.open_door()
+
+@EntityGenerator.register_subclass('key')
+class Key(Entity):
+
+    def __init__(self, custom_params):
+
+        self.entity_type = 'key'
+
+        default_config = self.parse_configuration('activable', 'key')
+        entity_params = {**default_config, **custom_params}
+
+        entity_params['movable'] = True
+
+        super(Key, self).__init__(entity_params)
+
+        self.pm_visible_shape.collision_type = collision_types['gem']
+
+@EntityGenerator.register_subclass('chest')
+class Chest(Entity):
+
+    def __init__(self, custom_params):
+
+        self.entity_type = 'chest'
+
+        default_config = self.parse_configuration('activable', 'chest')
+        entity_params = {**default_config, **custom_params}
+
+        entity_params['visible'] = True
+        entity_params['interactive'] = True
+
+        super(Chest, self).__init__(entity_params)
+
+        self.key = entity_params['key']
+
+        self.reward = entity_params.get('reward')
+        self.reward_provided = False
+
+    def pre_step(self):
+
+        self.reward_provided = False
+
+    def get_reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self.reward
+
+        else:
+            return 0
+
+    def reset(self):
+
+        self.reward_provided = False
+        replace = super().reset()
+
+        return replace
