@@ -76,12 +76,13 @@ class Entity():
         if self.trajectory_params is not None:
             self.moving = True
             self.generate_trajectory()
-            self.position = self.trajectory_points[0]
+            self.initial_position = self.trajectory_points[0]
 
         else:
             self.moving = False
             self.initial_position = params['position']
-            self.position = self.get_initial_position()
+
+        #self.position = self.initial_position
 
         ##### PyMunk visible shape
         self.texture_visible_surface = None
@@ -138,17 +139,20 @@ class Entity():
 
         return default_config[key]
 
-    def get_initial_position(self):
+    @property
+    def initial_position(self):
 
         # differentiate between case where initial position is fixed and case where it is random
 
-        if isinstance( self.initial_position, list ) or isinstance( self.initial_position, tuple ) :
-
-            return self.initial_position
+        if isinstance( self._initial_position, list ) or isinstance( self._initial_position, tuple ) :
+            return self._initial_position
 
         else:
+            return self._initial_position.sample()
 
-            return self.initial_position.sample()
+    @initial_position.setter
+    def initial_position(self, position):
+        self._initial_position = position
 
 
     @property
@@ -441,7 +445,7 @@ class Entity():
             if self.index_trajectory == len(self.trajectory_points):
                 self.index_trajectory = 0
 
-            self.pm_body.position = self.trajectory_points[self.index_trajectory]
+            self.position = self.trajectory_points[self.index_trajectory]
 
     def pre_step(self):
         pass
@@ -451,10 +455,9 @@ class Entity():
 
         if self.moving:
             self.index_trajectory = 0
-            self.position = self.trajectory_points[self.index_trajectory]
 
-        else:
-            self.position = self.get_initial_position()
+        self.position = self.initial_position
+
 
         self.velocity = [0, 0, 0]
         

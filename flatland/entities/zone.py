@@ -5,9 +5,15 @@ from flatland.utils.config import collision_types
 @EntityGenerator.register_subclass('end_zone')
 class EndZone(Entity):
 
-    def __init__(self, params):
+    def __init__(self, custom_params):
 
-        params = {**zone_default, **params}
+        self.entity_type = 'zone'
+
+        default_config = self.parse_configuration('zone', 'endzone')
+        entity_params = {**default_config, **custom_params}
+
+        params = {**zone_default, **entity_params}
+
         params['visible'] = False
         params['interactive'] = True
 

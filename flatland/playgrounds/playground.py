@@ -201,7 +201,7 @@ class Playground():
 
         else:
 
-            new_entity.position = new_entity.get_initial_position()
+            new_entity.position = new_entity.initial_position
 
 
             self.space.add(*new_entity.pm_elements)
