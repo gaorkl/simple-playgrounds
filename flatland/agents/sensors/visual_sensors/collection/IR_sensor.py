@@ -1,4 +1,4 @@
-from flatland.agents.sensors.sensor import SensorGenerator, Sensor
+from flatland.agents.sensors.visual_sensors.visual_sensor import *
 import numpy as np
 import cv2
 import os, yaml
@@ -9,7 +9,7 @@ with open(os.path.join(__location__, 'sensor_default.yml'), 'r') as yaml_file:
 
 
 @SensorGenerator.register('infra-red')
-class InfraRedSensor(Sensor):
+class InfraRedSensor(VisualSensor):
 
     def __init__(self, anatomy, sensor_param):
 

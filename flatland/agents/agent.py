@@ -1,5 +1,6 @@
 from .sensors import sensor
-from .geometric_sensors import geometric_sensor
+from .sensors.visual_sensors.visual_sensor import VisualSensor
+from .sensors.geometric_sensors.geometric_sensor import GeometricSensor
 from .frames import frame
 from .controllers import controller
 
@@ -65,7 +66,7 @@ class Agent():
         # Default starting position
         self.initial_position = custom_config.get('position', None)
 
-        #Brait
+
         # Information about sensor types
         self.has_geometric_sensor = False
         self.has_visual_sensor = False
@@ -162,27 +163,26 @@ class Agent():
         sensor_params['type'] = sensor_type
 
 
-        #Brait
-        if sensor_type is 'lidar':
-            new_sensor = geometric_sensor.LidarSensor(self.frame.anatomy, sensor_params)
-            self.has_geometric_sensor = True
-        else:
-            new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
+        new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
+
+        if isinstance(new_sensor, GeometricSensor):
+             self.has_geometric_sensor = True
+        if isinstance(new_sensor, VisualSensor):
             self.has_visual_sensor = True
         self.sensors[sensor_name] = new_sensor
 
-    #Brait
-    #Pas donner que l'image
-    def compute_sensors(self, img, current_agent, entities, agents):
+    def compute_sensors(self, img, entities, agents):
 
         for sensor_name in self.sensors:
 
-            if self.sensors[sensor_name].sensor_type == "lidar":
-                self.sensors[sensor_name].update_sensor(current_agent, entities, agents)
-            else:
+            if self.sensors[sensor_name].sensor_modality == sensor.SensorModality.geometric:
+                self.sensors[sensor_name].update_sensor(self, entities, agents)
+
+            elif self.sensors[sensor_name].sensor_modality == sensor.SensorModality.visual:
                 self.sensors[sensor_name].update_sensor(img)
 
-            self.observations[sensor_name] = self.sensors[sensor_name].observation
+            else:
+                raise "Sensor calculation modality is not specified for "+sensor_name
 
     def pre_step(self):
 
