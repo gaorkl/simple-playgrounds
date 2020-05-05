@@ -448,6 +448,7 @@ class Playground():
                     space.remove(*door.pm_elements)
                     self.entities.remove(door)
                     self.disappeared.append(door)
+
             else:
                 space.add(*door.pm_elements)
                 self.entities.append(door)

@@ -82,7 +82,6 @@ class Engine():
 
         for agent in self.agents:
             agent.pre_step()
-
             agent.apply_action_to_physical_body( actions[agent.name] )
 
         for _ in range(self.inner_simulation_steps):
@@ -96,7 +95,6 @@ class Engine():
         # Termination
         if self.game_terminated():
 
-
             if self.replay_until_time_limit and self.total_elapsed_time < self.time_limit:
                 self.game_reset()
 
@@ -108,7 +106,7 @@ class Engine():
 
     def game_terminated(self):
 
-        if self.current_elapsed_time == self.time_limit:
+        if self.total_elapsed_time == self.time_limit:
             return True
 
         if self.playground.has_reached_termination:
