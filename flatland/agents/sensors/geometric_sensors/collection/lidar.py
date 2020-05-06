@@ -2,6 +2,7 @@ from flatland.agents.sensors.sensor import *
 from flatland.agents.sensors.geometric_sensors.geometric_sensor import *
 from collections import defaultdict
 from pymunk.vec2d import Vec2d
+import math
 
 
 @SensorGenerator.register('lidar')
@@ -19,8 +20,10 @@ class LidarSensor(GeometricSensor):
 
         #Sensor paramters TODO: make it parametrable
         self.FoV = 100 #in pixels
-        self.angles = [-180, -90, 0, 90, 180]
-        self.cones_number = len(self.angles)-1
+        self.angle_ranges = [(0,90),(90,180),(180,270),(270,359)]
+
+        self.cones_number = len(self.angle_ranges)
+        self.observation = None
 
 
     def update_sensor(self, current_agent, entities, agents):
@@ -69,9 +72,9 @@ class LidarSensor(GeometricSensor):
 
             #add here: Tests on entity_type : can the entity be detected ?
 
-
+            #Value initialisation: initial activation = 0
             for i in range(self.cones_number):
-                output[i][entity_type] = 1
+                output[i][entity_type] = 0
 
             #For each entity
             for shape in entity_shapes:
@@ -91,27 +94,33 @@ class LidarSensor(GeometricSensor):
 
                 #Angle check - In which cone does it fall ?
                 angle = agent_position.get_angle_degrees_between(near_point) #in degrees
+                angle = angle + math.degrees(agent_angle) #Add agent angle to count for rotation
+                angle = angle%360 #To avoid negative and angles > to 360
                 cone = None
 
-                for i in range(len(self.angles)-2):
-                    if angle >= self.angles[i] and angle < self.angles[i+1]:
+                for i in range(len(self.angle_ranges)):
+                    angle_range = self.angle_ranges[i]
+
+                    if angle >= angle_range[0] and angle < angle_range[1]:
                         cone = i
 
                 if cone is None:
                     break
 
-                output[cone] = dict()
 
                 if not entity_type in output[cone]:
 
-                    output[cone][entity_type] = 1
+                    output[cone][entity_type] = 0
 
                 normalised_distance = distance/self.FoV
+                activation = 1 - normalised_distance
 
-                #Keeping only the nearest distance
-                if output[cone][entity_type] > normalised_distance:
-                    output[cone][entity_type] = normalised_distance
+                #Keeping only the nearest distance = highest activation
+                if output[cone][entity_type] < activation:
+                    output[cone][entity_type] = activation
 
+        print(output)
+        self.observation = output
         return output
 
 
