@@ -7,8 +7,8 @@ from enum import Enum, auto
 
 
 class SensorModality(Enum):
-    visual      = auto()
-    geometric   = auto()
+    VISUAL      = auto()
+    GEOMETRIC   = auto()
 
 
 class SensorGenerator:

@@ -10,7 +10,7 @@ class LidarSensor(GeometricSensor):
     def __init__(self, anatomy, custom_config):
 
         self.sensor_type = 'lidar'
-        
+
         #Todo later: add default config, as in visual_sensors
         sensor_param = { **custom_config}
 
@@ -21,10 +21,6 @@ class LidarSensor(GeometricSensor):
         self.FoV = 100 #in pixels
         self.angles = [-180, -90, 0, 90, 180]
         self.cones_number = len(self.angles)-1
-
-
-
-        pass
 
 
     def update_sensor(self, current_agent, entities, agents):
@@ -91,7 +87,6 @@ class LidarSensor(GeometricSensor):
                 distance = agent_position.get_distance(near_point)
 
                 if distance > self.FoV:
-                    print("Distance is >")
                     break
 
                 #Angle check - In which cone does it fall ?
@@ -103,8 +98,6 @@ class LidarSensor(GeometricSensor):
                         cone = i
 
                 if cone is None:
-                    print(angle)
-                    print("Cone is none")
                     break
 
                 output[cone] = dict()
@@ -118,8 +111,6 @@ class LidarSensor(GeometricSensor):
                 #Keeping only the nearest distance
                 if output[cone][entity_type] > normalised_distance:
                     output[cone][entity_type] = normalised_distance
-
-        print(output)
 
         return output
 

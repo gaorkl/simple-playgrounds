@@ -175,10 +175,10 @@ class Agent():
 
         for sensor_name in self.sensors:
 
-            if self.sensors[sensor_name].sensor_modality == sensor.SensorModality.geometric:
+            if self.sensors[sensor_name].sensor_modality == sensor.SensorModality.GEOMETRIC:
                 self.sensors[sensor_name].update_sensor(self, entities, agents)
 
-            elif self.sensors[sensor_name].sensor_modality == sensor.SensorModality.visual:
+            elif self.sensors[sensor_name].sensor_modality == sensor.SensorModality.VISUAL:
                 self.sensors[sensor_name].update_sensor(img)
 
             else:

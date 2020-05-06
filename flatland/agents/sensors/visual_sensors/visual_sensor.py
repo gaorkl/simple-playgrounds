@@ -7,7 +7,7 @@ class VisualSensor(Sensor):
 
         self.name = sensor_param.get('name', None)
         self.sensor_type = sensor_param.get('type', None)
-        self.sensor_modality = SensorModality.visual 
+        self.sensor_modality = SensorModality.VISUAL 
 
         # Field of View of the Sensor
         self.fovResolution = sensor_param.get('resolution', None)

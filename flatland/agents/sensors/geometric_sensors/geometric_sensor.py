@@ -10,7 +10,7 @@ class GeometricSensor(Sensor):
         self.sensor_params = sensor_param
         self.observation = None
 
-        self.sensor_modality = SensorModality.geometric 
+        self.sensor_modality = SensorModality.GEOMETRIC 
 
 
     @abstractmethod
