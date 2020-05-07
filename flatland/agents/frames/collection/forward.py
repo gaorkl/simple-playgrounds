@@ -56,5 +56,13 @@ class Forward(Frame):
         actions['angular_velocity'] = [-1, 1, 'continuous']
 
         return actions
-
-
+#
+#
+# @FrameGenerator.register_subclass('forward')
+# class NoisyForward(Forward):
+#
+#     def __init__(self, agent_params):
+#
+#         super(NoisyForward, self).__init__(agent_params)
+#
+#

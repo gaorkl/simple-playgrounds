@@ -2,6 +2,7 @@ import pymunk, math, pygame
 from flatland.utils.config import *
 from flatland.utils.position_sampler import *
 from flatland.utils import texture
+import os, yaml
 
 
 geometric_shapes = {'line':2, 'circle':60, 'triangle':3, 'square':4, 'pentagon':5, 'hexagon':6 }
@@ -19,9 +20,13 @@ class Entity():
         self.params = params
 
         self.physical_shape = params['physical_shape']
+
         self.graspable = params.get('graspable', False)
         self.interactive = params.get('interactive', False)
         self.movable = params.get('movable', False)
+        self.visible = params.get('visible', True)
+
+
         self.is_temporary_entity = params.get('is_temporary_entity', False)
 
 
@@ -66,22 +71,20 @@ class Entity():
             self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
 
-
         self.trajectory_params = params.get('trajectory', None)
 
         if self.trajectory_params is not None:
             self.moving = True
             self.generate_trajectory()
-            self.position = self.trajectory_points[0]
+            self.initial_position = self.trajectory_points[0]
 
         else:
             self.moving = False
             self.initial_position = params['position']
-            self.position = self.get_initial_position()
+
+        #self.position = self.initial_position
 
         ##### PyMunk visible shape
-
-        self.visible = params.get('visible', True)
         self.texture_visible_surface = None
 
         if self.visible:
@@ -126,19 +129,30 @@ class Entity():
         self.pm_elements = [self.pm_body, self.pm_interaction_shape, self.pm_visible_shape]
         self.pm_elements = [x for x in self.pm_elements if x is not None]
 
+    def parse_configuration(self, entity_type, key):
 
-    def get_initial_position(self):
+        fname = 'configs/' + entity_type + '_default.yml'
+
+        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        with open(os.path.join(__location__, fname), 'r') as yaml_file:
+            default_config = yaml.load(yaml_file)
+
+        return default_config[key]
+
+    @property
+    def initial_position(self):
 
         # differentiate between case where initial position is fixed and case where it is random
 
-        if isinstance( self.initial_position, list ) or isinstance( self.initial_position, tuple ) :
-
-            return self.initial_position
+        if isinstance( self._initial_position, list ) or isinstance( self._initial_position, tuple ) :
+            return self._initial_position
 
         else:
+            return self._initial_position.sample()
 
-            #TODO: safeguard position
-            return self.initial_position.sample()
+    @initial_position.setter
+    def initial_position(self, position):
+        self._initial_position = position
 
 
     @property
@@ -431,7 +445,7 @@ class Entity():
             if self.index_trajectory == len(self.trajectory_points):
                 self.index_trajectory = 0
 
-            self.pm_body.position = self.trajectory_points[self.index_trajectory]
+            self.position = self.trajectory_points[self.index_trajectory]
 
     def pre_step(self):
         pass
@@ -441,10 +455,9 @@ class Entity():
 
         if self.moving:
             self.index_trajectory = 0
-            self.position = self.trajectory_points[self.index_trajectory]
 
-        else:
-            self.position = self.get_initial_position()
+        self.position = self.initial_position
+
 
         self.velocity = [0, 0, 0]
         

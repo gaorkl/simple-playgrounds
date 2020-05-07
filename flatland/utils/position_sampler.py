@@ -51,7 +51,6 @@ class PositionAreaSampler:
 
         elif self.area_shape == 'gaussian':
 
-
             x = math.inf
             y = math.inf
             theta = random.uniform(self.theta_min, self.theta_max)
@@ -59,8 +58,6 @@ class PositionAreaSampler:
             while ( (x - self.center[0])**2 + (y - self.center[1])**2 > self.radius**2):
 
                 x, y = np.random.multivariate_normal(self.center, [[self.variance, 0], [0, self.variance]] )
-
-            print(x,y)
 
         return x,y,theta
 

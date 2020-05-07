@@ -1,78 +1,85 @@
 from flatland.entities.entity import Entity, EntityGenerator
 from flatland.utils.config import *
 
-import yaml
-import os
-
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-with open(os.path.join(__location__, 'basic_default.yml'), 'r') as yaml_file:
-    default_config = yaml.load(yaml_file)
 
 @EntityGenerator.register_subclass('basic')
 class Basic(Entity):
 
-    def __init__(self, custom_config):
+    def __init__(self, custom_params):
 
         self.entity_type = 'basic'
-        super(Basic, self).__init__(custom_config)
+
+        super(Basic, self).__init__(custom_params)
 
 
 @EntityGenerator.register_subclass('rectangle')
 class Rectangle(Basic):
 
-    def __init__(self, custom_config):
-        custom_config = {**default_config['rectangle'], **custom_config}
+    def __init__(self, custom_params):
 
-        super(Rectangle, self).__init__(custom_config)
+        default_config = self.parse_configuration('basic', 'rectangle')
+        entity_params = {**default_config, **custom_params}
+
+        super(Rectangle, self).__init__(entity_params)
 
 
 @EntityGenerator.register_subclass('circle')
 class Circle(Basic):
 
-    def __init__(self, custom_config):
-        custom_config = {**default_config['circle'], **custom_config}
+    def __init__(self, custom_params):
 
-        super(Circle, self).__init__(custom_config)
+        default_config = self.parse_configuration('basic', 'circle')
+        entity_params = {**default_config, **custom_params}
+
+        super(Circle, self).__init__(entity_params)
 
 @EntityGenerator.register_subclass('square')
 class Square(Basic):
 
-    def __init__(self, custom_config):
-        custom_config = {**default_config['square'], **custom_config}
+    def __init__(self, custom_params):
 
-        super(Square, self).__init__(custom_config)
+        default_config = self.parse_configuration('basic', 'square')
+        entity_params = {**default_config, **custom_params}
+
+        super(Square, self).__init__(entity_params)
 
 
 @EntityGenerator.register_subclass('pentagon')
 class Pentagon(Basic):
 
-    def __init__(self, custom_config):
-        custom_config = {**default_config['pentagon'], **custom_config}
+    def __init__(self, custom_params):
 
-        super(Pentagon, self).__init__(custom_config)
+        default_config = self.parse_configuration('basic', 'pentagon')
+        entity_params = {**default_config, **custom_params}
+
+        super(Pentagon, self).__init__(entity_params)
 
 
 @EntityGenerator.register_subclass('hexagon')
 class Hexagon(Basic):
 
-    def __init__(self, custom_config):
-        custom_config = {**default_config['hexagon'], **custom_config}
+    def __init__(self, custom_params):
 
-        super(Hexagon, self).__init__(custom_config)
+        default_config = self.parse_configuration('basic', 'hexagon')
+        entity_params = {**default_config, **custom_params}
+
+        super(Hexagon, self).__init__(entity_params)
 
 
 
 @EntityGenerator.register_subclass('absorbable')
 class Absorbable(Entity):
 
-    def __init__(self, custom_config):
+    def __init__(self, custom_params):
 
         self.entity_type = 'absorbable'
 
-        custom_config = {**default_config['absorbable'], **custom_config}
-        super(Absorbable, self).__init__(custom_config)
+        default_config = self.parse_configuration('basic', 'absorbable')
+        entity_params = {**default_config, **custom_params}
 
-        self.reward = custom_config['reward']
+        super(Absorbable, self).__init__(entity_params)
+
+        self.reward = entity_params['reward']
         self.pm_visible_shape.collision_type = collision_types['contact']
 
         self.absorbable = True
