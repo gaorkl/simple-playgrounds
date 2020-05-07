@@ -1,4 +1,6 @@
 from .sensors import sensor
+from .sensors.visual_sensors.visual_sensor import VisualSensor
+from .sensors.geometric_sensors.geometric_sensor import GeometricSensor
 from .frames import frame
 from .controllers import controller
 
@@ -65,6 +67,9 @@ class Agent():
         self.initial_position = custom_config.get('position', None)
 
 
+        # Information about sensor types
+        self.has_geometric_sensor = False
+        self.has_visual_sensor = False
 
     @property
     def initial_position(self):
@@ -159,15 +164,27 @@ class Agent():
         sensor_params['name'] = sensor_name
         sensor_params['type'] = sensor_type
 
+
         new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
+
+        if isinstance(new_sensor, GeometricSensor):
+             self.has_geometric_sensor = True
+        if isinstance(new_sensor, VisualSensor):
+            self.has_visual_sensor = True
         self.sensors[sensor_name] = new_sensor
 
-    def compute_sensors(self, img):
+    def compute_sensors(self, img, entities, agents):
 
         for sensor_name in self.sensors:
-            self.sensors[sensor_name].update_sensor(img)
 
-            self.observations[sensor_name] = self.sensors[sensor_name].observation
+            if self.sensors[sensor_name].sensor_modality == sensor.SensorModality.GEOMETRIC:
+                self.sensors[sensor_name].update_sensor(self, entities, agents)
+
+            elif self.sensors[sensor_name].sensor_modality == sensor.SensorModality.VISUAL:
+                self.sensors[sensor_name].update_sensor(img)
+
+            else:
+                raise "Sensor calculation modality is not specified for "+sensor_name
 
     def pre_step(self):
 
@@ -208,6 +225,3 @@ class Agent():
         self.is_grasping = False
         self.grasped = []
         self.is_holding = False
-
-
-

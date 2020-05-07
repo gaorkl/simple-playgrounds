@@ -1,4 +1,4 @@
-from flatland.agents.sensors.sensor import SensorGenerator, Sensor
+from flatland.agents.sensors.visual_sensors.visual_sensor import *
 import numpy as np
 import cv2
 import os, yaml
@@ -8,14 +8,17 @@ with open(os.path.join(__location__, 'sensor_default.yml'), 'r') as yaml_file:
     default_config = yaml.load(yaml_file)
 
 
-@SensorGenerator.register('depth')
-class DepthSensor(Sensor):
+@SensorGenerator.register('touch')
+class TouchSensor(VisualSensor):
 
     def __init__(self, anatomy, sensor_param):
 
-        sensor_param = {**default_config['depth'], **sensor_param}
 
-        super(DepthSensor, self).__init__(anatomy, sensor_param)
+        sensor_param = {**default_config['touch'], **sensor_param}
+
+        sensor_param['range'] = sensor_param['minRange'] + sensor_param['contact_range']
+
+        super(TouchSensor, self).__init__(anatomy, sensor_param)
 
 
     def update_sensor(self, img ):

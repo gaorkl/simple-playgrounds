@@ -55,15 +55,26 @@ class Engine():
 
     def update_observations(self):
 
-        # TODO: Compute environment image once, then add agents when necessary
-
+        #Compute environment image once, then add agents when necessary
         self.playground.generate_entities_image()
+
 
         # For each agent, compute sensors
         for agent in self.agents:
 
-            img = self.playground.generate_agent_image(sensor_agent = agent)
-            agent.compute_sensors(img)
+            #data , arg = vision, geometric, class generator
+            img = None
+            entities = None
+            agents = None
+
+            if agent.has_visual_sensor:
+                img = self.playground.generate_agent_image(sensor_agent = agent)
+
+            if agent.has_geometric_sensor:
+                entities = self.playground.entities
+                agents = self.playground.agents
+
+            agent.compute_sensors(img, entities, agents)
 
 
     # def apply_actions(self):
