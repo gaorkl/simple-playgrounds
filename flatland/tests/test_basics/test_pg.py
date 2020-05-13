@@ -11,10 +11,10 @@ class Basic_01(Room):
 
         super(Basic_01, self).__init__(scene_params)
 
-        self.add_entity('rectangle', width_length = [20, 40], position = [150, 160, 0.7])
+        self.add_entity('rectangle', width_length = [20, 40], position = [150, 160, 0.2])
         self.add_entity('circle', position = [50, 60, 0], movable = True, mass = 100, texture = [150, 150, 150])
         self.add_entity('square', position = [150, 60, 0], movable = True, mass = 10)
-        self.add_entity('pentagon', position = [50, 160, 0])
+        self.add_entity('pentagon', position = [50, 160, 0], radius = 40)
         self.add_entity('hexagon', position = [100, 100, 0], graspable = True, mass = 5, interaction_range = 10, radius = 15)
 
         self.add_entity('visible_endgoal', position=[10, 10, 0], radius=20)
