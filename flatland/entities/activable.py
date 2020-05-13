@@ -12,32 +12,39 @@ class Edible(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'edible'
+        self.interactive =  True
+        self.edible = True
 
         default_config = self.parse_configuration('activable', 'edible')
         entity_params = {**default_config, **custom_params}
 
-        entity_params['visible'] = True
-        entity_params['interactive'] = True
-
         super(Edible, self).__init__(entity_params)
 
         self.shrink_ratio_when_eaten = entity_params['shrink_ratio_when_eaten']
-
-        self.reward = entity_params['initial_reward']
         self.min_reward = entity_params['min_reward']
 
-        self.edible = True
+        self.initial_reward = entity_params['initial_reward']
+        if self.physical_shape == 'rectangle':
+            self.initial_width, self.initial_length = entity_params['shape_rectangle']
+        else:
+            self.initial_radius = entity_params['radius']
+        self.initial_mass = self.mass
+
+        self.reward = self.initial_reward
+
+        # self.params = entity_params
+
 
     def generate_shapes_and_masks(self):
 
         if self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
             self.visible_vertices = self.compute_vertices(self.radius)
 
-        self.generate_pm_visible_shape()
-        self.visible_mask = self.generate_visible_mask()
+        self.create_pm_visible_shape()
+        self.create_visible_mask()
 
-        self.generate_pm_interaction_shape()
-        self.interaction_mask = self.generate_interaction_mask()
+        self.create_pm_interaction_shape()
+        self.create_interaction_mask()
 
         self.pm_elements = [self.pm_body, self.pm_visible_shape, self.pm_interaction_shape]
 
@@ -80,11 +87,15 @@ class Edible(Entity):
 
         replace = super().reset()
 
-        self.reward = self.params.get('initial_reward', 0)
-        self.mass = self.params['mass']
+        self.reward = self.initial_reward
+        self.mass = self.initial_mass
 
         position = self.pm_body.position
         angle = self.pm_body.angle
+
+
+
+        #self.create_pm_body()
 
         if self.movable:
             inertia = self.compute_moments()
@@ -94,14 +105,11 @@ class Edible(Entity):
 
 
         if self.physical_shape == 'rectangle':
-            self.width, self.length = self.params['shape_rectangle']
-            self.width = self.width
+            self.width, self.length = self.initial_width, self.initial_length
             self.width_interaction = self.width + self.interaction_range
             self.length_interaction = self.length + self.interaction_range
-
-
         else:
-            self.radius = self.params['radius']
+            self.radius = self.initial_radius
             self.radius_interaction = self.radius + self.interaction_range
             self.interaction_vertices = self.compute_vertices(self.radius_interaction)
 
@@ -117,12 +125,11 @@ class Dispenser(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'dispenser'
+        self.interactive = True
 
         default_config = self.parse_configuration('activable', 'dispenser')
         entity_params = {**default_config, **custom_params}
 
-        entity_params['visible'] = True
-        entity_params['interactive'] = True
 
         super(Dispenser, self).__init__(entity_params)
 
@@ -168,12 +175,11 @@ class Door(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'door'
+        self.interactive = True
 
         default_config = self.parse_configuration('activable', 'door')
         entity_params = {**default_config, **custom_params}
 
-        entity_params['visible'] = True
-        entity_params['interactive'] = False
 
         super(Door, self).__init__(entity_params)
 
@@ -204,12 +210,10 @@ class OpenCloseSwitch(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'switch'
+        self.interactive = True
 
         default_config = self.parse_configuration('activable', 'switch')
         entity_params = {**default_config, **custom_params}
-
-        entity_params['visible'] = True
-        entity_params['interactive'] = True
 
         super(OpenCloseSwitch, self).__init__(entity_params)
 
@@ -230,12 +234,11 @@ class TimerSwitch(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'switch'
+        self.interactive = True
 
         default_config = self.parse_configuration('activable', 'switch')
         entity_params = {**default_config, **custom_params}
 
-        entity_params['visible'] = True
-        entity_params['interactive'] = True
 
         super(TimerSwitch, self).__init__(entity_params)
 
@@ -279,12 +282,10 @@ class Lock(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'lock'
+        self.interactive = True
 
         default_config = self.parse_configuration('activable', 'lock')
         entity_params = {**default_config, **custom_params}
-
-        entity_params['visible'] = True
-        entity_params['interactive'] = True
 
         super(Lock, self).__init__(entity_params)
 
@@ -302,11 +303,10 @@ class Key(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'key'
+        self.movable = True
 
         default_config = self.parse_configuration('activable', 'key')
         entity_params = {**default_config, **custom_params}
-
-        entity_params['movable'] = True
 
         super(Key, self).__init__(entity_params)
 
@@ -318,12 +318,11 @@ class Chest(Entity):
     def __init__(self, custom_params):
 
         self.entity_type = 'chest'
+        self.interactive = True
 
         default_config = self.parse_configuration('activable', 'chest')
         entity_params = {**default_config, **custom_params}
 
-        entity_params['visible'] = True
-        entity_params['interactive'] = True
 
         super(Chest, self).__init__(entity_params)
 

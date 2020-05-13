@@ -1,26 +1,35 @@
-from flatland.entities.entity import *
-from flatland.entities.entities import *
+from flatland.entities.entity import Entity, EntityGenerator
 from flatland.utils.config import collision_types
 
-@EntityGenerator.register_subclass('end_zone')
-class EndZone(Entity):
+class TerminationZone(Entity):
+    """ Invisible Zone that terminates the current game and provide a reward to the agent entering the zone
 
-    def __init__(self, custom_params):
+    Attributes
+    ----------
+    reward: float
+        Reward provided to the agent
+    reward_provided: bool
+        Indicates whether reward was given to the agent
 
-        self.entity_type = 'zone'
+    """
 
-        default_config = self.parse_configuration('zone', 'endzone')
-        entity_params = {**default_config, **custom_params}
+    def __init__(self, entity_params):
+        """ Initialized with a dictionary of parameters
 
-        params = {**zone_default, **entity_params}
+        This base class is used to define the behavior of invisible zones which terminate the game when entered by an agent.
+        Entity parameters are used, as well as parameters specific to TerminationZone
 
-        params['visible'] = False
-        params['interactive'] = True
+        """
 
-        super(EndZone, self).__init__(params)
+        self.entity_type = 'termination_zone'
+        self.visible = False
+        self.interactive = True
+
+        super(TerminationZone, self).__init__(entity_params)
+
         self.pm_interaction_shape.collision_type = collision_types['zone']
 
-        self.reward = params.get('reward', 0)
+        self.reward = entity_params.get('reward', 0)
         self.reward_provided = False
 
 
@@ -38,7 +47,7 @@ class EndZone(Entity):
             return 0
 
     def reset(self):
-        self.reward = self.params.get('reward', 0)
+
         self.reward_provided = False
 
         replace = super().reset()
@@ -46,21 +55,51 @@ class EndZone(Entity):
         return replace
 
 
+@EntityGenerator.register_subclass('goal_zone')
+class GoalZone(TerminationZone):
+    """ TerminationZone that provides a positive reward to the agent
+    """
 
-@EntityGenerator.register_subclass('reward_zone')
+    def __init__(self, custom_params):
+        """
+
+        :param custom_params:
+        """
+
+        default_config = self.parse_configuration('zone', 'goal_zone')
+        entity_params = {**default_config, **custom_params}
+
+        super(GoalZone, self).__init__(entity_params)
+
+
+@EntityGenerator.register_subclass('death_zone')
+class DeathZone(TerminationZone):
+    ''' TerminationZone that provides a negative reward to the agent
+    '''
+
+    def __init__(self, custom_params):
+        default_config = self.parse_configuration('zone', 'death_zone')
+        entity_params = {**default_config, **custom_params}
+
+        super(DeathZone, self).__init__(entity_params)
+
+
 class RewardZone(Entity):
 
-    def __init__(self, params):
+    def __init__(self, entity_params):
 
-        params = {**zone_default, **params}
-        params['visible'] = False
-        params['interactive'] = True
+        self.entity_type = 'reward_zone'
+        self.visible = False
+        self.interactive = True
 
-        super(RewardZone, self).__init__(params)
+        super(RewardZone, self).__init__(entity_params)
         self.pm_interaction_shape.collision_type = collision_types['zone']
 
-        self.reward = params['reward']
-        self.total_reward = params['total_reward']
+        self.reward = entity_params['reward']
+
+        self.initial_total_reward = entity_params['total_reward']
+        self.total_reward = self.initial_total_reward
+
         self.reward_provided = False
 
     def pre_step(self):
@@ -87,9 +126,30 @@ class RewardZone(Entity):
         else: return 0
 
     def reset(self):
-        self.total_reward = self.params['total_reward']
+        self.total_reward = self.initial_total_reward
         self.reward_provided = False
 
         replace = super().reset()
 
         return replace
+
+@EntityGenerator.register_subclass('toxic_zone')
+class ToxicZone(RewardZone):
+
+    def __init__(self, custom_params):
+
+
+        default_config = self.parse_configuration('zone', 'toxic_zone')
+        entity_params = {**default_config, **custom_params}
+
+        super(ToxicZone, self).__init__(entity_params)
+
+
+@EntityGenerator.register_subclass('healing_zone')
+class HealingZone(RewardZone):
+
+    def __init__(self, custom_params):
+        default_config = self.parse_configuration('zone', 'healing_zone')
+        entity_params = {**default_config, **custom_params}
+
+        super(HealingZone, self).__init__(entity_params)

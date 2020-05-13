@@ -1,13 +1,27 @@
-# Contact Entities
-contact_endzone_texture : &contact-endzone-texture
-  'texture_type': 'uniform'
-  'color_min': [10, 200, 50]
-  'color_max': [20, 250, 70]
 
 
-contact_endzone:
+# Termination on Contact
+visible_endgoal_texture : &visible_endgoal_texture
+  texture_type: uniform
+  color_min: [10, 200, 50]
+  color_max: [20, 250, 70]
+
+
+visible_endgoal:
   'physical_shape': 'square'
   'radius': 20
-  'texture': *contact-endzone-texture
+  'texture': *visible_endgoal_texture
   'reward': 200
+
+visible_deathtrap_texture : &visible_deathtrap_texture
+  texture_type: uniform
+  color_min: [230, 0, 50]
+  color_max: [240, 50, 70]
+
+
+visible_deathtrap:
+  'physical_shape': 'square'
+  'radius': 20
+  'texture': *visible_deathtrap_texture
+  'reward': -200
 

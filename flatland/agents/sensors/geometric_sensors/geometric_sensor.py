@@ -8,7 +8,7 @@ class GeometricSensor(Sensor):
         self.name = sensor_param.get('name', None)
         self.sensor_type = sensor_param.get('type', None)
         self.sensor_params = sensor_param
-        self.observation = None
+        self.sensor_value = None
 
         self.sensor_modality = SensorModality.GEOMETRIC 
 

@@ -12,7 +12,7 @@ class MovingVisibleRewardZone(Entity):
 
         entity_params['visible'] = True
         entity_params['interactive'] = True
-        entity_params['movable'] = True
+        entity_params['movable'] = False
 
         if 'center_trajectory' in entity_params:
             entity_params['trajectory']['center'] = entity_params['center_trajectory']
@@ -21,6 +21,8 @@ class MovingVisibleRewardZone(Entity):
         else:
             raise ValueError('Trajectory not defined correctly')
 
+        if 'speed' in entity_params:
+            entity_params['trajectory']['speed'] = entity_params['speed']
 
         super(MovingVisibleRewardZone, self).__init__(entity_params)
 

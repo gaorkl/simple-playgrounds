@@ -15,7 +15,10 @@ class Basic_01(Room):
         self.add_entity('circle', position = [50, 60, 0], movable = True, mass = 100, texture = [150, 150, 150])
         self.add_entity('square', position = [150, 60, 0], movable = True, mass = 10)
         self.add_entity('pentagon', position = [50, 160, 0])
-        self.add_entity('hexagon', position = [100, 100, 0])
+        self.add_entity('hexagon', position = [100, 100, 0], graspable = True, mass = 5, interaction_range = 10, radius = 15)
+
+        self.add_entity('visible_endgoal', position=[10, 10, 0], radius=20)
+
 
 @PlaygroundGenerator.register_subclass('basic_02')
 class Basic_02(Room):
@@ -30,6 +33,8 @@ class Basic_02(Room):
         self.add_entity('pentagon', position = [50, 160, 0])
         self.add_entity('hexagon', position = [100, 100, 0], texture = [150, 200, 250])
 
+        self.add_entity('contact_endzone', position=[10, 10, 0], radius=20)
+
 
 @PlaygroundGenerator.register_subclass('contact_01')
 class Contact_01(Room):
@@ -38,9 +43,10 @@ class Contact_01(Room):
 
         super(Contact_01, self).__init__(scene_params)
 
-        self.add_entity('absorbable', position = [150, 160, 0.56])
-        self.add_entity('contact_endzone', position = [50, 60, 0], radius = 5)
-        self.add_entity('contact_endzone', position = [150, 60, 0], reward=100)
+        #self.add_entity('absorbable', position = [150, 160, 0.56])
+        self.add_entity('visible_endgoal', position = [50, 60, 0], radius = 5)
+        self.add_entity('visible_deathtrap', position = [150, 60, 0], reward=-100)
+        self.add_entity('visible_deathtrap', position = [50, 160, 0], radius = 40)
 
 @PlaygroundGenerator.register_subclass('moving_01')
 class Moving_01(Room):
@@ -49,16 +55,16 @@ class Moving_01(Room):
 
         super(Moving_01, self).__init__(scene_params)
 
-        self.add_entity('fairy', center_trajectory = [60,60])
-        self.add_entity('fairy', waypoints = [ [50, 50], [50, 150], [150, 50], [150, 150] ])
+        self.add_entity('fairy', center_trajectory = [60,60], speed = 400)
+        #self.add_entity('fairy', waypoints = [ [50, 50], [50, 150], [150, 50], [150, 150] ], speed = 400)
 
         trajectory_fireball = {
             'trajectory_shape': 'hexagon',
             'radius': 30,
             'angle': 180,
-            'speed': 100
+            'speed': 400
         }
-        self.add_entity('fireball', center_trajectory = [100, 100], trajectory = trajectory_fireball )
+        #self.add_entity('fireball', center_trajectory = [100, 100], trajectory = trajectory_fireball )
 
 
 @PlaygroundGenerator.register_subclass('activable_01')
@@ -83,7 +89,7 @@ class Activable_01(Room):
         self.add_entity('dispenser', position = [100, 150, 0], area = area_2, production_limit = 100)
 
         key_chest = self.add_entity('key', position = [100, 250, 0] )
-        self.add_entity('chest', key = key_chest, position = [100, 200, 0] )
+        self.add_entity('chest', key = key_chest, position = [100, 200, 0], movable = True, mass = 10 )
 
 
 @PlaygroundGenerator.register_subclass('doors_01')
@@ -118,13 +124,31 @@ class Yielders_01(Room):
 
         super(Yielders_01, self).__init__(scene_params)
 
-        self.add_entity('contact_endzone', position=[10, 10, 0], radius=10)
+        self.add_entity('contact_endzone', position=[20, 20], radius=10)
 
-        area_1 = PositionAreaSampler(area_shape ='rectangle', center = [50, 50], shape = [100, 50])
+        area_1 = PositionAreaSampler(area_shape ='rectangle', center = [70, 70], shape = [30, 30])
         self.add_entity('yielder', area = area_1)
 
 
 
+
+@PlaygroundGenerator.register_subclass('zones_01')
+class Zones_01(Room):
+
+    def __init__(self, scene_params=None):
+
+        scene_params['room_shape'] = [200, 200]
+
+        super(Zones_01, self).__init__(scene_params)
+
+        self.add_entity('goal_zone', position=[20, 20, 0])
+        self.add_entity('death_zone', position=[180, 20, 0], physical_shape='hexagon')
+
+        area_1 = PositionAreaSampler(area_shape ='rectangle', center = [100, 100], shape = [20, 20])
+        self.add_entity('goal_zone', position = area_1, reward = 200)
+
+        self.add_entity('toxic_zone', position=[20, 180, 0])
+        self.add_entity('healing_zone', position=[180, 180, 0], total_reward = 25)
 
 
 @PlaygroundGenerator.register_subclass('david')

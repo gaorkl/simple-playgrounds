@@ -86,7 +86,7 @@ key : &key
 chest_texture : &chest-texture
   texture_type: random_tiles
   color_min: [140, 110, 210]
-  color_max: [150, 130, 230]
+  color_max: [160, 130, 230]
   size_tiles : 6
 
 chest:

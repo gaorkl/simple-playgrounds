@@ -27,14 +27,14 @@ class DepthSensor(VisualSensor):
             mask = self.pixels_sensor != 0
             sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.pixels_sensor.shape[1] - 1), axis=1)
 
-            self.observation = (self.pixels_sensor.shape[1] - sensor) / self.pixels_sensor.shape[1]
+            sensor_value = (self.pixels_sensor.shape[1] - sensor) / self.pixels_sensor.shape[1]
 
-            im = np.asarray(self.observation)
+            im = np.asarray(sensor_value)
             im = np.expand_dims(im, 0)
-            self.observation = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+            self.sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
 
         else:
-            self.observation = np.zeros( (self.pixels_sensor.shape[0] ))
+            self.sensor_value = np.zeros( (self.pixels_sensor.shape[0] ))
 
     def get_shape_observation(self):
         return self.fovResolution, 3

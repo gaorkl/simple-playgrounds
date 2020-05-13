@@ -2,8 +2,10 @@ from flatland.tests.test_basics.test_pg import *
 from flatland.agents import agent
 
 #pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
-pg = PlaygroundGenerator.create('moving_01')
-
+pg = PlaygroundGenerator.create('basic_01')
+# for entity in pg.entities:
+#     print(entity)
+#     print(entity.entity_type)
 agents = []
 #
 # for i in range(10):
@@ -31,7 +33,7 @@ my_agent = agent.Agent('forward', name = 'mercotte',
                        position=initial_position)
 
 #my_agent.add_sensor('depth', 'depth_1', resolution = 128)
-# my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
+#my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
 # my_agent.add_sensor('rgb', 'rgb_2', resolution = 128)
 # my_agent.add_sensor('touch', 'touch_1', resolution = 64)
 # my_agent.add_sensor('infra-red', 'IR_1', number = 5, fov = 90)
@@ -52,7 +54,7 @@ engine_parameters = {
 
 rules = {
     'replay_until_time_limit': True,
-    'time_limit': 1000
+    'time_limit': 10000
 }
 
 game = Engine(playground=pg, agents=agents, rules=rules, engine_parameters=engine_parameters )
@@ -76,18 +78,20 @@ while game.game_on:
 
     for agent in game.agents[:1]:
 
-        observations = agent.observations
+        # observations = agent.observations
+        # print(observations)
 
-        for obs in observations:
+        for sensor_name in agent.sensors:
 
-            if 'IR' in  obs:
-                # print(observations[obs])
-                pass
+            observation = agent.sensors[sensor_name].sensor_value
+
+            if 'IR' in  sensor_name:
+                print(observation)
 
             else:
 
-                im = cv2.resize(observations[obs], (512, 50), interpolation=cv2.INTER_NEAREST)
-                cv2.imshow(obs, im)
+                im = cv2.resize(observation, (512, 50), interpolation=cv2.INTER_NEAREST)
+                cv2.imshow(sensor_name, im)
                 cv2.waitKey(1)
 
         if agent.reward != 0: print(agent.reward)
@@ -99,7 +103,7 @@ while game.game_on:
 
     img = game.generate_playground_image()
     cv2.imshow('test', img)
-    cv2.waitKey(15)
+    cv2.waitKey(30)
 
 print(1000 / (time.time() - t1))
 game.terminate()

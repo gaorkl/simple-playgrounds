@@ -5,11 +5,13 @@ from flatland.utils.config import *
 @EntityGenerator.register_subclass('basic')
 class Basic(Entity):
 
+    visible = True
+    entity_type = 'basic'
+
     def __init__(self, custom_params):
 
-        self.entity_type = 'basic'
-
         super(Basic, self).__init__(custom_params)
+
 
 
 @EntityGenerator.register_subclass('rectangle')
@@ -70,9 +72,11 @@ class Hexagon(Basic):
 @EntityGenerator.register_subclass('absorbable')
 class Absorbable(Entity):
 
+    entity_type = 'absorbable'
+    absorbable = True
+
     def __init__(self, custom_params):
 
-        self.entity_type = 'absorbable'
 
         default_config = self.parse_configuration('basic', 'absorbable')
         entity_params = {**default_config, **custom_params}
@@ -82,4 +86,3 @@ class Absorbable(Entity):
         self.reward = entity_params['reward']
         self.pm_visible_shape.collision_type = collision_types['contact']
 
-        self.absorbable = True

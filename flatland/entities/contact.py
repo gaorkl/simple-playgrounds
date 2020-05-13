@@ -7,18 +7,17 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 with open(os.path.join(__location__, 'configs/contact_default.yml'), 'r') as yaml_file:
     default_config = yaml.load(yaml_file)
 
-@EntityGenerator.register_subclass('contact_endzone')
-class ContactEndZone(Entity):
 
-    def __init__(self, custom_config):
+class TerminationContact(Entity):
 
-        self.entity_type = 'contact_endzone'
+    entity_type = 'contact_termination'
+    visible = True
 
-        custom_config = {**default_config['contact_endzone'], **custom_config}
+    def __init__(self, entity_params):
 
-        super(ContactEndZone, self).__init__(custom_config)
+        super(TerminationContact, self).__init__(entity_params)
 
-        self.reward = custom_config['reward']
+        self.reward = entity_params['reward']
         self.pm_visible_shape.collision_type = collision_types['contact']
 
         self.reward_provided = False
@@ -42,3 +41,22 @@ class ContactEndZone(Entity):
         replace = super().reset()
 
         return replace
+
+
+@EntityGenerator.register_subclass('visible_endgoal')
+class VisibleEndGoal(TerminationContact):
+
+    def __init__(self, custom_config):
+        custom_config = {**default_config['visible_endgoal'], **custom_config}
+
+        super(VisibleEndGoal, self).__init__(custom_config)
+
+
+@EntityGenerator.register_subclass('visible_deathtrap')
+class VisibleDeathTrap(TerminationContact):
+
+    def __init__(self, custom_config):
+        custom_config = {**default_config['visible_deathtrap'], **custom_config}
+
+        super(VisibleDeathTrap, self).__init__(custom_config)
+

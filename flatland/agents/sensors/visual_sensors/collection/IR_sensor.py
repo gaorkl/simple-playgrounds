@@ -42,15 +42,14 @@ class InfraRedSensor(VisualSensor):
 
             im = np.asarray(sensor)
             im = np.expand_dims(im, 0)
-            self.observation = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+            sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
 
-
-            sensor = [ int(self.observation[0, index]*float(self.fovRange)/self.pixels_sensor.shape[1]) for index in self.index_sensors]
+            sensor_value = [ int(sensor_value[0, index]*float(self.fovRange)/self.pixels_sensor.shape[1]) for index in self.index_sensors]
 
             #self.observation = (self.pixels_sensor.shape[1] - sensor) / self.pixels_sensor.shape[1]
 
 
-            self.observation = sensor
+            self.sensor_value = sensor
 
         else:
             self.observation = np.zeros( (self.pixels_sensor.shape[0] ))

@@ -112,6 +112,8 @@ class LidarSensor(GeometricSensor):
                 if output[cone][entity_type] > normalised_distance:
                     output[cone][entity_type] = normalised_distance
 
+        self.sensor_value = output
+
         return output
 
 

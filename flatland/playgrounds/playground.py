@@ -111,6 +111,7 @@ class Playground():
             else:
                 found_position = True
                 break
+
         return position, found_position
 
     def add_agent(self, agent):
@@ -202,20 +203,8 @@ class Playground():
         else:
 
             new_entity.position = new_entity.initial_position
-
-
             self.space.add(*new_entity.pm_elements)
             self.entities.append(new_entity)
-
-            # if new_entity.entity_type in ['button_door_openclose', 'button_door_opentimer' ]:
-            #     new_entity.door = self.add_entity(new_entity.door_params)
-            #
-            # elif new_entity.entity_type is 'lock_key_door':
-            #     new_entity.door = self.add_entity(new_entity.door_params)
-            #     new_entity.key = self.add_entity(new_entity.key_params)
-            #
-            # elif new_entity.entity_type is 'chest':
-            #     new_entity.key = self.add_entity(new_entity.key_params)
 
         return new_entity
 
@@ -226,9 +215,14 @@ class Playground():
             entity.update()
             entity.pre_step()
 
+            if entity.follows_waypoints:
+                self.space.reindex_shapes_for_body(entity.pm_body)
+
         self.yielders_produce()
         self.check_timers()
         self.release_grasps()
+
+
 
         #for entity in self.entities:
 
@@ -404,7 +398,7 @@ class Playground():
                 if touched_entity in entity.produced_entities:
                     entity.produced_entities.remove(touched_entity)
 
-        elif touched_entity.entity_type in 'contact_endzone':
+        elif touched_entity.entity_type in 'contact_termination':
             self.has_reached_termination = True
             reward = touched_entity.get_reward()
             agent.reward += reward
@@ -518,12 +512,12 @@ class Playground():
         agent = self.get_agent_from_shape(arbiter.shapes[0])
         zone_reached = [entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]][0]
 
-        if zone_reached.entity_type == 'end_zone':
+        if zone_reached.entity_type == 'termination_zone':
             self.has_reached_termination = True
             reward = zone_reached.get_reward()
             agent.reward += reward
 
-        elif zone_reached.entity_type in ['reward_zone', 'fireball', 'fairy' ]:
+        elif zone_reached.entity_type == 'reward_zone':
             reward = zone_reached.get_reward()
             agent.reward += reward
 

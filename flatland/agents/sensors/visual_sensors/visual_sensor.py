@@ -31,8 +31,6 @@ class VisualSensor(Sensor):
         self.resized_img = None
         self.cropped_img = None
 
-        self.observation = None
-
         self.bbox_initialized = False
 
         self.pixels_per_degrees = self.fovResolution / ( 360 *  self.fovAngle / (2*math.pi ) )
