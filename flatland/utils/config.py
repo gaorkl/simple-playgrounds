@@ -8,3 +8,4 @@ collision_types = {
     "zone": 4,
     "gem": 5,
 }
+

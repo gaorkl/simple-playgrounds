@@ -1,55 +1,72 @@
+from flatland.entities.entity import Entity, EntityGenerator
+import os, yaml
 import random
-from .entity import EntityGenerator
-from flatland.entities.entities import *
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+with open(os.path.join(__location__, 'configs/yielder_default.yml'), 'r') as yaml_file:
+    default_config = yaml.load(yaml_file)
+
+with open(os.path.join(__location__, 'configs/basic_default.yml'), 'r') as yaml_file:
+    absorbable_config = yaml.load(yaml_file)['absorbable']
+
 
 @EntityGenerator.register_subclass('yielder')
 class Yielder():
 
     id_number = 0
 
-    def __init__(self, params ):
+    def __init__(self, custom_params ):
         """
         Instantiate an obstacle with the following parameters
         :param pos: 2d tuple or 'random', position of the fruit
         :param environment: the environment calling the creation of the fruit
         """
 
-        params = {**yielder_default, **params}
-
         self.entity_type = 'yielder'
 
-        self.object_produced = params['object_produced']
+        params = {**default_config['yielder'], **custom_params}
 
-        self.production_area_shape = params['area_shape']
-        self.production_area = params['area']
+        self.entity_produced = params.get('entity_produced', absorbable_config)
 
-        self.probability = params.get('probability', 0.1)
+        self.location_sampler = params.get('area', None)
 
-        self.limit = params.get('limit', 4)
+        self.probability = params.get('production_probability')
+        self.limit = params.get('current_produced_limit')
+        self.total_limit = params.get('total_produced_limit')
 
-        self.yielded_elements = []
+        self.total_produced = 0
+
+        self.produced_entities = []
 
         # Internal counter to assign identity number to each entity
         self.name_id = 'yielder_' + str(Yielder.id_number)
         Yielder.id_number += 1
 
+    def can_produce(self):
+
+        if len(self.produced_entities) < self.limit \
+                and self.total_produced < self.total_limit\
+                and random.random() < self.probability:
+            return True
+
+        else:
+            return False
+
 
     def produce(self):
 
-        obj = self.object_produced
+        obj = self.entity_produced
+        position = self.location_sampler.sample()
+        obj['position'] = position
 
-        if self.production_area_shape == 'rectangle':
+        self.total_produced += 1
 
-            x = random.uniform( self.production_area[0][0],self.production_area[1][0] )
-            y = random.uniform( self.production_area[0][1],self.production_area[1][1] )
-            #x = self.production_area[0][0]
-            #y = self.production_area[0][1]
+        entity_type = 'absorbable'
 
-            obj['position'] = (x,y,0)
-
-        return obj
+        return entity_type, obj
 
     def reset(self):
-        self.yielded_elements = []
-
+        self.produced_entities = []
+        self.total_produced = 0
 

@@ -4,7 +4,7 @@ from flatland.entities.entity import Entity, EntityGenerator
 import yaml, os
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-with open(os.path.join(__location__, 'contact_default.yml'), 'r') as yaml_file:
+with open(os.path.join(__location__, 'configs/contact_default.yml'), 'r') as yaml_file:
     default_config = yaml.load(yaml_file)
 
 @EntityGenerator.register_subclass('contact_endzone')

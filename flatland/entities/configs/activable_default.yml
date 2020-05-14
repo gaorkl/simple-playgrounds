@@ -19,19 +19,6 @@ edible :
 
 # Dispenser
 
-# Pellet
-pellet_texture : &pellet-texture
-  texture_type: color
-  color: [50, 100, 50]
-
-pellet : &pellet
-  physical_shape: hexagon
-  radius: 5
-  mass: 5
-  texture: *pellet-texture
-  movable: True
-  reward : 5
-
 dispenser_texture : &dispenser-texture
   texture_type: centered_random_tiles
   color_min: [200, 80, 180]
@@ -44,28 +31,80 @@ dispenser :
   radius: 15
   texture: *dispenser-texture
   interaction_range: 10
-  entity_produced: *pellet
   production_limit: 15
   mass : 10
 
+# Doors
 
-#
-## Doors
-#door_texture : &door-texture
-#  'texture_type': 'random_tiles'
-#  'min': [110, 110, 110]
-#  'max': [130, 130, 130]
-#  'size_tiles' : 10
+door_texture : &door-texture
+  texture_type: random_tiles
+  color_min: [110, 110, 110]
+  color_max: [130, 130, 130]
+  size_tiles : 6
+
+door : &door
+  physical_shape: rectangle
+  width_length: [10, 80]
+  texture: *door-texture
+
+
+switch_texture : &switch-texture
+  texture_type: centered_random_tiles
+  color_min: [80, 80, 80]
+  color_max: [110, 110, 110]
+  size_tiles : 6
+  radius: 8
+
+switch : &switch
+  physical_shape: square
+  radius: 8
+  texture: *switch-texture
+  interaction_range : 10
+
+
+lock_texture : &lock-texture
+  texture_type: centered_random_tiles
+  color_min: [110, 110, 110]
+  color_max: [140, 140, 140]
+  size_tiles : 6
+  radius: 8
+
+lock : &lock
+  physical_shape: square
+  radius: 8
+  texture: *lock-texture
+  interaction_range : 10
+
+key : &key
+  physical_shape: hexagon
+  radius: 10
+  texture: *lock-texture
+  mass: 5
+
+# Chest
+
+chest_texture : &chest-texture
+  texture_type: random_tiles
+  color_min: [140, 110, 210]
+  color_max: [150, 130, 230]
+  size_tiles : 6
+
+chest:
+  texture: *chest-texture
+  physical_shape: rectangle
+  width_length: [20, 30]
+  interaction_range : 10
+  reward : 50
+
+
+
+
 #
 #switch_texture : &switch-texture
 #    'texture_type': 'color',
 #    'color': (50, 100, 150)
 #
-#door : &door
-#  'entity_type': 'basic'
-#  'physical_shape': 'rectangle'
-#  'shape_rectangle': [10, 80]
-#  'texture': *door-texture
+
 #
 #switch_door_open :
 #  'entity_type': 'switch_door_open'

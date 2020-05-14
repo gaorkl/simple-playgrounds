@@ -2,7 +2,7 @@ from flatland.tests.test_basics.test_pg import *
 from flatland.agents import agent
 
 #pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
-pg = PlaygroundGenerator.create('activable_01', room_shape = [400, 200])
+pg = PlaygroundGenerator.create('moving_01')
 
 agents = []
 #
@@ -24,15 +24,17 @@ agents = []
 #
 
 
-initial_position = PositionAreaSampler(area_shape='circle', center=[120, 120], radius=30)
-my_agent = agent.Agent('forward', name = 'mercotte', controller_type = 'keyboard', frame = { 'base': {'radius' : 10}},
-                       position =initial_position)
+initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=40)
+my_agent = agent.Agent('forward', name = 'mercotte',
+                       controller_type = 'keyboard',
+                       frame = { 'base': {'radius' : 10}},
+                       position=initial_position)
 
-my_agent.add_sensor('depth', 'depth_1', resolution = 128)
-my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
-my_agent.add_sensor('rgb', 'rgb_2', resolution = 128)
-my_agent.add_sensor('touch', 'touch_1', resolution = 64)
-my_agent.add_sensor('infra-red', 'IR_1', number = 5, fov = 90)
+#my_agent.add_sensor('depth', 'depth_1', resolution = 128)
+# my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
+# my_agent.add_sensor('rgb', 'rgb_2', resolution = 128)
+# my_agent.add_sensor('touch', 'touch_1', resolution = 64)
+# my_agent.add_sensor('infra-red', 'IR_1', number = 5, fov = 90)
 
 
 agents.append(my_agent)
@@ -42,8 +44,6 @@ from flatland.game_engine import Engine
 
 engine_parameters = {
     'inner_simulation_steps': 5,
-    'scale_factor': 1,
-
     'display': {
         'playground' : False,
         'frames' : True,
@@ -52,7 +52,7 @@ engine_parameters = {
 
 rules = {
     'replay_until_time_limit': True,
-    'time_limit': 10000
+    'time_limit': 1000
 }
 
 game = Engine(playground=pg, agents=agents, rules=rules, engine_parameters=engine_parameters )
