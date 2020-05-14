@@ -119,7 +119,7 @@ class LidarSensor(GeometricSensor):
                 if output[cone][entity_type] < activation:
                     output[cone][entity_type] = activation
 
-        print(output)
+        #print(output)
         self.observation = output
         return output
 

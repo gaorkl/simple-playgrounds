@@ -165,9 +165,9 @@ class Agent():
 
         new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
 
-        if isinstance(new_sensor, GeometricSensor):
+        if new_sensor.sensor_modality == sensor.SensorModality.GEOMETRIC:
              self.has_geometric_sensor = True
-        if isinstance(new_sensor, VisualSensor):
+        if new_sensor.sensor_modality == sensor.SensorModality.VISUAL:
             self.has_visual_sensor = True
         self.sensors[sensor_name] = new_sensor
 

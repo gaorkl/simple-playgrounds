@@ -60,7 +60,7 @@ class PositionAreaSampler:
 
                 x, y = np.random.multivariate_normal(self.center, [[self.variance, 0], [0, self.variance]] )
 
-            print(x,y)
+            #print(x,y)
 
         return x,y,theta
 
