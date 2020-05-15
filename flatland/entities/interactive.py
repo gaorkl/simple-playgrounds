@@ -5,20 +5,18 @@ from flatland.utils.position_sampler import PositionAreaSampler
 import pymunk
 
 
-
-@EntityGenerator.register_subclass('edible')
 class Edible(Entity):
 
-    def __init__(self, custom_params):
+    entity_type = 'edible'
+    interactive = True
+    edible = True
 
-        self.entity_type = 'edible'
-        self.interactive =  True
-        self.edible = True
+    def __init__(self, position, default_config_key = None, **kwargs):
 
-        default_config = self.parse_configuration('activable', 'edible')
-        entity_params = {**default_config, **custom_params}
+        default_config = self.parse_configuration('interactive', default_config_key)
+        entity_params = {**default_config, **kwargs}
 
-        super(Edible, self).__init__(entity_params)
+        super(Edible, self).__init__(position=position, **entity_params)
 
         self.shrink_ratio_when_eaten = entity_params['shrink_ratio_when_eaten']
         self.min_reward = entity_params['min_reward']
@@ -83,9 +81,16 @@ class Edible(Entity):
 
         self.generate_shapes_and_masks()
 
+        if self.initial_reward > 0 and self.reward > self.min_reward:
+            return False
+        elif self.initial_reward < 0 and self.reward < self.min_reward:
+            return False
+        else:
+            return True
+
     def reset(self, new_position = None):
 
-        replace = super().reset()
+        super().reset()
 
         self.reward = self.initial_reward
         self.mass = self.initial_mass
@@ -116,50 +121,62 @@ class Edible(Entity):
 
         self.generate_shapes_and_masks()
 
-        return replace
+
+class Apple(Edible):
+
+    def __init__(self, position, **kwargs):
+
+        super(Apple, self).__init__(position=position, default_config_key='apple', **kwargs)
+
+class RottenApple(Edible):
+
+    def __init__(self, position, **kwargs):
+
+        super(RottenApple, self).__init__(position=position, default_config_key='rotten_apple', **kwargs)
 
 
-@EntityGenerator.register_subclass('dispenser')
 class Dispenser(Entity):
 
-    def __init__(self, custom_params):
+    entity_type = 'dispenser'
+    interactive = True
 
-        self.entity_type = 'dispenser'
-        self.interactive = True
+    def __init__(self, position, entity_produced, entity_produced_params = None, production_area = None, **kwargs):
 
-        default_config = self.parse_configuration('activable', 'dispenser')
-        entity_params = {**default_config, **custom_params}
+        default_config = self.parse_configuration('interactive', 'dispenser')
+        entity_params = {**default_config, **kwargs}
+
+        super(Dispenser, self).__init__(position=position, **entity_params)
 
 
-        super(Dispenser, self).__init__(entity_params)
+        self.entity_produced = entity_produced
 
-        absorbable_config = self.parse_configuration('basic', 'absorbable')
-        self.entity_produced = entity_params.get('entity_produced', absorbable_config)
+        if entity_produced_params is None:
+            self.entity_produced_params = {}
+        else:
+            self.entity_produced_params = entity_produced_params
 
-        self.local_dispenser = False
-        self.location_sampler = entity_params.get('area', None)
-
-        if self.location_sampler is None:
+        if production_area is None:
             self.local_dispenser = True
-            self.location_sampler = PositionAreaSampler(area_shape ='circle', center = [self.position[0], self.position[1]], radius =self.radius + 10)
-
+            self.location_sampler = PositionAreaSampler(area_shape='circle',
+                                                        center=[0, 0],
+                                                        radius=self.radius + 10)
+        else:
+            self.local_dispenser = False
+            self.location_sampler = production_area
 
         self.prodution_limit = entity_params['production_limit']
-
         self.produced_entities = []
 
     def activate(self):
-
-        obj = self.entity_produced
 
         if self.local_dispenser:
             position = self.location_sampler.sample( [self.position[0], self.position[1] ])
         else:
             position = self.location_sampler.sample( )
 
-        obj['position'] = position
+        obj = self.entity_produced(position = position, is_temporary_entity = True, **self.entity_produced_params)
 
-        return obj.copy()
+        return obj
 
     def reset(self):
 
@@ -167,6 +184,86 @@ class Dispenser(Entity):
         replace = super().reset()
 
         return replace
+
+
+class Key(Entity):
+
+    entity_type = 'key'
+    movable = True
+
+    def __init__(self, position, **kwargs):
+
+        default_config = self.parse_configuration('interactive', 'key')
+        entity_params = {**default_config, **kwargs}
+
+        super(Key, self).__init__(position=position, **entity_params)
+
+        self.pm_visible_shape.collision_type = collision_types['gem']
+
+
+class Chest(Entity):
+
+    entity_type = 'chest'
+    interactive = True
+
+    def __init__(self, position, key, treasure, **kwargs):
+
+        default_config = self.parse_configuration('interactive', 'chest')
+        entity_params = {**default_config, **kwargs}
+
+        super(Chest, self).__init__(position = position, **entity_params)
+
+        self.key = key
+        self.treasure = treasure
+        self.treasure.is_temporary_entity = True
+
+        self.reward = entity_params.get('reward')
+        self.reward_provided = False
+
+    def pre_step(self):
+
+        self.reward_provided = False
+
+    def activate(self):
+
+        self.treasure.initial_position = self.position
+        return self.treasure
+
+    def reset(self):
+
+        self.reward_provided = False
+        super().reset()
+
+
+
+class Coin(Entity):
+
+    entity_type = 'coin'
+    movable = True
+
+    def __init__(self, position, **kwargs):
+
+        default_config = self.parse_configuration('interactive', 'coin')
+        entity_params = {**default_config, **kwargs}
+
+        super(Coin, self).__init__(position=position, **entity_params)
+
+        self.pm_visible_shape.collision_type = collision_types['gem']
+
+
+class VendingMachine(Entity):
+
+    entity_type = 'vending_machine'
+    interactive = True
+
+    def __init__(self, position, **kwargs):
+
+        default_config = self.parse_configuration('interactive', 'vending_machine')
+        entity_params = {**default_config, **kwargs}
+
+        super(VendingMachine, self).__init__(position = position, **entity_params)
+
+        self.reward = entity_params.get('reward')
 
 
 @EntityGenerator.register_subclass('door')
@@ -200,9 +297,8 @@ class Door(Entity):
     def reset(self):
 
         self.close_door()
-        replace = super().reset()
+        super().reset()
 
-        return replace
 
 @EntityGenerator.register_subclass('openclose_switch')
 class OpenCloseSwitch(Entity):
@@ -297,56 +393,3 @@ class Lock(Entity):
 
         self.door.open_door()
 
-@EntityGenerator.register_subclass('key')
-class Key(Entity):
-
-    def __init__(self, custom_params):
-
-        self.entity_type = 'key'
-        self.movable = True
-
-        default_config = self.parse_configuration('activable', 'key')
-        entity_params = {**default_config, **custom_params}
-
-        super(Key, self).__init__(entity_params)
-
-        self.pm_visible_shape.collision_type = collision_types['gem']
-
-@EntityGenerator.register_subclass('chest')
-class Chest(Entity):
-
-    def __init__(self, custom_params):
-
-        self.entity_type = 'chest'
-        self.interactive = True
-
-        default_config = self.parse_configuration('activable', 'chest')
-        entity_params = {**default_config, **custom_params}
-
-
-        super(Chest, self).__init__(entity_params)
-
-        self.key = entity_params['key']
-
-        self.reward = entity_params.get('reward')
-        self.reward_provided = False
-
-    def pre_step(self):
-
-        self.reward_provided = False
-
-    def get_reward(self):
-
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self.reward
-
-        else:
-            return 0
-
-    def reset(self):
-
-        self.reward_provided = False
-        replace = super().reset()
-
-        return replace

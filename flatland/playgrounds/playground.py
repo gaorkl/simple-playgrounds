@@ -67,8 +67,8 @@ class Playground():
         self.timers = {}
 
         # Add entities declared in the scene
-        for ent_params in self.scene.scene_entities:
-            self.add_entity(entity_config= ent_params)
+        for scene_entity in self.scene.scene_entities:
+            self.add_entity(scene_entity)
 
         # TODO: Replace by class for registring, and import all collisions in a separate file
         self.handle_collisions()
@@ -176,10 +176,7 @@ class Playground():
 
         self.agents = []
 
-
-
-    def add_entity(self, entity_type = None, entity_config = None, **params):
-
+    def add_entity(self, new_entity):
         '''
         Create a new entity and adds it to space, and to the different entity lists
         :param entity_type: type of entity (dispenser, edible, absorbable...)
@@ -188,14 +185,7 @@ class Playground():
         :return: the new entity
         '''
 
-
-        if entity_config == None:
-            entity_config = {}
-
-        entity_params = {**entity_config, **params}
-        entity_params['size_playground'] = [self.width, self.length]
-
-        new_entity = EntityGenerator.create(entity_type, entity_params)
+        new_entity.size_playground = [self.width, self.length]
 
         if new_entity.entity_type is 'yielder':
             self.yielders.append(new_entity)
@@ -203,11 +193,24 @@ class Playground():
         else:
 
             new_entity.position = new_entity.initial_position
-            self.space.add(*new_entity.pm_elements)
-            self.entities.append(new_entity)
+            self.place_entity_in_playground(new_entity)
 
         return new_entity
 
+    def place_entity_in_playground(self, entity):
+
+        self.space.add(*entity.pm_elements)
+        self.entities.append(entity)
+        if entity in self.disappeared:
+            self.disappeared.remove(entity)
+
+    def remove_entity(self, disappearing_entity):
+
+        self.space.remove(*disappearing_entity.pm_elements)
+        self.entities.remove(disappearing_entity)
+
+        if not disappearing_entity.is_temporary_entity:
+            self.disappeared.append(disappearing_entity)
 
     def update_playground(self):
 
@@ -223,11 +226,6 @@ class Playground():
         self.release_grasps()
 
 
-
-        #for entity in self.entities:
-
-        #    entity.pre_step()
-
     def reset(self):
         # Reset the environment
 
@@ -236,30 +234,14 @@ class Playground():
 
         print('reset playground')
 
+        # remove entities and filter out entities which are temporary
         for entity in self.entities.copy():
+            self.remove_entity(entity)
 
-            self.space.remove(*entity.pm_elements)
-
-            replace = entity.reset()
-
-            if replace:
-                self.space.add(*entity.pm_elements)
-            else:
-                self.entities.remove(entity)
-
-
+        # reset and replace entities that are not temporary
         for entity in self.disappeared.copy():
-
-            replace = entity.reset()
-
-            if replace:
-                self.space.add(*entity.pm_elements)
-
-                self.disappeared.remove(entity)
-                self.entities.append(entity)
-
-            else:
-                self.disappeared.remove(entity)
+            entity.reset()
+            self.place_entity_in_playground(entity)
 
         for entity in self.yielders:
             entity.reset()
@@ -365,6 +347,7 @@ class Playground():
         entity = [entity for entity in self.entities if entity.pm_visible_shape == pm_shape][0]
         return entity
 
+
     def get_agent_from_shape(self, pm_shape):
 
         for agent in self.agents:
@@ -383,12 +366,7 @@ class Playground():
             reward = touched_entity.reward
             agent.reward += reward
 
-            self.space.remove(*touched_entity.pm_elements)
-            self.entities.remove(touched_entity)
-
-            if (not touched_entity.is_temporary_entity):
-                self.disappeared.append(touched_entity)
-
+            self.remove_entity(touched_entity)
 
             for entity in self.entities:
                 if entity.entity_type is 'dispenser' and touched_entity in entity.produced_entities:
@@ -425,8 +403,8 @@ class Playground():
             agent.is_activating = False
 
             if len(interacting_entity.produced_entities) < interacting_entity.prodution_limit:
-                new_entity_params = interacting_entity.activate()
-                new_entity = self.add_entity('absorbable', new_entity_params, is_temporary_entity=True)
+                new_entity = interacting_entity.activate()
+                self.add_entity(new_entity)
                 interacting_entity.produced_entities.append(new_entity)
 
         elif agent.is_activating and (interacting_entity.entity_type is 'switch'):
@@ -492,11 +470,11 @@ class Playground():
 
     def eaten_shrinks(self, space, edible, agent):
 
-        edible.activate()
+        completely_eaten = edible.activate()
 
         agent.reward += edible.reward
 
-        if edible.reward > edible.min_reward :
+        if not completely_eaten :
 
             space.add(*edible.pm_elements)
 
@@ -529,6 +507,25 @@ class Playground():
 
         return True
 
+
+
+    def get_closest_agent(self, ent):
+
+        def sq_distance(a,b):
+            return (a.position[0] - b.position[0]) **2 + (a.position[1] - b.position[1]) **2
+
+        min_dist = math.inf
+        closest_agent = None
+
+        for agent in self.agents:
+
+            distance = sq_distance(agent, ent)
+            if distance < min_dist :
+                min_dist = distance
+                closest_agent = agent
+
+        return closest_agent
+
     def gem_interacts(self, arbiter, space, data):
 
         gem = [entity for entity in self.entities if entity.pm_visible_shape == arbiter.shapes[0]][0]
@@ -538,30 +535,27 @@ class Playground():
             interacting_entity.activate()
 
             door = interacting_entity.door
-            space.remove(*door.pm_elements)
-            space.remove(*gem.pm_elements)
-            space.remove(*interacting_entity.pm_elements)
 
-            self.entities.remove(door)
-            self.entities.remove(gem)
-            self.entities.remove(interacting_entity)
+            self.remove_entity(door)
+            self.remove_entity(gem)
+            self.remove_entity(interacting_entity)
 
-            self.disappeared.append(door)
-            self.disappeared.append(gem)
-            self.disappeared.append(interacting_entity)
 
         if interacting_entity.entity_type is 'chest' and gem is interacting_entity.key :
-            reward = interacting_entity.get_reward()
-            space.remove(*gem.pm_elements)
-            self.entities.remove(gem)
-            self.disappeared.append(gem)
-            interacting_entity.reward_provided = True
 
+            treasure = interacting_entity.activate()
 
-            # to be changed when multiagents with competition: only closest agent should have reward
-            for agent in self.agents:
-                agent.reward += reward
+            self.remove_entity(interacting_entity)
+            self.remove_entity(gem)
 
+            self.add_entity(treasure)
+
+        if interacting_entity.entity_type is 'vending_machine' and gem.entity_type is 'coin' :
+
+            agent = self.get_closest_agent(gem)
+
+            agent.reward +=  interacting_entity.reward
+            self.remove_entity(gem)
 
 
         return True

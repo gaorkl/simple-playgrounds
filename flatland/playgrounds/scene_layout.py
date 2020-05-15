@@ -2,6 +2,7 @@ import yaml
 import math
 import os
 from flatland.utils.utils import get_yaml_config
+from flatland.entities.basic import Basic
 
 class SceneGenerator():
 
@@ -67,9 +68,9 @@ class Scene():
         for length, position in self.generate_external_wall_shapes():
             wall_params = self.config['wall'].copy()
             wall_params['width_length'] = [self.wall_depth, length]
-            wall_params['position'] = position
 
-            self.scene_entities.append(wall_params)
+            wall = Basic(position=position, **wall_params)
+            self.scene_entities.append(wall)
 
 @SceneGenerator.register_subclass('room')
 class Room(Scene):

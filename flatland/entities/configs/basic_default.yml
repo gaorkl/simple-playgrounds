@@ -59,15 +59,3 @@ hexagon:
   radius: 20
 
 
-# Absorbable
-absorbable_texture : &absorbable-texture
-    texture_type: color
-    color: [200, 100, 50]
-
-absorbable :
-  physical_shape: hexagon
-  radius: 4
-  mass: 5
-  texture: *absorbable-texture
-  movable: True
-  reward : 5

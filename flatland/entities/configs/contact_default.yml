@@ -25,3 +25,29 @@ visible_deathtrap:
   'texture': *visible_deathtrap_texture
   'reward': -200
 
+# Reward On contact: Absorbable
+
+candy_texture: &candy-texture
+    texture_type: color
+    color: [100, 100, 250]
+
+candy:
+  physical_shape: triangle
+  radius: 6
+  mass: 5
+  texture: *candy-texture
+  movable: True
+  reward : 5
+
+
+poison_texture: &poison-texture
+    texture_type: color
+    color: [250, 100, 150]
+
+poison:
+  physical_shape: pentagon
+  radius: 6
+  mass: 5
+  texture: *poison-texture
+  movable: True
+  reward : -5

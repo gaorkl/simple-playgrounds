@@ -1,7 +1,7 @@
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground
 from flatland.playgrounds.collection.empty import Room
 from flatland.utils.position_sampler import PositionAreaSampler
-
+from flatland.entities import *
 import math
 
 @PlaygroundGenerator.register_subclass('basic_01')
@@ -11,29 +11,21 @@ class Basic_01(Room):
 
         super(Basic_01, self).__init__(scene_params)
 
-        self.add_entity('rectangle', width_length = [20, 40], position = [150, 160, 0.2])
-        self.add_entity('circle', position = [50, 60, 0], movable = True, mass = 100, texture = [150, 150, 150])
-        self.add_entity('square', position = [150, 60, 0], movable = True, mass = 10)
-        self.add_entity('pentagon', position = [50, 160, 0], radius = 40)
-        self.add_entity('hexagon', position = [100, 100, 0], graspable = True, mass = 5, interaction_range = 10, radius = 15)
+        rectangle_01 = Basic(position=[150, 160, 0.2], default_config_key='rectangle')
+        self.add_entity(rectangle_01)
 
-        self.add_entity('visible_endgoal', position=[10, 10, 0], radius=20)
+        circle_01 = Basic(position=[50, 60, 0], default_config_key='circle', movable=True, mass=100, texture=[150, 150, 150])
+        self.add_entity(circle_01)
 
+        square_01 = Basic(position=[150, 60, 0], default_config_key='square', movable=True, mass=10)
+        self.add_entity(square_01)
 
-@PlaygroundGenerator.register_subclass('basic_02')
-class Basic_02(Room):
+        pentagon_01 = Basic(position=[50, 160, 0], default_config_key='pentagon', radius = 15)
+        self.add_entity(pentagon_01)
 
-    def __init__(self, scene_params):
+        hexagon_01 = Basic(position=[100, 100, 0], default_config_key='hexagon', graspable = True, mass = 5)
+        self.add_entity(hexagon_01)
 
-        super(Basic_02, self).__init__(scene_params)
-
-        self.add_entity('rectangle', position = [150, 160, 0.56])
-        self.add_entity('circle', position = [50, 60, 0], movable = True, mass = 100, texture = [150, 150, 150])
-        self.add_entity('square', position = [150, 60, 0], movable = True, mass = 10)
-        self.add_entity('pentagon', position = [50, 160, 0])
-        self.add_entity('hexagon', position = [100, 100, 0], texture = [150, 200, 250])
-
-        self.add_entity('contact_endzone', position=[10, 10, 0], radius=20)
 
 
 @PlaygroundGenerator.register_subclass('contact_01')
@@ -43,10 +35,119 @@ class Contact_01(Room):
 
         super(Contact_01, self).__init__(scene_params)
 
-        #self.add_entity('absorbable', position = [150, 160, 0.56])
-        self.add_entity('visible_endgoal', position = [50, 60, 0], radius = 5)
-        self.add_entity('visible_deathtrap', position = [150, 60, 0], reward=-100)
-        self.add_entity('visible_deathtrap', position = [50, 160, 0], radius = 40)
+        endgoal_01 = VisibleEndGoal([100, 100, 0], reward=50)
+        self.add_entity(endgoal_01)
+
+        deathtrap_01 = VisibleDeathTrap([180, 180, 0])
+        self.add_entity(deathtrap_01)
+
+        poison = Poison([15,15,0])
+        self.add_entity(poison)
+
+        poison_area = PositionAreaSampler(area_shape='rectangle', center=[100, 50], shape=[20, 20])
+        for i in range(5):
+            poison = Poison(poison_area)
+            self.add_entity(poison)
+
+        candy_area = PositionAreaSampler(area_shape='rectangle', center=[50, 100], shape=[20, 20])
+        for i in range(5):
+            candy = Candy(candy_area)
+            self.add_entity(candy)
+
+
+@PlaygroundGenerator.register_subclass('zones_01')
+class Zones_01(Room):
+
+    def __init__(self, scene_params=None):
+
+        scene_params['room_shape'] = [200, 200]
+
+        super(Zones_01, self).__init__(scene_params)
+
+        goal_1 = GoalZone(position=[20, 20, 0])
+        self.add_entity(goal_1)
+
+        goal_2 = GoalZone(position=[180, 20, 0])
+        self.add_entity(goal_2)
+
+        death_1 = DeathZone(position=[20, 180, 0], reward=-25)
+        self.add_entity(death_1)
+
+        death_2 = DeathZone(position=[180, 180, 0])
+        self.add_entity(death_2)
+
+        healing_1 = HealingZone(position=[100, 50, 0])
+        self.add_entity(healing_1)
+
+        toxic_1 = ToxicZone(position=[50, 100, 0])
+        self.add_entity(toxic_1)
+
+
+@PlaygroundGenerator.register_subclass('interactive_01')
+class Interactive_01(Room):
+
+    def __init__(self, scene_params = None):
+
+        scene_params['room_shape'] = [300,300]
+
+        super(Interactive_01, self).__init__(scene_params)
+
+        apple = Apple(position=[100, 50, 0])
+        self.add_entity(apple)
+
+        rotten = RottenApple(position=[100, 100, 0])
+        self.add_entity(rotten)
+
+        goal_1 = GoalZone(position=[20, 20, 0])
+        self.add_entity(goal_1)
+
+        area_1 = PositionAreaSampler(area_shape='rectangle', center=[200, 150], shape=[20, 50])
+        dispenser_1 = Dispenser(
+            position=[150, 150, 0],
+            entity_produced=Poison,
+            production_area=area_1
+        )
+        self.add_entity(dispenser_1)
+
+        area_2 = PositionAreaSampler(area_shape='gaussian', center=[150, 50], variance = 300, radius=60)
+        dispenser_2 = Dispenser(
+            position=[100, 150, 0],
+            entity_produced=Candy,
+            production_area=area_2
+        )
+        self.add_entity(dispenser_2)
+
+        dispenser_3 = Dispenser(
+            position=[200, 150, 0],
+            entity_produced=Candy,
+            entity_produced_params={'radius':3, 'reward':42},
+            movable=True,
+            mass=5
+        )
+        self.add_entity(dispenser_3)
+
+        key_chest = Key(position=[50, 200, 0], default_config_key='pentagon', radius = 7, graspable = True, mass = 10)
+        self.add_entity(key_chest)
+
+        treasure = Apple(position=[0, 0, 0])
+        chest = Chest(position = [100, 200,0], key = key_chest, treasure = treasure)
+        self.add_entity(chest)
+
+        coin = Coin(position=[150, 200, 0], graspable=True)
+        self.add_entity(coin)
+
+        coin = Coin(position=[150, 220, 0], graspable=True)
+        self.add_entity(coin)
+
+        coin = Coin(position=[150, 240, 0], graspable=True)
+        self.add_entity(coin)
+
+        vending = VendingMachine(position=[200, 200, 0])
+        self.add_entity(vending)
+
+
+
+
 
 @PlaygroundGenerator.register_subclass('moving_01')
 class Moving_01(Room):
@@ -66,30 +167,6 @@ class Moving_01(Room):
         }
         #self.add_entity('fireball', center_trajectory = [100, 100], trajectory = trajectory_fireball )
 
-
-@PlaygroundGenerator.register_subclass('activable_01')
-class Activable_01(Room):
-
-    def __init__(self, scene_params = None):
-
-        scene_params['room_shape'] = [300,300]
-
-        super(Activable_01, self).__init__(scene_params)
-
-        self.add_entity('edible', position = [50,50,0])
-        self.add_entity('contact_endzone', position=[150, 60, 0], radius=10)
-
-        dispenser_position = PositionAreaSampler(area_shape ='rectangle', center = [200, 100], shape = [20, 20])
-        self.add_entity('dispenser', position = dispenser_position, movable = True)
-
-        area = PositionAreaSampler(area_shape ='rectangle', center = [50, 150], shape = [100, 50])
-        self.add_entity('dispenser', position = [100, 100, 0], area = area)
-
-        area_2 = PositionAreaSampler(area_shape ='gaussian', center = [300, 100], variance = 900, radius = 100)
-        self.add_entity('dispenser', position = [100, 150, 0], area = area_2, production_limit = 100)
-
-        key_chest = self.add_entity('key', position = [100, 250, 0] )
-        self.add_entity('chest', key = key_chest, position = [100, 200, 0], movable = True, mass = 10 )
 
 
 @PlaygroundGenerator.register_subclass('doors_01')
@@ -132,23 +209,6 @@ class Yielders_01(Room):
 
 
 
-@PlaygroundGenerator.register_subclass('zones_01')
-class Zones_01(Room):
-
-    def __init__(self, scene_params=None):
-
-        scene_params['room_shape'] = [200, 200]
-
-        super(Zones_01, self).__init__(scene_params)
-
-        self.add_entity('goal_zone', position=[20, 20, 0])
-        self.add_entity('death_zone', position=[180, 20, 0], physical_shape='hexagon')
-
-        area_1 = PositionAreaSampler(area_shape ='rectangle', center = [100, 100], shape = [20, 20])
-        self.add_entity('goal_zone', position = area_1, reward = 200)
-
-        self.add_entity('toxic_zone', position=[20, 180, 0])
-        self.add_entity('healing_zone', position=[180, 180, 0], total_reward = 25)
 
 
 @PlaygroundGenerator.register_subclass('david')

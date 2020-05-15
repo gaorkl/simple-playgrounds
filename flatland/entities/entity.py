@@ -4,6 +4,7 @@ from flatland.utils.position_sampler import *
 from flatland.utils import texture
 import os, yaml
 
+from copy import deepcopy
 
 geometric_shapes = {'line':2, 'circle':60, 'triangle':3, 'square':4, 'pentagon':5, 'hexagon':6 }
 
@@ -20,14 +21,14 @@ class Entity():
     follows_waypoints = False
     graspable = False
 
-    def __init__(self, params):
+    def __init__(self, **entity_params):
         """
         Instantiate an obstacle with the following parameters
         :param pos: 2d tuple or 'random', position of the fruit
         :param environment: the environment calling the creation of the fruit
         """
 
-        self.parse_parameters(params)
+        self.parse_parameters(entity_params)
 
         if self.graspable:
             self.interactive = True
@@ -83,7 +84,7 @@ class Entity():
             self.visible_vertices = self.compute_vertices(self.radius)
 
         # Interaction shape. If not visible, take dimension of physical shape
-        self.interaction_range = params.get('interaction_range', 0)
+        self.interaction_range = params.get('interaction_range', 5)
 
         if self.physical_shape == 'rectangle':
             self.width_interaction = self.width + self.interaction_range * self.visible
@@ -119,6 +120,9 @@ class Entity():
 
     def parse_configuration(self, entity_type, key):
 
+        if key is None:
+            return {}
+
         fname = 'configs/' + entity_type + '_default.yml'
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -144,6 +148,7 @@ class Entity():
             self._texture_params = params
 
         self._texture_params['radius'] = self.radius
+        self._texture_params['physical_shape'] = self.physical_shape
 
 
     @property
@@ -298,14 +303,14 @@ class Entity():
 
         if self.physical_shape == 'rectangle':
 
-            texture_visible_surface = pygame.transform.scale(self.texture_surface, (2*self.radius, 2*self.radius))
+            texture_visible_surface = pygame.transform.scale(self.texture_surface, (2*int(self.radius),2*int(self.radius)))
             mask = pygame.Surface((int(self.length), int(self.width)), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
             pygame.draw.rect(mask, (255, 255, 255, alpha), ((0, 0), (int(self.length), int(self.width))))
 
         elif self.physical_shape == 'circle':
 
-            texture_visible_surface = pygame.transform.scale(self.texture_surface, (2*self.radius,2*self.radius))
+            texture_visible_surface = pygame.transform.scale(self.texture_surface, (2*int(self.radius),2*int(self.radius)))
             mask = pygame.Surface((int(self.radius) * 2, int(self.radius) * 2), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
             pygame.draw.circle(mask, (255, 255, 255, alpha), (int(self.radius), int(self.radius)), int(self.radius))
@@ -338,7 +343,7 @@ class Entity():
 
             width, length = int(self.width_interaction), int(self.length_interaction)
 
-            texture_interactive_surface = pygame.transform.scale(self.texture_surface,(2*self.radius_interaction, 2*self.radius_interaction))
+            texture_interactive_surface = pygame.transform.scale(self.texture_surface,(2*int(self.radius_interaction), 2*int(self.radius_interaction)))
             mask = pygame.Surface((length, width), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
             pygame.draw.rect(mask, (255, 255, 255, alpha), ((0, 0), (length, width)))
@@ -347,7 +352,7 @@ class Entity():
 
             radius = int(self.radius_interaction)
 
-            texture_interactive_surface = pygame.transform.scale(self.texture_surface,(2*self.radius_interaction, 2*self.radius_interaction))
+            texture_interactive_surface = pygame.transform.scale(self.texture_surface,(2*int(self.radius_interaction), 2*int(self.radius_interaction)))
 
             mask = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
@@ -444,15 +449,7 @@ class Entity():
 
         self.position = self.initial_position
 
-
         self.velocity = [0, 0, 0]
-        
-        if self.is_temporary_entity:
-            replace = False
-        else:
-            replace = True
-
-        return replace
 
 
 class EntityGenerator():

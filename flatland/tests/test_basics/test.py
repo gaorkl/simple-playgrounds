@@ -2,7 +2,7 @@ from flatland.tests.test_basics.test_pg import *
 from flatland.agents import agent
 
 #pg = PlaygroundGenerator.create('contact_01', room_shape = [200, 200])
-pg = PlaygroundGenerator.create('basic_01')
+pg = PlaygroundGenerator.create('interactive_01')
 # for entity in pg.entities:
 #     print(entity)
 #     print(entity.entity_type)
@@ -41,6 +41,8 @@ my_agent = agent.Agent('forward', name = 'mercotte',
 
 agents.append(my_agent)
 
+other_agent = agent.Agent('forward', name='other', controller_type='random', position = [200, 200, 0])
+agents.append(other_agent)
 
 from flatland.game_engine import Engine
 
@@ -76,7 +78,7 @@ while game.game_on:
     game.update_observations()
 
 
-    for agent in game.agents[:1]:
+    for agent in game.agents:
 
         # observations = agent.observations
         # print(observations)
@@ -94,7 +96,7 @@ while game.game_on:
                 cv2.imshow(sensor_name, im)
                 cv2.waitKey(1)
 
-        if agent.reward != 0: print(agent.reward)
+        if agent.reward != 0: print(agent.name, agent.reward)
 
     # for entity in game.playground.entities:
     #     if entity.velocity[0] != 0:

@@ -1,11 +1,6 @@
 from flatland.utils.config import *
-from flatland.entities.entity import Entity, EntityGenerator
+from flatland.entities.entity import Entity
 
-import yaml, os
-
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-with open(os.path.join(__location__, 'configs/contact_default.yml'), 'r') as yaml_file:
-    default_config = yaml.load(yaml_file)
 
 
 class TerminationContact(Entity):
@@ -13,9 +8,19 @@ class TerminationContact(Entity):
     entity_type = 'contact_termination'
     visible = True
 
-    def __init__(self, entity_params):
 
-        super(TerminationContact, self).__init__(entity_params)
+    def __init__(self, position, default_config_key=None, **kwargs):
+        """
+        
+        :param position: initial position or position samples
+        :param default_config_key: visible_endgoal or visible_deathtrap
+        :param kwargs: other params
+        """
+
+        default_config = self.parse_configuration('contact', default_config_key)
+        entity_params = {**default_config, **kwargs}
+
+        super(TerminationContact, self).__init__(position = position, **entity_params)
 
         self.reward = entity_params['reward']
         self.pm_visible_shape.collision_type = collision_types['contact']
@@ -37,26 +42,56 @@ class TerminationContact(Entity):
 
     def reset(self):
         self.reward_provided = False
-
-        replace = super().reset()
-
-        return replace
+        super().reset()
 
 
-@EntityGenerator.register_subclass('visible_endgoal')
+
 class VisibleEndGoal(TerminationContact):
 
-    def __init__(self, custom_config):
-        custom_config = {**default_config['visible_endgoal'], **custom_config}
+    def __init__(self, position, **kwargs):
 
-        super(VisibleEndGoal, self).__init__(custom_config)
+        super(VisibleEndGoal, self).__init__(position=position, default_config_key='visible_endgoal', **kwargs)
 
 
-@EntityGenerator.register_subclass('visible_deathtrap')
 class VisibleDeathTrap(TerminationContact):
 
-    def __init__(self, custom_config):
-        custom_config = {**default_config['visible_deathtrap'], **custom_config}
+    def __init__(self, position, **kwargs):
 
-        super(VisibleDeathTrap, self).__init__(custom_config)
+        super(VisibleDeathTrap, self).__init__(position=position, default_config_key='visible_deathtrap', **kwargs)
+
+
+
+class Absorbable(Entity):
+
+    entity_type = 'absorbable'
+    absorbable = True
+
+    def __init__(self, position, default_config_key = None, **kwargs):
+        """
+
+        :param position: initial position
+        :param default_config_key: pellet or poison
+        :param kwargs: other params
+        """
+
+        default_config = self.parse_configuration('contact', default_config_key)
+        entity_params = {**default_config, **kwargs}
+
+        super(Absorbable, self).__init__(position = position, **entity_params)
+
+        self.reward = entity_params['reward']
+        self.pm_visible_shape.collision_type = collision_types['contact']
+
+class Candy(Absorbable):
+
+    def __init__(self, position, **kwargs):
+
+        super(Candy, self).__init__(position=position, default_config_key='candy', **kwargs)
+
+
+class Poison(Absorbable):
+
+    def __init__(self, position, **kwargs):
+
+        super(Poison, self).__init__(position=position, default_config_key='poison', **kwargs)
 

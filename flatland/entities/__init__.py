@@ -1,2 +1,5 @@
-from . import basic, contact, moving, activable, yielder, zone
 from . import entity
+from .basic import Basic
+from .contact import *
+from .zone import *
+from .interactive import *
