@@ -9,12 +9,6 @@ fireball_texture: &fireball-texture
   size_tiles : 4
   radius: *radius-fireball
 
-fireball_trajectory: &fireball-trajectory
-  trajectory_shape: circle
-  radius: 50
-  angle : 90
-  speed : 80
-
 fireball:
   physical_shape: circle
   radius: *radius-fireball
@@ -23,17 +17,10 @@ fireball:
   interaction_range: 10
   reward: -2
   total_reward: -200
-  trajectory: *fireball-trajectory
 
 # Fairy
 
 radius_fairy: &radius-fairy 10
-
-fairy_trajectory: &fairy-trajectory
-  trajectory_shape: hexagon
-  radius: 60
-  angle : 180
-  speed : 100
 
 fairy_texture: &fairy-texture
   texture_type: centered_random_tiles
@@ -50,5 +37,4 @@ fairy:
   interaction_range: 10
   reward: 2
   total_reward: 200
-  trajectory: *fairy-trajectory
 

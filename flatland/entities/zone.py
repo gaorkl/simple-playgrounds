@@ -9,12 +9,12 @@ class TerminationZone(Entity):
     interactive = True
 
 
-    def __init__(self, position, default_config_key, **kwargs):
+    def __init__(self, initial_position, default_config_key, **kwargs):
 
         default_config = self.parse_configuration('zone', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(TerminationZone, self).__init__(position = position, **entity_params)
+        super(TerminationZone, self).__init__(initial_position = initial_position, **entity_params)
 
         self.pm_interaction_shape.collision_type = collision_types['zone']
 
@@ -39,21 +39,21 @@ class TerminationZone(Entity):
 
         self.reward_provided = False
 
-        replace = super().reset()
+        super().reset()
 
-        return replace
+
 
 class GoalZone(TerminationZone):
 
-    def __init__(self,position, **kwargs):
+    def __init__(self,initial_position, **kwargs):
 
-        super(GoalZone, self).__init__(position=position, default_config_key = 'goal_zone', **kwargs)
+        super(GoalZone, self).__init__(initial_position=initial_position, default_config_key = 'goal_zone', **kwargs)
 
 
 class DeathZone(TerminationZone):
 
-    def __init__(self, position, **kwargs):
-        super(DeathZone, self).__init__(position=position, default_config_key='death_zone', **kwargs)
+    def __init__(self, initial_position, **kwargs):
+        super(DeathZone, self).__init__(initial_position=initial_position, default_config_key='death_zone', **kwargs)
 
 
 
@@ -63,12 +63,12 @@ class RewardZone(Entity):
     visible = False
     interactive = True
 
-    def __init__(self, position, default_config_key , **kwargs):
+    def __init__(self, initial_position, default_config_key , **kwargs):
 
         default_config = self.parse_configuration('zone', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(RewardZone, self).__init__(position=position, **entity_params)
+        super(RewardZone, self).__init__(initial_position=initial_position, **entity_params)
 
         self.pm_interaction_shape.collision_type = collision_types['zone']
 
@@ -106,19 +106,18 @@ class RewardZone(Entity):
         self.total_reward = self.initial_total_reward
         self.reward_provided = False
 
-        replace = super().reset()
+        super().reset()
 
-        return replace
 
 class ToxicZone(RewardZone):
 
-    def __init__(self,position, **kwargs):
+    def __init__(self,initial_position, **kwargs):
 
-        super(ToxicZone, self).__init__(position=position, default_config_key = 'toxic_zone', **kwargs)
+        super(ToxicZone, self).__init__(initial_position=initial_position, default_config_key = 'toxic_zone', **kwargs)
 
 class HealingZone(RewardZone):
 
-    def __init__(self,position, **kwargs):
+    def __init__(self,initial_position, **kwargs):
 
-        super(HealingZone, self).__init__(position=position, default_config_key = 'healing_zone', **kwargs)
+        super(HealingZone, self).__init__(initial_position=initial_position, default_config_key = 'healing_zone', **kwargs)
 

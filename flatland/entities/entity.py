@@ -21,6 +21,9 @@ class Entity():
     follows_waypoints = False
     graspable = False
 
+    index_entity = 0
+    entity_type = None
+
     def __init__(self, **entity_params):
         """
         Instantiate an obstacle with the following parameters
@@ -58,6 +61,13 @@ class Entity():
             self.generate_trajectory()
             self.initial_position = self.trajectory_points[0]
 
+        # Internal counter to assign identity number to each entity
+        self.name = self.entity_type+'_' + str(Entity.index_entity)
+        Entity.index_entity += 1
+
+        # To be set when entity is added to playground
+        self.size_playground = None
+
 
     def parse_parameters(self, params):
 
@@ -67,9 +77,6 @@ class Entity():
         self.is_temporary_entity = params.get('is_temporary_entity', False)
 
         self.mass = params.get('mass', None)
-
-        # Required parameters.
-        self.size_playground = params.get('size_playground')
 
         # Physical Shape
         self.physical_shape = params['physical_shape']
@@ -99,7 +106,8 @@ class Entity():
 
         self.trajectory_params = params.get('trajectory', None)
         if self.trajectory_params is None:
-            self.initial_position = params['position']
+            self.initial_position = params['initial_position']
+
 
 
     def create_texture(self):
@@ -190,6 +198,10 @@ class Entity():
     def position(self, position):
 
         coord_x, coord_y, coord_phi = position
+
+        # make sure that coordinates are within playground
+        coord_x = max(min(self.size_playground[0], coord_x), 0)
+        coord_y = max(min(self.size_playground[1], coord_y), 0)
 
         y = self.size_playground[0] - coord_x
         x = coord_y
@@ -447,9 +459,9 @@ class Entity():
         if self.follows_waypoints:
             self.index_trajectory = 0
 
-        self.position = self.initial_position
-
         self.velocity = [0, 0, 0]
+
+        self.position = self.initial_position
 
 
 class EntityGenerator():

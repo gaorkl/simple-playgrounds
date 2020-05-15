@@ -1,7 +1,6 @@
 import yaml
 import math
 import os
-from flatland.utils.utils import get_yaml_config
 from flatland.entities.basic import Basic
 
 class SceneGenerator():
@@ -56,10 +55,14 @@ class Scene():
         """
         walls = []
 
-        walls.append([ self.length, (self.wall_depth / 2.0, self.length / 2.0, math.pi / 2.0)])
-        walls.append([ self.length, (self.width - self.wall_depth / 2.0, self.length / 2.0,  math.pi / 2.0)])
-        walls.append([ self.width, ( self.width / 2.0, self.wall_depth / 2.0, 0.0)])
-        walls.append([ self.width, ( self.width / 2.0, self.length - self.wall_depth / 2.0, 0.0)])
+        walls.append([ self.length, (0, self.length / 2.0, math.pi / 2.0)])
+        walls.append([ self.length, (self.width , self.length / 2.0,  math.pi / 2.0)])
+        walls.append([ self.width, ( self.width / 2.0, 0, 0.0)])
+        walls.append([ self.width, ( self.width / 2.0, self.length , 0.0)])
+        # walls.append([ self.length, (self.wall_depth / 2.0, self.length / 2.0, math.pi / 2.0)])
+        # walls.append([ self.length, (self.width - self.wall_depth / 2.0, self.length / 2.0,  math.pi / 2.0)])
+        # walls.append([ self.width, ( self.width / 2.0, self.wall_depth / 2.0, 0.0)])
+        # walls.append([ self.width, ( self.width / 2.0, self.length - self.wall_depth / 2.0, 0.0)])
 
         return walls
 
@@ -67,9 +70,9 @@ class Scene():
 
         for length, position in self.generate_external_wall_shapes():
             wall_params = self.config['wall'].copy()
-            wall_params['width_length'] = [self.wall_depth, length]
+            wall_params['width_length'] = [self.wall_depth*2, length]
 
-            wall = Basic(position=position, **wall_params)
+            wall = Basic(initial_position=position, **wall_params)
             self.scene_entities.append(wall)
 
 @SceneGenerator.register_subclass('room')

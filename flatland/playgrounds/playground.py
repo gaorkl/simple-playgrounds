@@ -57,7 +57,7 @@ class Playground():
         self.physical_entities = []
 
         self.entities = []
-        self.yielders = []
+        self.fields = []
         self.disappeared = []
 
         # Store the temporary pinjoints for grasping
@@ -92,27 +92,6 @@ class Playground():
 
         return SceneGenerator.create( scene_params)
 
-    def get_valid_position(self, agent, min_distance_to_wall = 0):
-
-        maximum_tries = 100
-        minimum_distance_to_border = min_distance_to_wall + self.scene.wall_depth
-
-        position = math.inf, math.inf, 0
-        found_position = False
-
-        for i in range(maximum_tries):
-
-            if (position[0] < minimum_distance_to_border or position[0] > self.width - minimum_distance_to_border
-                    or position[1] < minimum_distance_to_border or position[
-                        1] > self.length - minimum_distance_to_border):
-
-                position = agent.initial_position
-
-            else:
-                found_position = True
-                break
-
-        return position, found_position
 
     def add_agent(self, agent):
 
@@ -123,23 +102,10 @@ class Playground():
 
         agent.size_playground = [self.width, self.length]
 
-
-        if agent.initial_position is not None:
-            pass
-
-        elif self.agent_starting_area is not None:
-            agent.initial_position = self.agent_starting_area
-
-        else:
+        if agent.initial_position is None:
             agent.initial_position = [self.width / 2, self.length / 2, 0]
 
-        position, found_position = self.get_valid_position(agent, min_distance_to_wall = 20)
-
-        if not found_position:
-
-            raise ValueError('Position of agent '+agent.name+ ' could not be set')
-
-        agent.position = position
+        agent.position = agent.initial_position
 
         for part_name, part in agent.frame.anatomy.items():
 
@@ -187,8 +153,8 @@ class Playground():
 
         new_entity.size_playground = [self.width, self.length]
 
-        if new_entity.entity_type is 'yielder':
-            self.yielders.append(new_entity)
+        if new_entity.entity_type is 'field':
+            self.fields.append(new_entity)
 
         else:
 
@@ -221,7 +187,7 @@ class Playground():
             if entity.follows_waypoints:
                 self.space.reindex_shapes_for_body(entity.pm_body)
 
-        self.yielders_produce()
+        self.fields_produce()
         self.check_timers()
         self.release_grasps()
 
@@ -243,7 +209,7 @@ class Playground():
             entity.reset()
             self.place_entity_in_playground(entity)
 
-        for entity in self.yielders:
+        for entity in self.fields:
             entity.reset()
 
         # Reset flags and counters
@@ -310,14 +276,13 @@ class Playground():
         return imgdata
 
 
-    def yielders_produce(self):
+    def fields_produce(self):
 
-        for yielder in self.yielders:
+        for field in self.fields:
 
-            if (random.random() < yielder.probability) and ( len(yielder.produced_entities) < yielder.limit):
-                new_obj_type, new_obj_params = yielder.produce()
-                new_obj = self.add_entity(new_obj_type, new_obj_params, is_temporary_entity=True)
-                yielder.produced_entities.append(new_obj)
+            if field.can_produce():
+                new_entity = field.produce()
+                self.add_entity(new_entity)
 
     def check_timers(self):
 
@@ -372,14 +337,21 @@ class Playground():
                 if entity.entity_type is 'dispenser' and touched_entity in entity.produced_entities:
                     entity.produced_entities.remove(touched_entity)
 
-            for entity in self.yielders:
+            for entity in self.fields:
                 if touched_entity in entity.produced_entities:
                     entity.produced_entities.remove(touched_entity)
 
-        elif touched_entity.entity_type in 'contact_termination':
+        elif touched_entity.entity_type is 'contact_termination':
             self.has_reached_termination = True
             reward = touched_entity.get_reward()
             agent.reward += reward
+
+        elif touched_entity.entity_type is 'pushbutton':
+            touched_entity.activate()
+
+            if touched_entity.door in self.entities:
+
+                self.remove_entity(touched_entity.door)
 
         return True
 
@@ -417,41 +389,10 @@ class Playground():
             if door.opened:
 
                 if door in self.entities:
-                    space.remove(*door.pm_elements)
-                    self.entities.remove(door)
-                    self.disappeared.append(door)
+                    self.remove_entity(door)
 
             else:
-                space.add(*door.pm_elements)
-                self.entities.append(door)
-                self.disappeared.remove(door)
-
-        # elif agent.is_activating and (interacting_entity.entity_type is 'button_door_openclose'):
-        #
-        #     agent.is_activating = False
-        #     interacting_entity.activate()
-        #     door = interacting_entity.door
-        #
-        #     if interacting_entity.door_opened:
-        #         space.remove(*door.pm_elements)
-        #         self.entities.remove(door)
-        #         self.disappeared.append(door)
-        #     else:
-        #         space.add(*door.pm_elements)
-        #         self.entities.append(door)
-        #         self.disappeared.remove(door)
-        #
-        # elif agent.is_activating and (interacting_entity.entity_type is 'button_door_opentimer'):
-        #
-        #     interacting_entity.activate()
-        #     door = interacting_entity.door
-        #
-        #     if not interacting_entity.door_opened :
-        #         space.remove(*door.pm_elements)
-        #         self.entities.remove(door)
-        #         self.disappeared.append(door)
-        #         interacting_entity.door_opened = True
-
+                self.place_entity_in_playground(door)
 
 
         elif agent.is_grasping and not agent.is_holding and interacting_entity.movable :

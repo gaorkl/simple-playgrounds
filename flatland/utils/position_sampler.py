@@ -110,3 +110,14 @@ def generate_position(position):
         raise ValueError('Initial position type not implemented: ' + position['type'])
 
     return pos
+
+# Trajectory
+# if 'center_trajectory' in entity_params:
+#     entity_params['trajectory']['center'] = entity_params['center_trajectory']
+# elif 'waypoints' in entity_params:
+#     entity_params['trajectory']['waypoints'] = entity_params['waypoints']
+# else:
+#     raise ValueError('Trajectory not defined correctly')
+#
+# if 'speed' in entity_params:
+#     entity_params['trajectory']['speed'] = entity_params['speed']

@@ -1,4 +1,4 @@
-yielder :
+field :
   total_produced_limit: 30
   current_produced_limit: 10
   production_probability : 0.1

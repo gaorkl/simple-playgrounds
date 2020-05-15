@@ -11,12 +11,12 @@ class Edible(Entity):
     interactive = True
     edible = True
 
-    def __init__(self, position, default_config_key = None, **kwargs):
+    def __init__(self, initial_position, default_config_key = None, **kwargs):
 
         default_config = self.parse_configuration('interactive', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(Edible, self).__init__(position=position, **entity_params)
+        super(Edible, self).__init__(initial_position=initial_position, **entity_params)
 
         self.shrink_ratio_when_eaten = entity_params['shrink_ratio_when_eaten']
         self.min_reward = entity_params['min_reward']
@@ -30,7 +30,6 @@ class Edible(Entity):
 
         self.reward = self.initial_reward
 
-        # self.params = entity_params
 
 
     def generate_shapes_and_masks(self):
@@ -95,8 +94,8 @@ class Edible(Entity):
         self.reward = self.initial_reward
         self.mass = self.initial_mass
 
-        position = self.pm_body.position
-        angle = self.pm_body.angle
+        #position = self.pm_body.position
+        #angle = self.pm_body.angle
 
 
 
@@ -105,8 +104,8 @@ class Edible(Entity):
         if self.movable:
             inertia = self.compute_moments()
             self.pm_body = pymunk.Body(self.mass, inertia)
-            self.pm_body.position = position
-            self.pm_body.angle = angle
+        #    self.pm_body.position = position
+        #    self.pm_body.angle = angle
 
 
         if self.physical_shape == 'rectangle':
@@ -124,15 +123,15 @@ class Edible(Entity):
 
 class Apple(Edible):
 
-    def __init__(self, position, **kwargs):
+    def __init__(self, initial_position, **kwargs):
 
-        super(Apple, self).__init__(position=position, default_config_key='apple', **kwargs)
+        super(Apple, self).__init__(initial_position=initial_position, default_config_key='apple', **kwargs)
 
 class RottenApple(Edible):
 
-    def __init__(self, position, **kwargs):
+    def __init__(self, initial_position, **kwargs):
 
-        super(RottenApple, self).__init__(position=position, default_config_key='rotten_apple', **kwargs)
+        super(RottenApple, self).__init__(initial_position=initial_position, default_config_key='rotten_apple', **kwargs)
 
 
 class Dispenser(Entity):
@@ -140,12 +139,12 @@ class Dispenser(Entity):
     entity_type = 'dispenser'
     interactive = True
 
-    def __init__(self, position, entity_produced, entity_produced_params = None, production_area = None, **kwargs):
+    def __init__(self, initial_position, entity_produced, entity_produced_params = None, production_area = None, **kwargs):
 
         default_config = self.parse_configuration('interactive', 'dispenser')
         entity_params = {**default_config, **kwargs}
 
-        super(Dispenser, self).__init__(position=position, **entity_params)
+        super(Dispenser, self).__init__(initial_position=initial_position, **entity_params)
 
 
         self.entity_produced = entity_produced
@@ -170,20 +169,18 @@ class Dispenser(Entity):
     def activate(self):
 
         if self.local_dispenser:
-            position = self.location_sampler.sample( [self.position[0], self.position[1] ])
+            initial_position = self.location_sampler.sample( [self.position[0], self.position[1] ])
         else:
-            position = self.location_sampler.sample( )
+            initial_position = self.location_sampler.sample( )
 
-        obj = self.entity_produced(position = position, is_temporary_entity = True, **self.entity_produced_params)
+        obj = self.entity_produced(initial_position = initial_position, is_temporary_entity = True, **self.entity_produced_params)
 
         return obj
 
     def reset(self):
 
         self.produced_entities = []
-        replace = super().reset()
-
-        return replace
+        super().reset()
 
 
 class Key(Entity):
@@ -191,12 +188,12 @@ class Key(Entity):
     entity_type = 'key'
     movable = True
 
-    def __init__(self, position, **kwargs):
+    def __init__(self, initial_position, **kwargs):
 
         default_config = self.parse_configuration('interactive', 'key')
         entity_params = {**default_config, **kwargs}
 
-        super(Key, self).__init__(position=position, **entity_params)
+        super(Key, self).__init__(initial_position=initial_position, **entity_params)
 
         self.pm_visible_shape.collision_type = collision_types['gem']
 
@@ -206,12 +203,12 @@ class Chest(Entity):
     entity_type = 'chest'
     interactive = True
 
-    def __init__(self, position, key, treasure, **kwargs):
+    def __init__(self, initial_position, key, treasure, **kwargs):
 
         default_config = self.parse_configuration('interactive', 'chest')
         entity_params = {**default_config, **kwargs}
 
-        super(Chest, self).__init__(position = position, **entity_params)
+        super(Chest, self).__init__(initial_position = initial_position, **entity_params)
 
         self.key = key
         self.treasure = treasure
@@ -241,12 +238,12 @@ class Coin(Entity):
     entity_type = 'coin'
     movable = True
 
-    def __init__(self, position, **kwargs):
+    def __init__(self, initial_position, **kwargs):
 
         default_config = self.parse_configuration('interactive', 'coin')
         entity_params = {**default_config, **kwargs}
 
-        super(Coin, self).__init__(position=position, **entity_params)
+        super(Coin, self).__init__(initial_position=initial_position, **entity_params)
 
         self.pm_visible_shape.collision_type = collision_types['gem']
 
@@ -256,29 +253,27 @@ class VendingMachine(Entity):
     entity_type = 'vending_machine'
     interactive = True
 
-    def __init__(self, position, **kwargs):
+    def __init__(self, initial_position, **kwargs):
 
         default_config = self.parse_configuration('interactive', 'vending_machine')
         entity_params = {**default_config, **kwargs}
 
-        super(VendingMachine, self).__init__(position = position, **entity_params)
+        super(VendingMachine, self).__init__(initial_position = initial_position, **entity_params)
 
         self.reward = entity_params.get('reward')
 
 
-@EntityGenerator.register_subclass('door')
 class Door(Entity):
 
-    def __init__(self, custom_params):
+    entity_type = 'door'
 
-        self.entity_type = 'door'
-        self.interactive = True
-
-        default_config = self.parse_configuration('activable', 'door')
-        entity_params = {**default_config, **custom_params}
+    def __init__(self, initial_position, **kwargs):
 
 
-        super(Door, self).__init__(entity_params)
+        default_config = self.parse_configuration('interactive', 'door')
+        entity_params = {**default_config, **kwargs}
+
+        super(Door, self).__init__(initial_position = initial_position, **entity_params)
 
         self.opened = False
 
@@ -300,20 +295,20 @@ class Door(Entity):
         super().reset()
 
 
-@EntityGenerator.register_subclass('openclose_switch')
 class OpenCloseSwitch(Entity):
 
-    def __init__(self, custom_params):
+    entity_type = 'switch'
+    interactive = True
 
-        self.entity_type = 'switch'
-        self.interactive = True
+    def __init__(self, initial_position, door, **kwargs):
 
-        default_config = self.parse_configuration('activable', 'switch')
-        entity_params = {**default_config, **custom_params}
 
-        super(OpenCloseSwitch, self).__init__(entity_params)
+        default_config = self.parse_configuration('interactive', 'switch')
+        entity_params = {**default_config, **kwargs}
 
-        self.door = entity_params['door']
+        super(OpenCloseSwitch, self).__init__(initial_position = initial_position, **entity_params)
+
+        self.door = door
 
     def activate(self):
 
@@ -324,25 +319,24 @@ class OpenCloseSwitch(Entity):
              self.door.open_door()
 
 
-@EntityGenerator.register_subclass('timer_switch')
 class TimerSwitch(Entity):
 
-    def __init__(self, custom_params):
+    entity_type = 'switch'
+    interactive = True
 
-        self.entity_type = 'switch'
-        self.interactive = True
-
-        default_config = self.parse_configuration('activable', 'switch')
-        entity_params = {**default_config, **custom_params}
+    def __init__(self, initial_position, door, time_open, **kwargs):
 
 
-        super(TimerSwitch, self).__init__(entity_params)
+        default_config = self.parse_configuration('interactive', 'switch')
+        entity_params = {**default_config, **kwargs}
+
+        super(TimerSwitch, self).__init__(initial_position = initial_position, **entity_params)
 
         self.activable = True
 
-        self.door = entity_params['door']
+        self.door = door
 
-        self.time_open = entity_params['time_open']
+        self.time_open = time_open
         self.timer = self.time_open
 
 
@@ -366,27 +360,40 @@ class TimerSwitch(Entity):
         self.timer = self.time_open
         self.door.close_door()
 
-        replace = super().reset()
 
-        return replace
+class PushButton(Entity):
+    entity_type = 'pushbutton'
+
+    def __init__(self, initial_position, door, **kwargs):
+        default_config = self.parse_configuration('interactive', 'switch')
+        entity_params = {**default_config, **kwargs}
+
+        super(PushButton, self).__init__(initial_position=initial_position, **entity_params)
+        self.pm_visible_shape.collision_type = collision_types['contact']
+
+        self.door = door
+
+    def activate(self):
+
+        self.door.open_door()
 
 
 
-@EntityGenerator.register_subclass('lock')
 class Lock(Entity):
 
-    def __init__(self, custom_params):
+    entity_type = 'lock'
+    interactive = True
 
-        self.entity_type = 'lock'
-        self.interactive = True
+    def __init__(self, initial_position, door, key, **kwargs):
 
-        default_config = self.parse_configuration('activable', 'lock')
-        entity_params = {**default_config, **custom_params}
 
-        super(Lock, self).__init__(entity_params)
+        default_config = self.parse_configuration('interactive', 'lock')
+        entity_params = {**default_config, **kwargs}
 
-        self.door = entity_params['door']
-        self.key = entity_params['key']
+        super(Lock, self).__init__(initial_position = initial_position, **entity_params)
+
+        self.door = door
+        self.key = key
 
 
     def activate(self):
