@@ -9,7 +9,7 @@ from enum import Enum, auto
 class SensorModality(Enum):
     VISUAL      = auto()
     GEOMETRIC   = auto()
-
+    UNDEFINED   = auto()
 
 class SensorGenerator:
     """
@@ -52,6 +52,7 @@ class Sensor(ABC):
         self.name = sensor_param.get('name', None)
         self.sensor_type = sensor_param.get('type', None)
         self.sensor_params = sensor_param
+        self.sensor_modality = SensorModality.UNDEFINED
         self.sensor_value = None
 
     @abstractmethod

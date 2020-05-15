@@ -38,7 +38,7 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
     #Generating agents
     for i in range(nbAgents):
 
-        my_agent = Agent('forward', controller_type='keyboard', position =initial_position)
+        my_agent = Agent('forward', controller_type='random', position =initial_position)
         my_agent.add_sensor('lidar', 'lidar_1', someArgument = "argument")
 
         # my_agent.starting_position = {
@@ -68,11 +68,9 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
         if display:
             img = game.generate_playground_image()
             cv2.imshow('Flatland', img)
-            cv2.waitKey(300) #15
+            cv2.waitKey(15) #15
 
-        print( agent.observations)
-
-    #game.terminate()
+    game.terminate()
 
  # code à lancer pour tester le capteur
-perf = run(nbAgents = 2, map = "activable_01", mapSize = 300, display = True, steps = 100)
+perf = run(nbAgents = 1, map = "activable_01", mapSize = 300, display = True, steps = 100)
