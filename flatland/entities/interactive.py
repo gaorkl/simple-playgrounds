@@ -1,7 +1,7 @@
 from flatland.entities.entity import Entity, EntityGenerator
 from flatland.utils.config import *
 
-from flatland.utils.position_sampler import PositionAreaSampler
+from flatland.utils.position_utils import PositionAreaSampler
 import pymunk
 
 

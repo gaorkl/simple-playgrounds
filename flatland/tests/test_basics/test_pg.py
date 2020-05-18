@@ -1,6 +1,6 @@
 from flatland.playgrounds.playground import PlaygroundGenerator, Playground
 from flatland.playgrounds.collection.empty import Room
-from flatland.utils.position_sampler import PositionAreaSampler
+from flatland.utils.position_utils import PositionAreaSampler, Trajectory
 from flatland.entities import *
 import math
 
@@ -230,6 +230,30 @@ class Fields_01(Room):
 
         goal_1 = GoalZone([20, 20, 0])
         self.add_entity(goal_1)
+
+@PlaygroundGenerator.register_subclass('trajectory_01')
+class Trajectory_01(Room):
+
+    def __init__(self, scene_params=None):
+
+
+        super(Trajectory_01, self).__init__(scene_params)
+
+        trajectory = Trajectory('waypoints', 300, waypoints=[[20, 20], [20, 180], [180,180], [180,20]])
+        goal_1 = GoalZone(trajectory)
+        self.add_entity(goal_1)
+
+        # trajectory = Trajectory('waypoints', 300, 4, waypoints=[[50,50], [150,150]])
+        # fairy = Fairy([0,0,0], trajectory = trajectory)
+        # self.add_entity(fairy)
+
+        trajectory = Trajectory('shape', 200, 8, shape='square', center=[100, 70, 0], radius=50)
+        fireball = Fireball(trajectory)
+        self.add_entity(fireball)
+
+        trajectory = Trajectory('shape', 100, 8, shape='pentagon', center = [50, 150, 0], radius= 30, counter_clockwise = True)
+        fireball = Fireball(trajectory)
+        self.add_entity(fireball)
 
 #
 # @PlaygroundGenerator.register_subclass('david')

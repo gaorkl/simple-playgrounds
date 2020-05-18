@@ -1,12 +1,11 @@
 import pymunk, math, pygame
 from flatland.utils.config import *
-from flatland.utils.position_sampler import *
+from flatland.utils.position_utils import *
 from flatland.utils import texture
 import os, yaml
 
 from copy import deepcopy
 
-geometric_shapes = {'line':2, 'circle':60, 'triangle':3, 'square':4, 'pentagon':5, 'hexagon':6 }
 
 class Entity():
 
@@ -56,10 +55,21 @@ class Entity():
             self.create_interaction_mask()
             self.pm_elements.append(self.pm_interaction_shape)
 
-        if self.trajectory_params is not None:
+        # if self.trajectory_params is not None:
+        #     self.follows_waypoints = True
+        #     self.generate_trajectory()
+        #     self.initial_position = self.trajectory_points[0]
+
+        initial_position = entity_params.get('initial_position')
+        if isinstance(initial_position, Trajectory):
+            self.trajectory = initial_position
+            self.initial_position = next(self.trajectory)
             self.follows_waypoints = True
-            self.generate_trajectory()
-            self.initial_position = self.trajectory_points[0]
+
+        elif isinstance(initial_position, (list, tuple)):
+            self.initial_position = initial_position
+        else:
+            raise ValueError('Initial position not set')
 
         # Internal counter to assign identity number to each entity
         self.name = self.entity_type+'_' + str(Entity.index_entity)
@@ -104,9 +114,7 @@ class Entity():
         self.texture_params = params['texture']
         self.texture_params['radius'] = self.radius
 
-        self.trajectory_params = params.get('trajectory', None)
-        if self.trajectory_params is None:
-            self.initial_position = params['initial_position']
+
 
 
 
@@ -173,12 +181,6 @@ class Entity():
     @initial_position.setter
     def initial_position(self, position):
 
-        if isinstance( position, list ) or isinstance( position, tuple ) :
-
-            # Align shape orientation on horizontal axis
-            if self.physical_shape not in ['rectangle', 'circle']:
-                position[2] = position[2] + math.pi / geometric_shapes[self.physical_shape]
-
         self._initial_position = position
 
 
@@ -207,6 +209,8 @@ class Entity():
         x = coord_y
         phi = coord_phi - math.pi / 2
 
+        if self.physical_shape not in ['rectangle', 'circle']:
+            phi = phi + math.pi / geometric_shapes[self.physical_shape]
 
         self.pm_body.position = x, y
         self.pm_body.angle = phi
@@ -225,42 +229,6 @@ class Entity():
 
         self.pm_body.velocity = (vx, vy)
         self.pm_body.angular_velocity = vphi
-
-
-    def generate_trajectory(self):
-
-        self.trajectory_points = []
-        self.index_trajectory = 0
-
-        if 'waypoints' not in self.trajectory_params:
-
-            number_sides = geometric_shapes[self.trajectory_params['trajectory_shape']]
-
-            radius = self.trajectory_params['radius']
-            center = self.trajectory_params['center']
-            angle = self.trajectory_params.get('angle', 0) * math.pi / 180
-
-            waypoints = []
-            for n in range(number_sides):
-                waypoints.append([center[0] + radius * math.cos(n * 2 * math.pi / number_sides + angle),
-                                 center[1] + radius * math.sin(n * 2 * math.pi / number_sides + angle)])
-
-        else:
-            waypoints = self.trajectory_params['waypoints']
-
-        speed = self.trajectory_params['speed']
-        n_points = int(1.0*speed / len(waypoints))
-
-        for index_pt in range(-1, len(waypoints)  -1 ):
-
-            pt_1 = waypoints[index_pt]
-            pt_2 = waypoints[index_pt + 1]
-
-            pts_x = [ pt_1[0] + x * (pt_2[0] - pt_1[0])/n_points for x in range(n_points)]
-            pts_y = [ pt_1[1] + x * (pt_2[1] - pt_1[1])/n_points for x in range(n_points)]
-
-            for i in range(n_points):
-                self.trajectory_points.append( [pts_x[i], pts_y[i], 0])
 
 
     def create_pm_visible_shape(self):
@@ -441,13 +409,9 @@ class Entity():
 
     def update(self):
 
-        if self.follows_waypoints :
+        if self.follows_waypoints:
 
-            self.index_trajectory += 1
-            if self.index_trajectory == len(self.trajectory_points):
-                self.index_trajectory = 0
-
-            self.position = self.trajectory_points[self.index_trajectory]
+            self.position = next(self.trajectory)
 
 
     def pre_step(self):
@@ -456,8 +420,8 @@ class Entity():
 
     def reset(self):
 
-        if self.follows_waypoints:
-            self.index_trajectory = 0
+        if self.trajectory is not None:
+            self.trajectory.reset()
 
         self.velocity = [0, 0, 0]
 

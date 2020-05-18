@@ -3,7 +3,7 @@ from pygame.color import THECOLORS
 
 from .scene_layout import SceneGenerator
 from ..entities.entity import *
-from ..utils.position_sampler import *
+from ..utils.position_utils import *
 from ..utils.config import *
 
 
