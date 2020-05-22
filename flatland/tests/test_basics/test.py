@@ -1,15 +1,40 @@
-from flatland.playgrounds.empty import  ConnectedRooms2D, SingleRoom, LinearRooms
+from flatland.tests.test_basics.entities_pg import *
+from flatland.tests.test_basics.advanced_pg import *
 from flatland.agents import agent
-from flatland.utils.position_utils import PositionAreaSampler
 
-from flatland.tests.test_basics.test_advanced_playgrounds import Rooms_Doors
+# pg = Basic_01()
+# pg = Contact_01()
+# pg = Interactive_01()
+# pg = Zones_01()
+# pg = Proximity_01()
+# pg = Trajectory_01()
+#pg = Fields_01()
 
-# pg = SingleRoom((200, 300), wall_type='colorful')
 pg = Rooms_Doors()
-# pg = ConnectedRooms2D((800, 800), (3, 3) , doorstep_type='random', wall_type='colorful')
 
 
+# for entity in pg.entities:
+#     print(entity)
+#     print(entity.entity_type)
 agents = []
+#
+# for i in range(10):
+#     if i == 0:
+#         my_agent = agent.Agent('forward', controller_type = 'keyboard')
+#     else:
+#         my_agent = agent.Agent('forward', controller_type='random')
+#     my_agent.add_sensor('depth', 'depth_1', fov_resolution = 128)
+#     #my_agent.add_sensor('touch', 'touch_1')
+#     my_agent.starting_position = {
+#                 'type': 'rectangle',
+#                 'x_range': [80, 120],
+#                 'y_range': [80, 120],
+#                 'angle_range': [0, 3.14 * 2],
+#             }
+#
+#     agents.append(my_agent)
+#
+
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=40)
 my_agent = agent.Agent('forward', name = 'mercotte',
@@ -17,9 +42,17 @@ my_agent = agent.Agent('forward', name = 'mercotte',
                        frame = { 'base': {'radius' : 10}},
                        position=initial_position)
 
-my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 180, range=100)
+#my_agent.add_sensor('depth', 'depth_1', resolution = 128)
+#my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
+# my_agent.add_sensor('rgb', 'rgb_2', resolution = 128)
+# my_agent.add_sensor('touch', 'touch_1', resolution = 64)
+# my_agent.add_sensor('infra-red', 'IR_1', number = 5, fov = 90)
+
+
 agents.append(my_agent)
 
+# other_agent = agent.Agent('forward', name='other', controller_type='random', position = [200, 200, 0])
+# agents.append(other_agent)
 
 from flatland.game_engine import Engine
 
