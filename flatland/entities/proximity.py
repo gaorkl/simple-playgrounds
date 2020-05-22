@@ -1,4 +1,4 @@
-from flatland.entities.entity import Entity, EntityGenerator
+from flatland.entities.entity import Entity
 from flatland.utils.config import collision_types
 
 class VisibleRewardZone(Entity):

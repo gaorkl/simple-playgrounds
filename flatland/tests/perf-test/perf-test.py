@@ -4,7 +4,7 @@ import json
 import pandas as pd
 
 from flatland.game_engine import Engine
-from flatland.tests.test_basics.test_pg import *
+from flatland.tests.test_basics.test_entities_playgrounds import *
 from flatland.agents import agent
 
 

@@ -1,13 +1,11 @@
-import pymunk, math, pygame
-from flatland.utils.config import *
+import pymunk, pygame
+from flatland.utils.config import collision_types
 from flatland.utils.position_utils import *
 from flatland.utils import texture
 import os, yaml
 
-from copy import deepcopy
 
-
-class Entity():
+class Entity:
 
     visible = True
     interactive = False
@@ -23,11 +21,18 @@ class Entity():
     index_entity = 0
     entity_type = None
 
-    def __init__(self, **entity_params):
+    def __init__(self, initial_position=None, **entity_params):
         """
-        Instantiate an obstacle with the following parameters
-        :param pos: 2d tuple or 'random', position of the fruit
-        :param environment: the environment calling the creation of the fruit
+
+        Args:
+            initial_position: Can be list, tuple (x,y,theta), Trajectory or PositionAreaSampler instances
+            **entity_params: Additional Keyword Arguments
+
+        Notes:
+            For default configurations, see entity configs
+
+        Keyword Args:
+
         """
 
         self.parse_parameters(entity_params)
@@ -55,29 +60,27 @@ class Entity():
             self.create_interaction_mask()
             self.pm_elements.append(self.pm_interaction_shape)
 
-        # if self.trajectory_params is not None:
-        #     self.follows_waypoints = True
-        #     self.generate_trajectory()
-        #     self.initial_position = self.trajectory_points[0]
+        self.initial_position = initial_position
 
-        initial_position = entity_params.get('initial_position')
-        if isinstance(initial_position, Trajectory):
-            self.trajectory = initial_position
-            self.initial_position = next(self.trajectory)
-            self.follows_waypoints = True
-
-        elif isinstance(initial_position, (list, tuple)):
-            self.initial_position = initial_position
-        else:
-            raise ValueError('Initial position not set')
-
-        # Internal counter to assign identity number to each entity
+        # Internal counter to assign identity number and name to each entity
         self.name = self.entity_type+'_' + str(Entity.index_entity)
         Entity.index_entity += 1
 
-        # To be set when entity is added to playground
+        # To be set when entity is added to playground. Used to calculate correct coordinates
         self.size_playground = None
 
+    def parse_configuration(self, entity_type, key):
+
+        if key is None:
+            return {}
+
+        fname = 'configs/' + entity_type + '_default.yml'
+
+        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        with open(os.path.join(__location__, fname), 'r') as yaml_file:
+            default_config = yaml.load(yaml_file)
+
+        return default_config[key]
 
     def parse_parameters(self, params):
 
@@ -116,36 +119,13 @@ class Entity():
 
 
 
-
-
     def create_texture(self):
 
         self.texture = texture.Texture.create(self.texture_params)
         self.texture_surface = self.texture.generate(2*int(self.radius), 2*int(self.radius))
 
 
-    def create_pm_body(self):
 
-        if self.movable:
-            inertia = self.compute_moments()
-            self.pm_body = pymunk.Body(self.mass, inertia)
-
-        else:
-            self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-
-
-    def parse_configuration(self, entity_type, key):
-
-        if key is None:
-            return {}
-
-        fname = 'configs/' + entity_type + '_default.yml'
-
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(__location__, fname), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file)
-
-        return default_config[key]
 
 
     @property
@@ -171,17 +151,26 @@ class Entity():
     def initial_position(self):
 
         # differentiate between case where initial position is fixed and case where it is random
-
-        if isinstance( self._initial_position, list ) or isinstance( self._initial_position, tuple ) :
+        if isinstance( self._initial_position, (list, tuple)):
             return self._initial_position
 
-        else:
+        elif isinstance( self._initial_position, PositionAreaSampler):
             return self._initial_position.sample()
 
     @initial_position.setter
-    def initial_position(self, position):
+    def initial_position(self, initial_position):
 
-        self._initial_position = position
+        if isinstance(initial_position, Trajectory):
+            self.trajectory = initial_position
+            self._initial_position = next(self.trajectory)
+            self.follows_waypoints = True
+
+        elif isinstance(initial_position, (list, tuple, PositionAreaSampler)):
+            self._initial_position = initial_position
+            self.follows_waypoints = False
+
+        else:
+            raise ValueError('Initial position not valid')
 
 
     @property
@@ -230,19 +219,24 @@ class Entity():
         self.pm_body.velocity = (vx, vy)
         self.pm_body.angular_velocity = vphi
 
+    def create_pm_body(self):
+
+        if self.movable:
+            inertia = self.compute_moments()
+            self.pm_body = pymunk.Body(self.mass, inertia)
+
+        else:
+            self.pm_body = pymunk.Body(body_type=pymunk.Body.STATIC)
 
     def create_pm_visible_shape(self):
 
         if self.physical_shape == 'circle':
-
             self.pm_visible_shape = pymunk.Circle(self.pm_body, self.radius)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-
             self.pm_visible_shape = pymunk.Poly(self.pm_body, self.visible_vertices)
 
         elif self.physical_shape == 'rectangle':
-
             self.pm_visible_shape = pymunk.Poly.create_box(self.pm_body, (self.width, self.length))
 
         else:
@@ -254,20 +248,14 @@ class Entity():
 
     def create_pm_interaction_shape(self):
 
-        if self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon'] :
-            self.interaction_vertices = self.compute_vertices(self.radius_interaction)
-
-
         if self.physical_shape == 'circle':
-
             self.pm_interaction_shape = pymunk.Circle(self.pm_body, self.radius_interaction)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-
+            self.interaction_vertices = self.compute_vertices(self.radius_interaction)
             self.pm_interaction_shape = pymunk.Poly(self.pm_body, self.interaction_vertices)
 
         elif self.physical_shape == 'rectangle':
-
             self.pm_interaction_shape = pymunk.Poly.create_box(self.pm_body, (self.width_interaction, self.length_interaction))
 
         else:
@@ -373,15 +361,12 @@ class Entity():
     def compute_moments(self):
 
         if self.physical_shape == 'circle':
-
             moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-
             moment = pymunk.moment_for_poly(self.mass, self.visible_vertices)
 
         elif self.physical_shape == 'rectangle':
-
             moment =  pymunk.moment_for_box(self.mass, (self.width, self.length))
 
         else:
@@ -410,43 +395,16 @@ class Entity():
     def update(self):
 
         if self.follows_waypoints:
-
             self.position = next(self.trajectory)
-
 
     def pre_step(self):
         pass
 
-
     def reset(self):
 
-        if self.trajectory is not None:
+        if self.follows_waypoints:
             self.trajectory.reset()
 
         self.velocity = [0, 0, 0]
-
         self.position = self.initial_position
 
-
-class EntityGenerator():
-
-    subclasses = {}
-
-    @classmethod
-    def register_subclass(cls, entity_type):
-        def decorator(subclass):
-            cls.subclasses[entity_type] = subclass
-            return subclass
-
-        return decorator
-
-    @classmethod
-    def create(cls, entity_type, entity_config):
-
-        if entity_type is None:
-            entity_type = entity_config.get('entity_type')
-
-        if entity_type not in cls.subclasses:
-            raise ValueError('Entity type not implemented:' + entity_type)
-
-        return cls.subclasses[entity_type](entity_config)

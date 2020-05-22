@@ -1,13 +1,10 @@
 import pymunk.pygame_util
 from pygame.color import THECOLORS
 
-from .scene_layout import SceneGenerator
 from ..entities.entity import *
 from ..utils.position_utils import *
 from ..utils.config import *
 
-
-import random
 import numpy
 
 
@@ -37,13 +34,16 @@ class PlaygroundGenerator():
 
         return cls.subclasses[playground_name](scene_params)
 
-class Playground():
 
-    def __init__(self, scene_params ):
+class Playground:
+
+    scene_entities = []
+
+    def __init__(self, size, **scene_params):
 
         # Generate Scene
-        self.scene = self.generate_scene(scene_params)
-        self.width, self.length = self.scene.width, self.scene.length
+        self.scene_size = size
+        self.width, self.length = self.scene_size
 
         # Initialization of the pymunk space, this space is responsible for modelling all the physics
         self.space = None
@@ -67,7 +67,7 @@ class Playground():
         self.timers = {}
 
         # Add entities declared in the scene
-        for scene_entity in self.scene.scene_entities:
+        for scene_entity in self.scene_entities:
             self.add_entity(scene_entity)
 
         # TODO: Replace by class for registring, and import all collisions in a separate file
@@ -80,17 +80,24 @@ class Playground():
 
         self.agent_starting_area = None
 
+    def parse_configuration(self, entity_type, key):
 
+        if key is None:
+            return {}
+
+        fname = 'configs/' + entity_type + '_default.yml'
+
+        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        with open(os.path.join(__location__, fname), 'r') as yaml_file:
+            default_config = yaml.load(yaml_file)
+
+        return default_config[key]
 
     def initialize_space(self):
 
         self.space = pymunk.Space()
         self.space.gravity = pymunk.Vec2d(0., 0.)
         self.space.damping = SPACE_DAMPING
-
-    def generate_scene(self, scene_params):
-
-        return SceneGenerator.create( scene_params)
 
 
     def add_agent(self, agent):
@@ -362,6 +369,7 @@ class Playground():
 
         # TODO: replace with this everywhere:
         interacting_entity = next( iter([entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]]), None)
+
 
         if agent.is_eating and interacting_entity.edible:
 

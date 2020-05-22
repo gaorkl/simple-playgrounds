@@ -90,6 +90,82 @@ class RandomTilesTexture(Texture):
         surf = pygame.surfarray.make_surface(random_image)
         return surf
 
+
+@Texture.register_subclass('list_random_tiles')
+class ListRandomTilesTexture(Texture):
+
+    def __init__(self, list_rgb_colors = (130, 150, 170), delta_uniform = 5, size_tiles = 4, **kwargs):
+        super(ListRandomTilesTexture, self).__init__()
+        self.list_rgb_colors = list_rgb_colors
+        self.delta_uniform = delta_uniform
+        self.size_tiles = size_tiles
+
+    def generate(self, width, height):
+        """
+        Generate a pygame Surface with pixels following a uniform density
+        :param width: the width of the generated Surface
+        :param height: the height of the generated Surface
+        :return: the pygame Surface
+        """
+
+        color = random.choice(self.list_rgb_colors)
+        min_color = [ max(0, x - self.delta_uniform) for x in color]
+        max_color = [ min(255, x + self.delta_uniform) for x in color]
+
+        random_image = np.random.uniform(min_color, max_color, (int(width*1.0/self.size_tiles), int(height*1.0/self.size_tiles), 3)).astype('int')
+        random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
+        surf = pygame.surfarray.make_surface(random_image)
+        return surf
+
+@Texture.register_subclass('unique_random_tiles')
+class UniqueRandomTilesTexture(Texture):
+
+
+
+    def __init__(self, n_colors = 10, delta_uniform = 5, size_tiles = 4, color_min = (0,0,0), color_max = (255,255,255),
+                 **kwargs):
+        super(UniqueRandomTilesTexture, self).__init__()
+        self.n_colors = n_colors
+        self.delta_uniform = delta_uniform
+        self.size_tiles = size_tiles
+        self.color_min = color_min
+        self.color_max = color_max
+
+        n_r_splits = int( n_colors ** (1/3) )
+        n_g_splits = int( n_colors ** (1/3))
+        n_b_splits = n_colors - 2*int(n_colors ** (1/3))
+
+        r_list = [ color_min[0] + n_r * (color_max[0] - color_min[0] )/ (n_r_splits-1) for n_r in range(0, n_r_splits) ]
+        g_list = [ color_min[1] + n_g * (color_max[1] - color_min[1] ) / (n_g_splits-1) for n_g in range(0, n_g_splits) ]
+        b_list = [ color_min[2] + n_b * (color_max[2] - color_min[2] ) / (n_b_splits-1) for n_b in range(0, n_b_splits) ]
+
+        self.list_rgb_colors = []
+
+        for r in r_list:
+            for g in g_list:
+                for b in b_list:
+                    self.list_rgb_colors.append([r,b,g])
+
+        random.shuffle(self.list_rgb_colors)
+
+    def generate(self, width, height):
+        """
+        Generate a pygame Surface with pixels following a uniform density
+        :param width: the width of the generated Surface
+        :param height: the height of the generated Surface
+        :return: the pygame Surface
+        """
+
+        color = self.list_rgb_colors.pop()
+        min_color = [ max(0, x - self.delta_uniform) for x in color]
+        max_color = [ min(255, x + self.delta_uniform) for x in color]
+
+        random_image = np.random.uniform(min_color, max_color, (int(width*1.0/self.size_tiles), int(height*1.0/self.size_tiles), 3)).astype('int')
+        random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
+        surf = pygame.surfarray.make_surface(random_image)
+        return surf
+
+
 @Texture.register_subclass('polar_stripes')
 class PolarStripesTexture(Texture):
 
@@ -204,6 +280,7 @@ class ListCenteredRandomTiles(Texture):
 
         surf = pygame.surfarray.make_surface(img)
         return surf
+
 
 
 class NormalTexture(Texture):
