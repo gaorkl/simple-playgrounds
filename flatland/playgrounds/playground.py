@@ -382,7 +382,7 @@ class Playground:
 
             agent.is_activating = False
 
-            if len(interacting_entity.produced_entities) < interacting_entity.prodution_limit:
+            if len(interacting_entity.produced_entities) < interacting_entity.production_limit:
                 new_entity = interacting_entity.activate()
                 self.add_entity(new_entity)
                 interacting_entity.produced_entities.append(new_entity)
@@ -519,15 +519,15 @@ class Playground:
         # - interactive interactive
 
         # Collision handlers
-        h_touch = self.space.add_collision_handler(collision_types['agent'], collision_types['contact'])
+        h_touch = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
         h_touch.pre_solve = self.agent_touches_entity
 
-        h_interact = self.space.add_collision_handler(collision_types['agent'], collision_types['interactive'])
+        h_interact = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE)
         h_interact.pre_solve = self.agent_interacts
 
-        h_zone = self.space.add_collision_handler(collision_types['agent'], collision_types['zone'])
+        h_zone = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.ZONE)
         h_zone.pre_solve = self.agent_enters_zone
 
         # Collision with gems
-        h_gem_interactive = self.space.add_collision_handler(collision_types['gem'], collision_types['interactive'])
+        h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
         h_gem_interactive.pre_solve = self.gem_interacts

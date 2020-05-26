@@ -54,7 +54,7 @@ class Frame(Entity):
         super(Frame, self).__init__()
 
 
-        self.collision_type = collision_types['agent']
+        self.collision_type = CollisionTypes.AGENT
 
 
         # Base

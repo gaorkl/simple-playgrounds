@@ -10,7 +10,7 @@ death_zone :
   physical_shape: square
   radius: 15
   texture: *deathzone-texture
-  reward: -50
+  reward: -200
 
 goalzone_texture : &goalzone-texture
   texture_type: color
@@ -20,7 +20,7 @@ goal_zone :
   physical_shape: square
   radius: 15
   texture: *goalzone-texture
-  reward: 50
+  reward: 200
 
 
 # Reward Zones

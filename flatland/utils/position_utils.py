@@ -1,9 +1,7 @@
 from collections.abc import Generator
 import numpy as np
 import random, math
-
-
-geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3, 'square': 4, 'pentagon': 5, 'hexagon': 6}
+from .config import geometric_shapes
 
 
 class PositionAreaSampler:
