@@ -16,7 +16,6 @@ class Entity:
     interactive = False
 
     absorbable = False
-    activable = False
     edible = False
 
     movable = False
@@ -27,7 +26,7 @@ class Entity:
     entity_type = None
 
     def __init__(self, initial_position=None, **entity_params):
-        """ Base Class for entities
+        """ Base class for entities.
 
         Args:
             initial_position: Can be list, tuple (x,y,theta), Trajectory or PositionAreaSampler instances
@@ -69,6 +68,8 @@ class Entity:
         self.interaction_vertices = self.compute_vertices(self.interaction_radius)
 
         self.pm_body = self.create_pm_body()
+        self.velocity = [0, 0, 0]
+        self.position = [0, 0, 0]
         self.pm_elements = [self.pm_body]
 
         self.texture_params = entity_params['texture']
