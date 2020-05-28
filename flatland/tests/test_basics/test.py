@@ -2,16 +2,27 @@ from flatland.tests.test_basics.entities_pg import *
 from flatland.tests.test_basics.advanced_pg import *
 from flatland.agents import agent
 
-# pg = Basic_01()
+#pg = Basic_01()
 # pg = Contact_01()
-pg = Interactive_01()
-# pg = Doors_01()
+#pg = Interactive_01()
+pg = Doors_01()
 # pg = Zones_01()
 # pg = Proximity_01()
 # pg = Trajectory_01()
 #pg = Fields_01()
 
-# pg = Rooms_Doors()
+# pg = Rooms+
+
+
+
+
+
+
+
+
+
+
+#_Doors()
 
 
 # for entity in pg.entities:
