@@ -1,5 +1,6 @@
 from pygame import Surface, PixelArray, SRCALPHA
-import pygame, cv2
+from pygame import surfarray
+import cv2
 
 
 from scipy.stats import truncnorm
@@ -64,7 +65,7 @@ class UniformTexture(Texture):
         """
 
         random_image = np.random.uniform(self.min, self.max, (int(width), int(height), 3)).astype('int')
-        surf = pygame.surfarray.make_surface(random_image)
+        surf = surfarray.make_surface(random_image)
         return surf
 
 
@@ -87,7 +88,7 @@ class RandomTilesTexture(Texture):
 
         random_image = np.random.uniform(self.min, self.max, (int(width*1.0/self.size_tiles), int(height*1.0/self.size_tiles), 3)).astype('int')
         random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
-        surf = pygame.surfarray.make_surface(random_image)
+        surf = surfarray.make_surface(random_image)
         return surf
 
 
@@ -114,7 +115,7 @@ class ListRandomTilesTexture(Texture):
 
         random_image = np.random.uniform(min_color, max_color, (int(width*1.0/self.size_tiles), int(height*1.0/self.size_tiles), 3)).astype('int')
         random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
-        surf = pygame.surfarray.make_surface(random_image)
+        surf = surfarray.make_surface(random_image)
         return surf
 
 @Texture.register_subclass('unique_random_tiles')
@@ -162,7 +163,7 @@ class UniqueRandomTilesTexture(Texture):
 
         random_image = np.random.uniform(min_color, max_color, (int(width*1.0/self.size_tiles), int(height*1.0/self.size_tiles), 3)).astype('int')
         random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
-        surf = pygame.surfarray.make_surface(random_image)
+        surf = surfarray.make_surface(random_image)
         return surf
 
 
@@ -201,7 +202,7 @@ class PolarStripesTexture(Texture):
                 else:
                     img[i, j, :] = self.color_2
 
-        surf = pygame.surfarray.make_surface(img)
+        surf = surfarray.make_surface(img)
         return surf
 
 @Texture.register_subclass('centered_random_tiles')
@@ -240,7 +241,7 @@ class CenteredRandomTilesTexture(Texture):
 
                 img[i, j, :] = colors[angle]
 
-        surf = pygame.surfarray.make_surface(img)
+        surf = surfarray.make_surface(img)
         return surf
 
 @Texture.register_subclass('list_centered_random_tiles')
@@ -278,7 +279,7 @@ class ListCenteredRandomTiles(Texture):
 
                 img[i, j, :] = colors[angle]
 
-        surf = pygame.surfarray.make_surface(img)
+        surf = surfarray.make_surface(img)
         return surf
 
 

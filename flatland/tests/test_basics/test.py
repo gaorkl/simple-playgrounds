@@ -4,13 +4,14 @@ from flatland.agents import agent
 
 # pg = Basic_01()
 # pg = Contact_01()
-# pg = Interactive_01()
+pg = Interactive_01()
+# pg = Doors_01()
 # pg = Zones_01()
 # pg = Proximity_01()
 # pg = Trajectory_01()
 #pg = Fields_01()
 
-pg = Rooms_Doors()
+# pg = Rooms_Doors()
 
 
 # for entity in pg.entities:

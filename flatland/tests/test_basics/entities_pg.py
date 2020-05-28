@@ -3,6 +3,7 @@ from flatland.utils.position_utils import Trajectory
 from flatland.entities import *
 import math
 
+
 class Basic_01(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -12,7 +13,8 @@ class Basic_01(SingleRoom):
         rectangle_01 = Basic([150, 160, 0.2], default_config_key='rectangle')
         self.add_entity(rectangle_01)
 
-        circle_01 = Basic([50, 60, 0], default_config_key='circle', movable=True, mass=100, texture=[150, 150, 150])
+        circle_01 = EntityGenerator.create('basic', initial_position=[50, 60, 0], default_config_key='circle',
+                                           movable=True, mass=100, texture=[150, 150, 150])
         self.add_entity(circle_01)
 
         square_01 = Basic([150, 60, 0], default_config_key='square', movable=True, mass=10)
@@ -36,7 +38,7 @@ class Contact_01(SingleRoom):
         deathtrap_01 = VisibleDeathTrap([180, 180, 0])
         self.add_entity(deathtrap_01)
 
-        poison = Poison([15,15,0])
+        poison = EntityGenerator.create('poison', initial_position = [15,15,0])
         self.add_entity(poison)
 
         poison_area = PositionAreaSampler(area_shape='rectangle', center=[100, 50], width_length=[20, 20])
@@ -83,7 +85,7 @@ class Zones_01(SingleRoom):
 
 class Interactive_01(SingleRoom):
 
-    def __init__(self, size = (200, 200), **playground_params):
+    def __init__(self, size = (300, 300), **playground_params):
 
         super(Interactive_01, self).__init__(size = size, **playground_params)
 
@@ -161,7 +163,7 @@ class Doors_01(SingleRoom):
         door_2 = Door( [150, 130, math.pi/2])
         self.add_entity(door_2)
 
-        timerswitch = TimerSwitch( [150, 70, 0], door = door_2, time_open = 20)
+        timerswitch = EntityGenerator.create('timer-switch', initial_position=[150, 70, 0], door=door_2, time_open = 20)
         self.add_entity(timerswitch)
 
         door_3 = Door([200, 130, math.pi / 2])

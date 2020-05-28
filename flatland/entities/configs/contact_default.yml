@@ -33,7 +33,7 @@ candy_texture: &candy-texture
 
 candy:
   physical_shape: triangle
-  radius: 6
+  radius: 4
   mass: 5
   texture: *candy-texture
   movable: True
@@ -46,7 +46,7 @@ poison_texture: &poison-texture
 
 poison:
   physical_shape: pentagon
-  radius: 6
+  radius: 4
   mass: 5
   texture: *poison-texture
   movable: True

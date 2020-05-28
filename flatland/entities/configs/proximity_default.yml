@@ -1,17 +1,15 @@
 #Fireball
 
-radius_fireball: &radius-fireball 12
 
 fireball_texture: &fireball-texture
   texture_type: centered_random_tiles
   color_min: [200, 0, 0]
   color_max: [255, 100, 0]
   size_tiles : 4
-  radius: *radius-fireball
 
 fireball:
   physical_shape: circle
-  radius: *radius-fireball
+  radius: 8
   mass: 10
   texture: *fireball-texture
   interaction_range: 10
@@ -20,18 +18,16 @@ fireball:
 
 # Fairy
 
-radius_fairy: &radius-fairy 10
 
 fairy_texture: &fairy-texture
   texture_type: centered_random_tiles
   color_min: [0, 150, 200]
   color_max: [0, 200, 250]
   size_tiles : 4
-  radius: *radius-fairy
 
 fairy:
   physical_shape: circle
-  radius: *radius-fairy
+  radius: 8
   mass: 10
   texture: *fairy-texture
   interaction_range: 10

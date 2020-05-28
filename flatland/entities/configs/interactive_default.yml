@@ -17,9 +17,9 @@ apple :
 
 rotten_apple_texture : &rotten-apple-texture
   texture_type: centered_random_tiles
-  color_min: [40, 120, 150]
-  color_max: [80, 150, 190]
-  size_tiles : 10
+  color_min: [150, 150, 20]
+  color_max: [180, 180, 40]
+  size_tiles : 5
 
 rotten_apple :
   physical_shape: circle
@@ -70,7 +70,7 @@ key_texture : &key-texture
 
 key : &key
   physical_shape: hexagon
-  radius: 10
+  radius: 8
   texture: *key-texture
   mass: 5
 
@@ -79,7 +79,7 @@ key : &key
 
 coin_texture : &coin-texture
   texture_type: color
-  color: [100, 100, 0]
+  color: [200, 200, 0]
 
 coin:
   texture: *coin-texture
@@ -89,28 +89,23 @@ coin:
 
 vendingmachine_texture : &vendingmachine-texture
   texture_type: random_tiles
-  color_min: [140, 110, 210]
-  color_max: [160, 130, 230]
+  color_min: [240, 110, 10]
+  color_max: [250, 130, 30]
   size_tiles : 6
 
 vending_machine:
   texture: *vendingmachine-texture
   physical_shape: rectangle
-  width_length: [20, 30]
+  width_length: [20, 20]
   interaction_range : 10
   reward: 10
-
-
-
-
-
 
 # Doors
 
 door_texture : &door-texture
   texture_type: random_tiles
-  color_min: [110, 110, 110]
-  color_max: [130, 130, 130]
+  color_min: [150, 170, 80]
+  color_max: [180, 190, 100]
   size_tiles : 6
 
 door : &door
@@ -120,29 +115,29 @@ door : &door
 
 
 switch_texture : &switch-texture
-  texture_type: centered_random_tiles
-  color_min: [80, 80, 80]
-  color_max: [110, 110, 110]
-  size_tiles : 6
+  texture_type: random_tiles
+  color_min: [150, 130, 80]
+  color_max: [180, 150, 110]
+  size_tiles : 3
   radius: 8
 
 switch : &switch
-  physical_shape: square
-  radius: 8
+  physical_shape: rectangle
+  width_length: [10,10]
   texture: *switch-texture
   interaction_range : 10
 
 
 lock_texture : &lock-texture
-  texture_type: centered_random_tiles
-  color_min: [110, 110, 110]
-  color_max: [140, 140, 140]
-  size_tiles : 6
+  texture_type: random_tiles
+  color_min: [110, 150, 110]
+  color_max: [140, 170, 140]
+  size_tiles : 3
   radius: 8
 
 lock : &lock
-  physical_shape: square
-  radius: 8
+  physical_shape: rectangle
+  width_length: [10,10]
   texture: *lock-texture
   interaction_range : 10
 
