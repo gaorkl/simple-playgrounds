@@ -11,11 +11,11 @@ class Entity(ABC):
         :param env: Game class, environment instantiating the object
         :param pos: 2d tuple or 'random', initial position of the object
         :param angle: float or 'random', initial orientation of the object
-        :param body: pymunk.Body, body of the object in the instantiating environment
+        :param body_parts: pymunk.Body, body_parts of the object in the instantiating environment
         :param texture: Texture class, texture of the shape of the object
         """
 
-        # Initial body, the real body will be created by the environment
+        # Initial body_parts, the real body_parts will be created by the environment
         self.body = None
 
         # Define initial position and orientation

@@ -1,5 +1,5 @@
 import pymunk
-from flatland.agents.frames.frame import FrameGenerator, Frame
+from flatland.agents.body_parts.frame import FrameGenerator, Frame
 from flatland.utils.config import *
 from pygame.locals import *
 

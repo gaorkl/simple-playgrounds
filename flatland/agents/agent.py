@@ -1,7 +1,7 @@
 from .sensors import sensor
 from .sensors.visual_sensors.visual_sensor import VisualSensor
 from .sensors.geometric_sensors.geometric_sensor import GeometricSensor
-from .frames import frame
+from .body_parts import BodyBase
 from .controllers import controller
 
 import os, yaml
@@ -64,12 +64,26 @@ class Agent():
 
 
         # Default starting position
-        self.initial_position = custom_config.get('position', None)
+        self.initial_position = custom_config.get('initial_position', None)
 
 
         # Information about sensor types
         self.has_geometric_sensor = False
         self.has_visual_sensor = False
+
+    @staticmethod
+    def parse_configuration(entity_type, key):
+
+        if key is None:
+            return {}
+
+        fname = 'configs/' + entity_type + '_default.yml'
+
+        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        with open(os.path.join(__location__, fname), 'r') as yaml_file:
+            default_config = yaml.load(yaml_file)
+
+        return default_config[key]
 
     @property
     def initial_position(self):
@@ -116,8 +130,8 @@ class Agent():
                 part.body.angle = phi + part.body.angle
 
 
-        #self.frame.anatomy['base'].body.position = x, y
-        #self.frame.anatomy['base'].body.angle = phi
+        #self.frame.anatomy['base'].body_parts.position = x, y
+        #self.frame.anatomy['base'].body_parts.angle = phi
 
     @property
     def velocity(self):
@@ -225,3 +239,17 @@ class Agent():
         self.is_grasping = False
         self.grasped = []
         self.is_holding = False
+
+
+class ForwardAgent(Agent):
+
+    def __init__(self, initial_position, controller_type, **kwargs):
+
+        default_config = self.parse_configuration('agent', 'forward')
+        agent_params = {**default_config, **kwargs}
+
+        base_params = agent_params['base']
+
+        base = BodyBase(initial_position, controller_type, **base_params)
+        self.add_body_part(base)
+

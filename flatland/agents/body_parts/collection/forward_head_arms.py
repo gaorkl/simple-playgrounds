@@ -1,5 +1,5 @@
 from .forward_head import ForwardHead
-from flatland.agents.frames.frame import *
+from flatland.agents.body_parts.frame import *
 from flatland.utils import texture
 
 from pygame.locals import *
@@ -38,9 +38,9 @@ class ForwardHeadArms(ForwardHead):
 
         body = pymunk.Body(self.arm1_mass, inertia)
         body.position = [0,  dist_to_body]
-        #self.anatomy['base'].body.position[1] ]
+        #self.anatomy['base'].body_parts.position[1] ]
         #import pdb;pdb.set_trace()
-        #body.angle = self.anatomy['base'].body.angle
+        #body_parts.angle = self.anatomy['base'].body_parts.angle
 
         arm1.body = body
 
@@ -49,8 +49,8 @@ class ForwardHeadArms(ForwardHead):
 
         arm1.shape = shape
 
-        arm1.joint = [ #pymunk.PinJoint(arm1.body, base.body,  ( 0, -self.arm1_length / 2), (5, 0)),
-                       #pymunk.PinJoint(arm1.body, base.body, ( 0, -self.arm1_length / 2), (-5, 0)),
+        arm1.joint = [ #pymunk.PinJoint(arm1.body_parts, base.body_parts,  ( 0, -self.arm1_length / 2), (5, 0)),
+                       #pymunk.PinJoint(arm1.body_parts, base.body_parts, ( 0, -self.arm1_length / 2), (-5, 0)),
                        pymunk.PivotJoint(arm1.body, base.body, ( 0, dist_to_body-self.arm1_length / 2 - 5 )),
                        pymunk.SimpleMotor(arm1.body, base.body, 0),
                        pymunk.RotaryLimitJoint(arm1.body, base.body, -self.arm1_range, self.arm1_range)
@@ -72,9 +72,9 @@ class ForwardHeadArms(ForwardHead):
 
         body = pymunk.Body(self.arm1_mass, inertia)
         body.position = [0,  dist_to_arm1]
-        #self.anatomy['base'].body.position[1] ]
+        #self.anatomy['base'].body_parts.position[1] ]
         #import pdb;pdb.set_trace()
-        #body.angle = self.anatomy['base'].body.angle
+        #body_parts.angle = self.anatomy['base'].body_parts.angle
 
         arm1_2.body = body
 
@@ -83,7 +83,7 @@ class ForwardHeadArms(ForwardHead):
 
         arm1_2.shape = shape
 
-        arm1_2.joint = [#pymunk.PinJoint(arm1_2.body, arm1.body,  (0, -self.arm1_length / 2), (30, 0)),
+        arm1_2.joint = [#pymunk.PinJoint(arm1_2.body_parts, arm1.body_parts,  (0, -self.arm1_length / 2), (30, 0)),
                        pymunk.PivotJoint(arm1_2.body, arm1.body, ( 0, dist_to_arm1-self.arm1_length / 2)),
                        pymunk.SimpleMotor(arm1_2.body, arm1.body, 0),
                        pymunk.RotaryLimitJoint(arm1_2.body, arm1.body, -self.arm1_range, self.arm1_range)
@@ -120,9 +120,9 @@ class ForwardHeadArms(ForwardHead):
 
         body = pymunk.Body(self.arm2_mass, inertia)
         body.position = [0,  -dist_to_body]
-        #self.anatomy['base'].body.position[1] ]
+        #self.anatomy['base'].body_parts.position[1] ]
         #import pdb;pdb.set_trace()
-        #body.angle = self.anatomy['base'].body.angle
+        #body_parts.angle = self.anatomy['base'].body_parts.angle
 
         arm2.body = body
 
@@ -131,8 +131,8 @@ class ForwardHeadArms(ForwardHead):
 
         arm2.shape = shape
 
-        arm2.joint = [ #pymunk.PinJoint(arm1.body, base.body,  ( 0, -self.arm1_length / 2), (5, 0)),
-                       #pymunk.PinJoint(arm1.body, base.body, ( 0, -self.arm1_length / 2), (-5, 0)),
+        arm2.joint = [ #pymunk.PinJoint(arm1.body_parts, base.body_parts,  ( 0, -self.arm1_length / 2), (5, 0)),
+                       #pymunk.PinJoint(arm1.body_parts, base.body_parts, ( 0, -self.arm1_length / 2), (-5, 0)),
                        pymunk.PivotJoint(arm2.body, base.body, ( 0, -dist_to_body+self.arm1_length / 2 + 5 )),
                        pymunk.SimpleMotor(arm2.body, base.body, 0),
                        pymunk.RotaryLimitJoint(arm2.body, base.body, -self.arm1_range, self.arm1_range)
@@ -154,9 +154,9 @@ class ForwardHeadArms(ForwardHead):
 
         body = pymunk.Body(self.arm2_mass, inertia)
         body.position = [0,  -dist_to_arm2]
-        #self.anatomy['base'].body.position[1] ]
+        #self.anatomy['base'].body_parts.position[1] ]
         #import pdb;pdb.set_trace()
-        #body.angle = self.anatomy['base'].body.angle
+        #body_parts.angle = self.anatomy['base'].body_parts.angle
 
         arm2_2.body = body
 
@@ -165,7 +165,7 @@ class ForwardHeadArms(ForwardHead):
 
         arm2_2.shape = shape
 
-        arm2_2.joint = [#pymunk.PinJoint(arm1_2.body, arm1.body,  (0, -self.arm1_length / 2), (30, 0)),
+        arm2_2.joint = [#pymunk.PinJoint(arm1_2.body_parts, arm1.body_parts,  (0, -self.arm1_length / 2), (30, 0)),
                        pymunk.PivotJoint(arm2_2.body, arm2.body, ( 0, -dist_to_arm2+self.arm2_length / 2)),
                        pymunk.SimpleMotor(arm2_2.body, arm2.body, 0),
                        pymunk.RotaryLimitJoint(arm1_2.body, arm1.body, -self.arm2_range, self.arm2_range)
@@ -360,7 +360,7 @@ class ForwardHeadArms(ForwardHead):
     def draw(self, surface, visible_to_self=False):
         super().draw(surface, visible_to_self=visible_to_self)
 
-        #print(self.anatomy['head'].body.angle, 'angle')
+        #print(self.anatomy['head'].body_parts.angle, 'angle')
         #print(self.eyelid, 'eyelid')
 
         mask = pygame.transform.rotate(self.mask_arm1, self.anatomy['arm1'].body.angle * 180 / math.pi)

@@ -1,5 +1,5 @@
 from .forward import Forward
-from flatland.agents.frames.frame import *
+from flatland.agents.body_parts.frame import *
 from flatland.utils import texture
 
 from pygame.locals import *
@@ -39,9 +39,9 @@ class ForwardHead(Forward):
         inertia = pymunk.moment_for_circle( self.head_mass, 0, self.head_radius, (0, 0) )
 
         body = pymunk.Body(self.head_mass, inertia)
-        #body.position = [self.anatomy['base'].body.position[0]+self.base_radius, self.anatomy['base'].body.position[1]]
+        #body_parts.position = [self.anatomy['base'].body_parts.position[0]+self.base_radius, self.anatomy['base'].body_parts.position[1]]
         #import pdb;pdb.set_trace()
-        #body.angle = self.anatomy['base'].body.angle
+        #body_parts.angle = self.anatomy['base'].body_parts.angle
 
         head.body = body
 

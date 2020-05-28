@@ -21,7 +21,7 @@ class VisualSensor(Sensor):
         body_anchor = sensor_param.get('anchor', None)
         self.body_anchor = anatomy[body_anchor].body
 
-        # Relative location (polar) and angle wrt body
+        # Relative location (polar) and angle wrt body_parts
         self.d_r = sensor_param.get('d_r', None)
         self.d_theta = sensor_param.get('d_theta', None)
         self.d_relativeOrientation = sensor_param.get('d_relativeOrientation', None)

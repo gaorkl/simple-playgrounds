@@ -1,6 +1,6 @@
 from flatland.tests.test_basics.entities_pg import *
 from flatland.tests.test_basics.advanced_pg import *
-from flatland.agents import agent
+from flatland.agents import ForwardAgent
 
 # pg = Basic_01()
 # pg = Contact_01()
@@ -38,10 +38,12 @@ agents = []
 
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=40)
-my_agent = agent.Agent('forward', name = 'mercotte',
-                       controller_type = 'keyboard',
-                       frame = { 'base': {'radius' : 10}},
-                       position=initial_position)
+my_agent = ForwardAgent(initial_position = initial_position, controller = ControllerTypes.KEYBOARD)
+
+# my_agent = agent.Agent('forward', name = 'mercotte',
+#                        controller_type = 'keyboard',
+#                        frame = { 'base': {'radius' : 10}},
+#                        position=initial_position)
 
 #my_agent.add_sensor('depth', 'depth_1', resolution = 128)
 #my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
@@ -61,7 +63,7 @@ engine_parameters = {
     'inner_simulation_steps': 5,
     'display': {
         'playground' : False,
-        'frames' : True,
+        'body_parts' : True,
     }
 }
 
@@ -98,7 +100,7 @@ while game.game_on:
 
             observation = agent.sensors[sensor_name].sensor_value
 
-            if 'IR' in  sensor_name:
+            if 'IR' in sensor_name:
                 print(observation)
 
             else:

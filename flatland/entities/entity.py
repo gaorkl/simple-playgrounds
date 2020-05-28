@@ -68,8 +68,6 @@ class Entity:
         self.interaction_vertices = self.compute_vertices(self.interaction_radius)
 
         self.pm_body = self.create_pm_body()
-        self.velocity = [0, 0, 0]
-        self.position = [0, 0, 0]
         self.pm_elements = [self.pm_body]
 
         self.texture_params = entity_params['texture']
