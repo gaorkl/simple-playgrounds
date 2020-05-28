@@ -50,8 +50,6 @@ class Entity:
             mass (:obj: 'float'): mass of the entity
         """
 
-
-
         self.graspable = entity_params.get('graspable', self.graspable)
         self.movable = entity_params.get('movable', self.movable)
 
@@ -70,7 +68,7 @@ class Entity:
         self.interaction_vertices = self.compute_vertices(self.interaction_radius)
 
         # To be set when entity is added to playground. Used to calculate correct coordinates
-        self.size_playground = [0,0]
+        self.size_playground = [0, 0]
 
         self.pm_body = self.create_pm_body()
         self.velocity = [0, 0, 0]
@@ -93,15 +91,11 @@ class Entity:
             self.interaction_mask = self.create_interaction_mask()
             self.pm_elements.append(self.pm_interaction_shape)
 
-
-
         self.initial_position = initial_position
 
         # Internal counter to assign identity number and name to each entity
         self.name = self.entity_type+'_' + str(Entity.index_entity)
         Entity.index_entity += 1
-
-
 
         # To remove temporary entities when reset
         self.is_temporary_entity = entity_params.get('is_temporary_entity', False)
@@ -212,7 +206,6 @@ class Entity:
 
     @position.setter
     def position(self, position):
-
 
         coord_x, coord_y, coord_phi = position
 

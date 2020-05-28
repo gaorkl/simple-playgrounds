@@ -26,6 +26,7 @@ class Basic_01(SingleRoom):
         hexagon_01 = Basic([100, 100, 0], default_config_key='hexagon', graspable = True, mass = 5)
         self.add_entity(hexagon_01)
 
+
 class Contact_01(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
