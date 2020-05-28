@@ -29,7 +29,7 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
     }
 
 
-    pg = PlaygroundGenerator.create(map, room_shape = [mapSize, mapSize])
+    pg = Basic_01(size = [mapSize, mapSize])
 
     agents = []
 

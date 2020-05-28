@@ -7,6 +7,8 @@ from flatland.game_engine import Engine
 from flatland.tests.test_basics.entities_pg import *
 from flatland.agents import agent
 
+#Warning : not up to date
+
 
 Agent = agent.Agent
 
