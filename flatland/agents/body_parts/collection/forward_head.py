@@ -1,5 +1,5 @@
 from .forward import Forward
-from flatland.agents.body_parts.frame import *
+from flatland.agents.body_parts.parts import *
 from flatland.utils import texture
 
 from pygame.locals import *

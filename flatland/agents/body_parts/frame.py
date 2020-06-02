@@ -1,4 +1,4 @@
-from flatland.agents.entity_frame import Entity
+from flatland.entities.entity import Entity
 import pymunk, pygame
 from flatland.utils import texture
 from flatland.utils.config import *
@@ -36,6 +36,57 @@ class FrameGenerator:
             raise ValueError('Body not implemented: ' + body_type)
 
         return cls.subclasses[body_type](params)
+
+
+class BodyPart(Entity):
+
+    """ Base Class for body parts
+
+    Attributes:
+        position
+        velocity
+        anchor
+
+    Copy from Entity?
+
+    """
+
+    can_interact = False
+    can_grasp = False
+
+
+    def __init__(self, initial_position = None, anchor=None, anchor_relative_position=None, **body_part_params ):
+
+        self.can_grasp = body_part_params.get('can_grasp', self.can_grasp)
+        self.can_interact = body_part_params.get('can_interact', self.can_interact)
+
+        self.physical_shape, self.mass, visible_size, _ = self.get_physical_properties(body_part_params)
+        self.length, self.width, self.radius = visible_size
+
+        self.visible_vertices = self.compute_vertices(self.radius)
+
+        self.pm_body = self.create_pm_body()
+        self.pm_elements = [self.pm_body]
+
+        self.texture_params = body_part_params['texture']
+        self.texture_surface = self.create_texture(self.texture_params)
+
+        self.pm_visible_shape = self.create_pm_visible_shape()
+        self.visible_mask = self.create_visible_mask()
+        self.pm_elements.append(self.pm_visible_shape)
+
+
+        # To be set when entity is added to playground. Used to calculate correct coordinates
+        self.size_playground = None
+
+        # To remove temporary entities when reset
+        self.is_temporary_entity = body_part_params.get('is_temporary_entity', False)
+
+    def get_available_actions(self):
+
+        pass
+
+
 
 
 class FrameParts:

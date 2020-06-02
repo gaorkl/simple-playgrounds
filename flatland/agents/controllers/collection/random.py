@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import random
+from flatland.utils.config import *
 
 
 from flatland.agents.controllers.controller import ControllerGenerator, Controller
@@ -16,31 +17,23 @@ class Random(Controller):
         self.require_key_mapping = False
         self.actions = {}
 
-    def set_available_actions(self, available_actions):
-
-        self.available_actions = available_actions
-        for act in available_actions:
-            self.actions[act] = 0
-
     def get_actions(self):
 
-        for act in self.available_actions:
+        for action in self.available_actions:
 
-            min_act, max_act, type_act = self.available_actions[act]
+            if action.action_type == ActionTypes.CONTINUOUS:
 
-            if type_act == 'continuous':
+                act_value = random.uniform(action.min, action.max)
 
-                act_value = random.uniform(min_act, max_act)
+            elif action.action_type == ActionTypes.DISCRETE:
 
-            elif type_act == 'discrete':
-
-                act_value = random.choice([min_act, max_act])
+                act_value = random.choice([action.min, action.max])
 
             else:
 
                 raise ValueError
 
-            self.actions[act] = act_value
+            self.actions[action.body_part][action.action] = act_value
 
         return self.actions
 

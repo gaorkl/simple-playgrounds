@@ -1,6 +1,11 @@
 from flatland.tests.test_basics.entities_pg import *
 from flatland.tests.test_basics.advanced_pg import *
-from flatland.agents import ForwardAgent
+from flatland.agents.body_parts import BodyBase
+from flatland.agents.agent import Agent
+from flatland.agents.controllers.collection.human import Keyboard
+from flatland.agents.controllers.collection.random import Random
+
+# from flatland.agents.body_parts.body_part import BodyBase
 
 # pg = Basic_01()
 # pg = Contact_01()
@@ -38,7 +43,13 @@ agents = []
 
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=40)
-my_agent = ForwardAgent(initial_position = initial_position, controller = ControllerTypes.KEYBOARD)
+base_agent = BodyBase(can_eat = True, can_grasp=True, can_activate = True)
+controller = Keyboard()
+my_agent = Agent(initial_position = initial_position, base=base_agent)
+my_agent.assign_controller(controller)
+
+
+# my_agent.add_sensor(base, 'rgb', 'rgb_2', resolution = 128)
 
 # my_agent = agent.Agent('forward', name = 'mercotte',
 #                        controller_type = 'keyboard',
@@ -85,7 +96,7 @@ while game.game_on:
 
     actions = {}
     for agent in game.agents:
-        actions[agent.name] = agent.get_controller_actions()
+        actions[agent.name] = agent.pick_actions()
 
     game.step(actions)
     game.update_observations()
