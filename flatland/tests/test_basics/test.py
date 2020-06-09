@@ -1,6 +1,6 @@
 from flatland.tests.test_basics.entities_pg import *
 from flatland.tests.test_basics.advanced_pg import *
-from flatland.agents.body_parts import BodyBase
+from flatland.agents.body_parts import BodyBase, Head, Eye
 from flatland.agents.agent import Agent
 from flatland.agents.controllers.collection.human import Keyboard
 from flatland.agents.controllers.collection.random import Random
@@ -9,7 +9,7 @@ from flatland.agents.controllers.collection.random import Random
 
 # pg = Basic_01()
 # pg = Contact_01()
-pg = Interactive_01()
+pg = Empty_01()
 # pg = Doors_01()
 # pg = Zones_01()
 # pg = Proximity_01()
@@ -42,10 +42,17 @@ agents = []
 #
 
 
-initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=40)
-base_agent = BodyBase(can_eat = True, can_grasp=True, can_activate = True)
-controller = Keyboard()
+initial_position = PositionAreaSampler(area_shape='circle', center=[100, 100], radius=40)
+base_agent = BodyBase(can_eat = True, can_grasp=True, can_activate = True, radius = 20)
 my_agent = Agent(initial_position = initial_position, base=base_agent)
+
+head = Head(base_agent, [-10, -20], angle_offset=math.pi/2, radius = 15)
+my_agent.add_body_part(head)
+
+eye = Eye(head, [20, 0], angle_offset= -math.pi/2, radius = 10)
+my_agent.add_body_part(eye)
+
+controller = Keyboard()
 my_agent.assign_controller(controller)
 
 

@@ -26,7 +26,7 @@ class Keyboard(Controller):
         for action in available_actions:
 
             if action.key in self.key_mapping:
-                raise ValueError('Key assigned twice')
+                raise ValueError('Key assigned twice ')
 
             self.key_mapping[action.key] = action
             if action.key_behavior == ActionTypes.PRESS_RELEASE:

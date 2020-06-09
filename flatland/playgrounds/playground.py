@@ -130,7 +130,7 @@ class Playground:
 
                 self.space.remove(*part.pm_elements)
 
-                part.position = [0,0,0]
+                #part.set_relative_position()
                 part.velocity = [0,0,0]
 
         self.agents = []
@@ -297,7 +297,7 @@ class Playground:
         for agent in self.agents:
 
             for part in agent.body_parts:
-                if not part.is_holding:
+                if not part.is_holding and part.can_grasp:
 
                     for joint in part.grasped:
                         self.space.remove(joint)

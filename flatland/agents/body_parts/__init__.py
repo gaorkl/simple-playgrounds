@@ -1,2 +1,3 @@
 #from .collection import *
-from .parts import BodyBase
+from .parts import BodyBase, Head, Eye
+

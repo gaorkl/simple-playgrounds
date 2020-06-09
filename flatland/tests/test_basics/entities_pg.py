@@ -4,6 +4,17 @@ from flatland.entities import *
 import math
 
 
+class Empty_01(SingleRoom):
+
+    def __init__(self, size = (200, 200), **playground_params):
+
+        super(Empty_01, self).__init__(size = size, **playground_params)
+
+        endgoal_01 = VisibleEndGoal([20, 20, 0], reward=50)
+        self.add_entity(endgoal_01)
+
+
+
 class Basic_01(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):

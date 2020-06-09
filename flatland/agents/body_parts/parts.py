@@ -10,6 +10,20 @@ from collections import namedtuple
 Action = namedtuple('Action', 'body_part action action_type min max\
                               key key_behavior key_value')
 
+
+shape_filter = pymunk.ShapeFilter(group=1)
+
+def polar_to_carthesian(coord):
+
+    r, phi = coord
+
+    x = r*math.cos(phi)
+    y = r*math.sin(phi)
+
+    return x,y
+
+
+
 class BodyPart(Entity):
     """ Base Class for body parts
 
@@ -36,20 +50,6 @@ class BodyPart(Entity):
 
         super(BodyPart, self).__init__(initial_position=[0,0,0], **body_part_params)
 
-        # self.physical_shape, self.mass, visible_size, _ = self.get_physical_properties(body_part_params)
-        # self.length, self.width, self.radius = visible_size
-        #
-        # self.visible_vertices = self.compute_vertices(self.radius)
-        #
-        # self.pm_body = self.create_pm_body()
-        # self.pm_elements = [self.pm_body]
-        #
-        # self.texture_params = body_part_params['texture']
-        # self.texture_surface = self.create_texture(self.texture_params)
-        #
-        # self.pm_visible_shape = self.create_pm_visible_shape()
-        # self.visible_mask = self.create_visible_mask()
-        # self.pm_elements.append(self.pm_visible_shape)
 
         self.can_eat = body_part_params.get('can_eat', False)
         self.can_activate = body_part_params.get('can_activate', False)
@@ -58,6 +58,7 @@ class BodyPart(Entity):
             self.grasped = []
 
         self.pm_visible_shape.collision_type = CollisionTypes.AGENT
+        self.pm_visible_shape.filter = shape_filter
 
         self.is_eating = False
         self.is_activating = False
@@ -81,29 +82,9 @@ class BodyPart(Entity):
 
         return default_config[key]
 
-
-    def apply_actions(self, actions):
-
-
-        if self.can_activate:
-            self.is_activating = actions.get(ActionTypes.ACTIVATE, False)
-
-        if self.can_eat:
-            self.is_eating = actions.get(ActionTypes.EAT, False)
-
-        if self.can_grasp:
-            self.is_grasping = actions.get(ActionTypes.GRASP, False)
-
-        if self.is_holding and not self.is_grasping:
-            self.is_holding = False
-
-
     def get_available_actions(self):
 
         actions = []
-        # 'action_name boy_part_name action_type min max\
-        #                               default_key default_key_behavior default_key_value')
-        #
 
         if self.can_grasp:
             action = Action( self.name, ActionTypes.GRASP, ActionTypes.DISCRETE, 0, 1, K_g, ActionTypes.PRESS_HOLD, 1)
@@ -119,6 +100,14 @@ class BodyPart(Entity):
 
         return actions
 
+    def apply_actions(self, actions):
+
+        if self.can_activate: self.is_activating = actions.get(ActionTypes.ACTIVATE, False)
+
+        if self.can_eat: self.is_eating = actions.get(ActionTypes.EAT, False)
+
+        if self.can_grasp: self.is_grasping = actions.get(ActionTypes.GRASP, False)
+        if self.is_holding and not self.is_grasping: self.is_holding = False
 
 
 class BodyBase(BodyPart):
@@ -194,6 +183,221 @@ class BodyBase(BodyPart):
         pygame.draw.line(mask, pygame.color.THECOLORS["blue"], (self.radius, self.radius), (self.radius, 2 * self.radius), 2)
 
         return mask
+
+
+class CircularPan(BodyPart):
+
+    def __init__(self, anchor, relative_position_of_anchor_on_anchor, relative_position_of_anchor_on_part, angle_offset, **kwargs):
+
+        super(CircularPan, self).__init__(**kwargs)
+
+        self.max_angular_velocity = kwargs['max_angular_velocity']
+        self.rotation_range = kwargs['rotation_range']*math.pi/180
+
+        # Avoid collision with own body:
+        # self.pm_visible_shape.sensor = True
+
+        self.anchor = anchor
+        self.angle_offset = angle_offset
+
+        self.relative_position_of_anchor_on_anchor = relative_position_of_anchor_on_anchor
+        self.relative_position_of_anchor_on_part = relative_position_of_anchor_on_part
+
+        self.set_relative_position()
+
+        x0, y0 = self.relative_position_of_anchor_on_anchor
+        x0, y0 = y0, -x0
+
+        x1, y1 = self.relative_position_of_anchor_on_part
+        x1, y1 = y1, -x1
+
+        print('--------------')
+        print(anchor.pm_body.angle, self.pm_body.angle)
+        print(self.rotation_range/2)
+
+        joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body,  (x0, y0), (x1, y1))
+        limit = pymunk.RotaryLimitJoint(anchor.pm_body, self.pm_body, self.angle_offset - self.rotation_range/2 , self.angle_offset + self.rotation_range/2)
+
+        self.motor = pymunk.SimpleMotor(anchor.pm_body, self.pm_body, 0)
+
+
+        # self.pm_elements += [joint, self.motor]
+        self.pm_elements += [joint, self.motor, limit]
+
+    def set_relative_position(self):
+
+        # Get position of the anchor point on anchor
+        x_anchor_center, y_anchor_center = self.anchor.pm_body.position
+        x_anchor_center, y_anchor_center = -y_anchor_center, x_anchor_center
+        theta_anchor = (self.anchor.pm_body.angle + math.pi / 2) % (2 * math.pi)
+
+        x_anchor_relative_of_anchor, y_anchor_relative_of_anchor = self.relative_position_of_anchor_on_anchor
+
+        x_anchor_coordinates_anchor = x_anchor_center + x_anchor_relative_of_anchor*math.cos(theta_anchor - math.pi/2 ) -\
+                                      y_anchor_relative_of_anchor*math.sin(theta_anchor - math.pi/2 )
+        y_anchor_coordinates_anchor = y_anchor_center + x_anchor_relative_of_anchor*math.sin(theta_anchor - math.pi/2 ) + \
+                                      y_anchor_relative_of_anchor*math.cos(theta_anchor - math.pi/2 )
+
+        # Get position of the anchor point on part
+        #x_part_center, y_part_center = self.pm_body.position
+        #x_part_center, y_part_center = -y_part_center, x_part_center
+        theta_part = (self.anchor.pm_body.angle + self.angle_offset + math.pi / 2) % (2 * math.pi)
+
+        x_anchor_relative_of_part, y_anchor_relative_of_part = self.relative_position_of_anchor_on_part
+
+        x_anchor_coordinates_part =  x_anchor_relative_of_part * math.cos(theta_part - math.pi / 2) - \
+                                      y_anchor_relative_of_part * math.sin(theta_part - math.pi / 2)
+        y_anchor_coordinates_part =  x_anchor_relative_of_part * math.sin(theta_part - math.pi / 2) + \
+                                      y_anchor_relative_of_part * math.cos(theta_part - math.pi / 2)
+
+        # Move part to align on anchor
+
+        y = -(x_anchor_coordinates_anchor + x_anchor_coordinates_part)
+        x = y_anchor_coordinates_anchor + y_anchor_coordinates_part
+
+        #print(y, x)
+
+        self.pm_body.position = ( x, y )
+
+        self.pm_body.angle = theta_part - math.pi / 2
+
+        return x, y
+    #
+    #
+    # @property
+    # def relative_angle(self):
+    #
+    #     theta_anchor = self.anchor.position[2]
+    #     theta_part = self.position[2]
+    #
+    #     rel_head = (theta_part-theta_anchor) % (2 * math.pi)
+    #     rel_head = rel_head - 2 * math.pi if rel_head > math.pi else rel_head
+    #
+    #     return rel_head
+    #
+    # @relative_angle.setter
+    # def relative_angle(self, d_theta):
+    #
+    #     x, y, _  = self.position
+    #     theta_anchor = self.anchor.position[2]
+    #
+    #     d_theta_centered = (d_theta - self.angle_offset)%(2*math.pi)
+    #     d_theta_centered = d_theta_centered - 2 * math.pi if d_theta_centered > math.pi else d_theta_centered
+    #
+    #     if d_theta_centered < - self.rotation_range/2 :
+    #         d_theta = - self.rotation_range/2 + self.angle_offset
+    #
+    #     elif d_theta_centered > self.rotation_range/2 :
+    #         d_theta =  self.rotation_range/2 + self.angle_offset
+    #
+    #
+    #     self.position = x, y, theta_anchor + d_theta
+    #
+
+    # @property
+    # def relative_position(self):
+    #
+    #     r, phi = self.polar_position_anchor
+    #
+    #     x_anchor, y_anchor = self.anchor.position
+    #
+    #     x, y = polar_to_carthesian([r, phi + theta_anchor, 0])
+    #
+    #     return x_anchor + x, y_anchor + y, theta_anchor + self.relative_angle
+
+    def get_available_actions(self):
+
+        #actions = super().get_available_actions()
+        actions = []
+
+        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_h, ActionTypes.PRESS_HOLD, 1)
+        actions.append(action)
+
+        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_j, ActionTypes.PRESS_HOLD, -1)
+        actions.append(action)
+
+        return actions
+
+
+    def apply_actions(self, actions):
+
+        super().apply_actions(actions)
+
+        angular_velocity = actions.get(ActionTypes.ANGULAR_VELOCITY, 0)
+
+        self.motor.rate = angular_velocity * self.max_angular_velocity
+        # new_angle = self.position[2] + angular_velocity * self.max_angular_velocity
+
+        # theta_anchor = self.anchor.position[2]
+        #
+        # new_angle_centered = (new_angle - (theta_anchor+self.angle_offset))%(2*math.pi)
+        # new_angle_centered = new_angle_centered - 2 * math.pi if new_angle_centered > math.pi else new_angle_centered
+        #
+        # if new_angle_centered < - self.rotation_range/2 :
+        #     new_angle = - self.rotation_range/2 + self.angle_offset + theta_anchor
+        #
+        # elif new_angle_centered > self.rotation_range/2 :
+        #     new_angle = self.rotation_range/2 + self.angle_offset + theta_anchor
+        #
+        # self.pm_body.angle = new_angle - math.pi/2
+
+
+        # self.pm_body.angular_velocity = self.anchor.pm_body.angular_velocity + angular_velocity * self.max_angular_velocity
+        #
+        # angle_centered = (self.position[2] - (theta_anchor + self.angle_offset)) % (2 * math.pi)
+        # angle_centered = angle_centered - 2 * math.pi if angle_centered > math.pi else angle_centered
+        #
+        # if angle_centered < - self.rotation_range/2 :
+        #     self.pm_body.angle = - self.rotation_range/2 + self.angle_offset + theta_anchor - math.pi / 2
+        #
+        # elif angle_centered > self.rotation_range/2 :
+        #     self.pm_body.angle = self.rotation_range/2 + self.angle_offset + theta_anchor - math.pi / 2
+        #
+
+    def create_visible_mask(self):
+
+        mask = super().create_visible_mask()
+        pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (self.radius, 2 * self.radius), 2)
+
+        return mask
+
+
+class Head(CircularPan):
+
+    def __init__(self, anchor, position_anchor, angle_offset = 0,  **kwargs):
+
+        default_config = self.parse_configuration('parts', 'head')
+        body_part_params = {**default_config, **kwargs}
+
+        # head attached in its center
+        polar_position_part = [0,0]
+
+        super(Head, self).__init__(anchor, position_anchor, polar_position_part, angle_offset, **body_part_params)
+
+class Eye(CircularPan):
+
+    def __init__(self, anchor, position_anchor, angle_offset = 0,  **kwargs):
+
+        default_config = self.parse_configuration('parts', 'head')
+        body_part_params = {**default_config, **kwargs}
+
+        # head attached in its center
+        polar_position_part = [0,0]
+
+        super(Eye, self).__init__(anchor, position_anchor, polar_position_part, angle_offset, **body_part_params)
+
+    def get_available_actions(self):
+
+        actions = []
+
+        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_k, ActionTypes.PRESS_HOLD, 1)
+        actions.append(action)
+
+        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_l, ActionTypes.PRESS_HOLD, -1)
+        actions.append(action)
+
+        return actions
+
 
 # class Head(BodyPart):
 #

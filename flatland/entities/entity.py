@@ -176,15 +176,15 @@ class Entity:
             return self._initial_position.sample()
 
     @initial_position.setter
-    def initial_position(self, initial_position):
+    def initial_position(self, init_pos):
 
-        if isinstance(initial_position, Trajectory):
-            self.trajectory = initial_position
+        if isinstance(init_pos, Trajectory):
+            self.trajectory = init_pos
             self._initial_position = next(self.trajectory)
             self.follows_waypoints = True
 
-        elif isinstance(initial_position, (list, tuple, PositionAreaSampler)):
-            self._initial_position = initial_position
+        elif isinstance(init_pos, (list, tuple, PositionAreaSampler)):
+            self._initial_position = init_pos
             self.follows_waypoints = False
 
         else:
@@ -203,9 +203,9 @@ class Entity:
         return coord_x, coord_y, coord_phi
 
     @position.setter
-    def position(self, position):
+    def position(self, pos):
 
-        coord_x, coord_y, coord_phi = position
+        coord_x, coord_y, coord_phi = pos
 
         # make sure that coordinates are within playground
         coord_x = max(min(self.size_playground[0], coord_x), 0)
@@ -230,8 +230,8 @@ class Entity:
         return vx, vy, vphi
 
     @velocity.setter
-    def velocity(self, velocity):
-        vx, vy, vphi = velocity
+    def velocity(self, vel):
+        vx, vy, vphi = vel
 
         self.pm_body.velocity = (vx, vy)
         self.pm_body.angular_velocity = vphi

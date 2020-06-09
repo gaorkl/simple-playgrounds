@@ -116,7 +116,14 @@ class Agent():
 
     @position.setter
     def position(self, position):
-        self.base.position = position
+
+        for part in self.body_parts:
+
+            if part is self.base:
+                part.position = position
+
+            else:
+                part.set_relative_position()
 
     @property
     def velocity(self):
@@ -133,7 +140,8 @@ class Agent():
     @size_playground.setter
     def size_playground(self, size_pg):
         self._size_playground = size_pg
-        self.base.size_playground = size_pg
+        for part in self.body_parts:
+            part.size_playground = size_pg
 
     def pick_actions(self):
 
@@ -190,9 +198,11 @@ class Agent():
         self.reward = 0
         self.energy_spent = 0
 
-    def add_body_part(self, part, anchor, relative_position):
+    def add_body_part(self, part):
 
-        pass
+
+        self.body_parts.append(part)
+
 
     def add_joint(self, part_1, part_2, type_joint):
 
