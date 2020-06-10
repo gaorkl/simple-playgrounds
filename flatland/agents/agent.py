@@ -1,7 +1,8 @@
 from .sensors import sensor
 from .sensors.visual_sensors.visual_sensor import VisualSensor
 from .sensors.geometric_sensors.geometric_sensor import GeometricSensor
-from .body_parts.parts import BodyBase
+
+# from .body_parts.parts import BodyBase
 
 from .controllers.collection.human import Keyboard
 import os, yaml
@@ -10,6 +11,10 @@ import math
 # __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 # with open(os.path.join(__location__, 'agent_default.yml'), 'r') as yaml_file:
 #     default_config = yaml.load(yaml_file)
+
+from collections import namedtuple
+Action = namedtuple('Action', 'body_part action action_type min max')
+Keymap = namedtuple('KeyMap', 'body_part action key key_behavior key_value')
 
 
 class Agent():
@@ -72,13 +77,17 @@ class Agent():
         # Replaced when agent is put in playground
         self.size_playground = [0, 0]
 
-        self.actions_mapping = {}
+        # self.key_mapping = None
 
 
     def assign_controller(self, controller):
         # Controller
         self.controller = controller
         self.controller.set_available_actions(self.get_actions())
+
+        if self.controller.require_key_mapping:
+            self.controller.assign_key_mapping(self.key_mapping)
+
 
 
     @staticmethod
@@ -124,6 +133,7 @@ class Agent():
 
             else:
                 part.set_relative_position()
+                part.velocity = [0, 0, 0]
 
     @property
     def velocity(self):

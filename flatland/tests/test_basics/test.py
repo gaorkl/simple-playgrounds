@@ -1,7 +1,6 @@
 from flatland.tests.test_basics.entities_pg import *
 from flatland.tests.test_basics.advanced_pg import *
-from flatland.agents.body_parts import BodyBase, Head, Eye
-from flatland.agents.agent import Agent
+from flatland.agents.basic_agents import BaseAgent, HeadAgent
 from flatland.agents.controllers.collection.human import Keyboard
 from flatland.agents.controllers.collection.random import Random
 
@@ -41,16 +40,8 @@ agents = []
 #     agents.append(my_agent)
 #
 
-
 initial_position = PositionAreaSampler(area_shape='circle', center=[100, 100], radius=40)
-base_agent = BodyBase(can_eat = True, can_grasp=True, can_activate = True, radius = 20)
-my_agent = Agent(initial_position = initial_position, base=base_agent)
-
-head = Head(base_agent, [-10, -20], angle_offset=math.pi/2, radius = 15)
-my_agent.add_body_part(head)
-
-eye = Eye(head, [20, 0], angle_offset= -math.pi/2, radius = 10)
-my_agent.add_body_part(eye)
+my_agent = HeadAgent(initial_position=initial_position)
 
 controller = Keyboard()
 my_agent.assign_controller(controller)

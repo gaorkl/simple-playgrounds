@@ -5,23 +5,10 @@ from flatland.utils.config import *
 import math
 from pygame.locals import *
 import yaml, os
-from collections import namedtuple
 
-Action = namedtuple('Action', 'body_part action action_type min max\
-                              key key_behavior key_value')
-
+from ..agent import Action
 
 shape_filter = pymunk.ShapeFilter(group=1)
-
-def polar_to_carthesian(coord):
-
-    r, phi = coord
-
-    x = r*math.cos(phi)
-    y = r*math.sin(phi)
-
-    return x,y
-
 
 
 class BodyPart(Entity):
@@ -87,27 +74,32 @@ class BodyPart(Entity):
         actions = []
 
         if self.can_grasp:
-            action = Action( self.name, ActionTypes.GRASP, ActionTypes.DISCRETE, 0, 1, K_g, ActionTypes.PRESS_HOLD, 1)
+            action = Action( self.name, ActionTypes.GRASP, ActionTypes.DISCRETE, 0, 1)#K_g, ActionTypes.PRESS_HOLD, 1)
             actions.append(action)
 
         if self.can_activate:
-            action = Action(self.name, ActionTypes.ACTIVATE, ActionTypes.DISCRETE, 0, 1, K_a, ActionTypes.PRESS_RELEASE, 1)
+            action = Action(self.name, ActionTypes.ACTIVATE, ActionTypes.DISCRETE, 0, 1)#, K_a, ActionTypes.PRESS_RELEASE, 1)
             actions.append(action)
 
         if self.can_eat:
-            action = Action(self.name, ActionTypes.EAT, ActionTypes.DISCRETE, 0, 1, K_e, ActionTypes.PRESS_RELEASE, 1)
+            action = Action(self.name, ActionTypes.EAT, ActionTypes.DISCRETE, 0, 1)#, K_e, ActionTypes.PRESS_RELEASE, 1)
             actions.append(action)
 
         return actions
 
     def apply_actions(self, actions):
 
-        if self.can_activate: self.is_activating = actions.get(ActionTypes.ACTIVATE, False)
+        if self.can_activate:
+            self.is_activating = actions.get(ActionTypes.ACTIVATE, False)
 
-        if self.can_eat: self.is_eating = actions.get(ActionTypes.EAT, False)
+        if self.can_eat:
+            self.is_eating = actions.get(ActionTypes.EAT, False)
 
-        if self.can_grasp: self.is_grasping = actions.get(ActionTypes.GRASP, False)
-        if self.is_holding and not self.is_grasping: self.is_holding = False
+        if self.can_grasp:
+            self.is_grasping = actions.get(ActionTypes.GRASP, False)
+
+        if self.is_holding and not self.is_grasping:
+            self.is_holding = False
 
 
 class BodyBase(BodyPart):
@@ -152,26 +144,26 @@ class BodyBase(BodyPart):
 
         actions = super().get_available_actions()
 
-        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_UP, ActionTypes.PRESS_HOLD, 1)
+        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_UP, ActionTypes.PRESS_HOLD, 1)
         actions.append(action)
 
-        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_DOWN, ActionTypes.PRESS_HOLD, -1)
+        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_DOWN, ActionTypes.PRESS_HOLD, -1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_n,
-                        ActionTypes.PRESS_HOLD, -1)
+        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_n,
+                        # ActionTypes.PRESS_HOLD, -1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_m,
-                        ActionTypes.PRESS_HOLD, 1)
+        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_m,
+                        # ActionTypes.PRESS_HOLD, 1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_LEFT,
-                        ActionTypes.PRESS_HOLD, 1)
+        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_LEFT,
+                        # ActionTypes.PRESS_HOLD, 1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_RIGHT,
-                        ActionTypes.PRESS_HOLD, -1)
+        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_RIGHT,
+                        # ActionTypes.PRESS_HOLD, -1)
         actions.append(action)
 
         return actions
@@ -192,10 +184,7 @@ class CircularPan(BodyPart):
         super(CircularPan, self).__init__(**kwargs)
 
         self.max_angular_velocity = kwargs['max_angular_velocity']
-        self.rotation_range = kwargs['rotation_range']*math.pi/180
-
-        # Avoid collision with own body:
-        # self.pm_visible_shape.sensor = True
+        self.rotation_range = kwargs['rotation_range']
 
         self.anchor = anchor
         self.angle_offset = angle_offset
@@ -211,17 +200,11 @@ class CircularPan(BodyPart):
         x1, y1 = self.relative_position_of_anchor_on_part
         x1, y1 = y1, -x1
 
-        print('--------------')
-        print(anchor.pm_body.angle, self.pm_body.angle)
-        print(self.rotation_range/2)
-
         joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body,  (x0, y0), (x1, y1))
         limit = pymunk.RotaryLimitJoint(anchor.pm_body, self.pm_body, self.angle_offset - self.rotation_range/2 , self.angle_offset + self.rotation_range/2)
 
         self.motor = pymunk.SimpleMotor(anchor.pm_body, self.pm_body, 0)
 
-
-        # self.pm_elements += [joint, self.motor]
         self.pm_elements += [joint, self.motor, limit]
 
     def set_relative_position(self):
@@ -239,8 +222,6 @@ class CircularPan(BodyPart):
                                       y_anchor_relative_of_anchor*math.cos(theta_anchor - math.pi/2 )
 
         # Get position of the anchor point on part
-        #x_part_center, y_part_center = self.pm_body.position
-        #x_part_center, y_part_center = -y_part_center, x_part_center
         theta_part = (self.anchor.pm_body.angle + self.angle_offset + math.pi / 2) % (2 * math.pi)
 
         x_anchor_relative_of_part, y_anchor_relative_of_part = self.relative_position_of_anchor_on_part
@@ -262,58 +243,16 @@ class CircularPan(BodyPart):
         self.pm_body.angle = theta_part - math.pi / 2
 
         return x, y
-    #
-    #
-    # @property
-    # def relative_angle(self):
-    #
-    #     theta_anchor = self.anchor.position[2]
-    #     theta_part = self.position[2]
-    #
-    #     rel_head = (theta_part-theta_anchor) % (2 * math.pi)
-    #     rel_head = rel_head - 2 * math.pi if rel_head > math.pi else rel_head
-    #
-    #     return rel_head
-    #
-    # @relative_angle.setter
-    # def relative_angle(self, d_theta):
-    #
-    #     x, y, _  = self.position
-    #     theta_anchor = self.anchor.position[2]
-    #
-    #     d_theta_centered = (d_theta - self.angle_offset)%(2*math.pi)
-    #     d_theta_centered = d_theta_centered - 2 * math.pi if d_theta_centered > math.pi else d_theta_centered
-    #
-    #     if d_theta_centered < - self.rotation_range/2 :
-    #         d_theta = - self.rotation_range/2 + self.angle_offset
-    #
-    #     elif d_theta_centered > self.rotation_range/2 :
-    #         d_theta =  self.rotation_range/2 + self.angle_offset
-    #
-    #
-    #     self.position = x, y, theta_anchor + d_theta
-    #
-
-    # @property
-    # def relative_position(self):
-    #
-    #     r, phi = self.polar_position_anchor
-    #
-    #     x_anchor, y_anchor = self.anchor.position
-    #
-    #     x, y = polar_to_carthesian([r, phi + theta_anchor, 0])
-    #
-    #     return x_anchor + x, y_anchor + y, theta_anchor + self.relative_angle
 
     def get_available_actions(self):
 
         #actions = super().get_available_actions()
         actions = []
 
-        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_h, ActionTypes.PRESS_HOLD, 1)
+        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_h, ActionTypes.PRESS_HOLD, 1)
         actions.append(action)
 
-        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1, K_j, ActionTypes.PRESS_HOLD, -1)
+        action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_j, ActionTypes.PRESS_HOLD, -1)
         actions.append(action)
 
         return actions
@@ -367,6 +306,8 @@ class Head(CircularPan):
     def __init__(self, anchor, position_anchor, angle_offset = 0,  **kwargs):
 
         default_config = self.parse_configuration('parts', 'head')
+        default_config['rotation_range'] *= math.pi / 180
+
         body_part_params = {**default_config, **kwargs}
 
         # head attached in its center

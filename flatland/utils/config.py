@@ -29,12 +29,14 @@ class ActionTypes(IntEnum):
     LATERAL_VELOCITY = 4
     ANGULAR_VELOCITY = 5
 
-    PRESS_HOLD = 6
-    PRESS_RELEASE = 7
+    GRASP = 6
+    EAT = 7
+    ACTIVATE = 8
 
-    GRASP = 8
-    EAT = 9
-    ACTIVATE = 10
+class KeyTypes(IntEnum):
+
+    PRESS_HOLD = 1
+    PRESS_RELEASE = 2
 
 
 geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3, 'square': 4, 'pentagon': 5, 'hexagon': 6}
