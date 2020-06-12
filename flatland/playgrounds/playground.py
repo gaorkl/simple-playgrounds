@@ -98,6 +98,7 @@ class Playground:
         self.space = pymunk.Space()
         self.space.gravity = pymunk.Vec2d(0., 0.)
         self.space.damping = SPACE_DAMPING
+        # self.space.collision_persistence = 1
 
 
     def add_agent(self, agent):
@@ -109,43 +110,35 @@ class Playground:
 
         agent.size_playground = [self.width, self.length]
 
-        if agent.initial_position is None:
+        if agent.initial_position is not None:
+            pass
+
+        elif self.agent_starting_area is not None:
+            agent.initial_position = self.agent_starting_area
+
+        else:
             agent.initial_position = [self.width / 2, self.length / 2, 0]
 
         agent.position = agent.initial_position
 
-        for part_name, part in agent.frame.anatomy.items():
+        # self.space.add(*agent.base.pm_elements)
 
-            if part.body is not None:
-                self.space.add(part.body)
+        for body_part in agent.body_parts:
+            self.space.add(*body_part.pm_elements)
 
-            if part.shape is not None:
-                self.space.add(part.shape)
-
-            if part.joint is not None:
-                for j in part.joint:
-                    self.space.add(j)
+        # for _, joint in agent.body_joints.items():
+        #     self.space.add(joint)
 
     def remove_agents(self):
 
         for agent in self.agents:
 
-            for part_name, part in agent.frame.anatomy.items():
+            for part in agent.body_parts:
 
-                if part.body is not None:
-                    self.space.remove(part.body)
-                    part.body.position = [0,0]
-                    part.body.angle = 0
-                    part.body.velocity = (0, 0)
-                    part.body.angular_velocity = 0
+                self.space.remove(*part.pm_elements)
 
-                if part.shape is not None:
-                    self.space.remove(part.shape)
-
-                if part.joint is not None:
-                    for j in part.joint:
-                        # self.playground.space.add(part.joint)
-                        self.space.remove(j)
+                #part.set_relative_position()
+                part.velocity = [0,0,0]
 
         self.agents = []
 
@@ -241,9 +234,9 @@ class Playground:
         for agent in self.agents:
             #if agent is not sensor_agent:
             if agent is not sensor_agent:
-                agent.frame.draw(agent_image, visible_to_self=False)
+                agent.draw(agent_image, visible_to_self=False)
             else:
-                agent.frame.draw(agent_image, visible_to_self=True)
+                agent.draw(agent_image, visible_to_self=True)
 
         imgdata = pygame.surfarray.array3d(agent_image)
 
@@ -264,9 +257,11 @@ class Playground:
         for agent in self.agents:
             #if agent is not sensor_agent:
             if agent is not sensor_agent:
-                agent.frame.draw(self.topdown_view, visible_to_self=False)
+                agent.draw(self.topdown_view, visible_to_self=False)
             else:
-                agent.frame.draw(self.topdown_view, visible_to_self=True)
+                agent.draw(self.topdown_view, visible_to_self=True)
+
+
             """else:
                 #import pdb;pdb.set_trace()
                 body_parts = agent.frame.anatomy.keys()
@@ -308,11 +303,12 @@ class Playground:
 
         for agent in self.agents:
 
-            if not agent.is_holding:
+            for part in agent.body_parts:
+                if not part.is_holding and part.can_grasp:
 
-                for joint in agent.grasped:
-                    self.space.remove(joint)
-                agent.grasped = []
+                    for joint in part.grasped:
+                        self.space.remove(joint)
+                    part.grasped = []
 
     def get_entity_from_visible_shape(self, pm_shape):
 
@@ -366,30 +362,32 @@ class Playground:
     def agent_interacts(self, arbiter, space, data):
 
         agent = self.get_agent_from_shape(arbiter.shapes[0])
+        body_part = next( iter([part for part in agent.body_parts if part.pm_visible_shape == arbiter.shapes[0]]), None)
+
 
         # TODO: replace with this everywhere:
         interacting_entity = next( iter([entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]]), None)
 
 
-        if agent.is_eating and interacting_entity.edible:
+        if body_part.is_eating and interacting_entity.edible:
 
-            agent.is_eating = False
+            body_part.is_eating = False
 
             space.remove(interacting_entity.pm_body, interacting_entity.pm_visible_shape, interacting_entity.pm_interaction_shape)
             space.add_post_step_callback(self.eaten_shrinks, interacting_entity, agent )
 
-        elif agent.is_activating and (interacting_entity.entity_type is 'dispenser'):
+        elif body_part.is_activating and (interacting_entity.entity_type is 'dispenser'):
 
-            agent.is_activating = False
+            body_part.is_activating = False
 
             if len(interacting_entity.produced_entities) < interacting_entity.production_limit:
                 new_entity = interacting_entity.activate()
                 self.add_entity(new_entity)
                 interacting_entity.produced_entities.append(new_entity)
 
-        elif agent.is_activating and (interacting_entity.entity_type is 'switch'):
+        elif body_part.is_activating and (interacting_entity.entity_type is 'switch'):
 
-            agent.is_activating = False
+            body_part.is_activating = False
             door = interacting_entity.door
 
             interacting_entity.activate()
@@ -403,17 +401,17 @@ class Playground:
                 self.place_entity_in_playground(door)
 
 
-        elif agent.is_grasping and not agent.is_holding and interacting_entity.movable :
+        elif body_part.is_grasping and not body_part.is_holding and interacting_entity.movable :
 
-            agent.is_holding = True
+            body_part.is_holding = True
 
-            j1 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (0,5), (0,-5))
-            j2 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (0,-5), (0,5))
-            j3 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (5,5), (0,5))
-            j4 = pymunk.PinJoint(interacting_entity.pm_body, agent.frame.anatomy['base'].body, (5,-5), (0,5))
+            j1 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0,5), (0,-5))
+            j2 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0,-5), (0,5))
+            j3 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5,5), (0,5))
+            j4 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5,-5), (0,5))
 
             self.space.add(j1, j2, j3, j4)
-            agent.grasped += [j1, j2, j3, j4]
+            body_part.grasped += [j1, j2, j3, j4]
 
         return True
 

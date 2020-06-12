@@ -98,8 +98,8 @@ class Engine():
         for _ in range(self.inner_simulation_steps):
             self.playground.space.step(1. / self.inner_simulation_steps)
 
-        for agent in self.agents:
-            agent.health += (agent.reward - agent.energy_spent)
+        # for agent in self.agents:
+        #     agent.health += (agent.reward - agent.energy_spent)
 
         self.playground.update_playground()
 

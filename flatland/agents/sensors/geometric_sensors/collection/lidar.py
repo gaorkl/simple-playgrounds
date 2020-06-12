@@ -8,14 +8,14 @@ import math
 @SensorGenerator.register('lidar')
 class LidarSensor(GeometricSensor):
 
-    def __init__(self, anatomy, custom_config):
+    def __init__(self, anchor, custom_config):
 
         self.sensor_type = 'lidar'
 
         #Todo later: add default config, as in visual_sensors
         sensor_param = { **custom_config}
 
-        super(LidarSensor, self).__init__(anatomy, sensor_param)
+        super(LidarSensor, self).__init__(anchor, sensor_param)
 
 
         #Sensor paramters TODO: make it parametrable
@@ -33,9 +33,9 @@ class LidarSensor(GeometricSensor):
         output = [dict() for i in range(self.cones_number)]
 
         #Current's agent Shape
-        agent_shape = current_agent.frame.anatomy['base'].shape
-        agent_position = agent_shape.body.position
-        agent_angle = agent_shape.body.angle
+        agent_shape = self.anchor.pm_visible_shape
+        agent_position = self.anchor.pm_body.position
+        agent_angle = self.anchor.pm_body.angle
 
         #Gathering Shapes of entities and agents, in sorted dict bi entity type
         sorted_shapes = dict()

@@ -1,0 +1,68 @@
+# Base
+base_texture : &base-texture
+  texture_type: color
+  color: [0, 150, 150]
+
+# Body parts
+base: &base
+  physical_shape: circle
+  texture:  *base-texture
+  radius: 20
+  mass: 20
+  max_linear_velocity: 1.0
+  max_angular_velocity: 0.25
+
+head_texture : &head-texture
+  texture_type: color
+  color: [0, 180, 150]
+
+head: &head
+  texture:  *head-texture
+  physical_shape: circle
+  mass: 5
+  radius: 14
+  max_angular_velocity: 0.25
+  rotation_range: 90
+
+eye_texture : &eye-texture
+  texture_type: color
+  color: [100, 120, 180]
+
+eye: &eye
+  texture:  *eye-texture
+  physical_shape: circle
+  mass: 5
+  radius: 6
+  max_angular_velocity: 0.25
+  rotation_range: 90
+
+arm_texture : &arm-texture
+  texture_type: color
+  color: [100, 180, 180]
+
+arm: &arm
+  texture:  *arm-texture
+  physical_shape: rectangle
+  mass: 2
+  width_length : [3, 30]
+  max_angular_velocity: 0.25
+  rotation_range: 90
+
+
+
+
+#arms_texture : &arms-texture
+#  texture_type: color
+#  color: [0, 150, 170]
+#
+#
+#
+
+#
+#arm: &arm
+#  texture:  *arms-texture
+#  radius: 10
+#  mass: 1
+#  rotation_speed: 0.25
+#  rotation_range: 60
+#  metabolism: 0.001

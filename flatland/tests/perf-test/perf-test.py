@@ -21,7 +21,7 @@ def run(nbAgents = 10, mapSize = 200, steps = 100, depth = False, fullBlind = Fa
 
         'display': {
             'playground' : False,
-            'frames' : True,
+            'body_parts' : True,
         }
     }
 

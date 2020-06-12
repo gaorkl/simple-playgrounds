@@ -28,21 +28,26 @@ class ControllerGenerator():
         return cls.subclasses[controller_type]()
 
 
-class Controller():
+class Controller:
 
     def __init__(self):
 
         self.require_key_mapping = False
-        self.available_actions = {}
         self.actions = {}
+        self.available_actions = {}
 
     def get_actions(self):
         pass
 
     def set_available_actions(self, available_actions):
         self.available_actions = available_actions
-        for act in available_actions:
-            self.actions[act] = 0
+
+        for action in available_actions:
+
+            self.actions[action.body_part] = {}
+
+        # for act in available_actions:
+        #     self.actions[act] = 0
 
     def get_empty_action_dict(self):
 

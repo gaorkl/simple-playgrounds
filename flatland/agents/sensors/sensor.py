@@ -28,12 +28,12 @@ class SensorGenerator:
         return decorator
 
     @classmethod
-    def create(cls, sensor_type, anatomy, sensor_param):
+    def create(cls, sensor_type, anchor, sensor_param):
 
         if sensor_type not in cls.subclasses:
             raise ValueError('Sensor not implemented:' + sensor_type)
 
-        return cls.subclasses[sensor_type](anatomy, sensor_param )
+        return cls.subclasses[sensor_type](anchor, sensor_param )
 
 
 def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
@@ -48,7 +48,7 @@ def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
 
 class Sensor(ABC):
 
-    def __init__(self, anatomy, sensor_param):
+    def __init__(self, anchor, sensor_param):
         self.name = sensor_param.get('name', None)
         self.sensor_type = sensor_param.get('type', None)
         self.sensor_params = sensor_param
