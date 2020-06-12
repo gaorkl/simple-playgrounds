@@ -10,13 +10,13 @@ from flatland.agents.controllers.collection.random import Random
 # pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
-pg = Empty_01()
+# pg = Empty_01()
 # pg = Doors_01()
 # pg = Zones_01()
 # pg = Proximity_01()
 # pg = Trajectory_01()
 #pg = Fields_01()
-
+pg = Interactive_01()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[100, 100], radius=40)

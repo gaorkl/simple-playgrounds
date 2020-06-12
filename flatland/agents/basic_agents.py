@@ -19,6 +19,10 @@ class BaseAgent(Agent):
 
         keys = []
 
+        keys.append(Keymap(self.base.name, ActionTypes.GRASP, K_g, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.ACTIVATE, K_a, KeyTypes.PRESS_RELEASE, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.EAT, K_e, KeyTypes.PRESS_RELEASE, 1))
+
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )
 
@@ -45,10 +49,15 @@ class HeadEyeAgent(Agent):
         self.eye_r = Eye(self.head, [8, 8], angle_offset=-math.pi/4, rotation_range=math.pi, name = 'rigth_eye')
         self.add_body_part(self.eye_r)
 
+
     @property
     def key_mapping(self):
 
         keys = []
+
+        keys.append(Keymap(self.base.name, ActionTypes.GRASP, K_g, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.ACTIVATE, K_a, KeyTypes.PRESS_RELEASE, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.EAT, K_e, KeyTypes.PRESS_RELEASE, 1))
 
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )
@@ -84,6 +93,11 @@ class HeadAgent(Agent):
     def key_mapping(self):
 
         keys = []
+
+        keys.append(Keymap(self.base.name, ActionTypes.GRASP, K_g, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.ACTIVATE, K_a, KeyTypes.PRESS_RELEASE, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.EAT, K_e, KeyTypes.PRESS_RELEASE, 1))
+
 
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )

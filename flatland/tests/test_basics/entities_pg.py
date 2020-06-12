@@ -129,7 +129,7 @@ class Interactive_01(SingleRoom):
         self.add_entity(key_chest)
 
         treasure = Apple([0, 0, 0])
-        chest = Chest([100, 200,0], key = key_chest, treasure = treasure)
+        chest = Chest([100, 200,0.2], key = key_chest, treasure = treasure, width_length = [20, 50])
         self.add_entity(chest)
 
         coin = Coin([150, 200, 0], graspable=True)

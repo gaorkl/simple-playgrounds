@@ -331,7 +331,7 @@ class Entity:
 
         if self.physical_shape == 'rectangle':
 
-            width, length = int(self.interaction_width), int(self.interaction_length)
+            length, width = int(self.interaction_width), int(self.interaction_length)
 
             texture_interactive_surface = pygame.transform.scale(self.texture_surface,
                                                                  (2*int(self.interaction_radius),
