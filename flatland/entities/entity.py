@@ -119,7 +119,7 @@ class Entity:
 
         # Properties of physical shape
         if physical_shape == 'rectangle':
-            length, width = params['width_length']
+            width, length = params['width_length']
             radius = max(width, length)
         else:
             radius = params['radius']
@@ -137,7 +137,7 @@ class Entity:
 
         mass = params.get('mass', None)
 
-        return physical_shape, mass, (length, width, radius), \
+        return physical_shape, mass, (width, length, radius), \
             (length_interaction, width_interaction, radius_interaction)
 
     def create_texture(self, texture_params):

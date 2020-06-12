@@ -2,7 +2,7 @@ from flatland.agents.sensors.sensor import *
 
 class VisualSensor(Sensor):
 
-    def __init__(self, anatomy, sensor_param):
+    def __init__(self, anchor, sensor_param):
 
 
         self.name = sensor_param.get('name', None)
@@ -18,8 +18,7 @@ class VisualSensor(Sensor):
 
 
         # Anchor of the sensor
-        body_anchor = sensor_param.get('anchor', None)
-        self.body_anchor = anatomy[body_anchor].body
+        self.body_anchor = anchor.pm_body
 
         # Relative location (polar) and angle wrt body_parts
         self.d_r = sensor_param.get('d_r', None)

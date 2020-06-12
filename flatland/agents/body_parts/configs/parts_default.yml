@@ -7,7 +7,7 @@ base_texture : &base-texture
 base: &base
   physical_shape: circle
   texture:  *base-texture
-  radius: 13
+  radius: 20
   mass: 20
   max_linear_velocity: 1.0
   max_angular_velocity: 0.25
@@ -20,7 +20,31 @@ head: &head
   texture:  *head-texture
   physical_shape: circle
   mass: 5
-  radius: 8
+  radius: 14
+  max_angular_velocity: 0.25
+  rotation_range: 90
+
+eye_texture : &eye-texture
+  texture_type: color
+  color: [100, 120, 180]
+
+eye: &eye
+  texture:  *eye-texture
+  physical_shape: circle
+  mass: 5
+  radius: 6
+  max_angular_velocity: 0.25
+  rotation_range: 90
+
+arm_texture : &arm-texture
+  texture_type: color
+  color: [100, 180, 180]
+
+arm: &arm
+  texture:  *arm-texture
+  physical_shape: rectangle
+  mass: 2
+  width_length : [3, 30]
   max_angular_velocity: 0.25
   rotation_range: 90
 

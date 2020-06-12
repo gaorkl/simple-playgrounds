@@ -98,6 +98,7 @@ class Playground:
         self.space = pymunk.Space()
         self.space.gravity = pymunk.Vec2d(0., 0.)
         self.space.damping = SPACE_DAMPING
+        # self.space.collision_persistence = 1
 
 
     def add_agent(self, agent):
@@ -109,7 +110,13 @@ class Playground:
 
         agent.size_playground = [self.width, self.length]
 
-        if agent.initial_position is None:
+        if agent.initial_position is not None:
+            pass
+
+        elif self.agent_starting_area is not None:
+            agent.initial_position = self.agent_starting_area
+
+        else:
             agent.initial_position = [self.width / 2, self.length / 2, 0]
 
         agent.position = agent.initial_position
@@ -227,9 +234,9 @@ class Playground:
         for agent in self.agents:
             #if agent is not sensor_agent:
             if agent is not sensor_agent:
-                agent.frame.draw(agent_image, visible_to_self=False)
+                agent.draw(agent_image, visible_to_self=False)
             else:
-                agent.frame.draw(agent_image, visible_to_self=True)
+                agent.draw(agent_image, visible_to_self=True)
 
         imgdata = pygame.surfarray.array3d(agent_image)
 

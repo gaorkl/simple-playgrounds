@@ -1,7 +1,9 @@
 from .sensors import sensor
 from .sensors.visual_sensors.visual_sensor import VisualSensor
 from .sensors.geometric_sensors.geometric_sensor import GeometricSensor
+from flatland.utils.position_utils import PositionAreaSampler
 
+from pymunk import ShapeFilter
 # from .body_parts.parts import BodyBase
 
 from .controllers.collection.human import Keyboard
@@ -17,7 +19,7 @@ Action = namedtuple('Action', 'body_part action action_type min max')
 Keymap = namedtuple('KeyMap', 'body_part action key key_behavior key_value')
 
 
-class Agent():
+class Agent:
     """
     Base class for agents
 
@@ -26,25 +28,20 @@ class Agent():
     body_parts_visible = False
 
     def __init__(self, initial_position, base, **agent_param):
+        """
+        Base class for agents. Need a base object (BodyBase)
+
+        Args:
+            initial_position: initial position of the base
+            base: BodyBase object
+            **agent_param: other parameters
+        """
 
         if 'name' in agent_param:
             self.name =  agent_param.get('name')
         else:
             self.name = 'agent_' + str(type(self).index_name)
             type(self).index_name += 1
-
-        # self.health = agent_metabolism_params.get('health')
-        # self.base_metabolism = agent_metabolism_params.get('base_metabolism')
-        # self.action_metabolism = agent_metabolism_params.get('action_metabolism')
-
-        # # Frame
-        # self.frame = frame.FrameGenerator.create(self.agent_type, custom_config.get('frame', {}))
-        # self.available_actions = self.frame.get_available_actions()
-
-        # Select Controller
-        # self.controller = controller.ControllerGenerator.create(controller_type)
-        # self.controller.set_available_actions(self.available_actions)
-
 
         # Dictionary for sensors
         self.sensors = {}
@@ -55,14 +52,6 @@ class Agent():
 
         # Possible actions
         self.available_actions = {}
-
-        # Internals
-        # self.is_activating = False
-        # self.is_eating = False
-        #
-        # self.is_grasping = False
-        # self.grasped = []
-        # self.is_holding = False
 
         self.reward = 0
         self.energy_spent = 0
@@ -109,8 +98,10 @@ class Agent():
         # differentiate between case where initial position is fixed and case where it is random
         if isinstance( self._initial_position, list ) or isinstance( self._initial_position, tuple ) :
             return self._initial_position
-        else:
+        elif isinstance( self._initial_position, PositionAreaSampler ):
             return self._initial_position.sample()
+        else:
+            return self._initial_position
 
     @initial_position.setter
     def initial_position(self, position):
@@ -125,6 +116,7 @@ class Agent():
 
     @position.setter
     def position(self, position):
+
 
         for part in self.body_parts:
 
@@ -141,7 +133,10 @@ class Agent():
 
     @velocity.setter
     def velocity(self, velocity):
-        self.base.velocity = velocity
+        for part in self.base:
+            part.velocity = velocity
+        #self.base.velocity = velocity
+
 
     @property
     def size_playground(self):
@@ -168,7 +163,7 @@ class Agent():
             return True
         return False
 
-    def add_sensor(self, sensor_type, sensor_name, sensor_config = None, **sensor_params):
+    def add_sensor(self, anchor, sensor_type, sensor_name, sensor_config = None, **sensor_params):
 
         if sensor_type is 'touch':
             sensor_params['minRange'] = self.base.radius   # To avoid errors while linearpolar converting
@@ -182,7 +177,7 @@ class Agent():
         sensor_params['type'] = sensor_type
 
 
-        new_sensor = sensor.SensorGenerator.create(sensor_type, self.frame.anatomy, sensor_params)
+        new_sensor = sensor.SensorGenerator.create(sensor_type, anchor, sensor_params)
 
         if new_sensor.sensor_modality == sensor.SensorModality.GEOMETRIC:
              self.has_geometric_sensor = True
