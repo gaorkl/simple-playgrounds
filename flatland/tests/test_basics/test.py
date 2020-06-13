@@ -15,11 +15,11 @@ from flatland.agents.controllers.collection.random import Random
 # pg = Zones_01()
 # pg = Proximity_01()
 # pg = Trajectory_01()
-#pg = Fields_01()
+# pg = Fields_01()
 pg = Interactive_01()
 agents = []
 
-initial_position = PositionAreaSampler(area_shape='circle', center=[100, 100], radius=40)
+initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=10)
 my_agent = HeadAgent(initial_position=initial_position)
 
 controller = Keyboard()

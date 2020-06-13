@@ -8,7 +8,7 @@ base: &base
   physical_shape: circle
   texture:  *base-texture
   radius: 20
-  mass: 20
+  mass: 10
   max_linear_velocity: 1.0
   max_angular_velocity: 0.25
 

@@ -33,7 +33,11 @@ class Field:
 
         self.entity_produced = entity_produced
         self.location_sampler = production_area
-        self.entity_produced_params = entity_produced_params
+
+        if entity_produced_params is None:
+            self.entity_produced_params = {}
+        else:
+            self.entity_produced_params = entity_produced_params
 
         self.probability = entity_params.get('production_probability')
         self.limit = entity_params.get('current_produced_limit')

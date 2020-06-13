@@ -276,7 +276,7 @@ class Entity:
 
         elif self.physical_shape == 'rectangle':
             pm_interaction_shape = pymunk.Poly.create_box(self.pm_body,
-                                                          (self.interaction_width, self.interaction_length))
+                                                          (self.interaction_length, self.interaction_width))
 
         else:
             raise ValueError
