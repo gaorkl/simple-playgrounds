@@ -46,9 +46,19 @@ arm: &arm
   mass: 2
   width_length : [3, 30]
   max_angular_velocity: 0.25
-  rotation_range: 90
+  rotation_range: 120
 
+hand_texture : &hand-texture
+  texture_type: color
+  color: [150, 180, 130]
 
+hand: &hand
+  texture:  *hand-texture
+  physical_shape: circle
+  mass: 5
+  radius: 6
+  max_angular_velocity: 0.25
+  rotation_range: 180
 
 
 #arms_texture : &arms-texture

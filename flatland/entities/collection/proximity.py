@@ -61,7 +61,7 @@ class VisibleRewardZone(Entity):
         super().reset()
 
 
-@EntityGenerator.register('fairy')
+# @EntityGenerator.register('fairy')
 class Fairy(VisibleRewardZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -74,7 +74,7 @@ class Fairy(VisibleRewardZone):
         super(Fairy, self).__init__(initial_position=initial_position, default_config_key='fairy', **kwargs)
 
 
-@EntityGenerator.register('fireball')
+# @EntityGenerator.register('fireball')
 class Fireball(VisibleRewardZone):
 
     def __init__(self, initial_position, **kwargs):

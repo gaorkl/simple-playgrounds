@@ -6,7 +6,7 @@ import math
 from pygame.locals import *
 import yaml, os
 from pymunk import ShapeFilter
-from ..agent import Action
+from flatland.utils.config import Action, Keymap
 
 
 class BodyPart(Entity):
@@ -21,6 +21,8 @@ class BodyPart(Entity):
 
     """
 
+    can_absorb = False
+
     can_grasp = False
     can_activate = False
     can_eat = False
@@ -31,8 +33,6 @@ class BodyPart(Entity):
 
     entity_type = 'part'
 
-    part_count = 1
-
     joint = None
     motor = None
     limit = None
@@ -41,8 +41,9 @@ class BodyPart(Entity):
 
         super(BodyPart, self).__init__(initial_position=[0,0,0], **body_part_params)
 
-        self.part_number = BodyPart.part_count
-        BodyPart.part_count += 1
+        self.part_number = None
+
+        self.can_absorb = body_part_params.get('can_absorb', False)
 
         self.can_eat = body_part_params.get('can_eat', False)
         self.can_activate = body_part_params.get('can_activate', False)
@@ -51,10 +52,6 @@ class BodyPart(Entity):
             self.grasped = []
 
         self.pm_visible_shape.collision_type = CollisionTypes.AGENT
-        #self.pm_visible_shape.elasticity = 0.0
-        #self.pm_visible_shape.friction = 0.0
-
-        # self.pm_visible_shape.filter = pymunk.ShapeFilter(group=1)
 
         self.is_eating = False
         self.is_activating = False
@@ -112,14 +109,18 @@ class BodyPart(Entity):
         if self.is_holding and not self.is_grasping:
             self.is_holding = False
 
-    @property
-    def part_number(self):
-        return self._part_number
+    def reset(self):
 
-    @part_number.setter
-    def part_number(self, part_numb):
-        self._part_number = part_numb
-        self.pm_visible_shape.filter = ShapeFilter(categories=self._part_number)
+        super().reset()
+
+        if self.can_activate:
+            self.is_activating = False
+        if self.can_eat:
+            self.is_eating = False
+        if self.can_grasp:
+            self.is_grasping = False
+            self.grasped = []
+            self.is_holding = False
 
 
 class BodyBase(BodyPart):
@@ -130,12 +131,11 @@ class BodyBase(BodyPart):
 
         super(BodyBase, self).__init__( **body_part_params)
 
-
-
         self.max_linear_velocity = body_part_params['max_linear_velocity']
         self.max_angular_velocity = body_part_params['max_angular_velocity']
 
         self.name = 'base'
+        self.part_number = 0
 
     def apply_actions(self, actions):
         """ Method to move the base of the agent.
@@ -168,26 +168,22 @@ class BodyBase(BodyPart):
 
         actions = super().get_available_actions()
 
-        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_UP, ActionTypes.PRESS_HOLD, 1)
+        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)
         actions.append(action)
 
-        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_DOWN, ActionTypes.PRESS_HOLD, -1)
+        action = Action( self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_n,
-                        # ActionTypes.PRESS_HOLD, -1)
+        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_m,
-                        # ActionTypes.PRESS_HOLD, 1)
+        action = Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_LEFT,
-                        # ActionTypes.PRESS_HOLD, 1)
+        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)
         actions.append(action)
 
-        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)#, K_RIGHT,
-                        # ActionTypes.PRESS_HOLD, -1)
+        action = Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)
         actions.append(action)
 
         return actions
@@ -196,9 +192,15 @@ class BodyBase(BodyPart):
 
         mask = super().create_visible_mask()
 
-        pygame.draw.line(mask, pygame.color.THECOLORS["blue"], (self.radius, self.radius), (self.radius, 2 * self.radius), 2)
+        angle = self.pm_body.angle
+
+        y = self.radius * (1 + math.cos(angle))
+        x = self.radius * (1 + math.sin(angle))
+        pygame.draw.line(mask, pygame.color.THECOLORS["blue"], (self.radius, self.radius), (x,y), 2)
 
         return mask
+
+
 
 
 class Limb(BodyPart):
@@ -227,13 +229,13 @@ class Limb(BodyPart):
         x1, y1 = y1, -x1
 
         self.joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body,  (x0, y0), (x1, y1))
+        self.joint.collide_bodies = False
         self.limit = pymunk.RotaryLimitJoint(anchor.pm_body, self.pm_body,
                                         self.angle_offset - self.rotation_range/2 ,
                                         self.angle_offset + self.rotation_range/2)
 
         self.motor = pymunk.SimpleMotor(anchor.pm_body, self.pm_body, 0)
 
-        #self.pm_elements += [self.joint, self.motor, self.limit]
         self.pm_elements += [self.joint, self.motor, self.limit]
 
 
@@ -266,14 +268,10 @@ class Limb(BodyPart):
         x = y_anchor_coordinates_anchor - y_anchor_coordinates_part
         self.pm_body.position = ( x, y )
 
-        # theta_part = theta_part + math.pi / 2
-        # theta_part = theta_part - 2 * math.pi if theta_part > math.pi else theta_part
-
         self.pm_body.angle = self.anchor.pm_body.angle + self.angle_offset
 
     def get_available_actions(self):
 
-        #actions = super().get_available_actions()
         actions = []
 
         action = Action( self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1)
@@ -307,26 +305,6 @@ class Limb(BodyPart):
         elif angle_centered > self.rotation_range/2 - math.pi/20 and angular_velocity < 0 :
             self.motor.rate = 0
 
-    def create_visible_mask(self):
-
-        mask = super().create_visible_mask()
-        pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (self.radius, 2 * self.radius), 2)
-
-        return mask
-
-    @property
-    def part_number(self):
-        return self._part_number
-
-    @part_number.setter
-    def part_number(self, part_numb):
-
-        mask = pymunk.ShapeFilter.ALL_MASKS - int(2**(self.anchor.part_number-1))
-        category = 2**(part_numb-1)
-
-        self._part_number = part_numb
-        self.pm_visible_shape.filter = ShapeFilter(categories=category, mask=mask)
-
 
 class Head(Limb):
 
@@ -342,15 +320,19 @@ class Head(Limb):
 
         super(Head, self).__init__(anchor, position_anchor, position_part, angle_offset, **body_part_params)
 
-    @property
-    def part_number(self):
-        return self._part_number
+        self.pm_visible_shape.sensor = True
 
-    @part_number.setter
-    def part_number(self, part_numb):
+    def create_visible_mask(self):
 
-        self._part_number = part_numb
-        self.pm_visible_shape.filter = ShapeFilter(categories=self._part_number, mask = 0b0)
+        mask = super().create_visible_mask()
+
+        angle = self.pm_body.angle
+
+        y = self.radius * (1 + math.cos(angle))
+        x = self.radius * (1 + math.sin(angle))
+        pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (x, y), 2)
+
+        return mask
 
 
 class Eye(Limb):
@@ -360,20 +342,37 @@ class Eye(Limb):
         default_config = self.parse_configuration('parts', 'eye')
         body_part_params = {**default_config, **kwargs}
 
-        # head attached in its center
+        # Eye attached in its center
         position_part = [0,0]
 
         super(Eye, self).__init__(anchor, position_anchor, position_part, angle_offset, **body_part_params)
 
-    @property
-    def part_number(self):
-        return self._part_number
+        self.pm_visible_shape.sensor = True
 
-    @part_number.setter
-    def part_number(self, part_numb):
+    def create_visible_mask(self,):
 
-        self._part_number = part_numb
-        self.pm_visible_shape.filter = ShapeFilter(categories=self._part_number, mask=0b0)
+        mask = super().create_visible_mask()
+
+        angle = self.pm_body.angle
+
+        y = self.radius * (1 + math.cos(angle))
+        x = self.radius * (1 + math.sin(angle))
+        pygame.draw.line(mask, pygame.color.THECOLORS["brown"], (self.radius, self.radius), (x, y), 2)
+
+        return mask
+
+
+class Hand(Limb):
+
+    def __init__(self, anchor, position_anchor, angle_offset = 0,  **kwargs):
+
+        default_config = self.parse_configuration('parts', 'hand')
+        body_part_params = {**default_config, **kwargs}
+
+        # hand attached in its center
+        position_part = [0,0]
+
+        super(Hand, self).__init__(anchor, position_anchor, position_part, angle_offset, **body_part_params)
 
 
 class Arm(Limb):
@@ -383,7 +382,7 @@ class Arm(Limb):
         default_config = self.parse_configuration('parts', 'arm')
         body_part_params = {**default_config, **kwargs}
 
-        # head attached in its center
+        # arm attached at one extremity, and other anchr point defined at other extremity
         width, length = body_part_params['width_length']
         position_part = [0, -length/2.0 + width/2.0]
 

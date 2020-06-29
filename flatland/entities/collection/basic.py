@@ -1,7 +1,7 @@
-from flatland.entities.entity import Entity, EntityGenerator
+from flatland.entities.entity import Entity
 
 
-@EntityGenerator.register('basic')
+# @EntityGenerator.register('basic')
 class Basic(Entity):
 
     visible = True

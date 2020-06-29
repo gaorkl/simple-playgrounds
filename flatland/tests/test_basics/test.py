@@ -1,13 +1,13 @@
 from flatland.tests.test_basics.entities_pg import *
-from flatland.tests.test_basics.test_pg import *
 from flatland.tests.test_basics.advanced_pg import *
-from flatland.agents.basic_agents import BaseAgent, HeadAgent, ArmAgent, HeadEyeAgent
-from flatland.agents.controllers.collection.human import Keyboard
-from flatland.agents.controllers.collection.random import Random
+from flatland.agents.basic_agents import *
+from flatland.controllers.controller import Random, Keyboard
+from flatland.agents.sensors.visual_sensors import *
+
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
-# pg = Basic_01()
+pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
 # pg = Empty_01()
@@ -16,23 +16,67 @@ from flatland.agents.controllers.collection.random import Random
 # pg = Proximity_01()
 # pg = Trajectory_01()
 # pg = Fields_01()
-pg = Interactive_01()
+# pg = Interactive_01()
 agents = []
 
-initial_position = PositionAreaSampler(area_shape='circle', center=[50, 50], radius=10)
-my_agent = HeadAgent(initial_position=initial_position)
+initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
+# my_agent = BaseAgent(initial_position=initial_position)
+my_agent = HeadAgent(name = 'test_agent', initial_position=initial_position)
+# my_agent = HeadEyeAgent(initial_position=initial_position)
+# my_agent = ArmAgent(initial_position=initial_position)
+# my_agent = ArmHandAgent(initial_position=initial_position)
 
-controller = Keyboard()
-# controller = Random()
+# controller = Random(available_actions=my_agent.get_all_available_actions())
+controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
 my_agent.assign_controller(controller)
+# controller = Random()
 agents.append(my_agent)
+#
+# other_agent = ArmAgent([100, 100,0])
+# controller = Random()
+# other_agent.assign_controller(controller)
+# agents.append(other_agent)
 
-my_agent.add_sensor(my_agent.head, 'rgb', 'rgb_2', resolution = 128)
+# Add sensors:
+
+sensor = RgbSensor(name='rgb_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, resolution = 128, range=100)
+# sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_body_parts=my_agent.body_parts)
+# sensor = GreySensor(name='grey_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
+# sensor = DepthSensor(name='depth_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
+# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 50)
+# sensor = TopdownSensor(name='td_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 50)
+my_agent.add_sensor(sensor)
+#
+
+# other_agent_1 = ArmAgent(name = 'agent_test_1', initial_position = [100, 300,0])
+# controller_1 =  ()
+# other_agent_1.assign_controller(controller_1)
+# sensor_1 = RgbSensor(name='rgb_1', anchor= other_agent_1.base, invisible_body_parts=other_agent_1.body_parts, resolution = 128, range=100)
+# other_agent_1.add_sensor(sensor_1)
+# agents.append(other_agent_1)
+#
+# other_agent_2 = ArmHandAgent(name = 'agent_test_2', initial_position = [100, 200, 0.5])
+# controller_2 = Random()
+# other_agent_2.assign_controller(controller_2)
+# sensor_2 = RgbSensor(name='rgb_3', anchor= other_agent_2.base, invisible_body_parts=other_agent_2.body_parts, resolution = 128, range=100)
+# other_agent_2.add_sensor(sensor)
+# agents.append(other_agent_2)
+#
+#
+# for part in my_agent.body_parts:
+#     print(my_agent.name, part.name, part.part_number)
+
+# for part in other_agent_1.body_parts:
+#     print(part.name, part.part_number, part.pm_visible_shape.filter )
+#
+# for part in other_agent_2.body_parts:
+#     print(part.name, part.part_number, part.pm_visible_shape.filter )
 
 # my_agent = agent.Agent('forward', name = 'mercotte',
 #                        controller_type = 'keyboard',
 #                        frame = { 'base': {'radius' : 10}},
 #                        position=initial_position)
+
 
 #my_agent.add_sensor('depth', 'depth_1', resolution = 128)
 #my_agent.add_sensor('rgb', 'rgb_1', resolution = 128, fov = 90)
@@ -74,7 +118,15 @@ while game.game_on:
 
     actions = {}
     for agent in game.agents:
-        actions[agent.name] = agent.pick_actions()
+        actions[agent.name] = agent.controller.generate_actions()
+
+
+    # for agent_name in actions:
+    #     for bpart in actions[agent_name]:
+    #         for act in actions[agent_name][bpart]:
+    #             actions[agent_name][bpart][act] = 0
+
+
 
     game.step(actions)
     game.update_observations()
@@ -85,29 +137,40 @@ while game.game_on:
         # observations = agent.observations
         # print(observations)
 
-        for sensor_name in agent.sensors:
+        for sensor_ in agent.sensors:
 
-            observation = agent.sensors[sensor_name].sensor_value
+            observation = sensor_.sensor_value
+            sensor_name = sensor_.name
 
-            if 'IR' in sensor_name:
+            if isinstance(sensor, DistanceArraySensor) :
                 print(observation)
+
+            elif isinstance(sensor, TopdownSensor):
+                cv2.imshow(sensor_name + '__', observation)
+                cv2.waitKey(1)
+
 
             else:
 
                 im = cv2.resize(observation, (512, 50), interpolation=cv2.INTER_NEAREST)
-                cv2.imshow(sensor_name, im)
+                #im = observation
+                cv2.imshow(sensor_name+'__', im)
                 cv2.waitKey(1)
 
         if agent.reward != 0: print(agent.name, agent.reward)
+
+
 
     # for entity in game.playground.entities:
     #     if entity.velocity[0] != 0:
     #         print(entity.position)
     #         print(entity.velocity)
-
-    img = game.generate_playground_image()
-    cv2.imshow('test', img)
+    #
+    # img = game.generate_topdown_image()
+    # cv2.imshow('test', img)
     cv2.waitKey(30)
 
-print(1000 / (time.time() - t1))
+    game.display_full_scene()
+
+print(10000 / (time.time() - t1))
 game.terminate()

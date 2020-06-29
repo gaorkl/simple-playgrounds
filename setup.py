@@ -11,6 +11,9 @@ setup(
                        'markdown',
                        'pymunk',
                        'pygame',
+                       'opencv-python',
+                       'numpy',
+
 
       ],
 )

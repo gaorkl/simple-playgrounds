@@ -51,7 +51,7 @@ class TerminationZone(Entity):
         super().reset()
 
 
-@EntityGenerator.register('goal-zone')
+# @EntityGenerator.register('goal-zone')
 class GoalZone(TerminationZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -64,7 +64,7 @@ class GoalZone(TerminationZone):
         super(GoalZone, self).__init__(initial_position=initial_position, default_config_key='goal_zone', **kwargs)
 
 
-@EntityGenerator.register('death-zone')
+# @EntityGenerator.register('death-zone')
 class DeathZone(TerminationZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -139,7 +139,7 @@ class RewardZone(Entity):
         super().reset()
 
 
-@EntityGenerator.register('toxic-zone')
+# @EntityGenerator.register('toxic-zone')
 class ToxicZone(RewardZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -153,7 +153,7 @@ class ToxicZone(RewardZone):
         super(ToxicZone, self).__init__(initial_position=initial_position, default_config_key='toxic_zone', **kwargs)
 
 
-@EntityGenerator.register('healing-zone')
+# @EntityGenerator.register('healing-zone')
 class HealingZone(RewardZone):
 
     def __init__(self, initial_position, **kwargs):

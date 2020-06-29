@@ -49,7 +49,7 @@ class TerminationContact(Entity):
         super().reset()
 
 
-@EntityGenerator.register('visible-endgoal')
+# @EntityGenerator.register('visible-endgoal')
 class VisibleEndGoal(TerminationContact):
 
     def __init__(self, initial_position, **kwargs):
@@ -64,7 +64,7 @@ class VisibleEndGoal(TerminationContact):
                                              **kwargs)
 
 
-@EntityGenerator.register('visible-deathtrap')
+# @EntityGenerator.register('visible-deathtrap')
 class VisibleDeathTrap(TerminationContact):
 
     def __init__(self, initial_position, **kwargs):
@@ -104,7 +104,7 @@ class Absorbable(Entity):
         self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
 
 
-@EntityGenerator.register('candy')
+# @EntityGenerator.register('candy')
 class Candy(Absorbable):
 
     def __init__(self, initial_position, **kwargs):
@@ -117,7 +117,7 @@ class Candy(Absorbable):
         super(Candy, self).__init__(initial_position=initial_position, default_config_key='candy', **kwargs)
 
 
-@EntityGenerator.register('poison')
+# @EntityGenerator.register('poison')
 class Poison(Absorbable):
 
     def __init__(self, initial_position, **kwargs):

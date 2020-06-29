@@ -1,4 +1,5 @@
 from enum import IntEnum, Enum
+from collections import namedtuple
 
 SIMULATION_STEPS = 4
 SPACE_DAMPING = 0.9
@@ -33,10 +34,17 @@ class ActionTypes(IntEnum):
     EAT = 7
     ACTIVATE = 8
 
+class SensorTypes(IntEnum):
+
+    RGB = 1
+
 class KeyTypes(IntEnum):
 
     PRESS_HOLD = 1
     PRESS_RELEASE = 2
 
+
+Action = namedtuple('Action', 'body_part action action_type min max')
+Keymap = namedtuple('KeyMap', 'body_part action key key_behavior key_value')
 
 geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3, 'square': 4, 'pentagon': 5, 'hexagon': 6}

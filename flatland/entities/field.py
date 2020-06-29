@@ -1,8 +1,8 @@
 import random, os, yaml
-from .entity import EntityGenerator
+# from .entity import EntityGenerator
 
 
-@EntityGenerator.register('field')
+# @EntityGenerator.register('field')
 class Field:
 
     id_number = 0

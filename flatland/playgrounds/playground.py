@@ -49,10 +49,6 @@ class Playground:
         self.space = None
         self.initialize_space()
 
-        # Screen for display
-        self.topdown_view = pygame.Surface((self.width, self.length))
-        self.topdown_entities = pygame.Surface((self.width, self.length))
-
         # Data structures to save list of entities, and relations between them
         self.physical_entities = []
 
@@ -218,65 +214,6 @@ class Playground:
         self.has_reached_termination = False
 
 
-    def generate_entities_image(self, draw_interaction = False):
-
-        # Update the screen of the environment
-        self.topdown_entities.fill(THECOLORS["black"])
-
-        for entity in self.entities:
-            entity.draw(self.topdown_entities, draw_interaction)
-
-
-    def generate_agent_image(self, sensor_agent):
-
-        agent_image = self.topdown_entities.copy()
-
-        for agent in self.agents:
-            #if agent is not sensor_agent:
-            if agent is not sensor_agent:
-                agent.draw(agent_image, visible_to_self=False)
-            else:
-                agent.draw(agent_image, visible_to_self=True)
-
-        imgdata = pygame.surfarray.array3d(agent_image)
-
-        imgdata = numpy.rot90(imgdata, 1, (1,0))
-        imgdata = imgdata[::-1, :, ::-1]
-
-        return imgdata
-
-
-
-    def generate_playground_image(self, draw_interaction = False, sensor_agent = None):
-        # Update the screen of the environment
-        self.topdown_view.fill(THECOLORS["black"])
-
-        for entity in self.entities:
-            entity.draw(self.topdown_view, draw_interaction)
-
-        for agent in self.agents:
-            #if agent is not sensor_agent:
-            if agent is not sensor_agent:
-                agent.draw(self.topdown_view, visible_to_self=False)
-            else:
-                agent.draw(self.topdown_view, visible_to_self=True)
-
-
-            """else:
-                #import pdb;pdb.set_trace()
-                body_parts = agent.frame.anatomy.keys()
-                for part in body_parts:
-                    #if part.self_visible:
-                    if part == 'arm1_2':
-                        agent.frame.anatomy[part].draw(self.topdown_view, visible_to_self=True)"""
-
-        imgdata = pygame.surfarray.array3d(self.topdown_view)
-
-        imgdata = numpy.rot90(imgdata, 1, (1,0))
-        imgdata = imgdata[::-1, :, ::-1]
-
-        return imgdata
-
 
     def fields_produce(self):
 
@@ -327,22 +264,17 @@ class Playground:
     def agent_touches_entity(self, arbiter, space, data):
 
         agent = self.get_agent_from_shape(arbiter.shapes[0])
+        body_part = next( iter([part for part in agent.body_parts if part.pm_visible_shape == arbiter.shapes[0]]), None)
+
         touched_entity = self.get_entity_from_visible_shape(arbiter.shapes[1])
 
-        if touched_entity.absorbable:
+        if touched_entity.absorbable and body_part.can_absorb:
 
             reward = touched_entity.reward
             agent.reward += reward
 
-            self.remove_entity(touched_entity)
+            space.add_post_step_callback(self.remove_absorbable, touched_entity)
 
-            for entity in self.entities:
-                if entity.entity_type is 'dispenser' and touched_entity in entity.produced_entities:
-                    entity.produced_entities.remove(touched_entity)
-
-            for entity in self.fields:
-                if touched_entity in entity.produced_entities:
-                    entity.produced_entities.remove(touched_entity)
 
         elif touched_entity.entity_type is 'contact_termination':
             self.has_reached_termination = True
@@ -357,6 +289,18 @@ class Playground:
                 self.remove_entity(touched_entity.door)
 
         return True
+
+    def remove_absorbable(self, space, touched_entity):
+
+        self.remove_entity(touched_entity)
+
+        for entity in self.entities:
+            if entity.entity_type is 'dispenser' and touched_entity in entity.produced_entities:
+                entity.produced_entities.remove(touched_entity)
+
+        for entity in self.fields:
+            if touched_entity in entity.produced_entities:
+                entity.produced_entities.remove(touched_entity)
 
 
     def agent_interacts(self, arbiter, space, data):

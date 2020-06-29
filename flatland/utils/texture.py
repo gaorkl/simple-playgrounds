@@ -9,6 +9,9 @@ import numpy as np
 import math, random
 
 
+# TODO: ABC texture, clean size texture everytwhere and assert that size is odd for centered textures
+
+
 class Texture(object):
 
     subclasses = {}
@@ -178,7 +181,7 @@ class PolarStripesTexture(Texture):
 
     def generate(self, width, height):
         """
-        Generate a pyame Surface with pixels following a circular striped pattern from the center of the parent entity
+        Generate a pygame Surface with pixels following a circular striped pattern from the center of the parent entity
         :param width: the width of the generated surface
         :param height: the height of the generated surface
         :return: the pygame Surface
@@ -189,8 +192,8 @@ class PolarStripesTexture(Texture):
 
         img = np.zeros( (width, height , 3) )
 
-        x = width/2
-        y = height/2
+        x = (width - 1) / 2
+        y = (height - 1) / 2
 
         for i in range(width):
             for j in range(height):
@@ -231,8 +234,8 @@ class CenteredRandomTilesTexture(Texture):
 
         colors = [ [ random.randint( self.min[i],self.max[i] ) for i in range(3)] for c in range(self.n_stripes) ]
 
-        x = width/2
-        y = height/2
+        x = (width-1)/2
+        y = (height-1)/2
 
         for i in range(width):
             for j in range(height):

@@ -11,6 +11,7 @@ class SensorModality(Enum):
     GEOMETRIC   = auto()
     UNDEFINED   = auto()
 
+
 class SensorGenerator:
     """
     Register class to provide a decorator that is used to go through the package and
@@ -28,12 +29,12 @@ class SensorGenerator:
         return decorator
 
     @classmethod
-    def create(cls, sensor_type, anchor, sensor_param):
+    def create(cls, sensor_type, anchor, invisible_body_parts, sensor_param):
 
         if sensor_type not in cls.subclasses:
             raise ValueError('Sensor not implemented:' + sensor_type)
 
-        return cls.subclasses[sensor_type](anchor, sensor_param )
+        return cls.subclasses[sensor_type](anchor, invisible_body_parts, sensor_param )
 
 
 def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
@@ -48,17 +49,21 @@ def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
 
 class Sensor(ABC):
 
-    def __init__(self, anchor, sensor_param):
+    def __init__(self, anchor, invisible_entities, sensor_param):
         self.name = sensor_param.get('name', None)
         self.sensor_type = sensor_param.get('type', None)
         self.sensor_params = sensor_param
         self.sensor_modality = SensorModality.UNDEFINED
         self.sensor_value = None
+        self.invisible_elements = invisible_entities
+
 
     @abstractmethod
-    def update_sensor(self):
+    def update_sensor(self, entities, agents):
         pass
 
     @abstractmethod
     def get_shape_observation(self):
         pass
+
+

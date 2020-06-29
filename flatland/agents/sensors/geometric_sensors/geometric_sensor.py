@@ -2,7 +2,7 @@ from flatland.agents.sensors.sensor import *
 
 class GeometricSensor(Sensor):
 
-    def __init__(self, anchor, sensor_param):
+    def __init__(self, anchor, invisible_body_parts, sensor_param):
 
 
         self.name = sensor_param.get('name', None)
@@ -13,6 +13,7 @@ class GeometricSensor(Sensor):
         self.sensor_modality = SensorModality.GEOMETRIC
 
         self.anchor = anchor
+        self.invisible_body_parts = invisible_body_parts
 
 
     @abstractmethod

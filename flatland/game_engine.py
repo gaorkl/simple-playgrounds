@@ -1,6 +1,9 @@
 import pygame
 from pygame.locals import K_q
 from flatland.utils.config import *
+from flatland.agents.sensors.sensor import SensorModality
+from pygame.color import THECOLORS
+import numpy
 import time
 
 
@@ -40,47 +43,95 @@ class Engine():
                 self.need_command_display = True
 
         if self.need_command_display:
-            self.command = pygame.display.set_mode((75, 75))
-            self.Q_ready_to_press = True
+           self.Q_ready_to_press = True
 
         # Screen for Pygame
-        self.screen = pygame.Surface((self.playground.length, self.playground.width))
+        self.screen = pygame.display.set_mode((self.playground.width, self.playground.length))
         self.screen.set_alpha(None)
+
+        # Screen for display
+        self.surface_environment = pygame.Surface((self.playground.width, self.playground.length))
+        self.surface_sensors = pygame.Surface((self.playground.width, self.playground.length))
 
         self.game_on = True
         self.current_elapsed_time = 0
         self.total_elapsed_time = 0
 
+        self.suface_environment_updated = False
 
+
+    ###############
+    # Draw top-down view for display
+
+    def update_surface_environment(self):
+        self.surface_environment.fill(THECOLORS["black"])
+
+        for entity in self.playground.entities:
+            entity.draw(self.surface_environment, draw_interaction=True)
+
+        for agent in self.agents:
+            agent.draw(self.surface_environment)
+
+
+        self.suface_environment_updated = True
 
     def update_observations(self):
 
-        #Compute environment image once, then add agents when necessary
-        self.playground.generate_entities_image()
+        # filter entities too far from sensors
 
 
-        # For each agent, compute sensors
+
+        # Generate image only once if an agent has visual sensor
+        # Do not draw elements that might be invisible to certain sensors
+        if any([ agent.has_visual_sensor for agent in self.agents] ):
+            self.surface_sensors.fill(THECOLORS["black"])
+
+            # list all elements that might be invisible
+            invisible_elements = []
+            for agent in self.agents:
+                for sensor in agent.sensors:
+                    invisible_elements += sensor.invisible_elements
+
+            for entity in self.playground.entities:
+                if entity not in invisible_elements:
+                    entity.draw(self.surface_sensors, draw_interaction=False)
+
+            for agent in self.playground.agents:
+                agent.draw(self.surface_sensors, excluded = invisible_elements)
+
+
+        # Update sensors
         for agent in self.agents:
 
-            #data , arg = vision, geometric, class generator
-            img = None
-            entities = None
-            agents = None
+            # Draw other agents only once
 
-            if agent.has_visual_sensor:
-                img = self.playground.generate_agent_image(sensor_agent = agent)
+            for sensor in agent.sensors:
 
-            if agent.has_geometric_sensor:
-                entities = self.playground.entities
-                agents = self.playground.agents
+                if sensor.sensor_modality is SensorModality.VISUAL:
 
-            agent.compute_sensors(img, entities, agents)
+                    # Draw body parts of agent which are visible to the sensor
+
+                    surface_sensor = self.surface_sensors.copy()
+
+                    for element in invisible_elements:
+                        if element not in sensor.invisible_elements:
+                            element.draw(surface_sensor)
+
+                    img_sensor = pygame.surfarray.array3d(surface_sensor)
+                    img_sensor = numpy.rot90(img_sensor, 1, (1, 0))
+                    img_sensor = img_sensor[::-1, :, ::-1]
+
+                    sensor.update_sensor(img_sensor)#, self.playground.entities, self.playground.agents)
 
 
-    # def apply_actions(self):
-    #
-    #     for agent in self.agents:
-    #         agent.apply_action_to_physical_body()
+                elif sensor.sensor_modality is SensorModality.GEOMETRIC:
+                    entities = self.playground.entities
+                    agents = self.playground.agents
+
+                    sensor.update_sensor(entities, agents)
+
+                else:
+                    raise ValueError
 
 
     def multiple_steps(self, actions, n_steps = 1):
@@ -91,9 +142,12 @@ class Engine():
 
     def step(self, actions):
 
+
+        self.suface_environment_updated = False
+
         for agent in self.agents:
             agent.pre_step()
-            agent.apply_action_to_physical_body( actions[agent.name] )
+            agent.apply_actions_to_body_parts(actions[agent.name])
 
         for _ in range(self.inner_simulation_steps):
             self.playground.space.step(1. / self.inner_simulation_steps)
@@ -134,18 +188,31 @@ class Engine():
 
         return False
 
-    def generate_playground_image(self):
-
-        img = self.playground.generate_playground_image(draw_interaction=True)
-        return img
+    # def generate_playground_image(self):
+    #
+    #     img = self.playground.generate_topdown_view(draw_interaction=True)
+    #     return img
 
     def display_full_scene(self):
 
-        img = self.generate_playground_image()
-        surf = pygame.surfarray.make_surface(img)
-        self.screen.blit(surf, (0, 0), None)
+        if not self.suface_environment_updated:
+            self.update_surface_environment()
+
+        rot_surface = pygame.transform.rotate(self.surface_environment, 180)
+        self.screen.blit(rot_surface, (0, 0), None)
 
         pygame.display.flip()
+
+    def generate_topdown_image(self):
+
+        if not self.suface_environment_updated:
+            self.update_surface_environment()
+
+        imgdata = pygame.surfarray.array3d(self.surface_environment)
+        imgdata = numpy.rot90(imgdata, 1, (1, 0))
+        imgdata = imgdata[::-1, :, ::-1]
+
+        return imgdata
 
     def game_reset(self):
 

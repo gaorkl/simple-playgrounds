@@ -5,7 +5,7 @@ from flatland.utils.position_utils import PositionAreaSampler
 import pymunk
 
 
-@EntityGenerator.register('edible')
+# @EntityGenerator.register('edible')
 class Edible(Entity):
 
     entity_type = 'edible'
@@ -77,8 +77,8 @@ class Edible(Entity):
         self.interaction_length = self.length + self.interaction_range
         self.interaction_radius = self.radius + self.interaction_range
 
-        self.interaction_vertices = self.compute_vertices(self.interaction_radius)
-        self.visible_vertices = self.compute_vertices(self.radius)
+        # self.interaction_vertices = self.compute_vertices(self.interaction_radius)
+        # self.visible_vertices = self.compute_vertices(self.radius)
 
         self.generate_shapes_and_masks()
 
@@ -102,17 +102,18 @@ class Edible(Entity):
 
         self.width, self.length = self.initial_width, self.initial_length
         self.radius = self.initial_radius
-        self.visible_vertices = self.compute_vertices(self.radius)
+        self.visible_vertices = self.compute_body_vertices(self.radius)
 
         self.interaction_width = self.width + self.interaction_range
         self.interaction_length = self.length + self.interaction_range
         self.interaction_radius = self.radius + self.interaction_range
-        self.interaction_vertices = self.compute_vertices(self.interaction_radius)
+        self.interaction_vertices = self.compute_body_vertices(self.interaction_radius)
 
         self.generate_shapes_and_masks()
 
 
-@EntityGenerator.register('apple')
+
+# @EntityGenerator.register('apple')
 class Apple(Edible):
 
     def __init__(self, initial_position, **kwargs):
@@ -124,7 +125,7 @@ class Apple(Edible):
         super(Apple, self).__init__(initial_position=initial_position, default_config_key='apple', **kwargs)
 
 
-@EntityGenerator.register('rotten-apple')
+# @EntityGenerator.register('rotten-apple')
 class RottenApple(Edible):
 
     def __init__(self, initial_position, **kwargs):
@@ -138,7 +139,7 @@ class RottenApple(Edible):
                                           **kwargs)
 
 
-@EntityGenerator.register('dispenser')
+# @EntityGenerator.register('dispenser')
 class Dispenser(Entity):
 
     entity_type = 'dispenser'
@@ -207,7 +208,7 @@ class Dispenser(Entity):
         super().reset()
 
 
-@EntityGenerator.register('key')
+# @EntityGenerator.register('key')
 class Key(Entity):
 
     entity_type = 'key'
@@ -231,7 +232,7 @@ class Key(Entity):
         self.pm_visible_shape.collision_type = CollisionTypes.GEM
 
 
-@EntityGenerator.register('chest')
+# @EntityGenerator.register('chest')
 class Chest(Entity):
 
     entity_type = 'chest'
@@ -278,7 +279,7 @@ class Chest(Entity):
         super().reset()
 
 
-@EntityGenerator.register('coin')
+# @EntityGenerator.register('coin')
 class Coin(Entity):
 
     entity_type = 'coin'
@@ -302,7 +303,7 @@ class Coin(Entity):
         self.pm_visible_shape.collision_type = CollisionTypes.GEM
 
 
-@EntityGenerator.register('vending-machine')
+# @EntityGenerator.register('vending-machine')
 class VendingMachine(Entity):
 
     entity_type = 'vending_machine'
@@ -327,7 +328,7 @@ class VendingMachine(Entity):
         self.reward = entity_params.get('reward')
 
 
-@EntityGenerator.register('door')
+# @EntityGenerator.register('door')
 class Door(Entity):
 
     entity_type = 'door'
@@ -364,7 +365,7 @@ class Door(Entity):
         super().reset()
 
 
-@EntityGenerator.register('openclose-switch')
+# @EntityGenerator.register('openclose-switch')
 class OpenCloseSwitch(Entity):
 
     entity_type = 'switch'
@@ -398,7 +399,7 @@ class OpenCloseSwitch(Entity):
             self.door.open_door()
 
 
-@EntityGenerator.register('timer-switch')
+# @EntityGenerator.register('timer-switch')
 class TimerSwitch(Entity):
 
     entity_type = 'switch'
@@ -450,7 +451,7 @@ class TimerSwitch(Entity):
         self.door.close_door()
 
 
-@EntityGenerator.register('push-button')
+# @EntityGenerator.register('push-button')
 class PushButton(Entity):
     entity_type = 'pushbutton'
 
@@ -479,7 +480,7 @@ class PushButton(Entity):
         self.door.open_door()
 
 
-@EntityGenerator.register('lock')
+# @EntityGenerator.register('lock')
 class Lock(Entity):
 
     entity_type = 'lock'

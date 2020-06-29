@@ -13,11 +13,11 @@ class Basic_01(SingleRoom):
         rectangle_01 = Basic([150, 160, 0.2], default_config_key='rectangle')
         self.add_entity(rectangle_01)
 
-        circle_01 = EntityGenerator.create('basic', initial_position=[50, 60, 0], default_config_key='circle',
+        circle_01 = Basic([50, 60, 0], default_config_key='circle',
                                            movable=True, mass=100, texture=[150, 150, 150])
         self.add_entity(circle_01)
 
-        square_01 = Basic([150, 60, 0], default_config_key='square', movable=True, mass=10)
+        square_01 = Basic([150, 60, math.pi/4], default_config_key='square', movable=True, mass=10)
         self.add_entity(square_01)
 
         pentagon_01 = Basic([50, 160, 0], default_config_key='pentagon', radius = 15)
@@ -39,7 +39,7 @@ class Contact_01(SingleRoom):
         deathtrap_01 = VisibleDeathTrap([180, 180, 0])
         self.add_entity(deathtrap_01)
 
-        poison = EntityGenerator.create('poison', initial_position = [15,15,0])
+        poison = Poison( initial_position = [15,15,0])
         self.add_entity(poison)
 
         poison_area = PositionAreaSampler(area_shape='rectangle', center=[100, 50], width_length=[20, 20])
@@ -93,7 +93,7 @@ class Interactive_01(SingleRoom):
         goal_1 = GoalZone([20, 20, 0])
         self.add_entity(goal_1)
 
-        apple = Apple([100, 50, 0])
+        apple = Apple([100, 50, 0], physical_shape = 'pentagon')
         self.add_entity(apple)
 
         rotten = RottenApple([100, 100, 0])
@@ -164,7 +164,7 @@ class Doors_01(SingleRoom):
         door_2 = Door( [150, 130, math.pi/2])
         self.add_entity(door_2)
 
-        timerswitch = EntityGenerator.create('timer-switch', initial_position=[150, 70, 0], door=door_2, time_open = 20)
+        timerswitch = TimerSwitch(initial_position=[150, 70, 0], door=door_2, time_open = 20)
         self.add_entity(timerswitch)
 
         door_3 = Door([200, 130, math.pi / 2])

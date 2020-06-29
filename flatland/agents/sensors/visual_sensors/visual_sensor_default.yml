@@ -5,26 +5,32 @@ rgb:
   resolution: 128
   range: 600
   fov: 180
-  anchor: base
+
+grey:
+  resolution: 128
+  range: 600
+  fov: 180
 
 touch:
   resolution: 128
-  contact_range: 10
+  range: 10
   fov: 360
-  anchor: base
 
 depth :
   resolution: 128
   range: 300
   fov: 180
-  anchor: base
 
-infra-red:
+distance_array:
   point_angle: 3
   number: 9
   range: 300
   fov: 180
-  anchor: base
+
+topdown:
+  resolution: 128
+  range: 100
+  fov: 180
 
 
 
