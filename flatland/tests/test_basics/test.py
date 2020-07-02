@@ -7,7 +7,7 @@ from flatland.agents.sensors.visual_sensors import *
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
-pg = Basic_01()
+# pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
 # pg = Empty_01()
@@ -16,7 +16,7 @@ pg = Basic_01()
 # pg = Proximity_01()
 # pg = Trajectory_01()
 # pg = Fields_01()
-# pg = Interactive_01()
+pg = Interactive_01()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
@@ -39,12 +39,13 @@ agents.append(my_agent)
 
 # Add sensors:
 
-sensor = RgbSensor(name='rgb_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, resolution = 128, range=100)
+# sensor = RgbSensor(name='rgb_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, resolution = 128, range=300)
 # sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_body_parts=my_agent.body_parts)
 # sensor = GreySensor(name='grey_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
 # sensor = DepthSensor(name='depth_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
-# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 50)
-# sensor = TopdownSensor(name='td_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 50)
+# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts,
+#                              fov= 250,range = 400, number=1080)
+sensor = TopdownSensor(name='td_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 200)
 my_agent.add_sensor(sensor)
 #
 
@@ -113,6 +114,7 @@ import time
 
 t1 = time.time()
 
+# pos = (0,0)
 
 while game.game_on:
 
@@ -171,6 +173,8 @@ while game.game_on:
     cv2.waitKey(30)
 
     game.display_full_scene()
+
+    # new_pos = (my_agent.position[0], my_agent.position[1)]
 
 print(10000 / (time.time() - t1))
 game.terminate()
