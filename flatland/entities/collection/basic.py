@@ -19,7 +19,7 @@ class Basic(Entity):
 
         """
 
-        default_config = self.parse_configuration('basic', default_config_key)
+        default_config = self._parse_configuration('basic', default_config_key)
         entity_params = {**default_config, **kwargs}
 
         super(Basic, self).__init__(initial_position=initial_position, **entity_params)

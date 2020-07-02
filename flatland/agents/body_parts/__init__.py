@@ -1,3 +1,4 @@
-#from .collection import *
-from .parts import BodyBase, Head, Eye
+from .parts import ForwardPlatform, HolonomicPlatform
+from .parts import Head, Eye
+from .parts import Arm
 

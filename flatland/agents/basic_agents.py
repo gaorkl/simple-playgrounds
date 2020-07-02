@@ -1,6 +1,6 @@
 from .agent import Agent
 from flatland.utils.config import  Keymap
-from .body_parts.parts import BodyBase, Head, Eye, Arm, Hand
+from .body_parts.parts import *
 from flatland.utils.config import ActionTypes, KeyTypes
 from pygame.locals import *
 import math
@@ -11,7 +11,7 @@ class BaseAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(name = 'base', can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius = 10)
+        base_agent = Platform(name ='base', can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius = 10)
 
         super(BaseAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
@@ -38,7 +38,7 @@ class HeadEyeAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True)
+        base_agent = Platform(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True)
 
         super(HeadEyeAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
@@ -82,8 +82,7 @@ class HeadAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
-
+        base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
         super(HeadAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
         self.head = Head(base_agent, [0, 0], angle_offset=0, rotation_range = math.pi, radius=10, name = 'head')
@@ -116,7 +115,7 @@ class ArmAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
+        base_agent = Platform(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
 
         super(ArmAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
@@ -170,7 +169,7 @@ class ArmHandAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(radius=15)
+        base_agent = Platform(radius=15)
 
         super(ArmHandAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 

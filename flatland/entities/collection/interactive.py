@@ -30,7 +30,7 @@ class Edible(Entity):
 
         """
 
-        default_config = self.parse_configuration('interactive', default_config_key)
+        default_config = self._parse_configuration('interactive', default_config_key)
         entity_params = {**default_config, **kwargs}
 
         super(Edible, self).__init__(initial_position=initial_position, **entity_params)
@@ -165,7 +165,7 @@ class Dispenser(Entity):
 
         """
 
-        default_config = self.parse_configuration('interactive', 'dispenser')
+        default_config = self._parse_configuration('interactive', 'dispenser')
         entity_params = {**default_config, **kwargs}
 
         super(Dispenser, self).__init__(initial_position=initial_position, **entity_params)
@@ -224,7 +224,7 @@ class Key(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'key')
+        default_config = self._parse_configuration('interactive', 'key')
         entity_params = {**default_config, **kwargs}
 
         super(Key, self).__init__(initial_position=initial_position, **entity_params)
@@ -252,7 +252,7 @@ class Chest(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'chest')
+        default_config = self._parse_configuration('interactive', 'chest')
         entity_params = {**default_config, **kwargs}
 
         super(Chest, self).__init__(initial_position=initial_position, **entity_params)
@@ -295,7 +295,7 @@ class Coin(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'coin')
+        default_config = self._parse_configuration('interactive', 'coin')
         entity_params = {**default_config, **kwargs}
 
         super(Coin, self).__init__(initial_position=initial_position, **entity_params)
@@ -320,7 +320,7 @@ class VendingMachine(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'vending_machine')
+        default_config = self._parse_configuration('interactive', 'vending_machine')
         entity_params = {**default_config, **kwargs}
 
         super(VendingMachine, self).__init__(initial_position=initial_position, **entity_params)
@@ -343,7 +343,7 @@ class Door(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'door')
+        default_config = self._parse_configuration('interactive', 'door')
         entity_params = {**default_config, **kwargs}
 
         super(Door, self).__init__(initial_position=initial_position, **entity_params)
@@ -383,7 +383,7 @@ class OpenCloseSwitch(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'switch')
+        default_config = self._parse_configuration('interactive', 'switch')
         entity_params = {**default_config, **kwargs}
 
         super(OpenCloseSwitch, self).__init__(initial_position=initial_position, **entity_params)
@@ -419,7 +419,7 @@ class TimerSwitch(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'switch')
+        default_config = self._parse_configuration('interactive', 'switch')
         entity_params = {**default_config, **kwargs}
 
         super(TimerSwitch, self).__init__(initial_position=initial_position, **entity_params)
@@ -467,7 +467,7 @@ class PushButton(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'switch')
+        default_config = self._parse_configuration('interactive', 'switch')
         entity_params = {**default_config, **kwargs}
 
         super(PushButton, self).__init__(initial_position=initial_position, **entity_params)
@@ -499,7 +499,7 @@ class Lock(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('interactive', 'lock')
+        default_config = self._parse_configuration('interactive', 'lock')
         entity_params = {**default_config, **kwargs}
 
         super(Lock, self).__init__(initial_position=initial_position, **entity_params)

@@ -1,17 +1,17 @@
-# Base
-base_texture : &base-texture
+# Platform
+platform_texture : &platform-texture
   texture_type: color
   color: [0, 150, 150]
 
-# Body parts
-base: &base
+platform: &platform
   physical_shape: circle
-  texture:  *base-texture
+  texture:  *platform-texture
   radius: 20
   mass: 10
   max_linear_velocity: 1.0
   max_angular_velocity: 0.25
 
+#Head
 head_texture : &head-texture
   texture_type: color
   color: [0, 180, 150]
@@ -24,6 +24,7 @@ head: &head
   max_angular_velocity: 0.25
   rotation_range: 90
 
+#Eye
 eye_texture : &eye-texture
   texture_type: color
   color: [100, 120, 180]
@@ -36,6 +37,7 @@ eye: &eye
   max_angular_velocity: 0.25
   rotation_range: 90
 
+#Arm
 arm_texture : &arm-texture
   texture_type: color
   color: [100, 180, 180]
@@ -48,6 +50,7 @@ arm: &arm
   max_angular_velocity: 0.25
   rotation_range: 120
 
+# Hand
 hand_texture : &hand-texture
   texture_type: color
   color: [150, 180, 130]
@@ -60,19 +63,3 @@ hand: &hand
   max_angular_velocity: 0.25
   rotation_range: 180
 
-
-#arms_texture : &arms-texture
-#  texture_type: color
-#  color: [0, 150, 170]
-#
-#
-#
-
-#
-#arm: &arm
-#  texture:  *arms-texture
-#  radius: 10
-#  mass: 1
-#  rotation_speed: 0.25
-#  rotation_range: 60
-#  metabolism: 0.001
