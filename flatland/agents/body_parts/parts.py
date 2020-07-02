@@ -153,7 +153,8 @@ class Platform(Part, ABC):
             texture (:obj: 'dict': dictionary of texture parameters
             radius: radius of the platform. Default: 20
             mass: mass of the platform. Default: 10
-            max_linear_velocity: Maximum longitudinal and lateral velocity (pixels per timestep). Default: 1.0
+            max_linear_force: Maximum longitudinal and lateral force applied to the part (pixels per timestep).
+                Default: 1.0
             max_angular_velocity: Maximum angular velocity (radian per timestep). Default: 0.25
         """
 
@@ -162,7 +163,7 @@ class Platform(Part, ABC):
 
         super().__init__(**body_part_params)
 
-        self.max_linear_velocity = body_part_params['max_linear_velocity']
+        self.max_linear_force = body_part_params['max_linear_force']
         self.max_angular_velocity = body_part_params['max_angular_velocity']
 
     def reset(self):
@@ -194,7 +195,7 @@ class ForwardPlatform(Platform):
     def get_available_actions(self):
         actions = super().get_available_actions()
 
-        actions.append(Action(self.name, ActionTypes.LONGITUDINAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1))
+        actions.append(Action(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS, -1, 1))
         actions.append(Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1))
 
         return actions
@@ -203,14 +204,10 @@ class ForwardPlatform(Platform):
 
         super().apply_actions(actions)
 
-        longitudinal_velocity = actions.get(ActionTypes.LONGITUDINAL_VELOCITY, 0)
-        angular_velocity = actions.get(ActionTypes.ANGULAR_VELOCITY, 0)
+        lateral_force = actions.get(ActionTypes.LONGITUDINAL_FORCE, 0)
+        self.pm_body.apply_force_at_local_point(pymunk.Vec2d(lateral_force, 0) * self.max_linear_force * 100, (0, 0))
 
-        # TODO: Check this, SIMULATION STEPS should disappear.
-        vx = longitudinal_velocity * SIMULATION_STEPS
-        vy = 0
-        self.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(vx, vy) * self.max_linear_velocity * (1.0 - SPACE_DAMPING) * 100, (0, 0))
+        angular_velocity = actions.get(ActionTypes.ANGULAR_VELOCITY, 0)
         self.pm_body.angular_velocity = angular_velocity * self.max_angular_velocity
 
 
@@ -229,20 +226,16 @@ class HolonomicPlatform(ForwardPlatform):
 
         actions = super().get_available_actions()
 
-        actions.append(Action(self.name, ActionTypes.LATERAL_VELOCITY, ActionTypes.CONTINUOUS, -1, 1))
+        actions.append(Action(self.name, ActionTypes.LATERAL_FORCE, ActionTypes.CONTINUOUS, -1, 1))
 
         return actions
 
     def apply_actions(self, actions):
 
         super().apply_actions(actions)
-        lateral_velocity = actions.get(ActionTypes.LATERAL_VELOCITY, 0)
+        lateral_force = actions.get(ActionTypes.LATERAL_FORCE, 0)
 
-        # TODO: Check this, SIMULATION STEPS should disappear.
-        vx = 0
-        vy = lateral_velocity * SIMULATION_STEPS
-        self.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(vx, vy) * self.max_linear_velocity * (1.0 - SPACE_DAMPING) * 100, (0, 0))
+        self.pm_body.apply_force_at_local_point(pymunk.Vec2d(0, lateral_force) * self.max_linear_force * 100, (0, 0))
 
 
 class Actuator(Part, ABC):

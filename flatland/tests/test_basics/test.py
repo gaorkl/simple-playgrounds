@@ -1,4 +1,5 @@
 from flatland.tests.test_basics.entities_pg import *
+from flatland.tests.test_basics.test_pg import *
 from flatland.tests.test_basics.advanced_pg import *
 from flatland.agents.basic_agents import *
 from flatland.controllers.controller import Random, Keyboard
@@ -10,17 +11,17 @@ from flatland.agents.sensors.visual_sensors import *
 # pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
-# pg = Empty_01()
+pg = Empty_01()
 # pg = Doors_01()
 # pg = Zones_01()
 # pg = Proximity_01()
 # pg = Trajectory_01()
 # pg = Fields_01()
-pg = Interactive_01()
+# pg = Interactive_01()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
-# my_agent = BaseAgent(initial_position=initial_position)
+# my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position)
 my_agent = HeadAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = HeadEyeAgent(initial_position=initial_position)
 # my_agent = ArmAgent(initial_position=initial_position)
@@ -45,7 +46,7 @@ agents.append(my_agent)
 # sensor = DepthSensor(name='depth_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
 # sensor = DistanceArraySensor(name='test_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts,
 #                              fov= 250,range = 400, number=1080)
-sensor = TopdownSensor(name='td_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 200)
+sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_body_parts=my_agent.body_parts, range = 200)
 my_agent.add_sensor(sensor)
 #
 
@@ -114,7 +115,7 @@ import time
 
 t1 = time.time()
 
-# pos = (0,0)
+pos = (0,0)
 
 while game.game_on:
 
@@ -174,7 +175,11 @@ while game.game_on:
 
     game.display_full_scene()
 
-    # new_pos = (my_agent.position[0], my_agent.position[1)]
+    new_pos = (my_agent.position[0], my_agent.position[1])
+    vel = math.sqrt( (pos[0] - new_pos[0])**2 + (pos[1] - new_pos[1])**2)
+
+    print(vel)
+    pos = new_pos
 
 print(10000 / (time.time() - t1))
 game.terminate()

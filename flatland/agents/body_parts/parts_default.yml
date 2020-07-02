@@ -8,7 +8,7 @@ platform: &platform
   texture:  *platform-texture
   radius: 20
   mass: 10
-  max_linear_velocity: 1.0
+  max_linear_force: 0.5
   max_angular_velocity: 0.25
 
 #Head

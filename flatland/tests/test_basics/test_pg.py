@@ -6,7 +6,7 @@ from flatland.utils.position_utils import PositionAreaSampler
 
 class Empty_01(SingleRoom):
 
-    def __init__(self, size = (200, 400), **playground_params):
+    def __init__(self, size = (200, 800), **playground_params):
 
         super(Empty_01, self).__init__(size = size, **playground_params)
 
