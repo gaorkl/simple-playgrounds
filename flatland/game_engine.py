@@ -39,7 +39,7 @@ class Engine():
         # Display screen
         self.need_command_display = False
         for agent in self.agents:
-            if agent.controller.controller_type == 'keyboard':
+            if agent.controller and agent.controller.controller_type == 'keyboard':
                 self.need_command_display = True
 
         if self.need_command_display:
