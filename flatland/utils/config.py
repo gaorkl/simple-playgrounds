@@ -1,7 +1,7 @@
 from enum import IntEnum, Enum
 from collections import namedtuple
 
-SIMULATION_STEPS = 4
+SIMULATION_STEPS = 1
 SPACE_DAMPING = 0.9
 
 

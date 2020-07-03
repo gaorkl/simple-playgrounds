@@ -22,16 +22,17 @@ agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
 # my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position)
-my_agent = HeadAgent(name = 'test_agent', initial_position=initial_position)
+# my_agent = HeadAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = HeadEyeAgent(initial_position=initial_position)
 # my_agent = ArmAgent(initial_position=initial_position)
-# my_agent = ArmHandAgent(initial_position=initial_position)
+my_agent = ArmHandAgent(initial_position=initial_position)
 
 # controller = Random(available_actions=my_agent.get_all_available_actions())
 controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
 my_agent.assign_controller(controller)
-# controller = Random()
 agents.append(my_agent)
+
+
 #
 # other_agent = ArmAgent([100, 100,0])
 # controller = Random()
@@ -94,20 +95,8 @@ my_agent.add_sensor(sensor)
 
 from flatland.game_engine import Engine
 
-engine_parameters = {
-    'inner_simulation_steps': 5,
-    'display': {
-        'playground' : False,
-        'body_parts' : True,
-    }
-}
 
-rules = {
-    'replay_until_time_limit': True,
-    'time_limit': 10000
-}
-
-game = Engine(playground=pg, agents=agents, rules=rules, engine_parameters=engine_parameters )
+game = Engine(playground=pg, agents=agents, time_limit=100)
 
 
 import cv2
@@ -182,4 +171,4 @@ while game.game_on:
     pos = new_pos
 
 print(10000 / (time.time() - t1))
-game.terminate()
+# game.terminate()
