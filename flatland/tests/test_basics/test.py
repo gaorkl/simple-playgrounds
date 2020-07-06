@@ -1,4 +1,5 @@
 from flatland.tests.test_basics.entities_pg import *
+from flatland.tests.test_basics.test_pg import *
 from flatland.tests.test_basics.advanced_pg import *
 from flatland.agents.basic_agents import *
 from flatland.controllers.controller import Random, Keyboard
@@ -7,10 +8,10 @@ from flatland.agents.sensors.visual_sensors import *
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
-pg = Basic_01()
+# pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
-# pg = Empty_01()
+pg = Empty_01()
 # pg = Doors_01()
 # pg = Zones_01()
 # pg = Proximity_01()
@@ -20,17 +21,18 @@ pg = Basic_01()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
-# my_agent = BaseAgent(initial_position=initial_position)
-my_agent = HeadAgent(name = 'test_agent', initial_position=initial_position)
+# my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position)
+# my_agent = HeadAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = HeadEyeAgent(initial_position=initial_position)
 # my_agent = ArmAgent(initial_position=initial_position)
-# my_agent = ArmHandAgent(initial_position=initial_position)
+my_agent = ArmHandAgent(initial_position=initial_position)
 
 # controller = Random(available_actions=my_agent.get_all_available_actions())
 controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
 my_agent.assign_controller(controller)
-# controller = Random()
 agents.append(my_agent)
+
+
 #
 # other_agent = ArmAgent([100, 100,0])
 # controller = Random()
@@ -39,12 +41,13 @@ agents.append(my_agent)
 
 # Add sensors:
 
-sensor = RgbSensor(name='rgb_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, resolution = 128, range=100)
+# sensor = RgbSensor(name='rgb_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, resolution = 128, range=300)
 # sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_body_parts=my_agent.body_parts)
 # sensor = GreySensor(name='grey_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
 # sensor = DepthSensor(name='depth_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
-# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 50)
-# sensor = TopdownSensor(name='td_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, range = 50)
+# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts,
+#                              fov= 250,range = 400, number=1080)
+sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_body_parts=my_agent.body_parts, range = 200)
 my_agent.add_sensor(sensor)
 #
 
@@ -92,20 +95,8 @@ my_agent.add_sensor(sensor)
 
 from flatland.game_engine import Engine
 
-engine_parameters = {
-    'inner_simulation_steps': 5,
-    'display': {
-        'playground' : False,
-        'body_parts' : True,
-    }
-}
 
-rules = {
-    'replay_until_time_limit': True,
-    'time_limit': 10000
-}
-
-game = Engine(playground=pg, agents=agents, rules=rules, engine_parameters=engine_parameters )
+game = Engine(playground=pg, agents=agents, time_limit=100)
 
 
 import cv2
@@ -113,6 +104,7 @@ import time
 
 t1 = time.time()
 
+pos = (0,0)
 
 while game.game_on:
 
@@ -172,5 +164,11 @@ while game.game_on:
 
     game.display_full_scene()
 
+    new_pos = (my_agent.position[0], my_agent.position[1])
+    vel = math.sqrt( (pos[0] - new_pos[0])**2 + (pos[1] - new_pos[1])**2)
+
+    print(vel)
+    pos = new_pos
+
 print(10000 / (time.time() - t1))
-game.terminate()
+# game.terminate()

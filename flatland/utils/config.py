@@ -1,7 +1,7 @@
 from enum import IntEnum, Enum
 from collections import namedtuple
 
-SIMULATION_STEPS = 4
+SIMULATION_STEPS = 1
 SPACE_DAMPING = 0.9
 
 
@@ -26,8 +26,8 @@ class ActionTypes(IntEnum):
     DISCRETE = 1
     CONTINUOUS = 2
 
-    LONGITUDINAL_VELOCITY = 3
-    LATERAL_VELOCITY = 4
+    LONGITUDINAL_FORCE = 3
+    LATERAL_FORCE = 4
     ANGULAR_VELOCITY = 5
 
     GRASP = 6

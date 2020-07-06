@@ -21,7 +21,7 @@ class TerminationContact(Entity):
             reward: Reward provided.
         """
 
-        default_config = self.parse_configuration('contact', default_config_key)
+        default_config = self._parse_configuration('contact', default_config_key)
         entity_params = {**default_config, **kwargs}
 
         super(TerminationContact, self).__init__(initial_position=initial_position, **entity_params)
@@ -95,7 +95,7 @@ class Absorbable(Entity):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self.parse_configuration('contact', default_config_key)
+        default_config = self._parse_configuration('contact', default_config_key)
         entity_params = {**default_config, **kwargs}
 
         super(Absorbable, self).__init__(initial_position=initial_position, **entity_params)

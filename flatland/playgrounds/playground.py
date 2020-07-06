@@ -1,15 +1,9 @@
-import pymunk.pygame_util
-from pygame.color import THECOLORS
-
 from ..entities.entity import *
 from ..utils.position_utils import *
 from ..utils.config import *
 
-import numpy
 
-
-
-class PlaygroundGenerator():
+class PlaygroundGenerator:
 
     """
     Register class to provide a decorator that is used to go through the package and
@@ -94,7 +88,6 @@ class Playground:
         self.space = pymunk.Space()
         self.space.gravity = pymunk.Vec2d(0., 0.)
         self.space.damping = SPACE_DAMPING
-        # self.space.collision_persistence = 1
 
 
     def add_agent(self, agent):

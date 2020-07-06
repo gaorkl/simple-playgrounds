@@ -1,6 +1,6 @@
 from .agent import Agent
 from flatland.utils.config import  Keymap
-from .body_parts.parts import BodyBase, Head, Eye, Arm, Hand
+from .body_parts.parts import *
 from flatland.utils.config import ActionTypes, KeyTypes
 from pygame.locals import *
 import math
@@ -11,7 +11,7 @@ class BaseAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(name = 'base', can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius = 10)
+        base_agent = HolonomicPlatform(name ='base', can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius = 10)
 
         super(BaseAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
@@ -28,8 +28,8 @@ class BaseAgent(Agent):
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )
 
-        keys.append( Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_UP, KeyTypes.PRESS_HOLD, 1 ) )
-        keys.append( Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_DOWN, KeyTypes.PRESS_HOLD, -1 ) )
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_UP, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_DOWN, KeyTypes.PRESS_HOLD, -1))
 
         return keys
 
@@ -38,7 +38,7 @@ class HeadEyeAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True)
+        base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True)
 
         super(HeadEyeAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
@@ -64,8 +64,8 @@ class HeadEyeAgent(Agent):
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )
 
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_UP, KeyTypes.PRESS_HOLD, 1))
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_DOWN, KeyTypes.PRESS_HOLD, -1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_UP, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_DOWN, KeyTypes.PRESS_HOLD, -1))
 
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_n, KeyTypes.PRESS_HOLD, -1))
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_m, KeyTypes.PRESS_HOLD, 1))
@@ -82,8 +82,7 @@ class HeadAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
-
+        base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
         super(HeadAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
         self.head = Head(base_agent, [0, 0], angle_offset=0, rotation_range = math.pi, radius=10, name = 'head')
@@ -103,8 +102,11 @@ class HeadAgent(Agent):
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )
 
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_UP, KeyTypes.PRESS_HOLD, 1))
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_DOWN, KeyTypes.PRESS_HOLD, -1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_UP, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_DOWN, KeyTypes.PRESS_HOLD, -1))
+
+        keys.append(Keymap(self.base.name, ActionTypes.LATERAL_FORCE, K_c, KeyTypes.PRESS_HOLD, -1))
+        keys.append(Keymap(self.base.name, ActionTypes.LATERAL_FORCE, K_v, KeyTypes.PRESS_HOLD, 1))
 
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_n, KeyTypes.PRESS_HOLD, -1))
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_m, KeyTypes.PRESS_HOLD, 1))
@@ -116,7 +118,7 @@ class ArmAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
+        base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb = True, radius=15)
 
         super(ArmAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
@@ -145,8 +147,8 @@ class ArmAgent(Agent):
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )
 
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_UP, KeyTypes.PRESS_HOLD, 1))
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_DOWN, KeyTypes.PRESS_HOLD, -1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_UP, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_DOWN, KeyTypes.PRESS_HOLD, -1))
 
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_n, KeyTypes.PRESS_HOLD, -1))
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_m, KeyTypes.PRESS_HOLD, 1))
@@ -170,7 +172,7 @@ class ArmHandAgent(Agent):
 
     def __init__(self, initial_position, **kwargs):
 
-        base_agent = BodyBase(radius=15)
+        base_agent = HolonomicPlatform(radius=15)
 
         super(ArmHandAgent, self).__init__(initial_position=initial_position, base=base_agent, **kwargs)
 
@@ -194,8 +196,8 @@ class ArmHandAgent(Agent):
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1 ) )
         keys.append( Keymap(self.base.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1 ) )
 
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_UP, KeyTypes.PRESS_HOLD, 1))
-        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_VELOCITY, K_DOWN, KeyTypes.PRESS_HOLD, -1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_UP, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base.name, ActionTypes.LONGITUDINAL_FORCE, K_DOWN, KeyTypes.PRESS_HOLD, -1))
 
         keys.append(Keymap(self.arm_r.name, ActionTypes.ANGULAR_VELOCITY, K_v, KeyTypes.PRESS_HOLD, -1))
         keys.append(Keymap(self.arm_r.name, ActionTypes.ANGULAR_VELOCITY, K_b, KeyTypes.PRESS_HOLD, 1))

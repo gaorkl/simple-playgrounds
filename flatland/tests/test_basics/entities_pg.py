@@ -14,7 +14,7 @@ class Basic_01(SingleRoom):
         self.add_entity(rectangle_01)
 
         circle_01 = Basic([50, 60, 0], default_config_key='circle',
-                                           movable=True, mass=100, texture=[150, 150, 150])
+                                           movable=False, mass=100, texture=[150, 150, 150])
         self.add_entity(circle_01)
 
         square_01 = Basic([150, 60, math.pi/4], default_config_key='square', movable=True, mass=10)

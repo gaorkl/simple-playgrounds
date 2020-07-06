@@ -22,7 +22,7 @@ class TerminationZone(Entity):
             reward: Reward provided.
         """
 
-        default_config = self.parse_configuration('zone', default_config_key)
+        default_config = self._parse_configuration('zone', default_config_key)
         entity_params = {**default_config, **kwargs}
 
         super(TerminationZone, self).__init__(initial_position=initial_position, **entity_params)
@@ -99,7 +99,7 @@ class RewardZone(Entity):
             total_reward: Total reward that the entity can provide during an Episode
         """
 
-        default_config = self.parse_configuration('zone', default_config_key)
+        default_config = self._parse_configuration('zone', default_config_key)
         entity_params = {**default_config, **kwargs}
 
         super(RewardZone, self).__init__(initial_position=initial_position, **entity_params)

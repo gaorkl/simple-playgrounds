@@ -7,8 +7,9 @@ class Agent:
     Base class for agents
 
     """
+    index_agent = 0
 
-    def __init__(self, name, initial_position, base, **agent_params):
+    def __init__(self, initial_position, base, **agent_params):
         """
         Base class for agents. Need a base object (BodyBase)
 
@@ -18,7 +19,11 @@ class Agent:
             **agent_param: other parameters
         """
 
-        self.name = name
+        self.name = agent_params.get('name', None)
+
+        if self.name is None:
+            self.name = 'agent_' + str(Agent.index_agent)
+        Agent.index_agent += 1
 
         # Dictionary for sensors
         self.sensors = []

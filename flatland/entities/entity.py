@@ -107,7 +107,7 @@ class Entity:
         self.prev_angle = None
 
     @staticmethod
-    def parse_configuration(entity_type, key):
+    def _parse_configuration(entity_type, key):
 
         if key is None:
             return {}
