@@ -1,1 +1,1 @@
-from .collection import *
+from .collection.lidar import LidarSensor

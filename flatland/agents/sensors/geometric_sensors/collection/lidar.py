@@ -8,19 +8,18 @@ import math
 @SensorGenerator.register('lidar')
 class LidarSensor(GeometricSensor):
 
-    def __init__(self, anchor, custom_config):
+    def __init__(self, anchor, invisible_body_parts, **custom_config):
 
         self.sensor_type = 'lidar'
 
         #Todo later: add default config, as in visual_sensors
         sensor_param = { **custom_config}
-
-        super(LidarSensor, self).__init__(anchor, sensor_param)
+        super(LidarSensor, self).__init__(anchor, invisible_body_parts, sensor_param)
 
 
         #Sensor paramters TODO: make it parametrable
-        self.FoV = 100 #in pixels
-        self.angle_ranges = [(0,90),(90,180),(180,270),(270,359)]
+        self.FoV = sensor_param.get('FoV',100) #in pixels
+        self.angle_ranges = sensor_param.get('angle_ranges',[(0,90),(90,180),(180,270),(270,359)])
 
         self.cones_number = len(self.angle_ranges)
         self.observation = None
@@ -33,42 +32,38 @@ class LidarSensor(GeometricSensor):
         output = [dict() for i in range(self.cones_number)]
 
         #Current's agent Shape
-        agent_shape = self.anchor.pm_visible_shape
-        agent_position = self.anchor.pm_body.position
-        agent_angle = self.anchor.pm_body.angle
+        agent_position = current_agent.position
+        agent_coord = Vec2d(agent_position[0], agent_position[1])
+        agent_angle = agent_position[2]
 
-        #Gathering Shapes of entities and agents, in sorted dict bi entity type
-        sorted_shapes = dict()
+        #Gathering positions of entities and agents, in sorted dict by entity/agent type
+        sorted_positions = dict()
 
-
-        # TODO : ambiguité sur les shapes disponibles des entités.
-        #pm interaction shape ? visible shape ? premier de pm elements ?
+        #Gathering key and shapes from entities
         for entity in entities:
 
-            #key = type(entity)
-            key = entity.__class__ #for dev purpose
+            key = type(entity).__name__ #Key in matrix
 
-            if not key in sorted_shapes:
-                sorted_shapes[key] = []
+            if not key in sorted_positions:
+                sorted_positions[key] = []
 
-            #Looks like the relevant Pymunk shape is the last one
+            #Looks like the relevant Pymunk position is the last one
             #To check in entity.py
-            relevant_pm_element = entity.pm_elements[1]
+            sorted_positions[key].append(entity.position)
 
-            sorted_shapes[key].append(relevant_pm_element)
-
+        #Gathering key and shapes from agents
         for agent in agents:
-            key = type(agent)
-            if not key in sorted_shapes:
-                sorted_shapes[key] = []
+            key = type(agent).__name__ #Key in matrix
+            if not key in sorted_positions:
+                sorted_positions[key] = []
 
             #Agent shouldn't detect itself
             if not agent is current_agent:
-                sorted_shapes[key].append(agent.frame.anatomy["base"].shape)
+                sorted_positions[key].append(agent.position)
 
 
         #For each entity type
-        for entity_type, entity_shapes in sorted_shapes.items():
+        for entity_type, positions in sorted_positions.items():
 
             #add here: Tests on entity_type : can the entity be detected ?
 
@@ -77,35 +72,52 @@ class LidarSensor(GeometricSensor):
                 output[i][entity_type] = 0
 
             #For each entity
-            for shape in entity_shapes:
-
-                shape_position = shape.body.position
-                shape_angle    = shape.body.angle
+            for position in positions:
 
                 #Calculating the nearest point on the entity's surface
-                query = shape.segment_query(agent_position, shape_position)
-                near_point = query.point
+                #query = shape.segment_query(agent_coord, shape_position)
+                #near_point = query.point
 
-                #Distance check
-                distance = agent_position.get_distance(near_point)
+
+                #For debugging purpose
+                #Approximation : center ph position instead of projection
+                near_point = position
+
+                #if entity_type == 'Candy':
+                    #self.logger.add((position[0], position[1]),"near_point")
+                    #self.logger.add((agent_position[0], agent_position[1]), "agent_position")
+
+
+                #Distance check - is the object too far ?
+                distance = agent_coord.get_distance(near_point)
 
                 if distance > self.FoV:
-                    break
+                    continue
 
                 #Angle check - In which cone does it fall ?
-                angle = agent_position.get_angle_degrees_between(near_point) #in degrees
-                angle = angle + math.degrees(agent_angle) #Add agent angle to count for rotation
-                angle = angle%360 #To avoid negative and angles > to 360
+                dy = (near_point[1] - agent_coord[1])
+                dx = (near_point[0] - agent_coord[0])
+                target_angle = math.atan2(dy, dx)
+
+                relative_angle = target_angle - agent_angle #Add agent angle to count for rotation
+
+                #if entity_type == 'Candy':
+                    #self.logger.add(relative_angle,"relative_angle")
+                    #self.logger.add(target_angle,"target_angle")
+                    #self.logger.add(agent_angle, "agent_angle")
+
+                relative_angle_degrees =math.degrees(relative_angle)%360 #To avoid negative and angles > to 360
                 cone = None
 
+                #Calculating in which cone the position is detected
                 for i in range(len(self.angle_ranges)):
                     angle_range = self.angle_ranges[i]
 
-                    if angle >= angle_range[0] and angle < angle_range[1]:
+                    if relative_angle_degrees >= angle_range[0] and relative_angle_degrees < angle_range[1]:
                         cone = i
 
                 if cone is None:
-                    break
+                    continue
 
 
                 if not entity_type in output[cone]:
@@ -115,15 +127,14 @@ class LidarSensor(GeometricSensor):
                 normalised_distance = distance/self.FoV
                 activation = 1 - normalised_distance
 
+
+
                 #Keeping only the nearest distance = highest activation
                 if output[cone][entity_type] < activation:
                     output[cone][entity_type] = activation
-
-        self.sensor_value = output
+        self.observation = output
 
         return output
-
-
 
     def get_shape_observation(self):
         pass

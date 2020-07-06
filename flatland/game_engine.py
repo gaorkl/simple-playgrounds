@@ -128,7 +128,7 @@ class Engine():
                     entities = self.playground.entities
                     agents = self.playground.agents
 
-                    sensor.update_sensor(entities, agents)
+                    sensor.update_sensor(agent, entities, agents)
 
                 else:
                     raise ValueError
