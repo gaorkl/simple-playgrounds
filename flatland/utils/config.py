@@ -1,7 +1,7 @@
 from enum import IntEnum, Enum
 from collections import namedtuple
 
-SIMULATION_STEPS = 1
+SIMULATION_STEPS = 5
 SPACE_DAMPING = 0.9
 
 
@@ -10,8 +10,10 @@ class CollisionTypes(IntEnum):
     AGENT = 1
     CONTACT = 2
     INTERACTIVE = 3
-    ZONE = 4
+    PASSIVE = 4
     GEM = 5
+    EDIBLE = 6
+    GRASPABLE = 7
 
 
 class ControllerTypes(Enum):

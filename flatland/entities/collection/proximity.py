@@ -1,7 +1,7 @@
-from flatland.entities.entity import *
+from .zone import PassiveSceneElement
 
 
-class VisibleRewardZone(Entity):
+class VisibleRewardZone(PassiveSceneElement):
 
     interactive = True
     entity_type = 'reward_zone'
@@ -27,31 +27,29 @@ class VisibleRewardZone(Entity):
 
         super(VisibleRewardZone, self).__init__(initial_position=initial_position, **entity_params)
 
-        self.pm_interaction_shape.collision_type = CollisionTypes.ZONE
-
         self.reward = entity_params['reward']
         self.initial_total_reward = entity_params['total_reward']
         self.total_reward = self.initial_total_reward
-        self.reward_provided = False
 
-    def pre_step(self):
-
-        self.reward_provided = False
-
-    def get_reward(self):
+    @property
+    def reward(self):
 
         if not self.reward_provided:
             self.reward_provided = True
 
-            if self.reward * self.total_reward < 0:
+            if self._reward * self.total_reward < 0:
                 return 0
 
             else:
-                self.total_reward -= self.reward
-                return self.reward
+                self.total_reward -= self._reward
+                return self._reward
 
         else:
             return 0
+
+    @reward.setter
+    def reward(self, rew):
+        self._reward = rew
 
     def reset(self):
 
@@ -61,7 +59,6 @@ class VisibleRewardZone(Entity):
         super().reset()
 
 
-# @EntityGenerator.register('fairy')
 class Fairy(VisibleRewardZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -74,7 +71,6 @@ class Fairy(VisibleRewardZone):
         super(Fairy, self).__init__(initial_position=initial_position, default_config_key='fairy', **kwargs)
 
 
-# @EntityGenerator.register('fireball')
 class Fireball(VisibleRewardZone):
 
     def __init__(self, initial_position, **kwargs):

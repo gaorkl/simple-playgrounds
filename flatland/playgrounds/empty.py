@@ -1,6 +1,5 @@
 from flatland.playgrounds.playground import Playground
-from flatland.entities.collection.basic import Basic
-from flatland.entities.collection.interactive import Door
+from flatland.entities.collection.basic import Basic, Door
 
 import math, random
 

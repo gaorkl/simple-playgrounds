@@ -1,10 +1,47 @@
 from flatland.entities.entity import *
 
+from abc import ABC, abstractmethod
 
-class TerminationContact(Entity):
+
+class ContactSceneElement(ABC, Entity):
+
+    def __init__(self, **kwargs):
+        Entity.__init__(self, **kwargs)
+        self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
+
+        self.reward = 0
+        self.reward_provided = False
+
+    def pre_step(self):
+        self.reward_provided = False
+
+    @abstractmethod
+    def activate(self):
+        list_remove = []
+        list_add = []
+
+        return list_remove, list_add
+
+    @property
+    def reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self._reward
+
+        else:
+            return 0
+
+    @reward.setter
+    def reward(self, rew):
+        self._reward = rew
+
+
+class TerminationContact(ContactSceneElement):
 
     entity_type = 'contact_termination'
     visible = True
+    terminate_upon_contact = True
 
     def __init__(self, initial_position, default_config_key=None, **kwargs):
         """ Base class for entities that terminate upon contact
@@ -24,32 +61,13 @@ class TerminationContact(Entity):
         default_config = self._parse_configuration('contact', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(TerminationContact, self).__init__(initial_position=initial_position, **entity_params)
-
+        super().__init__(initial_position=initial_position, **entity_params)
         self.reward = entity_params['reward']
-        self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
 
-        self.reward_provided = False
-
-    def pre_step(self):
-
-        self.reward_provided = False
-
-    def get_reward(self):
-
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self.reward
-
-        else:
-            return 0
-
-    def reset(self):
-        self.reward_provided = False
-        super().reset()
+    def activate(self):
+        return super().activate()
 
 
-# @EntityGenerator.register('visible-endgoal')
 class VisibleEndGoal(TerminationContact):
 
     def __init__(self, initial_position, **kwargs):
@@ -64,7 +82,6 @@ class VisibleEndGoal(TerminationContact):
                                              **kwargs)
 
 
-# @EntityGenerator.register('visible-deathtrap')
 class VisibleDeathTrap(TerminationContact):
 
     def __init__(self, initial_position, **kwargs):
@@ -79,7 +96,7 @@ class VisibleDeathTrap(TerminationContact):
                                                **kwargs)
 
 
-class Absorbable(Entity):
+class Absorbable(ContactSceneElement):
 
     entity_type = 'absorbable'
     absorbable = True
@@ -99,12 +116,16 @@ class Absorbable(Entity):
         entity_params = {**default_config, **kwargs}
 
         super(Absorbable, self).__init__(initial_position=initial_position, **entity_params)
-
         self.reward = entity_params['reward']
-        self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
+
+    def activate(self):
+
+        list_add = []
+        list_remove = [self]
+
+        return list_remove, list_add
 
 
-# @EntityGenerator.register('candy')
 class Candy(Absorbable):
 
     def __init__(self, initial_position, **kwargs):
@@ -117,7 +138,6 @@ class Candy(Absorbable):
         super(Candy, self).__init__(initial_position=initial_position, default_config_key='candy', **kwargs)
 
 
-# @EntityGenerator.register('poison')
 class Poison(Absorbable):
 
     def __init__(self, initial_position, **kwargs):
@@ -128,3 +148,35 @@ class Poison(Absorbable):
         """
 
         super(Poison, self).__init__(initial_position=initial_position, default_config_key='poison', **kwargs)
+
+
+class PushButton(ContactSceneElement):
+
+    entity_type = 'pushbutton'
+
+    def __init__(self, initial_position, door, **kwargs):
+        """ Push button used to open a door
+
+        Opens a door when in contact with an agent.
+        Default: Pale brown square of size 10.
+
+        Args:
+            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
+            door: Door opened by the switch
+            **kwargs: other params to configure entity. Refer to Entity class
+        """
+
+        default_config = self._parse_configuration('interactive', 'switch')
+        entity_params = {**default_config, **kwargs}
+
+        super(PushButton, self).__init__(initial_position=initial_position, **entity_params)
+
+        self.door = door
+
+    def activate(self):
+        list_remove = [self, self.door]
+        list_add = []
+
+        self.door.open_door()
+
+        return list_remove, list_add

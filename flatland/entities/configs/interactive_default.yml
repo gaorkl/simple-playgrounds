@@ -31,6 +31,24 @@ rotten_apple :
   initial_reward: -30
   min_reward: -5
 
+# Lever
+
+lever_texture : &lever-texture
+  texture_type: centered_random_tiles
+  color_min: [100, 80, 180]
+  color_max: [140, 120, 220]
+  size_tiles : 10
+
+lever :
+  physical_shape: hexagon
+  radius: 15
+  texture: *lever-texture
+  interaction_range: 10
+  production_limit: 15
+  mass : 10
+  reward : 10
+
+
 # Dispenser
 
 dispenser_texture : &dispenser-texture

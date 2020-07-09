@@ -1,16 +1,16 @@
 import pymunk
 import pygame
 import math
-import numpy, cv2
 
 import os
 import yaml
 
 from flatland.utils.position_utils import PositionAreaSampler, Trajectory
-from flatland.utils.texture import Texture
+from flatland.utils.texture import TextureGenerator
 from flatland.utils.config import geometric_shapes, CollisionTypes
 
-#TODO: masks and physical shapes don't have the correct size sometimes (one pixel overlap)
+# TODO: masks and physical shapes don't have the correct size sometimes (one pixel overlap)
+
 
 class Entity:
 
@@ -24,8 +24,10 @@ class Entity:
     follows_waypoints = False
     graspable = False
 
+    terminate_upon_contact = False
+
     index_entity = 0
-    entity_type = None
+    entity_type = 'entity'
 
     def __init__(self, initial_position=None, **entity_params):
         """ Base class for entities.
@@ -38,6 +40,7 @@ class Entity:
             For default configurations, see entity configs
 
         Keyword Args:
+            name (str): Name of the entity. If none is provided, name is generated automatically.
             graspable (:obj:'bool'): True if the object can be grasped by an agent.
                 Default: False
             movable (:obj:'bool'): True if the object can be moved
@@ -53,9 +56,8 @@ class Entity:
         """
 
         # Internal counter to assign identity number and name to each entity
-        self.name = self.entity_type + '_' + str(Entity.index_entity)
+        self.name = entity_params.get('name', self.entity_type + '_' + str(Entity.index_entity))
         Entity.index_entity += 1
-
 
         self.graspable = entity_params.get('graspable', self.graspable)
         self.movable = entity_params.get('movable', self.movable)
@@ -71,40 +73,42 @@ class Entity:
         self.length, self.width, self.radius = visible_size
         self.interaction_length, self.interaction_width, self.interaction_radius = interaction_size
 
-        # self.visible_vertices = self.compute_vertices(self.radius)
-        # self.interaction_vertices = self.compute_vertices(self.interaction_radius)
-
-        # To be set when entity is added to playground. Used to calculate correct coordinates
-        self.size_playground = [0, 0]
-
         self.pm_body = self.create_pm_body()
         self.pm_elements = [self.pm_body]
 
-        self.texture_params = entity_params['texture']
-        self.texture_surface, self.texture_surface_interactive = self.create_texture(self.texture_params)
+        self.texture_surface = self.create_texture(entity_params['texture'])
 
         self.pm_interaction_shape = None
         self.pm_visible_shape = None
 
         if self.visible:
-            self.pm_visible_shape = self.create_pm_visible_shape()
-            self.visible_mask = self.create_visible_mask()
+            self.pm_visible_shape = self.create_pm_shape()
+            self.visible_mask = self.create_mask()
             self.pm_elements.append(self.pm_visible_shape)
 
         if self.interactive:
-            self.pm_interaction_shape = self.create_pm_interaction_shape()
-            self.interaction_mask = self.create_interaction_mask()
+            self.pm_interaction_shape = self.create_pm_shape(is_interactive=True)
+            self.interaction_mask = self.create_mask(is_interactive=True)
             self.pm_elements.append(self.pm_interaction_shape)
 
+        if self.graspable:
+            self.pm_grasp_shape = self.create_pm_shape(is_interactive=True)
+            self.pm_grasp_shape.collision_type = CollisionTypes.GRASPABLE
+            self.grasp_mask = self.create_mask(is_interactive=True)
+            self.pm_elements.append(self.pm_grasp_shape)
+
         self.initial_position = initial_position
-
-
 
         # To remove temporary entities when reset
         self.is_temporary_entity = entity_params.get('is_temporary_entity', False)
 
         # Used to check if mask should be computed again
-        self.prev_angle = None
+        self.prev_angle = self.pm_body.angle
+
+        # To be set when entity is added to playground. Used to calculate correct coordinates
+        self.size_playground = [0, 0]
+        self.velocity = [0, 0, 0]
+        self.position = [0, 0, 0]
 
     @staticmethod
     def _parse_configuration(entity_type, key):
@@ -150,31 +154,19 @@ class Entity:
 
     def create_texture(self, texture_params):
 
-        texture = Texture.create(texture_params)
-        texture_surface = texture.generate(2*int(self.radius), 2*int(self.radius))
-
-        texture_surface_interactive = pygame.transform.scale(texture_surface, (2*int(self.interaction_radius),
-                                                                               2*int(self.interaction_radius)))
-
-        return texture_surface, texture_surface_interactive
-
-    @property
-    def texture_params(self):
-        return self._texture_params
-
-    @texture_params.setter
-    def texture_params(self, params):
-
-        if isinstance(params, list):
-            self._texture_params = {
+        if isinstance(texture_params, list):
+            texture_params = {
                 'texture_type': 'color',
-                'color': params
+                'color': texture_params
             }
-        else:
-            self._texture_params = params
 
-        self._texture_params['radius'] = self.radius
-        self._texture_params['physical_shape'] = self.physical_shape
+        texture_params['radius'] = self.radius
+        texture_params['physical_shape'] = self.physical_shape
+
+        texture = TextureGenerator.create(texture_params)
+        texture_surface = texture.generate()
+
+        return texture_surface
 
     @property
     def initial_position(self):
@@ -260,12 +252,11 @@ class Entity:
 
     def compute_moments(self):
 
-        vertices = self.compute_body_vertices(self.radius)
-
         if self.physical_shape == 'circle':
             moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
+            vertices = self.compute_vertices(angle=0)
             moment = pymunk.moment_for_poly(self.mass, vertices)
 
         elif self.physical_shape == 'rectangle':
@@ -276,216 +267,129 @@ class Entity:
 
         return moment
 
-    def compute_body_vertices(self, radius):
-
-        if self.physical_shape in ['rectangle', 'circle']:
-            return None
-
-        else:
-            number_sides = geometric_shapes[self.physical_shape]
-
-            vertices = []
-            for n in range(number_sides):
-                vertices.append([radius*math.cos(n * 2*math.pi / number_sides),
-                                 radius * math.sin(n * 2*math.pi / number_sides)])
-
-            return vertices
-
-    def create_pm_visible_shape(self):
-
-        vertices = self.compute_visible_vertices()
-
-        if self.physical_shape == 'circle':
-            pm_visible_shape = pymunk.Circle(self.pm_body, self.radius)
-
-        elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-            pm_visible_shape = pymunk.Poly(self.pm_body, vertices)
-
-        elif self.physical_shape == 'rectangle':
-            pm_visible_shape = pymunk.Poly.create_box(self.pm_body, (self.width, self.length))
-
-        else:
-            raise ValueError
-
-        pm_visible_shape.friction = 0.8
-        pm_visible_shape.elasticity = 0.5
-
-        return pm_visible_shape
-
-    def compute_visible_vertices(self):
+    def compute_vertices(self, angle, is_interactive=False):
 
         vertices = []
 
         if self.physical_shape == 'rectangle':
 
-            w, l = self.width -1 , self.length - 1
+            if is_interactive:
+                width = self.interaction_width - 1
+                length = self.interaction_length - 1
+            else:
+                width = self.width - 1
+                length = self.length - 1
 
-            coord_pts_in_entity_base = [[w/2., l/2.], [-w/2., l/2.], [-w/2., -l/2.], [w/2., -l/2.]]
-
-
-            for coord in coord_pts_in_entity_base:
-
-                x = coord[0] * math.cos(self.pm_body.angle) - coord[1] * math.sin(self.pm_body.angle)
-                y = coord[0] * math.sin(self.pm_body.angle) + coord[1] * math.cos(self.pm_body.angle)
-
-                vertices.append([ x, y])
-        else:
-            radius = self.radius
-            number_sides = geometric_shapes[self.physical_shape]
-
-            for n in range(number_sides):
-                vertices.append([ radius*math.cos( n * 2*math.pi / number_sides + self.pm_body.angle ),
-                                  radius * math.sin(n * 2*math.pi / number_sides + self.pm_body.angle )])
-
-        return vertices
-
-
-    def create_visible_mask(self):
-
-        alpha = 255
-
-        if self.physical_shape == 'circle':
-
-            mask = pygame.Surface(( int(2*self.radius  ) , int(2*self.radius  )), pygame.SRCALPHA)
-            mask.fill((0, 0, 0, 0))
-            pygame.draw.circle(mask, (255, 255, 255, alpha), (int(self.radius), int(self.radius)), int(self.radius) )
-
-        else:
-
-            vert = self.compute_visible_vertices()
-            vertices = [[x[1] + self.radius  , x[0] + self.radius  ] for x in vert]
-
-            mask = pygame.Surface((2 * self.radius , 2 * self.radius ), pygame.SRCALPHA)
-            mask.fill((0, 0, 0, 0))
-            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
-
-
-
-        # Apply texture on mask
-
-        # if self.physical_shape == 'square':
-        texture_visible_surface = pygame.transform.rotate(self.texture_surface, 180*self.pm_body.angle/math.pi)
-        delta = ( (2 * self.radius + 1) - texture_visible_surface.get_width() , (2 * self.radius + 1) - texture_visible_surface.get_height())
-
-        delta = (delta[0]/2, delta[1]/2)
-        # delta = (0,0)
-
-        mask.blit(texture_visible_surface, delta, None, pygame.BLEND_MULT)
-
-        # img_sensor = pygame.surfarray.array3d(mask)
-        # img_sensor = numpy.rot90(img_sensor, 1, (1, 0))
-        # img_sensor = img_sensor[::-1, :, ::-1]
-        #
-        # if self.physical_shape == 'rectangle':
-        #     # print(self.name, vert)
-        #     cv2.imshow('mask '+str(self.radius), img_sensor)
-
-
-        return mask
-
-
-    def create_pm_interaction_shape(self):
-
-        vertices = self.compute_interaction_vertices()
-
-        if self.physical_shape == 'circle':
-            pm_interaction_shape = pymunk.Circle(self.pm_body, self.interaction_radius)
-
-        elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-            pm_interaction_shape = pymunk.Poly(self.pm_body, vertices)
-
-        elif self.physical_shape == 'rectangle':
-            pm_interaction_shape = pymunk.Poly.create_box(self.pm_body,
-                                                          (self.interaction_width, self.interaction_length))
-
-        else:
-            raise ValueError
-
-        pm_interaction_shape.sensor = True
-        pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
-
-        return pm_interaction_shape
-
-
-
-
-    def create_interaction_mask(self):
-
-        alpha = 75
-
-        if self.physical_shape == 'circle':
-
-            mask = pygame.Surface(( int(2*self.interaction_radius ) , int(2*self.interaction_radius )), pygame.SRCALPHA)
-            mask.fill((0, 0, 0, 0))
-            pygame.draw.circle(mask, (255, 255, 255, alpha), (int(self.interaction_radius), int(self.interaction_radius)), int(self.interaction_radius))
-
-        else:
-
-            vert = self.compute_interaction_vertices()
-            vertices = [[x[1] + self.interaction_radius , x[0] + self.interaction_radius ] for x in vert]
-
-            mask = pygame.Surface((2 * self.interaction_radius  , 2 * self.interaction_radius  ), pygame.SRCALPHA)
-            mask.fill((0, 0, 0, 0))
-            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
-
-
-
-        # Apply texture on mask
-
-        # if self.physical_shape == 'square':
-        texture_interaction_surface = pygame.transform.rotate(self.texture_surface_interactive, 180*self.pm_body.angle/math.pi)
-        delta = ( (2 * self.interaction_radius + 1) - texture_interaction_surface.get_width() ,
-                  (2 * self.interaction_radius + 1) - texture_interaction_surface.get_height())
-
-        delta = (delta[0]/2, delta[1]/2)
-        mask.blit(texture_interaction_surface, delta, None, pygame.BLEND_MULT)
-
-        return mask
-
-
-
-
-
-    def compute_interaction_vertices(self):
-
-        vertices = []
-
-        if self.physical_shape == 'rectangle':
-
-            w, l = self.interaction_width - 1, self.interaction_length - 1
-
-            coord_pts_in_entity_base = [[w / 2., l / 2.], [-w / 2., l / 2.], [-w / 2., -l / 2.], [w / 2., -l / 2.]]
+            coord_pts_in_entity_base = [[width/2., length/2.], [-width/2., length/2.],
+                                        [-width/2., -length/2.], [width/2., -length/2.]]
 
             for coord in coord_pts_in_entity_base:
-                x = coord[0] * math.cos(self.pm_body.angle) - coord[1] * math.sin(self.pm_body.angle)
-                y = coord[0] * math.sin(self.pm_body.angle) + coord[1] * math.cos(self.pm_body.angle)
+
+                x = coord[0] * math.cos(angle) - coord[1] * math.sin(angle)
+                y = coord[0] * math.sin(angle) + coord[1] * math.cos(angle)
 
                 vertices.append([x, y])
         else:
-            radius = self.interaction_radius - 1
+            if is_interactive:
+                radius = self.interaction_radius - 1
+            else:
+                radius = self.radius - 1
+
             number_sides = geometric_shapes[self.physical_shape]
 
             for n in range(number_sides):
-                vertices.append([radius * math.cos(n * 2 * math.pi / number_sides + self.pm_body.angle),
-                                 radius * math.sin(n * 2 * math.pi / number_sides + self.pm_body.angle)])
+                vertices.append([radius*math.cos(n * 2*math.pi / number_sides + angle),
+                                radius * math.sin(n * 2*math.pi / number_sides + angle)])
 
         return vertices
 
+    def create_pm_shape(self, is_interactive=False):
 
+        if is_interactive:
+            radius = self.interaction_radius
+            width = self.interaction_width
+            length = self.interaction_length
+        else:
+            radius = self.radius
+            width = self.width
+            length = self.length
 
-    def draw(self, surface, draw_interaction=False, force_recompute_mask = False):
+        if self.physical_shape == 'circle':
+            pm_shape = pymunk.Circle(self.pm_body, radius)
+
+        elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
+            vertices = self.compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive)
+            pm_shape = pymunk.Poly(self.pm_body, vertices)
+
+        elif self.physical_shape == 'rectangle':
+            pm_shape = pymunk.Poly.create_box(self.pm_body, (width, length))
+
+        else:
+            raise ValueError
+
+        if is_interactive:
+            pm_shape.sensor = True
+        else:
+            pm_shape.friction = 0.8
+            pm_shape.elasticity = 0.5
+
+        return pm_shape
+
+    def create_mask(self, is_interactive=False):
+
+        if is_interactive:
+            radius = self.interaction_radius
+            alpha = 75
+        else:
+            radius = self.radius
+            alpha = 255
+
+        if self.physical_shape == 'circle':
+
+            mask = pygame.Surface((int(2*radius), int(2*radius)), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.circle(mask, (255, 255, 255, alpha), (int(radius), int(radius)), int(radius))
+
+        else:
+
+            vert = self.compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive)
+            vertices = [[x[1] + radius, x[0] + radius] for x in vert]
+
+            mask = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
+
+        if is_interactive:
+            texture_surface = pygame.transform.scale(self.texture_surface, (2 * int(self.interaction_radius),
+                                                                            2 * int(self.interaction_radius)))
+        else:
+            texture_surface = self.texture_surface.copy()
+
+        texture_surface = pygame.transform.rotate(texture_surface, 180*self.pm_body.angle/math.pi)
+        delta = ((2 * radius + 1) - texture_surface.get_width(), (2 * radius + 1) - texture_surface.get_height())
+
+        delta = (delta[0]/2, delta[1]/2)
+
+        mask.blit(texture_surface, delta, None, pygame.BLEND_MULT)
+
+        return mask
+
+    def draw(self, surface, draw_interaction=False, force_recompute_mask=False):
         """
         Draw the obstacle on the environment screen
         """
 
-        if self.prev_angle != self.position[2] or force_recompute_mask:
-            self.visible_mask = self.create_visible_mask()
+        if self.prev_angle != self.pm_body.angle or force_recompute_mask:
+
+            self.visible_mask = self.create_mask()
 
             if self.interactive:
-                self.interaction_mask = self.create_interaction_mask()
+                self.interaction_mask = self.create_mask(is_interactive=True)
 
-            self.prev_angle = self.position[2]
+            if self.graspable:
+                self.grasp_mask = self.create_mask(is_interactive=True)
 
+            self.prev_angle = self.pm_body.angle
 
         if draw_interaction and self.interactive:
 
@@ -498,9 +402,6 @@ class Entity:
             mask_rect = self.visible_mask.get_rect()
             mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
             surface.blit(self.visible_mask, mask_rect, None)
-    #
-    # def get_mask(self):
-
 
     def update(self):
 
@@ -517,24 +418,3 @@ class Entity:
 
         self.velocity = [0, 0, 0]
         self.position = self.initial_position
-
-#
-# class EntityGenerator:
-#
-#     subclasses = {}
-#
-#     @classmethod
-#     def register(cls, entity_type):
-#         def decorator(subclass):
-#             cls.subclasses[entity_type] = subclass
-#             return subclass
-#
-#         return decorator
-#
-#     @classmethod
-#     def create(cls, entity_type, **kwargs):
-#
-#         if entity_type not in cls.subclasses:
-#             raise ValueError('Entity type not implemented:' + entity_type)
-#
-#         return cls.subclasses[entity_type](**kwargs)

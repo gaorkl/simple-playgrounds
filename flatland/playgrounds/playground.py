@@ -49,28 +49,22 @@ class Playground:
         self.entities = []
         self.fields = []
         self.disappeared = []
-
-        # Store the temporary pinjoints for grasping
         self.grasped = {}
-
-        # Store the timers for doors or other timed events
-        self.timers = {}
 
         # Add entities declared in the scene
         for scene_entity in self.scene_entities:
             self.add_entity(scene_entity)
 
-        # TODO: Replace by class for registring, and import all collisions in a separate file
         self.handle_collisions()
 
         self.agents = []
-        self.body_parts_agents = {}
 
         self.has_reached_termination = False
 
         self.agent_starting_area = None
 
-    def parse_configuration(self, entity_type, key):
+    @staticmethod
+    def parse_configuration(entity_type, key):
 
         if key is None:
             return {}
@@ -89,13 +83,9 @@ class Playground:
         self.space.gravity = pymunk.Vec2d(0., 0.)
         self.space.damping = SPACE_DAMPING
 
-
     def add_agent(self, agent):
 
         self.agents.append(agent)
-        self.place_agent_in_playground(agent)
-
-    def place_agent_in_playground(self, agent):
 
         agent.size_playground = [self.width, self.length]
 
@@ -110,35 +100,18 @@ class Playground:
 
         agent.position = agent.initial_position
 
-        # self.space.add(*agent.base.pm_elements)
-
         for body_part in agent.body_parts:
             self.space.add(*body_part.pm_elements)
-
-        # for _, joint in agent.body_joints.items():
-        #     self.space.add(joint)
 
     def remove_agents(self):
 
         for agent in self.agents:
-
             for part in agent.body_parts:
-
                 self.space.remove(*part.pm_elements)
-
-                #part.set_relative_position()
-                part.velocity = [0,0,0]
-
+                part.velocity = [0, 0, 0]
         self.agents = []
 
-    def add_entity(self, new_entity):
-        '''
-        Create a new entity and adds it to space, and to the different entity lists
-        :param entity_type: type of entity (dispenser, edible, absorbable...)
-        :param user_config: dictionary, additional configuration provided by the user. Will overwrite default config
-        :param params: any other parameters set by the users. Will overwrite user config
-        :return: the new entity
-        '''
+    def add_entity(self, new_entity, new_position = True):
 
         new_entity.size_playground = [self.width, self.length]
 
@@ -146,18 +119,13 @@ class Playground:
             self.fields.append(new_entity)
 
         else:
+            if new_position:
+                new_entity.position = new_entity.initial_position
 
-            new_entity.position = new_entity.initial_position
-            self.place_entity_in_playground(new_entity)
-
-        return new_entity
-
-    def place_entity_in_playground(self, entity):
-
-        self.space.add(*entity.pm_elements)
-        self.entities.append(entity)
-        if entity in self.disappeared:
-            self.disappeared.remove(entity)
+            self.space.add(*new_entity.pm_elements)
+            self.entities.append(new_entity)
+            if new_entity in self.disappeared:
+                self.disappeared.remove(new_entity)
 
     def remove_entity(self, disappearing_entity):
 
@@ -166,6 +134,19 @@ class Playground:
 
         if not disappearing_entity.is_temporary_entity:
             self.disappeared.append(disappearing_entity)
+
+        for entity in self.entities:
+            if entity.entity_type is 'dispenser' and disappearing_entity in entity.produced_entities:
+                entity.produced_entities.remove(disappearing_entity)
+
+        for entity in self.fields:
+            if disappearing_entity in entity.produced_entities:
+                entity.produced_entities.remove(disappearing_entity)
+
+        if disappearing_entity in self.grasped.keys():
+            body_part = self.grasped[disappearing_entity]
+            self.space.remove( *body_part.grasped )
+            body_part.grasped = []
 
     def update_playground(self):
 
@@ -180,12 +161,7 @@ class Playground:
         self.check_timers()
         self.release_grasps()
 
-
     def reset(self):
-        # Reset the environment
-
-        # Remove entities not in initial definition of environments
-        # Reset entities which are in environment initialization
 
         print('reset playground')
 
@@ -196,17 +172,12 @@ class Playground:
         # reset and replace entities that are not temporary
         for entity in self.disappeared.copy():
             entity.reset()
-            self.place_entity_in_playground(entity)
+            self.add_entity(entity)
 
         for entity in self.fields:
             entity.reset()
 
-        # Reset flags and counters
-        self.grasped = {}
-        self.timers = {}
         self.has_reached_termination = False
-
-
 
     def fields_produce(self):
 
@@ -220,12 +191,10 @@ class Playground:
 
         for entity in self.entities:
 
-            if entity.entity_type == 'switch' and hasattr(entity, 'timer') :
+            if entity.entity_type == 'switch' and hasattr(entity, 'timer'):
 
                 if entity.door.opened and entity.timer == 0:
-                    self.space.add(*entity.door.pm_elements)
-                    self.entities.append(entity.door)
-                    self.disappeared.remove(entity.door)
+                    self.add_entity(entity.door)
                     entity.door.close_door()
                     entity.reset_timer()
 
@@ -240,105 +209,77 @@ class Playground:
                         self.space.remove(joint)
                     part.grasped = []
 
-    def get_entity_from_visible_shape(self, pm_shape):
+    def get_entity_from_shape(self, pm_shape):
 
-        entity = [entity for entity in self.entities if entity.pm_visible_shape == pm_shape][0]
+        entity = next(iter([ent for ent in self.entities if pm_shape in ent.pm_elements]), None)
         return entity
 
-
     def get_agent_from_shape(self, pm_shape):
-
         for agent in self.agents:
-
             if agent.owns_shape(pm_shape):
-
                 return agent
+
+    def get_closest_agent(self, ent):
+
+        dist_list = [(a.position[0] - ent.position[0])**2 + (a.position[1] - ent.position[1])**2 for a in self.agents]
+        index_min_dist = dist_list.index(min(dist_list))
+        closest_agent = self.agents[index_min_dist]
+
+        return closest_agent
 
     def agent_touches_entity(self, arbiter, space, data):
 
         agent = self.get_agent_from_shape(arbiter.shapes[0])
-        body_part = next( iter([part for part in agent.body_parts if part.pm_visible_shape == arbiter.shapes[0]]), None)
+        touched_entity = self.get_entity_from_shape(arbiter.shapes[1])
 
-        touched_entity = self.get_entity_from_visible_shape(arbiter.shapes[1])
+        agent.reward += touched_entity.reward
 
-        if touched_entity.absorbable and body_part.can_absorb:
+        list_remove, list_add = touched_entity.activate()
 
-            reward = touched_entity.reward
-            agent.reward += reward
+        for entity_removed in list_remove:
+            self.remove_entity(entity_removed)
 
-            space.add_post_step_callback(self.remove_absorbable, touched_entity)
+        for entity_added in list_add:
+            self.add_entity(entity_added)
 
-
-        elif touched_entity.entity_type is 'contact_termination':
+        if touched_entity.terminate_upon_contact:
             self.has_reached_termination = True
-            reward = touched_entity.get_reward()
-            agent.reward += reward
-
-        elif touched_entity.entity_type is 'pushbutton':
-            touched_entity.activate()
-
-            if touched_entity.door in self.entities:
-
-                self.remove_entity(touched_entity.door)
 
         return True
-
-    def remove_absorbable(self, space, touched_entity):
-
-        self.remove_entity(touched_entity)
-
-        for entity in self.entities:
-            if entity.entity_type is 'dispenser' and touched_entity in entity.produced_entities:
-                entity.produced_entities.remove(touched_entity)
-
-        for entity in self.fields:
-            if touched_entity in entity.produced_entities:
-                entity.produced_entities.remove(touched_entity)
 
 
     def agent_interacts(self, arbiter, space, data):
 
         agent = self.get_agent_from_shape(arbiter.shapes[0])
-        body_part = next( iter([part for part in agent.body_parts if part.pm_visible_shape == arbiter.shapes[0]]), None)
+        body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
+        interacting_entity = self.get_entity_from_shape(arbiter.shapes[1])
 
+        if body_part.is_activating: # and (interacting_entity.entity_type is 'dispenser'):
 
-        # TODO: replace with this everywhere:
-        interacting_entity = next( iter([entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]]), None)
+            agent.reward += interacting_entity.reward
 
+            list_remove, list_add = interacting_entity.activate(None)
 
-        if body_part.is_eating and interacting_entity.edible:
+            for entity_removed in list_remove:
+                self.remove_entity(entity_removed)
 
-            body_part.is_eating = False
+            for entity_added in list_add:
+                self.add_entity(entity_added)
 
-            space.remove(interacting_entity.pm_body, interacting_entity.pm_visible_shape, interacting_entity.pm_interaction_shape)
-            space.add_post_step_callback(self.eaten_shrinks, interacting_entity, agent )
-
-        elif body_part.is_activating and (interacting_entity.entity_type is 'dispenser'):
-
-            body_part.is_activating = False
-
-            if len(interacting_entity.produced_entities) < interacting_entity.production_limit:
-                new_entity = interacting_entity.activate()
-                self.add_entity(new_entity)
-                interacting_entity.produced_entities.append(new_entity)
-
-        elif body_part.is_activating and (interacting_entity.entity_type is 'switch'):
+            if interacting_entity.terminate_upon_contact:
+                self.has_reached_termination = True
 
             body_part.is_activating = False
-            door = interacting_entity.door
 
-            interacting_entity.activate()
+        return True
 
-            if door.opened:
+    def agent_grasps(self, arbiter, space, data):
 
-                if door in self.entities:
-                    self.remove_entity(door)
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
+        interacting_entity = self.get_entity_from_shape(arbiter.shapes[1])
 
-            else:
-                self.place_entity_in_playground(door)
-
-
-        elif body_part.is_grasping and not body_part.is_holding and interacting_entity.movable :
+        if body_part.is_grasping and not body_part.is_holding  :
 
             body_part.is_holding = True
 
@@ -348,103 +289,64 @@ class Playground:
             j4 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5,-5), (0,5))
 
             self.space.add(j1, j2, j3, j4)
-            body_part.grasped += [j1, j2, j3, j4]
+            body_part.grasped = [j1, j2, j3, j4]
 
-        return True
-
-    def eaten_shrinks(self, space, edible, agent):
-
-        completely_eaten = edible.activate()
-
-        agent.reward += edible.reward
-
-        if not completely_eaten :
-
-            space.add(*edible.pm_elements)
-
-        else:
-            if not edible.is_temporary_entity:
-                self.disappeared.append(edible)
-            self.entities.remove(edible)
+            self.grasped[interacting_entity] = body_part
 
         return True
 
     def agent_enters_zone(self, arbiter, space, data):
 
         agent = self.get_agent_from_shape(arbiter.shapes[0])
-        zone_reached = [entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]][0]
+        zone_reached = self.get_entity_from_shape(arbiter.shapes[1])
 
-        if zone_reached.entity_type == 'termination_zone':
+        agent.reward += zone_reached.reward
+
+        if zone_reached.terminate_upon_contact:
             self.has_reached_termination = True
-            reward = zone_reached.get_reward()
-            agent.reward += reward
-
-        elif zone_reached.entity_type == 'reward_zone':
-            reward = zone_reached.get_reward()
-            agent.reward += reward
-
-        else:
-            pass
-
-        # agent.reward += termination_reward
-        # agent.health += termination reward
 
         return True
-
-
-
-    def get_closest_agent(self, ent):
-
-        def sq_distance(a,b):
-            return (a.position[0] - b.position[0]) **2 + (a.position[1] - b.position[1]) **2
-
-        min_dist = math.inf
-        closest_agent = None
-
-        for agent in self.agents:
-
-            distance = sq_distance(agent, ent)
-            if distance < min_dist :
-                min_dist = distance
-                closest_agent = agent
-
-        return closest_agent
 
     def gem_interacts(self, arbiter, space, data):
 
-        gem = [entity for entity in self.entities if entity.pm_visible_shape == arbiter.shapes[0]][0]
-        interacting_entity = [entity for entity in self.entities if entity.pm_interaction_shape == arbiter.shapes[1]][0]
+        gem = self.get_entity_from_shape(arbiter.shapes[0])
+        interacting_entity = self.get_entity_from_shape(arbiter.shapes[1])
 
-        if interacting_entity.entity_type is 'lock' and gem is interacting_entity.key :
-            interacting_entity.activate()
+        agent = self.get_closest_agent(gem)
+        agent.reward += interacting_entity.reward
 
-            door = interacting_entity.door
+        list_remove, list_add = interacting_entity.activate(gem)
 
-            self.remove_entity(door)
-            self.remove_entity(gem)
-            self.remove_entity(interacting_entity)
+        for entity_removed in list_remove:
+            self.remove_entity(entity_removed)
 
+        for entity_added in list_add:
+            self.add_entity(entity_added)
 
-        if interacting_entity.entity_type is 'chest' and gem is interacting_entity.key :
-
-            treasure = interacting_entity.activate()
-
-            self.remove_entity(interacting_entity)
-            self.remove_entity(gem)
-
-            self.add_entity(treasure)
-
-        if interacting_entity.entity_type is 'vending_machine' and gem.entity_type is 'coin' :
-
-            agent = self.get_closest_agent(gem)
-
-            agent.reward +=  interacting_entity.reward
-            self.remove_entity(gem)
-
+        if interacting_entity.terminate_upon_contact:
+            self.has_reached_termination = True
 
         return True
 
+    def agent_eats(self, arbiter, space, data):
 
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
+        edible_entity = self.get_entity_from_shape(arbiter.shapes[1])
+
+        if body_part.is_eating :
+
+            agent.reward += edible_entity.get_reward()
+
+            self.remove_entity(edible_entity)
+            completely_eaten = edible_entity.eats()
+
+            if not completely_eaten:
+                self.add_entity(edible_entity, new_position=False)
+
+            body_part.is_eating = False
+
+        return True
 
     def handle_collisions(self):
 
@@ -457,12 +359,17 @@ class Playground:
         h_touch = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
         h_touch.pre_solve = self.agent_touches_entity
 
+        h_eat = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.EDIBLE)
+        h_eat.pre_solve = self.agent_eats
+
         h_interact = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE)
         h_interact.pre_solve = self.agent_interacts
 
-        h_zone = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.ZONE)
+        h_zone = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.PASSIVE)
         h_zone.pre_solve = self.agent_enters_zone
 
-        # Collision with gems
         h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
         h_gem_interactive.pre_solve = self.gem_interacts
+
+        h_grasp = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
+        h_grasp.pre_solve = self.agent_grasps

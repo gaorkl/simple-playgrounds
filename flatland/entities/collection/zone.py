@@ -1,11 +1,44 @@
-from flatland.entities.entity import *
+from ..entity import Entity
+from ...utils import CollisionTypes
+
+from abc import ABC
 
 
-class TerminationZone(Entity):
+class PassiveSceneElement(ABC, Entity):
+
+    interactive = True
+
+    def __init__(self, **kwargs):
+        Entity.__init__(self, **kwargs)
+        self.pm_interaction_shape.collision_type = CollisionTypes.PASSIVE
+
+        self.reward = 0
+        self.reward_provided = False
+
+    def pre_step(self):
+
+        self.reward_provided = False
+
+    @property
+    def reward(self):
+
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self._reward
+
+        else:
+            return 0
+
+    @reward.setter
+    def reward(self, rew):
+        self._reward = rew
+
+
+class TerminationZone(PassiveSceneElement):
 
     entity_type = 'termination_zone'
+    terminate_upon_contact = True
     visible = False
-    interactive = True
 
     def __init__(self, initial_position, default_config_key, **kwargs):
         """ Base class for Invisible zones that terminate upon contact
@@ -25,33 +58,12 @@ class TerminationZone(Entity):
         default_config = self._parse_configuration('zone', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(TerminationZone, self).__init__(initial_position=initial_position, **entity_params)
-
-        self.pm_interaction_shape.collision_type = CollisionTypes.ZONE
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.reward = entity_params.get('reward', 0)
         self.reward_provided = False
 
-    def pre_step(self):
 
-        self.reward_provided = False
-
-    def get_reward(self):
-
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self.reward
-
-        else:
-            return 0
-
-    def reset(self):
-
-        self.reward_provided = False
-        super().reset()
-
-
-# @EntityGenerator.register('goal-zone')
 class GoalZone(TerminationZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -61,10 +73,9 @@ class GoalZone(TerminationZone):
 
         """
 
-        super(GoalZone, self).__init__(initial_position=initial_position, default_config_key='goal_zone', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='goal_zone', **kwargs)
 
 
-# @EntityGenerator.register('death-zone')
 class DeathZone(TerminationZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -74,14 +85,13 @@ class DeathZone(TerminationZone):
 
         """
 
-        super(DeathZone, self).__init__(initial_position=initial_position, default_config_key='death_zone', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='death_zone', **kwargs)
 
 
-class RewardZone(Entity):
+class RewardZone(PassiveSceneElement):
 
     entity_type = 'reward_zone'
     visible = False
-    interactive = True
 
     def __init__(self, initial_position, default_config_key, **kwargs):
 
@@ -102,44 +112,38 @@ class RewardZone(Entity):
         default_config = self._parse_configuration('zone', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(RewardZone, self).__init__(initial_position=initial_position, **entity_params)
-
-        self.pm_interaction_shape.collision_type = CollisionTypes.ZONE
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.reward = entity_params['reward']
 
         self.initial_total_reward = entity_params['total_reward']
         self.total_reward = self.initial_total_reward
 
-        self.reward_provided = False
-
-    def pre_step(self):
-
-        self.reward_provided = False
-
-    def get_reward(self):
+    @property
+    def reward(self):
 
         if not self.reward_provided:
             self.reward_provided = True
 
-            if self.reward * self.total_reward < 0:
+            if self._reward * self.total_reward < 0:
                 return 0
 
             else:
-                self.total_reward -= self.reward
-                return self.reward
+                self.total_reward -= self._reward
+                return self._reward
 
         else:
             return 0
 
+    @reward.setter
+    def reward(self, rew):
+        self._reward = rew
+
     def reset(self):
         self.total_reward = self.initial_total_reward
-        self.reward_provided = False
-
         super().reset()
 
 
-# @EntityGenerator.register('toxic-zone')
 class ToxicZone(RewardZone):
 
     def __init__(self, initial_position, **kwargs):
@@ -153,7 +157,6 @@ class ToxicZone(RewardZone):
         super(ToxicZone, self).__init__(initial_position=initial_position, default_config_key='toxic_zone', **kwargs)
 
 
-# @EntityGenerator.register('healing-zone')
 class HealingZone(RewardZone):
 
     def __init__(self, initial_position, **kwargs):

@@ -117,6 +117,9 @@ class Agent:
         part.part_number = len(self.body_parts)
         self.body_parts.append(part)
 
+    def get_bodypart_from_shape(self, pm_shape):
+        return next(iter([part for part in self.body_parts if part.pm_visible_shape == pm_shape]), None)
+
     def assign_controller(self, controller):
         # Controller
         self.controller = controller

@@ -1,18 +1,40 @@
-from flatland.entities.entity import *
-from flatland.utils.config import *
-
-from flatland.utils.position_utils import PositionAreaSampler
-import pymunk
+from ..entity import Entity
+from ...utils import CollisionTypes, PositionAreaSampler
+from abc import ABC, abstractmethod
 
 
-# @EntityGenerator.register('edible')
-class Edible(Entity):
+class InteractiveSceneElement(ABC, Entity):
 
-    entity_type = 'edible'
     interactive = True
-    edible = True
 
-    def __init__(self, initial_position, default_config_key=None, **kwargs):
+    def __init__(self, **kwargs):
+
+        Entity.__init__(self, **kwargs)
+        self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
+
+    @abstractmethod
+    def activate(self, activating_entity):
+        list_remove = []
+        list_add = []
+
+        return list_remove, list_add
+
+    @property
+    @abstractmethod
+    def reward(self):
+        ...
+
+    @reward.setter
+    @abstractmethod
+    def reward(self, rew):
+        ...
+
+
+class Lever(InteractiveSceneElement):
+
+    entity_type = 'lever'
+
+    def __init__(self, initial_position, **kwargs):
         """ Base class for edible entities
 
         Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
@@ -30,117 +52,39 @@ class Edible(Entity):
 
         """
 
-        default_config = self._parse_configuration('interactive', default_config_key)
+        default_config = self._parse_configuration('interactive', 'lever')
         entity_params = {**default_config, **kwargs}
 
-        super(Edible, self).__init__(initial_position=initial_position, **entity_params)
+        super(Lever, self).__init__(initial_position=initial_position, **entity_params)
 
-        self.shrink_ratio_when_eaten = entity_params['shrink_ratio_when_eaten']
-        self.min_reward = entity_params['min_reward']
-        self.initial_reward = entity_params['initial_reward']
+        self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
 
-        self.initial_width, self.initial_length = self.width, self.length
-        self.initial_radius = self.radius
-        self.initial_mass = self.mass
+        self.reward = entity_params['reward']
 
-        self.reward = self.initial_reward
+        self.reward_provided = False
 
-    def generate_shapes_and_masks(self):
+    def pre_step(self):
 
-        self.pm_visible_shape = self.create_pm_visible_shape()
-        self.visible_mask = self.create_visible_mask()
+        self.reward_provided = False
 
-        self.pm_interaction_shape = self.create_pm_interaction_shape()
-        self.interaction_mask = self.create_interaction_mask()
+    @property
+    def reward(self):
 
-        self.pm_elements = [self.pm_body, self.pm_visible_shape, self.pm_interaction_shape]
+        if not self.reward_provided:
+            self.reward_provided = True
+            return self._reward
 
-    def activate(self):
+        return 0
 
-        # Change reward, size and mass
-        position = self.pm_body.position
-        angle = self.pm_body.angle
+    @reward.setter
+    def reward(self, rew):
+        self._reward = rew
 
-        self.reward = self.reward*self.shrink_ratio_when_eaten
-
-        if self.movable:
-            self.mass = self.mass * self.shrink_ratio_when_eaten
-            inertia = self.compute_moments()
-            self.pm_body = pymunk.Body(self.mass, inertia)
-            self.pm_body.position = position
-            self.pm_body.angle = angle
-
-        self.width = self.width * self.shrink_ratio_when_eaten
-        self.length = self.length * self.shrink_ratio_when_eaten
-        self.radius = self.radius * self.shrink_ratio_when_eaten
-        self.interaction_width = self.width + self.interaction_range
-        self.interaction_length = self.length + self.interaction_range
-        self.interaction_radius = self.radius + self.interaction_range
-
-        # self.interaction_vertices = self.compute_vertices(self.interaction_radius)
-        # self.visible_vertices = self.compute_vertices(self.radius)
-
-        self.generate_shapes_and_masks()
-
-        if self.initial_reward > 0 and self.reward > self.min_reward:
-            return False
-        elif self.initial_reward < 0 and self.reward < self.min_reward:
-            return False
-        else:
-            return True
-
-    def reset(self, new_position=None):
-
-        super().reset()
-
-        self.reward = self.initial_reward
-        self.mass = self.initial_mass
-
-        if self.movable:
-            inertia = self.compute_moments()
-            self.pm_body = pymunk.Body(self.mass, inertia)
-
-        self.width, self.length = self.initial_width, self.initial_length
-        self.radius = self.initial_radius
-        self.visible_vertices = self.compute_body_vertices(self.radius)
-
-        self.interaction_width = self.width + self.interaction_range
-        self.interaction_length = self.length + self.interaction_range
-        self.interaction_radius = self.radius + self.interaction_range
-        self.interaction_vertices = self.compute_body_vertices(self.interaction_radius)
-
-        self.generate_shapes_and_masks()
+    def activate(self, _):
+        return super().activate(_)
 
 
-
-# @EntityGenerator.register('apple')
-class Apple(Edible):
-
-    def __init__(self, initial_position, **kwargs):
-        """ Edible entity that provides a positive reward
-
-        Default: Green Circle of radius 10, with an initial_reward of 30, a min reward of 5, and a shrink_ratio of 0.9
-        """
-
-        super(Apple, self).__init__(initial_position=initial_position, default_config_key='apple', **kwargs)
-
-
-# @EntityGenerator.register('rotten-apple')
-class RottenApple(Edible):
-
-    def __init__(self, initial_position, **kwargs):
-
-        """ Edible entity that provides a positive reward
-
-        Default: Brown Circle of radius 10, with an initial_reward of -30, a min reward of -5, and a shrink_ratio of 0.9
-        """
-
-        super(RottenApple, self).__init__(initial_position=initial_position, default_config_key='rotten_apple',
-                                          **kwargs)
-
-
-# @EntityGenerator.register('dispenser')
-class Dispenser(Entity):
+class Dispenser(InteractiveSceneElement):
 
     entity_type = 'dispenser'
     interactive = True
@@ -170,6 +114,8 @@ class Dispenser(Entity):
 
         super(Dispenser, self).__init__(initial_position=initial_position, **entity_params)
 
+        self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
+
         self.entity_produced = entity_produced
 
         if entity_produced_params is None:
@@ -187,20 +133,31 @@ class Dispenser(Entity):
             self.location_sampler = production_area
 
         self.production_limit = entity_params['production_limit']
-        print(self.production_limit)
         self.produced_entities = []
 
-    def activate(self):
+    @property
+    def reward(self):
+        return 0
 
-        if self.local_dispenser:
-            initial_position = self.location_sampler.sample([self.position[0], self.position[1]])
-        else:
-            initial_position = self.location_sampler.sample()
+    def activate(self, _):
 
-        obj = self.entity_produced(initial_position=initial_position, is_temporary_entity=True,
-                                   **self.entity_produced_params)
+        list_remove = []
+        list_add = []
 
-        return obj
+        if len(self.produced_entities) < self.production_limit:
+
+            if self.local_dispenser:
+                initial_position = self.location_sampler.sample([self.position[0], self.position[1]])
+            else:
+                initial_position = self.location_sampler.sample()
+
+            obj = self.entity_produced(initial_position=initial_position, is_temporary_entity=True,
+                                       **self.entity_produced_params)
+
+            self.produced_entities.append(obj)
+            list_add = [obj]
+
+        return list_remove, list_add
 
     def reset(self):
 
@@ -208,32 +165,7 @@ class Dispenser(Entity):
         super().reset()
 
 
-# @EntityGenerator.register('key')
-class Key(Entity):
-
-    entity_type = 'key'
-    movable = True
-
-    def __init__(self, initial_position, **kwargs):
-        """ Key entity to open chest
-
-        Default: Grey hexagon of radius 8 and mass 5, movable
-
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            **kwargs: other params to configure entity. Refer to Entity class
-        """
-
-        default_config = self._parse_configuration('interactive', 'key')
-        entity_params = {**default_config, **kwargs}
-
-        super(Key, self).__init__(initial_position=initial_position, **entity_params)
-
-        self.pm_visible_shape.collision_type = CollisionTypes.GEM
-
-
-# @EntityGenerator.register('chest')
-class Chest(Entity):
+class Chest(InteractiveSceneElement):
 
     entity_type = 'chest'
     interactive = True
@@ -256,55 +188,32 @@ class Chest(Entity):
         entity_params = {**default_config, **kwargs}
 
         super(Chest, self).__init__(initial_position=initial_position, **entity_params)
+        self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
 
         self.key = key
         self.treasure = treasure
         self.treasure.is_temporary_entity = True
 
-        self.reward = entity_params.get('reward')
-        self.reward_provided = False
+    @property
+    def reward(self):
+        return 0
 
-    def pre_step(self):
+    def activate(self, key):
 
-        self.reward_provided = False
+        list_remove = []
+        list_add = []
 
-    def activate(self):
+        if key is self.key:
 
-        self.treasure.initial_position = self.position
-        return self.treasure
+            self.treasure.initial_position = self.position
 
-    def reset(self):
+            list_remove = [self.key, self]
+            list_add = [self.treasure]
 
-        self.reward_provided = False
-        super().reset()
-
-
-# @EntityGenerator.register('coin')
-class Coin(Entity):
-
-    entity_type = 'coin'
-    movable = True
-
-    def __init__(self, initial_position, **kwargs):
-        """ Coins are used with a VendingMachine to get rewards.
-
-        Default: Gold circle of radius 5 and mass 5.
-
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            **kwargs: other params to configure entity. Refer to Entity class
-        """
-
-        default_config = self._parse_configuration('interactive', 'coin')
-        entity_params = {**default_config, **kwargs}
-
-        super(Coin, self).__init__(initial_position=initial_position, **entity_params)
-
-        self.pm_visible_shape.collision_type = CollisionTypes.GEM
+        return list_remove, list_add
 
 
-# @EntityGenerator.register('vending-machine')
-class VendingMachine(Entity):
+class VendingMachine(InteractiveSceneElement):
 
     entity_type = 'vending_machine'
     interactive = True
@@ -327,46 +236,29 @@ class VendingMachine(Entity):
 
         self.reward = entity_params.get('reward')
 
+        self.accepted_coins = []
 
-# @EntityGenerator.register('door')
-class Door(Entity):
+    @property
+    def reward(self):
+        return self._reward
 
-    entity_type = 'door'
+    @reward.setter
+    def reward(self, rew):
+        self._reward = rew
 
-    def __init__(self, initial_position, **kwargs):
-        """ Door that can be opened with a switch
+    def activate(self, coin):
 
-        Default: Pale green door
+        list_add = []
+        list_remove = []
 
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            **kwargs: other params to configure entity. Refer to Entity class
-        """
+        if coin in self.accepted_coins.copy():
+            list_remove = [coin]
+            self.accepted_coins.remove(coin)
 
-        default_config = self._parse_configuration('interactive', 'door')
-        entity_params = {**default_config, **kwargs}
-
-        super(Door, self).__init__(initial_position=initial_position, **entity_params)
-
-        self.opened = False
-
-    def open_door(self):
-
-        self.opened = True
-        self.visible = False
-
-    def close_door(self):
-        self.opened = False
-        self.visible = True
-
-    def reset(self):
-
-        self.close_door()
-        super().reset()
+        return list_remove, list_add
 
 
-# @EntityGenerator.register('openclose-switch')
-class OpenCloseSwitch(Entity):
+class OpenCloseSwitch(InteractiveSceneElement):
 
     entity_type = 'switch'
     interactive = True
@@ -390,20 +282,29 @@ class OpenCloseSwitch(Entity):
 
         self.door = door
 
-    def activate(self):
+    @property
+    def reward(self):
+        return 0
+
+    def activate(self, _):
+
+        list_add = []
+        list_remove = []
 
         if self.door.opened:
             self.door.close_door()
+            list_add = [self.door]
 
         else:
             self.door.open_door()
+            list_remove = [self.door]
+
+        return list_remove, list_add
 
 
-# @EntityGenerator.register('timer-switch')
-class TimerSwitch(Entity):
+class TimerSwitch(InteractiveSceneElement):
 
     entity_type = 'switch'
-    interactive = True
 
     def __init__(self, initial_position, door, time_open, **kwargs):
         """ Switch used to open a door for a certain duration
@@ -424,17 +325,27 @@ class TimerSwitch(Entity):
 
         super(TimerSwitch, self).__init__(initial_position=initial_position, **entity_params)
 
-        self.activable = True
-
         self.door = door
 
         self.time_open = time_open
         self.timer = self.time_open
 
-    def activate(self):
+    @property
+    def reward(self):
+        return 0
 
-        self.door.open_door()
+    def activate(self, _):
+
+        list_remove = []
+        list_add = []
+
+        if not self.door.opened:
+            self.door.open_door()
+            list_remove = [self.door]
+
         self.reset_timer()
+
+        return list_remove, list_add
 
     def reset_timer(self):
 
@@ -451,40 +362,9 @@ class TimerSwitch(Entity):
         self.door.close_door()
 
 
-# @EntityGenerator.register('push-button')
-class PushButton(Entity):
-    entity_type = 'pushbutton'
-
-    def __init__(self, initial_position, door, **kwargs):
-        """ Push button used to open a door
-
-        Opens a door when in contact with an agent.
-        Default: Pale brown square of size 10.
-
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            door: Door opened by the switch
-            **kwargs: other params to configure entity. Refer to Entity class
-        """
-
-        default_config = self._parse_configuration('interactive', 'switch')
-        entity_params = {**default_config, **kwargs}
-
-        super(PushButton, self).__init__(initial_position=initial_position, **entity_params)
-        self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
-
-        self.door = door
-
-    def activate(self):
-
-        self.door.open_door()
-
-
-# @EntityGenerator.register('lock')
-class Lock(Entity):
+class Lock(InteractiveSceneElement):
 
     entity_type = 'lock'
-    interactive = True
 
     def __init__(self, initial_position, door, key, **kwargs):
         """ Lock for a door, opens with a key
@@ -507,6 +387,18 @@ class Lock(Entity):
         self.door = door
         self.key = key
 
-    def activate(self):
+    @property
+    def reward(self):
+        return 0
 
-        self.door.open_door()
+    def activate(self, key):
+
+        list_add = []
+        list_remove = []
+
+        if key is self.key:
+            self.door.open_door()
+
+            list_remove = [self.door, self.key, self]
+
+        return list_remove, list_add

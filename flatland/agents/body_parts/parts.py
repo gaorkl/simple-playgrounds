@@ -169,9 +169,9 @@ class Platform(Part, ABC):
     def reset(self):
         super().reset()
 
-    def create_visible_mask(self):
+    def create_mask(self, is_interactive = False):
 
-        mask = super().create_visible_mask()
+        mask = super().create_mask()
 
         y = self.radius * (1 + math.cos(self.pm_body.angle))
         x = self.radius * (1 + math.sin(self.pm_body.angle))
@@ -376,9 +376,9 @@ class Head(Actuator):
 
         self.pm_visible_shape.sensor = True
 
-    def create_visible_mask(self):
+    def create_mask(self, is_interactive = False):
 
-        mask = super().create_visible_mask()
+        mask = super().create_mask()
 
         y = self.radius * (1 + math.cos(self.pm_body.angle))
         x = self.radius * (1 + math.sin(self.pm_body.angle))
@@ -404,9 +404,9 @@ class Eye(Actuator):
 
         self.pm_visible_shape.sensor = True
 
-    def create_visible_mask(self):
+    def create_mask(self, is_interactive = False):
 
-        mask = super().create_visible_mask()
+        mask = super().create_mask()
 
         y = self.radius * (1 + math.cos(self.pm_body.angle))
         x = self.radius * (1 + math.sin(self.pm_body.angle))

@@ -93,12 +93,11 @@ class Interactive_01(SingleRoom):
         goal_1 = GoalZone([20, 20, 0])
         self.add_entity(goal_1)
 
-        apple = Apple([100, 50, 0], physical_shape = 'pentagon')
+        apple = Apple([100, 50, 0], physical_shape = 'pentagon', graspable = True)
         self.add_entity(apple)
 
         rotten = RottenApple([100, 100, 0])
         self.add_entity(rotten)
-
 
         area_1 = PositionAreaSampler(area_shape='rectangle', center=[200, 150], width_length=[20, 50])
         dispenser_1 = Dispenser(
@@ -132,17 +131,23 @@ class Interactive_01(SingleRoom):
         chest = Chest([100, 200,0.2], key = key_chest, treasure = treasure, width_length = [20, 50])
         self.add_entity(chest)
 
+        vending = VendingMachine([200, 200, 0])
+        self.add_entity(vending)
+
         coin = Coin([150, 200, 0], graspable=True)
         self.add_entity(coin)
+        vending.accepted_coins.append(coin)
 
         coin = Coin([150, 220, 0], graspable=True)
         self.add_entity(coin)
+        vending.accepted_coins.append(coin)
 
         coin = Coin([150, 240, 0], graspable=True)
         self.add_entity(coin)
+        vending.accepted_coins.append(coin)
 
-        vending = VendingMachine([200, 200, 0])
-        self.add_entity(vending)
+        lever = Lever([200, 50, 0])
+        self.add_entity(lever)
 
 
 class Doors_01(SingleRoom):
