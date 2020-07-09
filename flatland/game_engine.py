@@ -48,7 +48,7 @@ class Engine:
         # Display screen
         self.need_command_display = False
         for agent in self.agents:
-            if agent.controller.controller_type == 'keyboard':
+            if agent.controller and agent.controller.controller_type == 'keyboard':
                 self.need_command_display = True
 
         self.Q_ready_to_press = False
@@ -208,7 +208,7 @@ class Engine:
                 elif sensor.sensor_modality is SensorModality.GEOMETRIC:
 
                     # TODO: modify to take into account invisible elements
-                    sensor.update_sensor(self.playground.entities, self.playground.agents)
+                    sensor.update_sensor(agent, self.playground.entities, self.playground.agents)
 
                 else:
                     raise ValueError
