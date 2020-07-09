@@ -41,7 +41,7 @@ class Texture:
 
     def __init__(self, **kwargs):
 
-        self.size = int(kwargs.get('radius')*2)
+        self.size = int(kwargs.get('radius')*2 + 1)
         self.surface = Surface((self.size, self.size))
 
 

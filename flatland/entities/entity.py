@@ -6,7 +6,7 @@ import os
 import yaml
 
 from flatland.utils.position_utils import PositionAreaSampler, Trajectory
-from flatland.utils.texture import TextureGenerator
+from flatland.entities.texture import TextureGenerator
 from flatland.utils.definitions import geometric_shapes, CollisionTypes
 
 # TODO: masks and physical shapes don't have the correct size sometimes (one pixel overlap)
@@ -267,18 +267,18 @@ class Entity:
 
         return moment
 
-    def compute_vertices(self, angle, is_interactive=False):
+    def compute_vertices(self, angle, is_interactive=False, border = 0):
 
         vertices = []
 
         if self.physical_shape == 'rectangle':
 
             if is_interactive:
-                width = self.interaction_width - 1
-                length = self.interaction_length - 1
+                width = self.interaction_width
+                length = self.interaction_length
             else:
-                width = self.width - 1
-                length = self.length - 1
+                width = self.width + border
+                length = self.length + border
 
             coord_pts_in_entity_base = [[width/2., length/2.], [-width/2., length/2.],
                                         [-width/2., -length/2.], [width/2., -length/2.]]
@@ -291,9 +291,9 @@ class Entity:
                 vertices.append([x, y])
         else:
             if is_interactive:
-                radius = self.interaction_radius - 1
+                radius = self.interaction_radius + border
             else:
-                radius = self.radius - 1
+                radius = self.radius + border
 
             number_sides = geometric_shapes[self.physical_shape]
 
@@ -352,8 +352,8 @@ class Entity:
 
         else:
 
-            vert = self.compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive)
-            vertices = [[x[1] + radius, x[0] + radius] for x in vert]
+            vert = self.compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border = -1)
+            vertices = [[x[1] + radius - 1 ,  x[0] + radius - 1] for x in vert]
 
             mask = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))

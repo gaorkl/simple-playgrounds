@@ -1,5 +1,4 @@
 from flatland.playgrounds.empty import SingleRoom
-from flatland.utils.position_utils import Trajectory
 from flatland.entities import *
 import math
 

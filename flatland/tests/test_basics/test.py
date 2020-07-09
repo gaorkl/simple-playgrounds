@@ -8,7 +8,7 @@ from flatland.agents.sensors.visual_sensors import *
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
-# pg = Basic_01()
+pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
 # pg = Empty_01()
@@ -17,7 +17,7 @@ from flatland.agents.sensors.visual_sensors import *
 # pg = Proximity_01()
 # pg = Trajectory_01()
 # pg = Fields_01()
-pg = Interactive_01()
+# pg = Interactive_01()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
