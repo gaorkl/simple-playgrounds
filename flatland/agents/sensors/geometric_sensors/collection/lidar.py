@@ -5,7 +5,6 @@ from pymunk.vec2d import Vec2d
 import math
 
 
-@SensorGenerator.register('lidar')
 class LidarSensor(GeometricSensor):
 
     def __init__(self, anchor, invisible_body_parts, **custom_config):

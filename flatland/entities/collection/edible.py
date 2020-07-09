@@ -1,5 +1,5 @@
 from flatland.entities.entity import Entity
-from flatland.utils.config import CollisionTypes
+from flatland.utils.definitions import CollisionTypes
 
 
 class Edible(Entity):

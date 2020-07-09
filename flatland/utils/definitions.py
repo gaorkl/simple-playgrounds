@@ -1,4 +1,4 @@
-from enum import IntEnum, Enum
+from enum import IntEnum, Enum, auto
 from collections import namedtuple
 
 SIMULATION_STEPS = 5
@@ -36,14 +36,22 @@ class ActionTypes(IntEnum):
     EAT = 7
     ACTIVATE = 8
 
+
 class SensorTypes(IntEnum):
 
     RGB = 1
+
 
 class KeyTypes(IntEnum):
 
     PRESS_HOLD = 1
     PRESS_RELEASE = 2
+
+
+class SensorModality(Enum):
+    VISUAL = auto()
+    GEOMETRIC = auto()
+    UNDEFINED = auto()
 
 
 Action = namedtuple('Action', 'body_part action action_type min max')

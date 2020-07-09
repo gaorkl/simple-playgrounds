@@ -1,4 +1,4 @@
-from .sensors import sensor
+from ..utils.definitions import SensorModality
 from flatland.utils.position_utils import PositionAreaSampler
 
 
@@ -105,9 +105,9 @@ class Agent:
 
     def add_sensor(self, new_sensor):
 
-        if new_sensor.sensor_modality == sensor.SensorModality.GEOMETRIC:
+        if new_sensor.sensor_modality == SensorModality.GEOMETRIC:
             self.has_geometric_sensor = True
-        elif new_sensor.sensor_modality == sensor.SensorModality.VISUAL:
+        elif new_sensor.sensor_modality == SensorModality.VISUAL:
             self.has_visual_sensor = True
 
         self.sensors.append(new_sensor)

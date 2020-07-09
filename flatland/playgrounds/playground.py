@@ -1,6 +1,6 @@
 from ..entities.entity import *
 from ..utils.position_utils import *
-from ..utils.config import *
+from ..utils.definitions import *
 
 
 class PlaygroundGenerator:

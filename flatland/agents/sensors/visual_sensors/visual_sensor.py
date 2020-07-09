@@ -1,18 +1,29 @@
-from flatland.agents.sensors.sensor import *
-import pygame, numpy, math
-from pygame.color import THECOLORS
-import time
+from ..sensor import Sensor
+from ....utils.definitions import SensorModality
+
+from abc import abstractmethod
+
+import pygame
+import math
+import cv2
+import numpy as np
+
+import os
+import yaml
+
 
 class VisualSensor(Sensor):
 
     sensor_modality = SensorModality.VISUAL
+
+    sensor_type = 'visual'
 
     def __init__(self, anchor, invisible_elements, **sensor_params):
 
         default_config = self.parse_configuration(self.sensor_type)
         sensor_params = {**default_config, **sensor_params}
 
-        self.name = sensor_params.get('name')
+        super().__init__(anchor, invisible_elements, **sensor_params)
 
         # Field of View of the Sensor
         self.fovResolution = sensor_params.get('resolution')
@@ -21,9 +32,6 @@ class VisualSensor(Sensor):
         self.fovAngle = sensor_params.get('fov') * math.pi / 180
         self.min_range = sensor_params.get('min_range', 0)
 
-        # Anchor of the sensor
-        self.anchor = anchor
-        self.anchor_body = anchor.pm_body
 
         # Relative location (polar) and angle wrt body_parts
         self.d_r = sensor_params.get('d_r', 0)
@@ -34,6 +42,8 @@ class VisualSensor(Sensor):
 
         self.topdow_view = None
         self.polar_view = None
+        self.center = [0, 0]
+        self.scale_ratio = 1.0
 
         self.pixels_per_degrees = self.fovResolution / (360 * self.fovAngle / (2*math.pi))
 
@@ -41,9 +51,7 @@ class VisualSensor(Sensor):
 
         self.sensor_params = sensor_params
 
-        self.invisible_elements = invisible_elements
-
-        self.sensor_surface = pygame.Surface((2*self.fovRange + 1, 2*self.fovRange + 1 ), pygame.SRCALPHA)
+        self.sensor_surface = pygame.Surface((2*self.fovRange + 1, 2*self.fovRange + 1), pygame.SRCALPHA)
 
     @staticmethod
     def parse_configuration(key):
@@ -59,7 +67,7 @@ class VisualSensor(Sensor):
         return default_config[key]
 
     @abstractmethod
-    def update_sensor(self, img):
+    def update_sensor(self, img, entities, agents):
 
         w, h, _ = img.shape
 
@@ -81,9 +89,9 @@ class VisualSensor(Sensor):
 
             self.scale_ratio = float(self.w_projection_img) / cropped_img.shape[0]
             center = (center[0] * self.scale_ratio, center[1] * self.scale_ratio)
-            scaled_img = cv2.resize(cropped_img,
-                                    (int(cropped_img.shape[1]*self.scale_ratio), int(cropped_img.shape[0]*self.scale_ratio)),
-                                    interpolation=cv2.INTER_NEAREST)
+
+            new_size = (int(cropped_img.shape[1]*self.scale_ratio), int(cropped_img.shape[0]*self.scale_ratio))
+            scaled_img = cv2.resize(cropped_img, new_size, interpolation=cv2.INTER_NEAREST)
 
         else:
             self.scale_ratio = 1.0

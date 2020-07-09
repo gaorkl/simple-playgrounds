@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import random
-from flatland.utils.config import ActionTypes, KeyTypes
+from flatland.utils.definitions import ActionTypes, KeyTypes
 
 class Controller(ABC):
 

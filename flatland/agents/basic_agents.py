@@ -1,7 +1,7 @@
 from .agent import Agent
-from flatland.utils.config import  Keymap
+from flatland.utils.definitions import  Keymap
 from .body_parts.parts import *
-from flatland.utils.config import ActionTypes, KeyTypes
+from flatland.utils.definitions import ActionTypes, KeyTypes
 from pygame.locals import *
 import math
 import pymunk

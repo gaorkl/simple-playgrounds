@@ -41,13 +41,13 @@ agents.append(my_agent)
 
 # Add sensors:
 
-# sensor = RgbSensor(name='rgb_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts, resolution = 128, range=300)
-# sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_body_parts=my_agent.body_parts)
-# sensor = GreySensor(name='grey_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
-# sensor = DepthSensor(name='depth_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts)
-# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.head, invisible_body_parts=my_agent.body_parts,
+# sensor = RgbSensor(name='rgb_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, resolution=128, range=300)
+# sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
+# sensor = GreySensor(name='grey_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
+# sensor = DepthSensor(name='depth_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
+# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts,
 #                              fov= 250,range = 400, number=1080)
-sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_body_parts=my_agent.body_parts, range = 200)
+sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, range = 200)
 my_agent.add_sensor(sensor)
 #
 

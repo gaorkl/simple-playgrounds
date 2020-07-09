@@ -7,11 +7,11 @@ class TopdownSensor(VisualSensor):
 
     sensor_type = 'topdown'
 
-    def __init__(self, anchor, invisible_body_parts, **kwargs):
+    def __init__(self, anchor, invisible_elements, **kwargs):
 
-        super(TopdownSensor, self).__init__(anchor, invisible_body_parts, **kwargs)
+        super(TopdownSensor, self).__init__(anchor, invisible_elements, **kwargs)
 
-    def update_sensor(self, img ):
+    def update_sensor(self, img, entities, agents ):
 
         w, h, _ = img.shape
 

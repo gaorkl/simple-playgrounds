@@ -13,7 +13,7 @@ grey:
 
 touch:
   resolution: 128
-  range: 10
+  range: 3
   fov: 360
 
 depth :

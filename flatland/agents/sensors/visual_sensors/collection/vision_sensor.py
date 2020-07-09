@@ -1,4 +1,4 @@
-from flatland.agents.sensors.visual_sensors.visual_sensor import *
+from ..visual_sensor import VisualSensor
 
 import numpy as np
 import cv2
@@ -8,13 +8,13 @@ class RgbSensor(VisualSensor):
 
     sensor_type = 'rgb'
 
-    def __init__(self, anchor, invisible_body_parts, **kwargs):
+    def __init__(self, anchor,invisible_elements, **kwargs):
 
-        super(RgbSensor, self).__init__(anchor, invisible_body_parts, **kwargs)
+        super(RgbSensor, self).__init__(anchor, invisible_elements, **kwargs)
 
-    def update_sensor(self, img):
+    def update_sensor(self, img, entities, agents):
 
-        super().update_sensor( img )
+        super().update_sensor(img, None, None)
 
         # Get value sensor
         mask = self.polar_view != 0
@@ -34,12 +34,12 @@ class GreySensor(RgbSensor):
 
     sensor_type = 'grey'
 
-    def __init__(self, anchor, invisible_body_parts, **kwargs):
-        super(RgbSensor, self).__init__(anchor, invisible_body_parts, **kwargs)
+    def __init__(self, anchor, invisible_elements, **kwargs):
+        super(RgbSensor, self).__init__(anchor, invisible_elements, **kwargs)
 
-    def update_sensor(self, img):
+    def update_sensor(self, img, entities, agents):
 
-        super().update_sensor(img)
+        super().update_sensor(img, None, None)
         self.sensor_value = cv2.cvtColor(self.sensor_value, cv2.COLOR_BGR2GRAY)
 
     def get_shape_observation(self):

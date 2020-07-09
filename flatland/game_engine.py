@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import K_q
-from flatland.utils.config import *
-from flatland.agents.sensors.sensor import SensorModality
+from .utils.definitions import SensorModality, SIMULATION_STEPS
 from pygame.color import THECOLORS
 import numpy
 
@@ -203,12 +202,11 @@ class Engine:
                     img_sensor = numpy.rot90(img_sensor, 1, (1, 0))
                     img_sensor = img_sensor[::-1, :, ::-1]
 
-                    sensor.update_sensor(img_sensor)
+                    sensor.update_sensor(img_sensor, None, None)
 
                 elif sensor.sensor_modality is SensorModality.GEOMETRIC:
 
-                    # TODO: modify to take into account invisible elements
-                    sensor.update_sensor(agent, self.playground.entities, self.playground.agents)
+                    sensor.update_sensor(None, self.playground.entities, self.playground.agents)
 
                 else:
                     raise ValueError

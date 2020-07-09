@@ -1,5 +1,5 @@
 from ...entities.entity import Entity
-from ...utils.config import ActionTypes, CollisionTypes, Action
+from ...utils.definitions import ActionTypes, CollisionTypes, Action
 
 import pymunk
 import pygame

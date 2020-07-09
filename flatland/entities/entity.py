@@ -7,7 +7,7 @@ import yaml
 
 from flatland.utils.position_utils import PositionAreaSampler, Trajectory
 from flatland.utils.texture import TextureGenerator
-from flatland.utils.config import geometric_shapes, CollisionTypes
+from flatland.utils.definitions import geometric_shapes, CollisionTypes
 
 # TODO: masks and physical shapes don't have the correct size sometimes (one pixel overlap)
 

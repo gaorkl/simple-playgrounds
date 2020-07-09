@@ -1,40 +1,5 @@
 from abc import abstractmethod, ABC
 import math
-import cv2
-import numpy as np
-import os, yaml
-from enum import Enum, auto
-
-
-class SensorModality(Enum):
-    VISUAL      = auto()
-    GEOMETRIC   = auto()
-    UNDEFINED   = auto()
-
-
-class SensorGenerator:
-    """
-    Register class to provide a decorator that is used to go through the package and
-    register available playgrounds.
-    """
-
-    subclasses = {}
-
-    @classmethod
-    def register(cls, sensor_type):
-        def decorator(subclass):
-            cls.subclasses[sensor_type] = subclass
-            return subclass
-
-        return decorator
-
-    @classmethod
-    def create(cls, sensor_type, anchor, invisible_body_parts, sensor_param):
-
-        if sensor_type not in cls.subclasses:
-            raise ValueError('Sensor not implemented:' + sensor_type)
-
-        return cls.subclasses[sensor_type](anchor, invisible_body_parts, sensor_param )
 
 
 def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
@@ -47,19 +12,30 @@ def get_rotated_point(x_1, y_1, x_2, y_2, angle, height):
     new_y = height - (y_change + y_1)
     return int(new_x), int(new_y)
 
+
 class Sensor(ABC):
 
-    def __init__(self, anchor, invisible_entities, sensor_param):
-        self.name = sensor_param.get('name', None)
-        self.sensor_type = sensor_param.get('type', None)
-        self.sensor_params = sensor_param
-        self.sensor_modality = SensorModality.UNDEFINED
-        self.sensor_value = None
-        self.invisible_elements = invisible_entities
+    index_sensor = 0
+    sensor_type = 'sensor'
 
+    def __init__(self, anchor, invisible_elements, **sensor_param):
+
+        # Sensor name
+        # Internal counter to assign number and name to each sensor
+        self.name = sensor_param.get('name', self.sensor_type + '_' + str(Sensor.index_sensor))
+        Sensor.index_sensor += 1
+
+        # Anchor of the sensor
+        self.anchor = anchor
+        self.anchor_body = anchor.pm_body
+
+        self.sensor_params = sensor_param
+        self.sensor_value = None
+
+        self.invisible_elements = invisible_elements
 
     @abstractmethod
-    def update_sensor(self, entities, agents):
+    def update_sensor(self, img, entities, agents):
         pass
 
     @abstractmethod

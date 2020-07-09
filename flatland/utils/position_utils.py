@@ -1,7 +1,7 @@
 from collections.abc import Generator
 import numpy as np
 import random, math
-from .config import geometric_shapes
+from .definitions import geometric_shapes
 
 
 class PositionAreaSampler:

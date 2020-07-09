@@ -7,16 +7,15 @@ class TouchSensor(VisualSensor):
 
     sensor_type = 'touch'
 
-    def __init__(self, anchor, invisible_body_parts, **kwargs):
+    def __init__(self, anchor, invisible_elements, **kwargs):
 
-        super(TouchSensor, self).__init__(anchor, invisible_body_parts, min_range = anchor.radius,  **kwargs)
+        super(TouchSensor, self).__init__(anchor, invisible_elements, min_range = anchor.radius,  **kwargs)
 
         self.fovRange = self.min_range + self.fovRange
 
+    def update_sensor(self, img, entities, agents ):
 
-    def update_sensor(self, img ):
-
-        super().update_sensor( img )
+        super().update_sensor( img, None, None )
 
         # Get value sensor
         if np.sum( self.polar_view) != 0:
