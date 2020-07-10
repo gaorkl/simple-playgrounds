@@ -24,10 +24,14 @@ class Entity:
     follows_waypoints = False
     graspable = False
 
+    timed = False
+
     terminate_upon_contact = False
 
     index_entity = 0
     entity_type = 'entity'
+
+
 
     def __init__(self, initial_position=None, **entity_params):
         """ Base class for entities.

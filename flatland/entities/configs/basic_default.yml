@@ -58,4 +58,8 @@ hexagon:
   physical_shape: hexagon
   radius: 20
 
-
+# color_changing
+color_changing:
+  texture: [125, 124, 123]
+  physical_shape: circle
+  radius: 10

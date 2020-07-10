@@ -7,4 +7,5 @@ from flatland.entities.collection.interactive import *
 from flatland.entities.collection.proximity import *
 from flatland.entities.collection.edible import *
 from flatland.entities.collection.gem import *
+from flatland.entities.collection.conditioning import *
 from .field import *

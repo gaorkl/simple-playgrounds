@@ -26,6 +26,7 @@ class Basic_01(SingleRoom):
         self.add_entity(hexagon_01)
 
 
+
 class Contact_01(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -145,8 +146,23 @@ class Interactive_01(SingleRoom):
         self.add_entity(coin)
         vending.accepted_coins.append(coin)
 
-        lever = Lever([200, 50, 0])
+
+
+class Conditioning_01(SingleRoom):
+
+    def __init__(self, size = (300, 300), **playground_params):
+
+        super(Conditioning_01, self).__init__(size = size, **playground_params)
+
+        goal_1 = GoalZone([20, 20, 0])
+        self.add_entity(goal_1)
+
+        lever = Lever([100, 50, 0])
         self.add_entity(lever)
+
+        light_01 = ConditionedColorChanging([100, 150, 0], conditioned_entity=lever, timers=[100, 100],
+                                            textures=[[100, 200, 0], [200, 100, 200]])
+        self.add_entity(light_01)
 
 
 class Doors_01(SingleRoom):

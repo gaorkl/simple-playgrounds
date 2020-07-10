@@ -24,7 +24,6 @@ class Basic(Entity):
         super(Basic, self).__init__(initial_position=initial_position, **entity_params)
 
 
-
 class Door(Entity):
 
     entity_type = 'door'
@@ -59,3 +58,4 @@ class Door(Entity):
 
         self.close_door()
         super().reset()
+

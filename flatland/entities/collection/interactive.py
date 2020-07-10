@@ -1,5 +1,8 @@
 from ..entity import Entity
 from ...utils import CollisionTypes, PositionAreaSampler
+from ...agents.body_parts.parts import Part
+from ...playgrounds.playground import Playground
+
 from abc import ABC, abstractmethod
 
 
@@ -305,6 +308,7 @@ class OpenCloseSwitch(InteractiveSceneElement):
 class TimerSwitch(InteractiveSceneElement):
 
     entity_type = 'switch'
+    timed = True
 
     def __init__(self, initial_position, door, time_open, **kwargs):
         """ Switch used to open a door for a certain duration
@@ -334,16 +338,22 @@ class TimerSwitch(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, _):
+    def activate(self, activating_entity):
 
         list_remove = []
         list_add = []
 
-        if not self.door.opened:
-            self.door.open_door()
-            list_remove = [self.door]
+        if isinstance(activating_entity, Part):
+            if not self.door.opened:
+                self.door.open_door()
+                list_remove = [self.door]
 
-        self.reset_timer()
+            self.reset_timer()
+
+        if isinstance(activating_entity, Playground):
+            self.door.close_door()
+            list_add = [self.door]
+            self.reset_timer()
 
         return list_remove, list_add
 

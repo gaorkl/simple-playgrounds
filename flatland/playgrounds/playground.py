@@ -1,5 +1,8 @@
-from ..entities.entity import *
-from ..utils.position_utils import *
+# from ..entities.entity import *
+
+import pymunk
+import os
+import yaml
 from ..utils.definitions import *
 
 
@@ -119,13 +122,45 @@ class Playground:
             self.fields.append(new_entity)
 
         else:
+
             if new_position:
+
                 new_entity.position = new_entity.initial_position
 
             self.space.add(*new_entity.pm_elements)
             self.entities.append(new_entity)
             if new_entity in self.disappeared:
                 self.disappeared.remove(new_entity)
+
+    def add_entity_without_overlappig(self, new_entity, tries = 100):
+
+        new_entity.size_playground = [self.width, self.length]
+
+        trial = 0
+        shape_collide = True
+
+
+        while( shape_collide and trial< tries):
+
+            self.add_entity(new_entity)
+
+            shape_collide = False
+
+            for entity in self.entities:
+
+                if entity is not new_entity:
+
+                    if entity.pm_visible_shape is not None and new_entity.pm_visible_shape is not None:
+                        collide_points = entity.pm_visible_shape.shapes_collide(new_entity.pm_visible_shape).points
+
+                        if len(collide_points) != 0 :
+                            shape_collide = True
+
+            if shape_collide: self.remove_entity(new_entity)
+
+            trial += 1
+
+        return not shape_collide
 
     def remove_entity(self, disappearing_entity):
 
@@ -191,12 +226,15 @@ class Playground:
 
         for entity in self.entities:
 
-            if entity.entity_type == 'switch' and hasattr(entity, 'timer'):
+            if entity.timed and entity.timer == 0:
 
-                if entity.door.opened and entity.timer == 0:
-                    self.add_entity(entity.door)
-                    entity.door.close_door()
-                    entity.reset_timer()
+                list_remove, list_add = entity.activate(self)
+
+                for entity_removed in list_remove:
+                    self.remove_entity(entity_removed)
+
+                for entity_added in list_add:
+                    self.add_entity(entity_added)
 
     def release_grasps(self):
 
@@ -258,7 +296,7 @@ class Playground:
 
             agent.reward += interacting_entity.reward
 
-            list_remove, list_add = interacting_entity.activate(None)
+            list_remove, list_add = interacting_entity.activate(body_part)
 
             for entity_removed in list_remove:
                 self.remove_entity(entity_removed)

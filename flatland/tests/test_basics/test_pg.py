@@ -1,4 +1,4 @@
-import math
+import math, random
 
 from flatland.playgrounds.empty import SingleRoom
 from flatland.entities import VisibleEndGoal, Basic
@@ -32,3 +32,28 @@ class PositionObject_01(SingleRoom):
 
             rectangle = Basic([x, y, theta], default_config_key='rectangle', width_length = [2, 10])
             self.add_entity(rectangle)
+
+class Overlap(SingleRoom):
+
+    def __init__(self, size = (200, 200), **playground_params):
+
+        super().__init__(size = size, **playground_params)
+
+        area_2 = PositionAreaSampler(area_shape='circle', center=[100, 100], radius=200)
+
+        for i in range(10):
+            rectangle = Basic(area_2, default_config_key='rectangle')
+            self.add_entity(rectangle, overlaps=True)
+
+
+class NoOverlap(SingleRoom):
+
+    def __init__(self, size=(200, 200), **playground_params):
+        super().__init__(size=size, **playground_params)
+
+        area_2 = PositionAreaSampler(area_shape='circle', center=[100, 100], radius=200)
+
+        for i in range(10):
+            rectangle = Basic(area_2, default_config_key='rectangle')
+            success = self.add_entity_without_overlappig(rectangle)
+            print(i, success)
