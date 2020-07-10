@@ -26,10 +26,11 @@ class TouchSensor(VisualSensor):
 
             im = np.asarray(sensor_value)
             im = np.expand_dims(im, 0)
-            self.sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+            # im = np.expand_dims(im, -1)
+            self.sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)[0,  :]
 
         else:
             self.sensor_value = np.zeros( (self.polar_view.shape[0] ))
 
-    def get_shape_observation(self):
-        return self.fovResolution, 3
+    def shape(self):
+        return self.fovResolution,

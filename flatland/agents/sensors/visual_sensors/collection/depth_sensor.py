@@ -23,7 +23,7 @@ class DepthSensor(VisualSensor):
 
         im = np.asarray(sensor_value)
         im = np.expand_dims(im, 0)
-        self.sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+        self.sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)[0, :]
 
-    def get_shape_observation(self):
-        return self.fovResolution, 1
+    def shape(self):
+        return self.fovResolution,

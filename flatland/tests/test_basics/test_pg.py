@@ -43,7 +43,7 @@ class Overlap(SingleRoom):
 
         for i in range(10):
             rectangle = Basic(area_2, default_config_key='rectangle')
-            self.add_entity(rectangle, overlaps=True)
+            self.add_entity(rectangle)
 
 
 class NoOverlap(SingleRoom):

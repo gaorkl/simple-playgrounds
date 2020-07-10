@@ -38,8 +38,6 @@ class VisualSensor(Sensor):
         self.d_theta = sensor_params.get('d_theta', 0)
         self.d_relativeOrientation = sensor_params.get('d_phi', None)
 
-        self.get_shape_observation()
-
         self.topdow_view = None
         self.polar_view = None
         self.center = [0, 0]
@@ -117,5 +115,5 @@ class VisualSensor(Sensor):
         self.polar_view = cropped_img[:, :, :]
 
     @abstractmethod
-    def get_shape_observation(self):
+    def shape(self):
         pass

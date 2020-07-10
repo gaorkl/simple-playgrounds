@@ -23,11 +23,11 @@ class RgbSensor(VisualSensor):
 
         im = np.asarray(sensor_value)
         im = np.expand_dims(im, 0)
-        self.sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+        self.sensor_value = cv2.resize(im, (self.fovResolution,1), interpolation=cv2.INTER_NEAREST)[0, :]
 
-    def get_shape_observation(self):
+    def shape(self):
 
-        return self.fovResolution, 1, 3
+        return self.fovResolution, 3
 
 
 class GreySensor(RgbSensor):
@@ -40,7 +40,12 @@ class GreySensor(RgbSensor):
     def update_sensor(self, img, entities, agents):
 
         super().update_sensor(img, None, None)
-        self.sensor_value = cv2.cvtColor(self.sensor_value, cv2.COLOR_BGR2GRAY)
 
-    def get_shape_observation(self):
-        return self.fovResolution, 1, 1
+        self.sensor_value = np.expand_dims(self.sensor_value, 0)
+        self.sensor_value = cv2.cvtColor(self.sensor_value, cv2.COLOR_BGR2GRAY)
+        self.sensor_value = cv2.resize(self.sensor_value, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)[0, :]
+
+
+
+    def shape(self):
+        return self.fovResolution,

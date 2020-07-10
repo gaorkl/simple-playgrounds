@@ -19,5 +19,5 @@ class GeometricSensor(Sensor):
 
 
     @abstractmethod
-    def get_shape_observation(self):
+    def shape(self):
         pass

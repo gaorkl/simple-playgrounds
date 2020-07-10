@@ -40,7 +40,7 @@ class DistanceArraySensor(VisualSensor):
 
         sensor_value = [ 1+ int(sensor_value[0, index]*float(self.fovRange)/self.polar_view.shape[1]) for index in self.index_sensors]
 
-        self.sensor_value = sensor_value
+        self.sensor_value = np.asarray(sensor_value)
 
-    def get_shape_observation(self):
-        return self.number_laser_point, 1
+    def shape(self):
+        return self.number_laser_point,

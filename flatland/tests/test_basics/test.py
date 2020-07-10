@@ -5,10 +5,11 @@ from flatland.agents.basic_agents import *
 from flatland.controllers.controller import Random, Keyboard
 from flatland.agents.sensors.visual_sensors import *
 
+import numpy
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
-# pg = Basic_01()
+pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
 # pg = Empty_01()
@@ -20,7 +21,7 @@ from flatland.agents.sensors.visual_sensors import *
 # pg = Interactive_01()
 # pg = Conditioning_01()
 # pg = Overlap()
-pg = NoOverlap()
+# pg = NoOverlap()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
@@ -44,13 +45,13 @@ agents.append(my_agent)
 
 # Add sensors:
 
-# sensor = RgbSensor(name='rgb_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, resolution=128, range=300)
+sensor = RgbSensor(name='rgb_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, resolution=128, range=300)
 # sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
 # sensor = GreySensor(name='grey_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
 # sensor = DepthSensor(name='depth_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
 # sensor = DistanceArraySensor(name='test_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts,
 #                              fov= 250,range = 400, number=1080)
-sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, range = 200)
+# sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, range = 200, only_front = True)
 my_agent.add_sensor(sensor)
 #
 
@@ -135,6 +136,8 @@ while game.game_on:
             observation = sensor_.sensor_value
             sensor_name = sensor_.name
 
+            print(observation.shape, sensor.shape())
+
             if isinstance(sensor, DistanceArraySensor) :
                 print(observation)
 
@@ -145,7 +148,8 @@ while game.game_on:
 
             else:
 
-                im = cv2.resize(observation, (512, 50), interpolation=cv2.INTER_NEAREST)
+                im = numpy.expand_dims(observation, 0)
+                im = cv2.resize(im, (512, 50), interpolation=cv2.INTER_NEAREST)
                 #im = observation
                 cv2.imshow(sensor_name+'__', im)
                 cv2.waitKey(1)

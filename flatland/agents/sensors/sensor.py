@@ -38,8 +38,9 @@ class Sensor(ABC):
     def update_sensor(self, img, entities, agents):
         pass
 
+    @property
     @abstractmethod
-    def get_shape_observation(self):
+    def shape(self):
         pass
 
 

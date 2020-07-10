@@ -135,5 +135,5 @@ class LidarSensor(GeometricSensor):
 
         return output
 
-    def get_shape_observation(self):
+    def shape(self):
         pass

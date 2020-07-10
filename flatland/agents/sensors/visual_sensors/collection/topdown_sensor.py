@@ -7,9 +7,11 @@ class TopdownSensor(VisualSensor):
 
     sensor_type = 'topdown'
 
-    def __init__(self, anchor, invisible_elements, **kwargs):
+    def __init__(self, anchor, invisible_elements, only_front = False, **kwargs):
 
         super(TopdownSensor, self).__init__(anchor, invisible_elements, **kwargs)
+
+        self.only_front = only_front
 
     def update_sensor(self, img, entities, agents ):
 
@@ -49,8 +51,19 @@ class TopdownSensor(VisualSensor):
         rot_mat = cv2.getRotationMatrix2D(image_center, sensor_angle*180/math.pi - 90, 1.0)
         result = cv2.warpAffine(extended_cropped, rot_mat, extended_cropped.shape[1::-1], flags=cv2.INTER_NEAREST)
 
-        self.sensor_value = result/255.
+        if self.only_front:
+            result = result[:self.fovRange, :, :]
+            self.sensor_value = cv2.resize(result, ( 2*self.fovResolution, self.fovResolution), interpolation=cv2.INTER_NEAREST)
+        else:
+            self.sensor_value = cv2.resize(result, ( 2*self.fovResolution, self.fovResolution), interpolation=cv2.INTER_NEAREST)
+
+        self.sensor_value /= 255.
 
 
-    def get_shape_observation(self):
-        return self.fovResolution, 3
+    def shape(self):
+
+        if self.only_front:
+            return self.fovResolution, 2*self.fovResolution, 3
+
+        else:
+            return 2*self.fovResolution, 2*self.fovResolution, 3
