@@ -32,12 +32,6 @@ class VisualSensor(Sensor):
         self.fovAngle = sensor_params.get('fov') * math.pi / 180
         self.min_range = sensor_params.get('min_range', 0)
 
-
-        # Relative location (polar) and angle wrt body_parts
-        self.d_r = sensor_params.get('d_r', 0)
-        self.d_theta = sensor_params.get('d_theta', 0)
-        self.d_relativeOrientation = sensor_params.get('d_phi', None)
-
         self.topdow_view = None
         self.polar_view = None
         self.center = [0, 0]

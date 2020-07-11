@@ -1,7 +1,7 @@
 import math, random
 
 from flatland.playgrounds.empty import SingleRoom
-from flatland.entities import VisibleEndGoal, Basic
+from flatland.entities import VisibleEndGoal, Basic, Apple
 from flatland.utils.position_utils import PositionAreaSampler
 
 class Empty_01(SingleRoom):
@@ -9,6 +9,17 @@ class Empty_01(SingleRoom):
     def __init__(self, size = (200, 800), **playground_params):
 
         super(Empty_01, self).__init__(size = size, **playground_params)
+
+        endgoal_01 = VisibleEndGoal([20, 20, 0], reward=50)
+        self.add_entity(endgoal_01)
+        self.agent_starting_area = PositionAreaSampler(area_shape='circle', center=[150, 150], radius=20)
+
+
+class Empty_Color_01(SingleRoom):
+
+    def __init__(self, size = (200, 800), **playground_params):
+
+        super().__init__(size = size, wall_texture = [ 120, 140, 180], **playground_params)
 
         endgoal_01 = VisibleEndGoal([20, 20, 0], reward=50)
         self.add_entity(endgoal_01)
@@ -55,5 +66,20 @@ class NoOverlap(SingleRoom):
 
         for i in range(10):
             rectangle = Basic(area_2, default_config_key='rectangle')
-            success = self.add_entity_without_overlappig(rectangle)
+            success = self.add_entity_without_overlappig(rectangle, tries=10)
+            print(i, success)
+
+
+
+
+class Edibles_01(SingleRoom):
+
+    def __init__(self, size=(200, 200), **playground_params):
+        super().__init__(size=size, **playground_params)
+
+        area_2 = PositionAreaSampler(area_shape='circle', center=[100, 100], radius=200, movable = False)
+
+        for i in range(10):
+            edible = Apple(area_2)
+            success = self.add_entity(edible)
             print(i, success)

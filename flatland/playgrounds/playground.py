@@ -257,6 +257,8 @@ class Playground:
             if agent.owns_shape(pm_shape):
                 return agent
 
+        return None
+
     def get_closest_agent(self, ent):
 
         dist_list = [(a.position[0] - ent.position[0])**2 + (a.position[1] - ent.position[1])**2 for a in self.agents]

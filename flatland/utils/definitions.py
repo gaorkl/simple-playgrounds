@@ -51,6 +51,7 @@ class KeyTypes(IntEnum):
 class SensorModality(Enum):
     VISUAL = auto()
     GEOMETRIC = auto()
+    SEMANTIC = auto()
     UNDEFINED = auto()
 
 

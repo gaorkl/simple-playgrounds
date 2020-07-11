@@ -1,0 +1,9 @@
+#####################
+# Sensors
+
+lidar:
+  range: 300
+  fov: 180
+  number_rays: 20
+
+

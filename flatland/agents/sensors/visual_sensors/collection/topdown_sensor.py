@@ -55,7 +55,7 @@ class TopdownSensor(VisualSensor):
             result = result[:self.fovRange, :, :]
             self.sensor_value = cv2.resize(result, ( 2*self.fovResolution, self.fovResolution), interpolation=cv2.INTER_NEAREST)
         else:
-            self.sensor_value = cv2.resize(result, ( 2*self.fovResolution, self.fovResolution), interpolation=cv2.INTER_NEAREST)
+            self.sensor_value = cv2.resize(result, ( 2*self.fovResolution, 2*self.fovResolution), interpolation=cv2.INTER_NEAREST)
 
         self.sensor_value /= 255.
 

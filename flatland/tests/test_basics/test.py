@@ -1,15 +1,15 @@
 from flatland.tests.test_basics.entities_pg import *
-from flatland.tests.test_basics.test_pg import *
 from flatland.tests.test_basics.advanced_pg import *
+from flatland.tests.test_basics.test_pg import *
 from flatland.agents.basic_agents import *
-from flatland.controllers.controller import Random, Keyboard
+from flatland.controllers.controller import Keyboard, Random
 from flatland.agents.sensors.visual_sensors import *
-
+from flatland.agents.sensors.semantic_sensors.lidar import Lidar, LidarOcclusion, LidarOcclusionUnique
 import numpy
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
-pg = Basic_01()
+# pg = Basic_01()
 # pg = Contact_01()
 # pg = PositionObject_01()
 # pg = Empty_01()
@@ -22,6 +22,8 @@ pg = Basic_01()
 # pg = Conditioning_01()
 # pg = Overlap()
 # pg = NoOverlap()
+# pg = Empty_Color_01()
+pg = Edibles_01()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
@@ -31,8 +33,8 @@ my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = ArmAgent(initial_position=initial_position)
 # my_agent = ArmHandAgent(initial_position=initial_position)
 
-# controller = Random(available_actions=my_agent.get_all_available_actions())
-controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
+controller = Random(available_actions=my_agent.get_all_available_actions())
+# controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
 my_agent.assign_controller(controller)
 agents.append(my_agent)
 
@@ -52,6 +54,8 @@ sensor = RgbSensor(name='rgb_1', anchor= my_agent.base, invisible_elements=my_ag
 # sensor = DistanceArraySensor(name='test_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts,
 #                              fov= 250,range = 400, number=1080)
 # sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, range = 200, only_front = True)
+
+# sensor = LidarOcclusionUnique(name='lidar', anchor=my_agent.base, invisible_elements = my_agent.body_parts, fov=90, number_rays=10, range=300)
 my_agent.add_sensor(sensor)
 #
 
@@ -114,60 +118,58 @@ while game.game_on:
     for agent in game.agents:
         actions[agent.name] = agent.controller.generate_actions()
 
-
-    # for agent_name in actions:
-    #     for bpart in actions[agent_name]:
-    #         for act in actions[agent_name][bpart]:
-    #             actions[agent_name][bpart][act] = 0
-
-
-
     game.step(actions)
     game.update_observations()
 
-
-    for agent in game.agents:
-
-        # observations = agent.observations
-        # print(observations)
-
-        for sensor_ in agent.sensors:
-
-            observation = sensor_.sensor_value
-            sensor_name = sensor_.name
-
-            print(observation.shape, sensor.shape())
-
-            if isinstance(sensor, DistanceArraySensor) :
-                print(observation)
-
-            elif isinstance(sensor, TopdownSensor):
-                cv2.imshow(sensor_name + '__', observation)
-                cv2.waitKey(1)
-
-
-            else:
-
-                im = numpy.expand_dims(observation, 0)
-                im = cv2.resize(im, (512, 50), interpolation=cv2.INTER_NEAREST)
-                #im = observation
-                cv2.imshow(sensor_name+'__', im)
-                cv2.waitKey(1)
-
-        if agent.reward != 0: print(agent.name, agent.reward)
-
-
-
-    # for entity in game.playground.entities:
-    #     if entity.velocity[0] != 0:
-    #         print(entity.position)
-    #         print(entity.velocity)
     #
+    # for agent in game.agents:
+    #
+    #     # observations = agent.observations
+    #     # print(observations)
+    #
+    #     for sensor_ in agent.sensors:
+    #
+    #         observation = sensor_.sensor_value
+    #         sensor_name = sensor_.name
+    #
+    #         # print(observation.shape, sensor.shape())
+    #
+    #         if isinstance(sensor, Lidar) :
+    #             # print(sensor.sensor_value)
+    #
+    #             for ang, obs in observation.items():
+    #
+    #                 for o in obs:
+    #
+    #                     print(ang, o.distance, o.entity)
+    #
+    #         elif isinstance(sensor, TopdownSensor):
+    #             cv2.imshow(sensor_name + '__', observation)
+    #             cv2.waitKey(1)
+    #
+    #
+    #         else:
+    #
+    #             im = numpy.expand_dims(observation, 0)
+    #             im = cv2.resize(im, (512, 50), interpolation=cv2.INTER_NEAREST)
+    #             #im = observation
+    #             cv2.imshow(sensor_name+'__', im)
+    #             cv2.waitKey(1)
+    #
+    #     if agent.reward != 0: print(agent.name, agent.reward)
+    #
+    #
+    #
+    # # for entity in game.playground.entities:
+    # #     if entity.velocity[0] != 0:
+    # #         print(entity.position)
+    # #         print(entity.velocity)
+    # #
     # img = game.generate_topdown_image()
     # cv2.imshow('test', img)
-    cv2.waitKey(30)
+    # cv2.waitKey(1)
 
-    game.display_full_scene()
+    # game.display_full_scene()
 
 
 print(10000 / (time.time() - t1))

@@ -208,6 +208,11 @@ class Engine:
 
                     sensor.update_sensor(None, self.playground.entities, self.playground.agents)
 
+                elif sensor.sensor_modality is SensorModality.SEMANTIC:
+
+                    sensor.update_sensor(self.playground)
+
+
                 else:
                     raise ValueError
 
