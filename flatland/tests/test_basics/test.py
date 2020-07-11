@@ -58,6 +58,7 @@ sensor = RgbSensor(name='rgb_1', anchor= my_agent.base, invisible_elements=my_ag
 # sensor = LidarOcclusionUnique(name='lidar', anchor=my_agent.base, invisible_elements = my_agent.body_parts, fov=90, number_rays=10, range=300)
 my_agent.add_sensor(sensor)
 #
+#
 
 # other_agent_1 = ArmAgent(name = 'agent_test_1', initial_position = [100, 300,0])
 # controller_1 =  ()
