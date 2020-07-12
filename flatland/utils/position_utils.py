@@ -1,8 +1,17 @@
-from collections.abc import Generator
-import numpy as np
-import random, math
-from .definitions import geometric_shapes
+"""
+Module containing classes to generate random positions and trajectories
 
+"""
+import random
+import math
+from collections.abc import Generator
+
+import numpy as np
+
+from flatland.utils.definitions import geometric_shapes
+
+#pylint: disable=line-too-long
+#pylint: disable=too-many-instance-attributes
 
 class PositionAreaSampler:
     """ Sampler for a random position within a particular area
@@ -54,41 +63,41 @@ class PositionAreaSampler:
             center:
 
         Returns:
-            position ('obj'list of 'obj'float): (x,y,theta) position sampled
+            position ('obj'list of 'obj'float): (x,pos_y,theta) position sampled
 
         """
-        x, y, theta = 0, 0, 0
+        pos_x, pos_y, theta = 0, 0, 0
 
         if center is not None:
             self.center = center
 
         if self.area_shape == 'rectangle':
-            x = random.uniform(self.center[0] - self.width/2, self.center[0] + self.width/2)
-            y = random.uniform(self.center[1] - self.length/2, self.center[1] + self.length/2)
+            pos_x = random.uniform(self.center[0] - self.width/2, self.center[0] + self.width/2)
+            pos_y = random.uniform(self.center[1] - self.length/2, self.center[1] + self.length/2)
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'circle':
 
-            x = math.inf
-            y = math.inf
+            pos_x = math.inf
+            pos_y = math.inf
             theta = random.uniform(self.theta_min, self.theta_max)
 
-            while (x - self.center[0]) ** 2 + (y - self.center[1]) ** 2 > self.radius ** 2:
-                x = random.uniform(self.center[0] - self.radius / 2, self.center[0] + self.radius / 2)
+            while (pos_x - self.center[0]) ** 2 + (pos_y - self.center[1]) ** 2 > self.radius ** 2:
+                pos_x = random.uniform(self.center[0] - self.radius / 2, self.center[0] + self.radius / 2)
 
-                y = random.uniform(self.center[1] - self.radius / 2, self.center[1] + self.radius / 2)
+                pos_y = random.uniform(self.center[1] - self.radius / 2, self.center[1] + self.radius / 2)
 
         elif self.area_shape == 'gaussian':
 
-            x = math.inf
-            y = math.inf
+            pos_x = math.inf
+            pos_y = math.inf
             theta = random.uniform(self.theta_min, self.theta_max)
 
-            while (x - self.center[0])**2 + (y - self.center[1])**2 > self.radius**2:
+            while (pos_x - self.center[0])**2 + (pos_y - self.center[1])**2 > self.radius**2:
 
-                x, y = np.random.multivariate_normal(self.center, [[self.variance, 0], [0, self.variance]])
+                pos_x, pos_y = np.random.multivariate_normal(self.center, [[self.variance, 0], [0, self.variance]])
 
-        return x, y, theta
+        return pos_x, pos_y, theta
 
 
 class Trajectory(Generator):
@@ -127,55 +136,54 @@ class Trajectory(Generator):
         self.n_rotations = n_rotations
 
         # Calculate waypoints when trajectory_type is shape
-        if self.trajectory_type is 'shape':
+        if self.trajectory_type == 'shape':
             self.shape = kwargs['shape']
             self.radius = kwargs['radius']
             self.center = kwargs['center']
             self.orientation_shape = self.center[2]
-            self.waypoints = self.generate_geometric_waypoints()
+            self.waypoints = self._generate_geometric_waypoints()
 
-        elif self.trajectory_type is 'waypoints':
+        elif self.trajectory_type == 'waypoints':
             self.waypoints = kwargs['waypoints']
 
         # Generate all trajectory points based on waypoints
-        self.trajectory_points = self.generate_trajectory()
+        self.trajectory_points = self._generate_trajectory()
 
-        self.index_start = index_start
-        self.current_index = self.index_start
+        self._index_start = index_start
+        self.current_index = self._index_start
 
         self.counter_clockwise = kwargs.get('counter_clockwise', False)
 
     @property
-    def index_start(self):
+    def _index_start(self):
 
-        if self.trajectory_type is 'shape':
+        if self.trajectory_type == 'shape':
             number_sides = geometric_shapes[self.shape]
 
             # Center the starting point on the x axis, angle 0
-            return self._index_start - int(len(self.trajectory_points) / number_sides / 2)
+            return self._idx_start - int(len(self.trajectory_points) / number_sides / 2)
 
-        else:
-            return self._index_start
+        return self._idx_start
 
-    @index_start.setter
-    def index_start(self, index_start):
+    @_index_start.setter
+    def _index_start(self, index_start):
 
-        self._index_start = index_start
+        self._idx_start = index_start
 
-    def generate_geometric_waypoints(self):
+    def _generate_geometric_waypoints(self):
 
         number_sides = geometric_shapes[self.shape]
         offset_angle = math.pi / number_sides + self.orientation_shape
 
         waypoints = []
-        for n in range(number_sides):
-            waypoints.append([self.center[0] + self.radius * math.cos(n * 2 * math.pi / number_sides + offset_angle),
-                              self.center[1] + self.radius * math.sin(n * 2 * math.pi / number_sides + offset_angle),
+        for num_side in range(number_sides):
+            waypoints.append([self.center[0] + self.radius * math.cos(num_side * 2 * math.pi / number_sides + offset_angle),
+                              self.center[1] + self.radius * math.sin(num_side * 2 * math.pi / number_sides + offset_angle),
                               0])
 
         return waypoints[::-1]
 
-    def generate_trajectory(self):
+    def _generate_trajectory(self):
 
         shifted_waypoints = self.waypoints[1:] + self.waypoints[:1]
         total_length = sum([math.sqrt((x1[0] - x2[0])**2 + (x1[1] - x2[1])**2)
@@ -197,11 +205,11 @@ class Trajectory(Generator):
             for i in range(n_points):
                 trajectory_points.append([pts_x[i], pts_y[i], 0])
 
-        for pt_index in range(len(trajectory_points)):
+        for pt_index, trajectory_point in trajectory_points:
 
             angle = (pt_index * self.n_rotations) * (2*math.pi) / len(trajectory_points) % (2*math.pi)
 
-            trajectory_points[pt_index][2] = angle
+            trajectory_point[2] = angle
 
         return trajectory_points
 
@@ -242,6 +250,6 @@ class Trajectory(Generator):
 
         """
         if index_start is not None:
-            self.index_start = index_start
+            self._index_start = index_start
 
-        self.current_index = self.index_start
+        self.current_index = self._index_start

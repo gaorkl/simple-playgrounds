@@ -1,7 +1,7 @@
 import math, random
 
 from flatland.playgrounds.empty import SingleRoom
-from flatland.entities import VisibleEndGoal, Basic, Apple
+from flatland.entities.scene_elements import VisibleEndGoal, Basic, Apple
 from flatland.utils.position_utils import PositionAreaSampler
 
 class Empty_01(SingleRoom):
@@ -11,7 +11,7 @@ class Empty_01(SingleRoom):
         super(Empty_01, self).__init__(size = size, **playground_params)
 
         endgoal_01 = VisibleEndGoal([20, 20, 0], reward=50)
-        self.add_entity(endgoal_01)
+        self.add_scene_element(endgoal_01)
         self.agent_starting_area = PositionAreaSampler(area_shape='circle', center=[150, 150], radius=20)
 
 
@@ -22,7 +22,7 @@ class Empty_Color_01(SingleRoom):
         super().__init__(size = size, wall_texture = [ 120, 140, 180], **playground_params)
 
         endgoal_01 = VisibleEndGoal([20, 20, 0], reward=50)
-        self.add_entity(endgoal_01)
+        self.add_scene_element(endgoal_01)
         self.agent_starting_area = PositionAreaSampler(area_shape='circle', center=[150, 150], radius=20)
 
 
@@ -34,7 +34,7 @@ class PositionObject_01(SingleRoom):
         super(PositionObject_01, self).__init__(size = size, **playground_params)
 
         endgoal_01 = VisibleEndGoal([20, 20, 0], reward=50)
-        self.add_entity(endgoal_01)
+        self.add_scene_element(endgoal_01)
 
         for i in range(10):
             x = 100 + 30 * math.cos(i * 2 * math.pi / 10)
@@ -42,7 +42,7 @@ class PositionObject_01(SingleRoom):
             theta = i * 2 * math.pi / 10
 
             rectangle = Basic([x, y, theta], default_config_key='rectangle', width_length = [2, 10])
-            self.add_entity(rectangle)
+            self.add_scene_element(rectangle)
 
 class Overlap(SingleRoom):
 
@@ -54,7 +54,7 @@ class Overlap(SingleRoom):
 
         for i in range(10):
             rectangle = Basic(area_2, default_config_key='rectangle')
-            self.add_entity(rectangle)
+            self.add_scene_element(rectangle)
 
 
 class NoOverlap(SingleRoom):
@@ -66,7 +66,7 @@ class NoOverlap(SingleRoom):
 
         for i in range(10):
             rectangle = Basic(area_2, default_config_key='rectangle')
-            success = self.add_entity_without_overlappig(rectangle, tries=10)
+            success = self.add_scene_element_without_overlapping(rectangle, tries=10)
             print(i, success)
 
 
@@ -81,5 +81,5 @@ class Edibles_01(SingleRoom):
 
         for i in range(10):
             edible = Apple(area_2)
-            success = self.add_entity(edible)
+            success = self.add_scene_element(edible)
             print(i, success)

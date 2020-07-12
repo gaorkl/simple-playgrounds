@@ -1,8 +1,14 @@
-import pygame
-from pygame.locals import K_q
-from .utils.definitions import SensorModality, SIMULATION_STEPS
-from pygame.color import THECOLORS
+"""
+Game Engine manages the interacitons between agents and Playgrounds.
+"""
+
 import numpy
+
+import pygame
+from pygame.locals import K_q  # pylint: disable=no-name-in-module
+from pygame.color import THECOLORS  # pylint: disable=no-name-in-module
+
+from flatland.utils.definitions import SensorModality, SIMULATION_STEPS
 
 
 class Engine:
@@ -12,15 +18,19 @@ class Engine:
 
     """
 
+    # pylint: disable=too-many-function-args
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, playground, agents, time_limit, replay=False, screen=False):
 
         """
 
         Args:
             playground (:obj: 'Playground): Playground where the agents will be placed
-            agents (:obj: 'list' of :obj: 'Agent'): List of the agents which will play in the playground
+            agents (:obj: 'list' of :obj: 'Agent'): List of the agents in the playground.
             time_limit (:obj: 'int'): Total number of timesteps.
-            replay (:obj: 'bool'): If True, the game will restart upon termination, until time_limit is reached.
+            replay (:obj: 'bool'): Restarts upon termination, until time_limit is reached.
                 Default: False
             screen: If True, a pygame screen is created for display.
                 Default: False
@@ -41,18 +51,15 @@ class Engine:
         self.replay_until_time_limit = replay
         self.time_limit = time_limit
 
-        # Engine parameters
-        self.inner_simulation_steps = SIMULATION_STEPS
-
         # Display screen
         self.need_command_display = False
         for agent in self.agents:
             if agent.controller and agent.controller.controller_type == 'keyboard':
                 self.need_command_display = True
 
-        self.Q_ready_to_press = False
+        self.quit_key_ready = False
         if self.need_command_display:
-            self.Q_ready_to_press = True
+            self.quit_key_ready = True
 
         self.screen = None
         if self.need_command_display or screen:
@@ -78,7 +85,7 @@ class Engine:
 
         """
 
-        for stp in range(n_steps):
+        for _ in range(n_steps):
             self.step(actions)
 
     def step(self, actions):
@@ -91,13 +98,9 @@ class Engine:
         """
 
         for agent in self.agents:
-            agent.pre_step()
             agent.apply_actions_to_body_parts(actions[agent.name])
 
-        for _ in range(self.inner_simulation_steps):
-            self.playground.space.step(1. / self.inner_simulation_steps)
-
-        self.playground.update_playground()
+        self.playground.update(SIMULATION_STEPS)
 
         # Termination
         if self.game_terminated():
@@ -118,11 +121,8 @@ class Engine:
         """
         self.episode_elapsed_time = 0
 
-        self.playground.remove_agents()
         self.playground.reset()
 
-        for agent in self.agents:
-            self.playground.add_agent(agent)
 
     def game_terminated(self):
         """
@@ -133,15 +133,15 @@ class Engine:
             False if the game continues
         """
 
-        if self.total_elapsed_time == self.time_limit or self.playground.has_reached_termination:
+        if self.total_elapsed_time == self.time_limit or self.playground.done:
             return True
 
         if self.need_command_display:
-            if not pygame.key.get_pressed()[K_q] and self.Q_ready_to_press is False:
-                self.Q_ready_to_press = True
+            if not pygame.key.get_pressed()[K_q] and self.quit_key_ready is False:
+                self.quit_key_ready = True
 
-            elif pygame.key.get_pressed()[K_q] and self.Q_ready_to_press is True:
-                self.Q_ready_to_press = False
+            elif pygame.key.get_pressed()[K_q] and self.quit_key_ready is True:
+                self.quit_key_ready = False
                 return True
 
         return False
@@ -155,7 +155,7 @@ class Engine:
 
         self.surface_environment.fill(THECOLORS["black"])
 
-        for entity in self.playground.entities:
+        for entity in self.playground.scene_elements:
             entity.draw(self.surface_environment, draw_interaction=True)
 
         for agent in self.agents:
@@ -167,10 +167,8 @@ class Engine:
 
         """
         # list all elements that are invisible to an agent
-        invisible_elements = []
-        for agent in self.agents:
-            for sensor in agent.sensors:
-                invisible_elements += sensor.invisible_elements
+        invisible_elements = [inv_elem for agent in self.agents for sensor in agent.sensors
+                              for inv_elem in sensor.invisible_elements]
 
         # Generate surface only if an agent has visual sensor
         if any([agent.has_visual_sensor for agent in self.agents]):
@@ -178,9 +176,9 @@ class Engine:
 
             # Draw entities and agent parts that are not invisible
 
-            for entity in self.playground.entities:
-                if entity not in invisible_elements:
-                    entity.draw(self.surface_sensors, draw_interaction=False)
+            for entity in [ent for ent in self.playground.scene_elements
+                           if ent not in invisible_elements]:
+                entity.draw(self.surface_sensors, draw_interaction=False)
 
             for agent in self.playground.agents:
                 agent.draw(self.surface_sensors, excluded=invisible_elements)

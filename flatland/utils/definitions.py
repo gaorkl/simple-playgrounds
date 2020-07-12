@@ -1,8 +1,17 @@
+"""
+Default definitions
+"""
+
 from enum import IntEnum, Enum, auto
 from collections import namedtuple
 
 SIMULATION_STEPS = 5
 SPACE_DAMPING = 0.9
+
+class SceneElementTypes(Enum):
+
+    FIELD = 'field'
+    DISPENSER = 'dispenser'
 
 
 class CollisionTypes(IntEnum):

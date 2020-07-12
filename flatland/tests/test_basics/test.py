@@ -1,11 +1,8 @@
 from flatland.tests.test_basics.entities_pg import *
-from flatland.tests.test_basics.advanced_pg import *
 from flatland.tests.test_basics.test_pg import *
-from flatland.agents.basic_agents import *
+from flatland.entities.agents.basic_agents import *
 from flatland.controllers.controller import Keyboard, Random
-from flatland.agents.sensors.visual_sensors import *
-from flatland.agents.sensors.semantic_sensors.lidar import Lidar, LidarOcclusion, LidarOcclusionUnique
-import numpy
+from flatland.entities.agents.sensors.visual_sensors import *
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
@@ -18,12 +15,12 @@ import numpy
 # pg = Proximity_01()
 # pg = Trajectory_01()
 # pg = Fields_01()
-# pg = Interactive_01()
+pg = Interactive_01()
 # pg = Conditioning_01()
 # pg = Overlap()
 # pg = NoOverlap()
 # pg = Empty_Color_01()
-pg = Edibles_01()
+# pg = Edibles_01()
 agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[50 , 50], radius=10)
@@ -33,8 +30,8 @@ my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = ArmAgent(initial_position=initial_position)
 # my_agent = ArmHandAgent(initial_position=initial_position)
 
-controller = Random(available_actions=my_agent.get_all_available_actions())
-# controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
+# controller = Random(available_actions=my_agent.get_all_available_actions())
+controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
 my_agent.assign_controller(controller)
 agents.append(my_agent)
 
@@ -166,11 +163,11 @@ while game.game_on:
     # #         print(entity.position)
     # #         print(entity.velocity)
     # #
-    # img = game.generate_topdown_image()
-    # cv2.imshow('test', img)
-    # cv2.waitKey(1)
+    img = game.generate_topdown_image()
+    cv2.imshow('test', img)
+    cv2.waitKey(20)
 
-    # game.display_full_scene()
+    game.display_full_scene()
 
 
 print(10000 / (time.time() - t1))

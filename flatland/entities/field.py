@@ -1,35 +1,32 @@
-import random, os, yaml
-# from .entity import EntityGenerator
+"""
+Module for Field
+"""
+import random
 
 
-# @EntityGenerator.register('field')
 class Field:
+    """
+    A Field produces entities in a random location of the playground.
+    """
 
     id_number = 0
     entity_type = 'field'
 
-    def __init__(self, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
+    def __init__(self, entity_produced, production_area, probability=0.05, limit=10, total_limit=30,
+                 entity_produced_params=None):
         """
+        Field randomly produces a new SceneElement in a random part of the Playground.
+        The SceneElement is temporary, and will disappear upon reset of the Playground.
 
         Args:
-            entity_produced: Class of the entity produced by the field
-            entity_produced_params: Dictionary of additional parameters for the entity_produced
-            production_area: PositionAreaSampler
-            **kwargs: Additional Keywork arguments
-
-        Keyword Args:
-            total_produced_limit: total number of entities that a field can produce during an episode. Default: 30
-            current_produced_limit: total number of entities produced currently on the playground. Default: 30 10
-            production_probability : probability of producing an entity at each timestep. Default: 0.1
+            entity_produced: SceneElement produces.
+            probability: at each step, probability of creating a new SceneElement.
+            limit: maximum number of SceneElements present in the playground at any given time.
+            total_limit: total number of SceneElements that can be produced.
+            entity_produced_params: Dictionary of parameters of the SceneElement produced.
+            production_area: PositionAreaSampler.
 
         """
-        fname = 'configs/field_default.yml'
-
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(__location__, fname), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file)
-
-        entity_params = {**default_config['field'], **kwargs}
 
         self.entity_produced = entity_produced
         self.location_sampler = production_area
@@ -39,10 +36,9 @@ class Field:
         else:
             self.entity_produced_params = entity_produced_params
 
-        self.probability = entity_params.get('production_probability')
-        self.limit = entity_params.get('current_produced_limit')
-
-        self.total_limit = entity_params.get('total_produced_limit')
+        self.probability = probability
+        self.limit = limit
+        self.total_limit = total_limit
         self.total_produced = 0
         self.produced_entities = []
 
@@ -51,16 +47,25 @@ class Field:
         Field.id_number += 1
 
     def can_produce(self):
+        """
+        Tests if the field can produce a new SceneElement.
+        Performs random choice and checks that it is not beyond production limit.
 
-        if len(self.produced_entities) < self.limit \
-                and self.total_produced < self.total_limit\
-                and random.random() < self.probability:
-            return True
+        Returns:
+            True if it can produce a new SceneElement
 
-        else:
-            return False
+        """
+
+        return len(self.produced_entities) < self.limit \
+               and self.total_produced < self.total_limit\
+               and random.random() < self.probability
 
     def produce(self):
+        """
+
+        Returns: SceneEntity
+
+        """
 
         obj = self.entity_produced(initial_position=self.location_sampler, **self.entity_produced_params)
         obj.is_temporary_entity = True
@@ -71,6 +76,9 @@ class Field:
         return obj
 
     def reset(self):
+        """
+        Reset the field by resetting the total count of SceneElements produced.
+        """
 
         self.produced_entities = []
         self.total_produced = 0

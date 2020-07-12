@@ -1,6 +1,7 @@
 from flatland.playgrounds.empty import SingleRoom, ConnectedRooms2D
-from flatland.utils.position_utils import Trajectory
+from ....utils.position_utils import Trajectory
 from flatland.entities import *
+
 import math
 
 class Rooms_Doors(ConnectedRooms2D):
@@ -15,12 +16,12 @@ class Rooms_Doors(ConnectedRooms2D):
 
         x, y = self.random_position_on_wall((1,1), 'left', 30)
         switch_1 = OpenCloseSwitch( [x, y, 0], door = door_1 )
-        self.add_entity(switch_1)
+        self.add_scene_element(switch_1)
 
         center_area, size_area = self.get_quarter_area((1,0), 'up-left')
         area_1 = PositionAreaSampler(area_shape='rectangle', center=center_area, width_length=size_area)
         endgoal_01 = VisibleEndGoal(area_1, reward=50)
-        self.add_entity(endgoal_01)
+        self.add_scene_element(endgoal_01)
 
 #
 #         rectangle_01 = Basic([150, 160, 0.2], default_config_key='rectangle')

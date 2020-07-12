@@ -1,18 +1,18 @@
-from pygame import Surface, PixelArray, SRCALPHA
+"""
+Module for Texture of SceneElements and Parts of Agents.
+"""
+
+import math
+import random
+from abc import ABC, abstractmethod
+
+import numpy as np
+from pygame import Surface
 from pygame import surfarray
 import cv2
 
 
-from scipy.stats import truncnorm
-import numpy.random as rand
-import numpy as np
-import math, random
-
-
-# TODO: ABC texture, clean size texture everytwhere and assert that size is odd for centered textures
-
-
-class TextureGenerator(object):
+class TextureGenerator:
 
     subclasses = {}
 
@@ -37,12 +37,17 @@ class TextureGenerator(object):
         return cls.subclasses[texture_type](**params)
 
 
-class Texture:
+class Texture(ABC):
 
     def __init__(self, **kwargs):
 
         self.size = int(kwargs.get('radius')*2 + 1)
         self.surface = Surface((self.size, self.size))
+        self.radius = kwargs['radius']
+
+    @abstractmethod
+    def generate(self):
+        pass
 
 
 @TextureGenerator.register_subclass('color')
@@ -69,7 +74,8 @@ class UniformTexture(Texture):
 
     def generate(self):
 
-        random_image = np.random.uniform(self.min, self.max, ( self.size, self.size, 3)).astype('int')
+        random_image = np.random.uniform(self.min, self.max, (self.size, self.size, 3))
+        random_image = random_image.astype('int')
         surf = surfarray.make_surface(random_image)
         return surf
 
@@ -90,40 +96,13 @@ class RandomTilesTexture(Texture):
         random_image = cv2.resize(random_image, ( self.size, self.size ), interpolation=cv2.INTER_NEAREST)
         surf = surfarray.make_surface(random_image)
         return surf
-#
-#
-# @TextureGenerator.register_subclass('list_random_tiles')
-# class ListRandomTilesTexture(TextureGenerator):
-#
-#     def __init__(self, list_rgb_colors = (130, 150, 170), delta_uniform = 5, size_tiles = 4, **kwargs):
-#         super(ListRandomTilesTexture, self).__init__()
-#         self.list_rgb_colors = list_rgb_colors
-#         self.delta_uniform = delta_uniform
-#         self.size_tiles = size_tiles
-#
-#     def generate(self, width, height):
-#         """
-#         Generate a pygame Surface with pixels following a uniform density
-#         :param width: the width of the generated Surface
-#         :param height: the height of the generated Surface
-#         :return: the pygame Surface
-#         """
-#
-#         color = random.choice(self.list_rgb_colors)
-#         min_color = [ max(0, x - self.delta_uniform) for x in color]
-#         max_color = [ min(255, x + self.delta_uniform) for x in color]
-#
-#         random_image = np.random.uniform(min_color, max_color, (int(width*1.0/self.size_tiles), int(height*1.0/self.size_tiles), 3)).astype('int')
-#         random_image = cv2.resize(random_image, ( int(height), int(width) ), interpolation=cv2.INTER_NEAREST)
-#         surf = surfarray.make_surface(random_image)
-#         return surf
-#
+
 
 @TextureGenerator.register_subclass('unique_random_tiles')
 class UniqueRandomTilesTexture(Texture):
 
-    def __init__(self, n_colors = 10, delta_uniform = 5, size_tiles = 4, color_min = (0,0,0), color_max = (255,255,255),
-                 **kwargs):
+    def __init__(self, n_colors=10, delta_uniform=5, size_tiles=4,
+                 color_min=(0, 0, 0), color_max=(255, 255, 255), **kwargs):
 
         super().__init__(**kwargs)
         self.n_colors = n_colors

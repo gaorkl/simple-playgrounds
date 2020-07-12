@@ -1,37 +1,32 @@
+"""
+Module that defines Base Class Entity
+"""
+
+import math
+from abc import ABC
+
 import pymunk
 import pygame
-import math
-
-import os
-import yaml
 
 from flatland.utils.position_utils import PositionAreaSampler, Trajectory
-from flatland.entities.texture import TextureGenerator
+from flatland.entities.texture import TextureGenerator, Texture
 from flatland.utils.definitions import geometric_shapes, CollisionTypes
 
-# TODO: masks and physical shapes don't have the correct size sometimes (one pixel overlap)
+#pylint: disable=line-too-long
+#pylint: disable=too-many-instance-attributes
 
-
-class Entity:
+class Entity(ABC):
+    """
+    Entity creates a physical object, and deals with interactive properties and visual appearance
+    """
 
     visible = True
     interactive = False
-
-    absorbable = False
-    edible = False
-
     movable = False
-    follows_waypoints = False
     graspable = False
 
-    timed = False
-
-    terminate_upon_contact = False
-
     index_entity = 0
-    entity_type = 'entity'
-
-
+    entity_type = None
 
     def __init__(self, initial_position=None, **entity_params):
         """ Base class for entities.
@@ -40,65 +35,56 @@ class Entity:
             initial_position: Can be list, tuple (x,y,theta), Trajectory or PositionAreaSampler instances
             **entity_params: Additional Keyword Arguments
 
-        Notes:
-            For default configurations, see entity configs
-
         Keyword Args:
             name (str): Name of the entity. If none is provided, name is generated automatically.
             graspable (:obj:'bool'): True if the object can be grasped by an agent.
-                Default: False
+                Default: False.
             movable (:obj:'bool'): True if the object can be moved
-                Default: False
+                Default: False.
             interaction_range (:obj:'int'): Size of the interaction area.
             texture: dictionary of texture parameters. Refer to the class Texture
             is_temporary_entity (:obj:'bool'): if True, object doesn't re-appear after playground reset.
-                Default: False
-            physical_shape (str): shape of the entity. Can be 'circle', 'square', 'rectangle', 'pentagon', 'hexagon'
-            width_length: tuple of width, length to be set for rectangle shapes
-            radius (:obj: 'float'): radius for non-rectangle shapes
-            mass (:obj: 'float'): mass of the entity
+                Default: False.
+            physical_shape (str): shape of the entity.
+                Can be 'circle', 'square', 'rectangle', 'pentagon', 'hexagon'.
+            width_length: tuple of width, length to be set for rectangle shapes.
+            radius (:obj: 'float'): radius for non-rectangle shapes.
+            mass (:obj: 'float'): mass of the entity.
         """
 
         # Internal counter to assign identity number and name to each entity
         self.name = entity_params.get('name', self.entity_type + '_' + str(Entity.index_entity))
         Entity.index_entity += 1
 
-        self.graspable = entity_params.get('graspable', self.graspable)
-        self.movable = entity_params.get('movable', self.movable)
-
-        if self.graspable:
-            self.interactive = True
-            self.movable = True
-
         self.interaction_range = entity_params.get('interaction_range', 5)
 
-        self.physical_shape, self.mass, visible_size, interaction_size = self.get_physical_properties(entity_params)
+        self.physical_shape, self.mass, visible_size, interaction_size = self._get_physical_properties(entity_params)
 
         self.length, self.width, self.radius = visible_size
         self.interaction_length, self.interaction_width, self.interaction_radius = interaction_size
 
-        self.pm_body = self.create_pm_body()
+        self.pm_body = self._create_pm_body()
         self.pm_elements = [self.pm_body]
 
-        self.texture_surface = self.create_texture(entity_params['texture'])
+        self.texture_surface = self._create_texture(entity_params['texture'])
 
         self.pm_interaction_shape = None
         self.pm_visible_shape = None
 
         if self.visible:
-            self.pm_visible_shape = self.create_pm_shape()
-            self.visible_mask = self.create_mask()
+            self.pm_visible_shape = self._create_pm_shape()
+            self.visible_mask = self._create_mask()
             self.pm_elements.append(self.pm_visible_shape)
 
         if self.interactive:
-            self.pm_interaction_shape = self.create_pm_shape(is_interactive=True)
-            self.interaction_mask = self.create_mask(is_interactive=True)
+            self.pm_interaction_shape = self._create_pm_shape(is_interactive=True)
+            self.interaction_mask = self._create_mask(is_interactive=True)
             self.pm_elements.append(self.pm_interaction_shape)
 
         if self.graspable:
-            self.pm_grasp_shape = self.create_pm_shape(is_interactive=True)
+            self.pm_grasp_shape = self._create_pm_shape(is_interactive=True)
             self.pm_grasp_shape.collision_type = CollisionTypes.GRASPABLE
-            self.grasp_mask = self.create_mask(is_interactive=True)
+            self.grasp_mask = self._create_mask(is_interactive=True)
             self.pm_elements.append(self.pm_grasp_shape)
 
         self.initial_position = initial_position
@@ -114,21 +100,7 @@ class Entity:
         self.velocity = [0, 0, 0]
         self.position = [0, 0, 0]
 
-    @staticmethod
-    def _parse_configuration(entity_type, key):
-
-        if key is None:
-            return {}
-
-        fname = 'configs/' + entity_type + '_default.yml'
-
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(__location__, fname), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file)
-
-        return default_config[key]
-
-    def get_physical_properties(self, params):
+    def _get_physical_properties(self, params):
 
         # Physical Shape
         physical_shape = params['physical_shape']
@@ -156,31 +128,35 @@ class Entity:
         return physical_shape, mass, (width, length, radius), \
             (width_interaction, length_interaction, radius_interaction)
 
-    def create_texture(self, texture_params):
+    def _create_texture(self, texture_params):
 
-        if isinstance(texture_params, list):
-            texture_params = {
-                'texture_type': 'color',
-                'color': texture_params
-            }
+        if isinstance(texture_params, Texture):
+            texture = texture_params
 
-        texture_params['radius'] = self.radius
-        texture_params['physical_shape'] = self.physical_shape
+        else:
+            if isinstance(texture_params, list):
+                texture_params = {'texture_type': 'color', 'color': texture_params}
 
-        texture = TextureGenerator.create(texture_params)
+            texture_params['radius'] = self.radius
+            texture = TextureGenerator.create(texture_params)
+
         texture_surface = texture.generate()
 
         return texture_surface
 
     @property
     def initial_position(self):
+        """
+        Initial position of the Entity. Can be list, tuple, or PositionAreaSampler object
+        """
 
-        # differentiate between case where initial position is fixed and case where it is random
         if isinstance(self._initial_position, (list, tuple)):
             return self._initial_position
 
-        elif isinstance(self._initial_position, PositionAreaSampler):
+        if isinstance(self._initial_position, PositionAreaSampler):
             return self._initial_position.sample()
+
+        raise ValueError
 
     @initial_position.setter
     def initial_position(self, init_pos):
@@ -199,12 +175,15 @@ class Entity:
 
     @property
     def position(self):
+        '''
+        Position (x, y, orientation) of the Entity
+        '''
 
-        x, y = self.pm_body.position
+        pm_x, pm_y = self.pm_body.position
         phi = self.pm_body.angle
 
-        coord_x = self.size_playground[0] - y
-        coord_y = x
+        coord_x = self.size_playground[0] - pm_y
+        coord_y = pm_x
         coord_phi = (phi + math.pi / 2) % (2 * math.pi)
 
         return coord_x, coord_y, coord_phi
@@ -218,35 +197,38 @@ class Entity:
         coord_x = max(min(self.size_playground[0], coord_x), 0)
         coord_y = max(min(self.size_playground[1], coord_y), 0)
 
-        y = self.size_playground[0] - coord_x
-        x = coord_y
+        pos_y = self.size_playground[0] - coord_x
+        pos_x = coord_y
         phi = coord_phi - math.pi / 2
 
         if self.physical_shape not in ['rectangle', 'circle']:
             phi = phi + math.pi / geometric_shapes[self.physical_shape]
 
-        self.pm_body.position = x, y
+        self.pm_body.position = pos_x, pos_y
         self.pm_body.angle = phi
 
     @property
     def velocity(self):
-        vx, vy = self.pm_body.velocity
-        vphi = self.pm_body.angular_velocity
+        """
+        Velocity of the Entity
+        """
+        v_x, v_y = self.pm_body.velocity
+        v_phi = self.pm_body.angular_velocity
 
-        vx, vy = -vy, vx
-        return vx, vy, vphi
+        v_x, v_y = -v_y, v_x
+        return v_x, v_y, v_phi
 
     @velocity.setter
     def velocity(self, vel):
-        vx, vy, vphi = vel
+        v_x, v_y, v_phi = vel
 
-        self.pm_body.velocity = (vx, vy)
-        self.pm_body.angular_velocity = vphi
+        self.pm_body.velocity = (-v_y, v_x)
+        self.pm_body.angular_velocity = v_phi
 
-    def create_pm_body(self):
+    def _create_pm_body(self):
 
         if self.movable:
-            inertia = self.compute_moments()
+            inertia = self._compute_moments()
             pm_body = pymunk.Body(self.mass, inertia)
 
         else:
@@ -254,13 +236,13 @@ class Entity:
 
         return pm_body
 
-    def compute_moments(self):
+    def _compute_moments(self):
 
         if self.physical_shape == 'circle':
             moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-            vertices = self.compute_vertices(angle=0)
+            vertices = self._compute_vertices(angle=0)
             moment = pymunk.moment_for_poly(self.mass, vertices)
 
         elif self.physical_shape == 'rectangle':
@@ -271,7 +253,7 @@ class Entity:
 
         return moment
 
-    def compute_vertices(self, angle, is_interactive=False, border = 0):
+    def _compute_vertices(self, angle, is_interactive=False, border=0):
 
         vertices = []
 
@@ -289,10 +271,10 @@ class Entity:
 
             for coord in coord_pts_in_entity_base:
 
-                x = coord[0] * math.cos(angle) - coord[1] * math.sin(angle)
-                y = coord[0] * math.sin(angle) + coord[1] * math.cos(angle)
+                pos_x = coord[0] * math.cos(angle) - coord[1] * math.sin(angle)
+                pos_y = coord[0] * math.sin(angle) + coord[1] * math.cos(angle)
 
-                vertices.append([x, y])
+                vertices.append([pos_x, pos_y])
         else:
             if is_interactive:
                 radius = self.interaction_radius + border
@@ -301,13 +283,13 @@ class Entity:
 
             number_sides = geometric_shapes[self.physical_shape]
 
-            for n in range(number_sides):
-                vertices.append([radius*math.cos(n * 2*math.pi / number_sides + angle),
-                                radius * math.sin(n * 2*math.pi / number_sides + angle)])
+            for n_sides in range(number_sides):
+                vertices.append([radius*math.cos(n_sides * 2*math.pi / number_sides + angle),
+                                 radius * math.sin(n_sides * 2*math.pi / number_sides + angle)])
 
         return vertices
 
-    def create_pm_shape(self, is_interactive=False):
+    def _create_pm_shape(self, is_interactive=False):
 
         if is_interactive:
             radius = self.interaction_radius
@@ -322,7 +304,7 @@ class Entity:
             pm_shape = pymunk.Circle(self.pm_body, radius)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-            vertices = self.compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive)
+            vertices = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive)
             pm_shape = pymunk.Poly(self.pm_body, vertices)
 
         elif self.physical_shape == 'rectangle':
@@ -339,7 +321,9 @@ class Entity:
 
         return pm_shape
 
-    def create_mask(self, is_interactive=False):
+    def _create_mask(self, is_interactive=False):
+
+        #pylint: disable-all
 
         if is_interactive:
             radius = self.interaction_radius
@@ -356,8 +340,8 @@ class Entity:
 
         else:
 
-            vert = self.compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border = -1)
-            vertices = [[x[1] + radius - 1 ,  x[0] + radius - 1] for x in vert]
+            vert = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border=-1)
+            vertices = [[x[1] + radius - 1, x[0] + radius - 1] for x in vert]
 
             mask = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
@@ -385,13 +369,13 @@ class Entity:
 
         if self.prev_angle != self.pm_body.angle or force_recompute_mask:
 
-            self.visible_mask = self.create_mask()
+            self.visible_mask = self._create_mask()
 
             if self.interactive:
-                self.interaction_mask = self.create_mask(is_interactive=True)
+                self.interaction_mask = self._create_mask(is_interactive=True)
 
             if self.graspable:
-                self.grasp_mask = self.create_mask(is_interactive=True)
+                self.grasp_mask = self._create_mask(is_interactive=True)
 
             self.prev_angle = self.pm_body.angle
 
@@ -407,15 +391,18 @@ class Entity:
             mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
             surface.blit(self.visible_mask, mask_rect, None)
 
-    def update(self):
+    def pre_step(self):
+        """
+        Performs calculation before the physical environment steps.
+        """
 
         if self.follows_waypoints:
             self.position = next(self.trajectory)
 
-    def pre_step(self):
-        pass
-
     def reset(self):
+        """
+        Reset the trajectory and initial position
+        """
 
         if self.follows_waypoints:
             self.trajectory.reset()

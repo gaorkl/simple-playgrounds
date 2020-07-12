@@ -1,0 +1,42 @@
+# Walls
+classic :
+  texture_type: random_tiles
+  color_min: [140, 140, 0]
+  color_max: [160, 160, 0]
+  size_tiles: 4
+
+light :
+  texture_type: random_tiles
+  color_min: [200, 240, 230]
+  color_max: [220, 255, 250]
+  size_tiles: 4
+
+dark :
+  texture_type: random_tiles
+  color_min: [0, 40, 30]
+  color_max: [20, 55, 50]
+  size_tiles: 4
+
+colorful :
+  texture_type: unique_random_tiles
+  n_colors: 20
+  delta_uniform: 10
+  size_tiles : 10
+  color_min : [ 120, 120, 120 ]
+  color_max: [150, 150, 150 ]
+
+wall:
+  entity_type: basic
+  physical_shape: rectangle
+  depth: 10
+
+single-room:
+  none: None
+
+connected-rooms-2d:
+  doorstep_type: middle
+  doorstep_size: 40
+
+linear-rooms:
+  doorstep_type: middle
+  doorstep_size: 40

@@ -1,78 +1,81 @@
-# from ..entities.entity import *
+# -*- coding: utf-8 -*-
+""" Playground documentation.
 
-import pymunk
+Module defining Playground Base Class
+
+"""
+
 import os
+from abc import ABC
 import yaml
-from ..utils.definitions import *
+import pymunk
 
+from flatland.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
 
-class PlaygroundGenerator:
+#pylint: disable=unused-argument
+#pylint: disable=line-too-long
+
+class Playground(ABC):
+    """ Playground is a Base Class that manages the physical simulation.
+
+    Playground manages the interactions between Agents and Scene Elements.
+
+    Attributes:
+        size: size of the scene (width, length).
+        scene_elements: list of SceneElements present in the Playground.
+        fields: list of fields producing SceneElements in the Playground.
+        agents: list of Agents present in the Playground.
+        agent_starting_area: position or PositionAreaSampler,
+            Starting position of an agent (single agent).
+        done: bool, True if the playground reached termination.
 
     """
-    Register class to provide a decorator that is used to go through the package and
-    register available playgrounds.
-    """
 
-    subclasses = {}
-
-    @classmethod
-    def register_subclass(cls, playground_name):
-        def decorator(subclass):
-            cls.subclasses[playground_name] = subclass
-            return subclass
-
-        return decorator
-
-    @classmethod
-    def create(cls, playground_name, **scene_params):
-
-        if playground_name not in cls.subclasses:
-            raise ValueError('Playground not implemented:' + playground_name)
-
-        return cls.subclasses[playground_name](scene_params)
-
-
-class Playground:
+    # pylint: disable=too-many-instance-attributes
 
     scene_entities = []
 
-    def __init__(self, size, **scene_params):
+    def __init__(self, size):
 
         # Generate Scene
-        self.scene_size = size
-        self.width, self.length = self.scene_size
+        self.size = size
+        self._width, self._length = self.size
 
-        # Initialization of the pymunk space, this space is responsible for modelling all the physics
-        self.space = None
-        self.initialize_space()
+        # Initialization of the pymunk space, modelling all the physics
+        self._space = self._initialize_space()
 
-        # Data structures to save list of entities, and relations between them
-        self.physical_entities = []
-
-        self.entities = []
+        # Public attributes for entities in the playground
+        self.scene_elements = []
         self.fields = []
-        self.disappeared = []
-        self.grasped = {}
+        self.agents = []
+
+        # Private attributes for managing interactions in playground
+        self._disappeared_scene_elements = []
+        self._grasped_scene_elements = {}
 
         # Add entities declared in the scene
         for scene_entity in self.scene_entities:
-            self.add_entity(scene_entity)
+            self.add_scene_element(scene_entity)
 
-        self.handle_collisions()
-
-        self.agents = []
-
-        self.has_reached_termination = False
+        self.done = False
 
         self.agent_starting_area = None
 
+        self._handle_collisions()
+
     @staticmethod
-    def parse_configuration(entity_type, key):
+    def parse_configuration(key):
+        """ Private method that parses yaml configuration files.
 
-        if key is None:
-            return {}
+        Args:
+            key: (str) name of the playground configuration.
 
-        fname = 'configs/' + entity_type + '_default.yml'
+        Returns:
+            Dictionary of attributes and default values.
+
+        """
+
+        fname = 'configs/playground_default.yml'
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         with open(os.path.join(__location__, fname), 'r') as yaml_file:
@@ -80,17 +83,83 @@ class Playground:
 
         return default_config[key]
 
-    def initialize_space(self):
+    @staticmethod
+    def _initialize_space():
+        """ Method to initialize Pymunk empty space for 2D physics.
 
-        self.space = pymunk.Space()
-        self.space.gravity = pymunk.Vec2d(0., 0.)
-        self.space.damping = SPACE_DAMPING
+        Returns: Pymunk Space
+
+        """
+
+        space = pymunk.Space()
+        space.gravity = pymunk.Vec2d(0., 0.)
+        space.damping = SPACE_DAMPING
+
+        return space
+
+    def update(self, steps):
+        """ Update the Playground
+
+        Update all SceneElements, Fields, Timers and Grasps
+        Runs the Physics engine for n steps.
+
+        Args:
+            steps: Number of steps
+
+        """
+
+        for agent in self.agents:
+            agent.pre_step()
+
+        for _ in range(steps):
+            self._space.step(1. / steps)
+
+        for elem in self.scene_elements:
+            elem.pre_step()
+            if elem.follows_waypoints:
+                self._space.reindex_shapes_for_body(elem.pm_body)
+
+        self._fields_produce()
+        self._check_timers()
+        self._release_grasps()
+
+    def reset(self):
+        """ Reset the Playground to its initial state.
+
+        """
+
+        # remove entities and filter out entities which are temporary
+        for entity in self.scene_elements.copy():
+            self._remove_scene_element(entity)
+
+        # reset and replace entities that are not temporary
+        for entity in self._disappeared_scene_elements.copy():
+            entity.reset()
+            self.add_scene_element(entity)
+
+        # reset fields
+        for entity in self.fields:
+            entity.reset()
+
+        # reset agents
+        self._remove_agents()
+        for agent in self.agents:
+            agent.reset()
+            self.add_agent(agent)
+
+        self.done = False
 
     def add_agent(self, agent):
+        """ Add an agent to the playground.
+
+        Args:
+            agent: Agent.
+
+        """
 
         self.agents.append(agent)
 
-        agent.size_playground = [self.width, self.length]
+        agent.size_playground = self.size
 
         if agent.initial_position is not None:
             pass
@@ -99,144 +168,130 @@ class Playground:
             agent.initial_position = self.agent_starting_area
 
         else:
-            agent.initial_position = [self.width / 2, self.length / 2, 0]
+            agent.initial_position = [self._width / 2, self._length / 2, 0]
 
         agent.position = agent.initial_position
 
         for body_part in agent.body_parts:
-            self.space.add(*body_part.pm_elements)
+            self._space.add(*body_part.pm_elements)
 
-    def remove_agents(self):
+    def add_scene_element(self, new_scene_element, new_position=True):
+        """ Method to add a SceneElement to the Playground
 
-        for agent in self.agents:
-            for part in agent.body_parts:
-                self.space.remove(*part.pm_elements)
-                part.velocity = [0, 0, 0]
-        self.agents = []
+        Args:
+            new_scene_element: Scene Element to add to the Playground
+            new_position: If False, will not place the element in a new position.
+                Useful when entities are replaced by another.
 
-    def add_entity(self, new_entity, new_position = True):
+        """
 
-        new_entity.size_playground = [self.width, self.length]
+        new_scene_element.size_playground = self.size
 
-        if new_entity.entity_type is 'field':
-            self.fields.append(new_entity)
+        if new_scene_element.entity_type is SceneElementTypes.FIELD:
+            self.fields.append(new_scene_element)
 
         else:
-
             if new_position:
+                new_scene_element.position = new_scene_element.initial_position
 
-                new_entity.position = new_entity.initial_position
+            self._space.add(*new_scene_element.pm_elements)
+            self.scene_elements.append(new_scene_element)
+            if new_scene_element in self._disappeared_scene_elements:
+                self._disappeared_scene_elements.remove(new_scene_element)
 
-            self.space.add(*new_entity.pm_elements)
-            self.entities.append(new_entity)
-            if new_entity in self.disappeared:
-                self.disappeared.remove(new_entity)
+    def add_scene_element_without_overlapping(self, scene_element, tries=100):
+        """ Method to add a SceneElement to the Playground without overlapping
 
-    def add_entity_without_overlappig(self, new_entity, tries = 100):
+        Useful when a SceneElement has a random initial position, to avoid overlapping.
 
-        new_entity.size_playground = [self.width, self.length]
+        Args:
+            scene_element: Scene Element to add to the Playground
+            tries: Number of times the Playground will try to place the new_entity
+
+        """
+
+        scene_element.size_playground = self.size
 
         trial = 0
-        shape_collide = True
+        visible_collide = True
+        interactive_collide = True
 
+        all_shapes = self._space.shapes.copy()
 
-        while( shape_collide and trial< tries):
+        while (visible_collide or interactive_collide) and trial < tries:
 
-            self.add_entity(new_entity)
+            self.add_scene_element(scene_element)
 
-            shape_collide = False
+            visible_collide = False
+            interactive_collide = False
 
-            for entity in self.entities:
+            if scene_element.pm_visible_shape is not None:
+                collisions = [scene_element.pm_visible_shape.shapes_collide(shape) for shape in all_shapes]
+                visible_collide = any([len(collision.points) != 0 for collision in collisions])
 
-                if entity is not new_entity:
+            if scene_element.pm_interaction_shape is not None:
+                collisions = [scene_element.pm_interaction_shape.shapes_collide(shape) for shape in all_shapes]
+                interactive_collide = any([len(collision.points) != 0 for collision in collisions])
 
-                    if entity.pm_visible_shape is not None and new_entity.pm_visible_shape is not None:
-                        collide_points = entity.pm_visible_shape.shapes_collide(new_entity.pm_visible_shape).points
-
-                        if len(collide_points) != 0 :
-                            shape_collide = True
-
-            if shape_collide: self.remove_entity(new_entity)
+            if visible_collide or interactive_collide:
+                self._remove_scene_element(scene_element)
 
             trial += 1
 
-        return not shape_collide
+        return not (visible_collide or interactive_collide)
 
-    def remove_entity(self, disappearing_entity):
+    def _remove_agents(self):
 
-        self.space.remove(*disappearing_entity.pm_elements)
-        self.entities.remove(disappearing_entity)
+        for agent in self.agents:
+            for part in agent.body_parts:
+                self._space.remove(*part.pm_elements)
+                part.velocity = [0, 0, 0]
+        self.agents = []
 
-        if not disappearing_entity.is_temporary_entity:
-            self.disappeared.append(disappearing_entity)
+    def _remove_scene_element(self, scene_element):
 
-        for entity in self.entities:
-            if entity.entity_type is 'dispenser' and disappearing_entity in entity.produced_entities:
-                entity.produced_entities.remove(disappearing_entity)
+        self._space.remove(*scene_element.pm_elements)
+        self.scene_elements.remove(scene_element)
 
-        for entity in self.fields:
-            if disappearing_entity in entity.produced_entities:
-                entity.produced_entities.remove(disappearing_entity)
+        if not scene_element.is_temporary_entity:
+            self._disappeared_scene_elements.append(scene_element)
 
-        if disappearing_entity in self.grasped.keys():
-            body_part = self.grasped[disappearing_entity]
-            self.space.remove( *body_part.grasped )
+        for elem in self.scene_elements:
+            if elem.entity_type is SceneElementTypes.DISPENSER and scene_element in elem.produced_entities:
+                elem.produced_entities.remove(scene_element)
+
+        for field in self.fields:
+            if scene_element in field.produced_entities:
+                field.produced_entities.remove(scene_element)
+
+        if scene_element in self._grasped_scene_elements.keys():
+            body_part = self._grasped_scene_elements[scene_element]
+            self._space.remove(*body_part.grasped)
             body_part.grasped = []
 
-    def update_playground(self):
-
-        for entity in self.entities:
-            entity.update()
-            entity.pre_step()
-
-            if entity.follows_waypoints:
-                self.space.reindex_shapes_for_body(entity.pm_body)
-
-        self.fields_produce()
-        self.check_timers()
-        self.release_grasps()
-
-    def reset(self):
-
-        print('reset playground')
-
-        # remove entities and filter out entities which are temporary
-        for entity in self.entities.copy():
-            self.remove_entity(entity)
-
-        # reset and replace entities that are not temporary
-        for entity in self.disappeared.copy():
-            entity.reset()
-            self.add_entity(entity)
-
-        for entity in self.fields:
-            entity.reset()
-
-        self.has_reached_termination = False
-
-    def fields_produce(self):
+    def _fields_produce(self):
 
         for field in self.fields:
 
             if field.can_produce():
                 new_entity = field.produce()
-                self.add_entity(new_entity)
+                self.add_scene_element(new_entity)
 
-    def check_timers(self):
+    def _check_timers(self):
 
-        for entity in self.entities:
+        for entity in self.scene_elements:
 
             if entity.timed and entity.timer == 0:
 
                 list_remove, list_add = entity.activate(self)
 
                 for entity_removed in list_remove:
-                    self.remove_entity(entity_removed)
+                    self._remove_scene_element(entity_removed)
 
                 for entity_added in list_add:
-                    self.add_entity(entity_added)
+                    self.add_scene_element(entity_added)
 
-    def release_grasps(self):
+    def _release_grasps(self):
 
         for agent in self.agents:
 
@@ -244,22 +299,23 @@ class Playground:
                 if not part.is_holding and part.can_grasp:
 
                     for joint in part.grasped:
-                        self.space.remove(joint)
+                        self._space.remove(joint)
                     part.grasped = []
 
-    def get_entity_from_shape(self, pm_shape):
+    def _get_scene_element_from_shape(self, pm_shape):
 
-        entity = next(iter([ent for ent in self.entities if pm_shape in ent.pm_elements]), None)
+        entity = next(iter([e for e in self.scene_elements if pm_shape in e.pm_elements]), None)
         return entity
 
-    def get_agent_from_shape(self, pm_shape):
+    def _get_agent_from_shape(self, pm_shape):
+
         for agent in self.agents:
             if agent.owns_shape(pm_shape):
                 return agent
 
         return None
 
-    def get_closest_agent(self, ent):
+    def _get_closest_agent(self, ent):
 
         dist_list = [(a.position[0] - ent.position[0])**2 + (a.position[1] - ent.position[1])**2 for a in self.agents]
         index_min_dist = dist_list.index(min(dist_list))
@@ -267,149 +323,142 @@ class Playground:
 
         return closest_agent
 
-    def agent_touches_entity(self, arbiter, space, data):
+    def _agent_touches_entity(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
-        touched_entity = self.get_entity_from_shape(arbiter.shapes[1])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        touched_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
         agent.reward += touched_entity.reward
 
         list_remove, list_add = touched_entity.activate()
 
         for entity_removed in list_remove:
-            self.remove_entity(entity_removed)
+            self._remove_scene_element(entity_removed)
 
         for entity_added in list_add:
-            self.add_entity(entity_added)
+            self.add_scene_element(entity_added)
 
         if touched_entity.terminate_upon_contact:
-            self.has_reached_termination = True
+            self.done = True
 
         return True
 
+    def _agent_interacts(self, arbiter, space, data):
 
-    def agent_interacts(self, arbiter, space, data):
-
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        interacting_entity = self.get_entity_from_shape(arbiter.shapes[1])
+        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if body_part.is_activating: # and (interacting_entity.entity_type is 'dispenser'):
+        if body_part.is_activating:
 
             agent.reward += interacting_entity.reward
 
             list_remove, list_add = interacting_entity.activate(body_part)
 
             for entity_removed in list_remove:
-                self.remove_entity(entity_removed)
+                self._remove_scene_element(entity_removed)
 
             for entity_added in list_add:
-                self.add_entity(entity_added)
+                self.add_scene_element(entity_added)
 
             if interacting_entity.terminate_upon_contact:
-                self.has_reached_termination = True
+                self.done = True
 
             body_part.is_activating = False
 
         return True
 
-    def agent_grasps(self, arbiter, space, data):
+    def _agent_grasps(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        interacting_entity = self.get_entity_from_shape(arbiter.shapes[1])
+        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if body_part.is_grasping and not body_part.is_holding  :
+        if body_part.is_grasping and not body_part.is_holding:
 
             body_part.is_holding = True
 
-            j1 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0,5), (0,-5))
-            j2 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0,-5), (0,5))
-            j3 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5,5), (0,5))
-            j4 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5,-5), (0,5))
+            j_1 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0, 5), (0, -5))
+            j_2 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0, -5), (0, 5))
+            j_3 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5, 5), (0, 5))
+            j_4 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5, -5), (0, 5))
 
-            self.space.add(j1, j2, j3, j4)
-            body_part.grasped = [j1, j2, j3, j4]
+            self._space.add(j_1, j_2, j_3, j_4)
+            body_part.grasped = [j_1, j_2, j_3, j_4]
 
-            self.grasped[interacting_entity] = body_part
+            self._grasped_scene_elements[interacting_entity] = body_part
 
         return True
 
-    def agent_enters_zone(self, arbiter, space, data):
+    def _agent_enters_zone(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
-        zone_reached = self.get_entity_from_shape(arbiter.shapes[1])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        zone_reached = self._get_scene_element_from_shape(arbiter.shapes[1])
 
         agent.reward += zone_reached.reward
 
         if zone_reached.terminate_upon_contact:
-            self.has_reached_termination = True
+            self.done = True
 
         return True
 
-    def gem_interacts(self, arbiter, space, data):
+    def _gem_interacts(self, arbiter, space, data):
 
-        gem = self.get_entity_from_shape(arbiter.shapes[0])
-        interacting_entity = self.get_entity_from_shape(arbiter.shapes[1])
+        gem = self._get_scene_element_from_shape(arbiter.shapes[0])
+        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        agent = self.get_closest_agent(gem)
+        agent = self._get_closest_agent(gem)
         agent.reward += interacting_entity.reward
 
         list_remove, list_add = interacting_entity.activate(gem)
 
         for entity_removed in list_remove:
-            self.remove_entity(entity_removed)
+            self._remove_scene_element(entity_removed)
 
         for entity_added in list_add:
-            self.add_entity(entity_added)
+            self.add_scene_element(entity_added)
 
         if interacting_entity.terminate_upon_contact:
-            self.has_reached_termination = True
+            self.done = True
 
         return True
 
-    def agent_eats(self, arbiter, space, data):
+    def _agent_eats(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        edible_entity = self.get_entity_from_shape(arbiter.shapes[1])
+        edible_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if body_part.is_eating :
+        if body_part.is_eating:
 
             agent.reward += edible_entity.get_reward()
 
-            self.remove_entity(edible_entity)
+            self._remove_scene_element(edible_entity)
             completely_eaten = edible_entity.eats()
 
             if not completely_eaten:
-                self.add_entity(edible_entity, new_position=False)
+                self.add_scene_element(edible_entity, new_position=False)
 
             body_part.is_eating = False
 
         return True
 
-    def handle_collisions(self):
+    def _handle_collisions(self):
 
-        # TODO: replace all collisoin handlers with:
-        # - agent agent
-        # - agent interactive
-        # - interactive interactive
+        h_touch = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
+        h_touch.pre_solve = self._agent_touches_entity
 
-        # Collision handlers
-        h_touch = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
-        h_touch.pre_solve = self.agent_touches_entity
+        h_eat = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.EDIBLE)
+        h_eat.pre_solve = self._agent_eats
 
-        h_eat = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.EDIBLE)
-        h_eat.pre_solve = self.agent_eats
+        h_interact = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE)
+        h_interact.pre_solve = self._agent_interacts
 
-        h_interact = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE)
-        h_interact.pre_solve = self.agent_interacts
+        h_zone = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.PASSIVE)
+        h_zone.pre_solve = self._agent_enters_zone
 
-        h_zone = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.PASSIVE)
-        h_zone.pre_solve = self.agent_enters_zone
+        h_gem_interactive = self._space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
+        h_gem_interactive.pre_solve = self._gem_interacts
 
-        h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
-        h_gem_interactive.pre_solve = self.gem_interacts
-
-        h_grasp = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
-        h_grasp.pre_solve = self.agent_grasps
+        h_grasp = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
+        h_grasp.pre_solve = self._agent_grasps

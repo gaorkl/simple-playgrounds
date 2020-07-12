@@ -1,2 +1,1 @@
-#from .collection import *
-#from .playground import Playground
+from flatland.playgrounds.empty import SingleRoom, LinearRooms, ConnectedRooms2D
