@@ -53,11 +53,11 @@ agents.append(my_agent)
 #                              fov= 250,range = 400, number=1080)
 # sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, range = 200, only_front = True)
 #
-# sensor = LidarCones(name='lidar', anchor=my_agent.base_platform,
-#                    invisible_elements=my_agent.body_parts, fov=180, number_cones=400, range=300,
-#                    remove_occluded=False, allow_duplicates=True)
+sensor = LidarCones(name='lidar', anchor=my_agent.base_platform,
+                   invisible_elements=my_agent.body_parts, fov=90, number_cones=10, range=300,
+                   remove_occluded=True, allow_duplicates=False)
 
-# my_agent.add_sensor(sensor)
+my_agent.add_sensor(sensor)
 #
 #
 

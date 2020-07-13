@@ -5,6 +5,8 @@ from abc import abstractmethod
 import os
 import yaml
 
+from operator import attrgetter
+
 
 class SemanticSensor(Sensor):
 

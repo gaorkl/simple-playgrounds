@@ -4,7 +4,6 @@ from collections import namedtuple
 
 import pymunk
 import math
-from operator import attrgetter
 
 
 LidarPoint = namedtuple('Point', 'entity distance angle')
