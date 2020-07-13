@@ -1,27 +1,39 @@
+"""
+Module for Edible SceneElement
+"""
 from flatland.entities.scene_elements.element import SceneElement
 from flatland.utils.definitions import CollisionTypes
 
+#pylint: disable=line-too-long
+
 
 class Edible(SceneElement):
+
+    """
+    Base class for edible Scene Elements.
+    Once eaten by an agent, the SceneElement shrinks in size, mass, and available reward.
+    """
+
+    # pylint: disable=too-many-instance-attributes
 
     entity_type = 'edible'
     interactive = True
 
     def __init__(self, initial_position, default_config_key=None, **kwargs):
-        """ Base class for edible entities
-
+        """
         Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            default_config_key: can be 'apple' or 'rotten_apple'
-            **kwargs: other params to configure entity. Refer to Entity class
+            initial_position: initial position of the entity.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
+            default_config_key: can be 'apple' or 'rotten_apple'.
+            **kwargs: other params to configure SceneElement. Refer to Entity class.
 
         Keyword Args:
             shrink_ratio_when_eaten: When eaten by an agent, the mass, size, and reward are multiplied by this ratio.
                 Default: 0.9
-            initial_reward: Initial reward of the edible
-            min_reward: When reward is lower than min_reward, the edible entity disappears
+            initial_reward: Initial reward of the edible.
+            min_reward: When reward is lower than min_reward, the edible entity disappears.
 
         """
 
@@ -42,7 +54,7 @@ class Edible(SceneElement):
 
         self.pm_interaction_shape.collision_type = CollisionTypes.EDIBLE
 
-    def generate_shapes_and_masks(self):
+    def _generate_shapes_and_masks(self):
 
         self.pm_visible_shape = self._create_pm_shape()
         self.visible_mask = self._create_mask()
@@ -60,11 +72,11 @@ class Edible(SceneElement):
             self.pm_elements.append(self.pm_grasp_shape)
 
     def get_reward(self):
-
+        """ Returns current reward when eaten."""
         return self.reward
 
     def eats(self):
-
+        """ Change size, reward, and appearance."""
         # Change reward, size and mass
         previous_position = self.pm_body.position
         previous_angle = self.pm_body.angle
@@ -87,16 +99,18 @@ class Edible(SceneElement):
         self.pm_body.position = previous_position
         self.pm_body.angle = previous_angle
 
-        self.generate_shapes_and_masks()
+        self._generate_shapes_and_masks()
 
         if self.initial_reward > 0 and self.reward > self.min_reward:
             return False
-        elif self.initial_reward < 0 and self.reward < self.min_reward:
+        if self.initial_reward < 0 and self.reward < self.min_reward:
             return False
-        else:
-            return True
 
-    def reset(self, new_position=None):
+        return True
+
+    def reset(self):
+
+        # pylint: disable=unused-argument
 
         self.reward = self.initial_reward
         self.mass = self.initial_mass
@@ -112,28 +126,31 @@ class Edible(SceneElement):
 
         super().reset()
 
-        self.generate_shapes_and_masks()
+        self._generate_shapes_and_masks()
 
 
 class Apple(Edible):
 
-    def __init__(self, initial_position, **kwargs):
-        """ Edible entity that provides a positive reward
+    """ Edible entity that provides a positive reward
 
-        Default: Green Circle of radius 10, with an initial_reward of 30, a min reward of 5, and a shrink_ratio of 0.9
-        """
+    Default: Green Circle of radius 10, with an initial_reward of 30,
+    a min reward of 5, and a shrink_ratio of 0.9.
+    """
+
+    def __init__(self, initial_position, **kwargs):
 
         super(Apple, self).__init__(initial_position=initial_position, default_config_key='apple', **kwargs)
 
 
 class RottenApple(Edible):
 
+    """ Edible entity that provides a negative reward
+
+    Default: Brown Circle of radius 10, with an initial_reward of -30,
+    a min reward of -5, and a shrink_ratio of 0.9.
+
+    """
     def __init__(self, initial_position, **kwargs):
-
-        """ Edible entity that provides a positive reward
-
-        Default: Brown Circle of radius 10, with an initial_reward of -30, a min reward of -5, and a shrink_ratio of 0.9
-        """
 
         super(RottenApple, self).__init__(initial_position=initial_position, default_config_key='rotten_apple',
                                           **kwargs)

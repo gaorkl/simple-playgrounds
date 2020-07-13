@@ -1,13 +1,19 @@
-from flatland.entities.entity import Entity
-from flatland.utils.definitions import ActionTypes, CollisionTypes, Action
+"""
+Body Parts of an Agent.
+"""
 
-import pymunk
-import pygame
 import math
-import yaml
 import os
 from abc import ABC, abstractmethod
 
+import yaml
+import pymunk
+import pygame
+
+from flatland.entities.entity import Entity
+from flatland.utils import ActionTypes, CollisionTypes, Action
+
+#pylint: disable=line-too-long
 
 class Part(Entity, ABC):
     """
@@ -15,6 +21,8 @@ class Part(Entity, ABC):
     Part inherits from Entity. It is a visible, movable Entity.
 
     """
+
+    #pylint: disable=too-many-instance-attributes
 
     entity_type = 'part'
     part_type = None
@@ -26,13 +34,17 @@ class Part(Entity, ABC):
             **kwargs: Optional Keyword Arguments
 
         Keyword Args:
-            can_absorb (:obj: 'bool'): If True, body part can absorb absorbable entities on contact. Default: False
-            can_eat (:obj: 'bool'): If True, body part can eat edible entities. Default: False
-            can_activate (:obj: 'bool'): If True, body part can activate activable entities. Default: False
-            can_grasp (:obj: 'bool'): If True, body part can grasp graspable entities. Default: False
+            can_absorb (:obj: 'bool'): Part can absorb absorbable entities on contact.
+                Default: False.
+            can_eat (:obj: 'bool'): Part can eat edible entities.
+                Default: False.
+            can_activate (:obj: 'bool'): Part can activate activable entities.
+                Default: False.
+            can_grasp (:obj: 'bool'): Part can grasp graspable entities.
+                Default: False.
 
         Note:
-            All properties related to the physical properties of the Part can be set as keyword argument.
+            All physical properties of the Part can be set as keyword argument.
             Refer to the Entity class for the list of available keyword arguments.
 
         """
@@ -117,8 +129,6 @@ class Part(Entity, ABC):
         if self.is_holding and not self.is_grasping:
             self.is_holding = False
 
-        pass
-
     @abstractmethod
     def reset(self):
 
@@ -150,35 +160,35 @@ class Platform(Part, ABC):
             **kwargs: optional additional parameters
 
         Keyword Args:
-            physical_shape (str): circle, square, pentagon, hexagon. Default: circle
-            texture (:obj: 'dict': dictionary of texture parameters
-            radius: radius of the platform. Default: 20
-            mass: mass of the platform. Default: 10
-            max_linear_force: Maximum longitudinal and lateral force applied to the part (pixels per timestep).
-                Default: 1.0
-            max_angular_velocity: Maximum angular velocity (radian per timestep). Default: 0.25
+            physical_shape (str): circle, square, pentagon, hexagon. Default: circle.
+            texture (:obj: 'dict': dictionary of texture parameters.
+            radius: radius of the platform. Default: 20.
+            mass: mass of the platform. Default: 10.
+            max_linear_force: Maximum longitudinal and lateral force. Default: 1.0.
+            max_angular_velocity: Maximum angular velocity (radian per timestep). Default: 0.25.
         """
 
         default_config = self._parse_configuration('platform')
         body_part_params = {**default_config, **kwargs}
 
-        super().__init__(**body_part_params)
+        Part.__init__(self, **body_part_params)
 
         self.max_linear_force = body_part_params['max_linear_force']
         self.max_angular_velocity = body_part_params['max_angular_velocity']
 
-    def reset(self):
-        super().reset()
+    def _create_mask(self, is_interactive=False):
 
-    def _create_mask(self, is_interactive = False):
+        mask = Part._create_mask(self)
 
-        mask = super()._create_mask()
-
-        y = self.radius * (1 + math.cos(self.pm_body.angle))
-        x = self.radius * (1 + math.sin(self.pm_body.angle))
-        pygame.draw.line(mask, pygame.color.THECOLORS["blue"], (self.radius, self.radius), (x, y), 2)
+        pos_y = self.radius * (1 + math.cos(self.pm_body.angle))
+        pos_x = self.radius * (1 + math.sin(self.pm_body.angle))
+        pygame.draw.line(mask, pygame.color.THECOLORS["blue"],
+                         (self.radius, self.radius), (pos_x, pos_y), 2)
 
         return mask
+
+    def reset(self):
+        super().reset()
 
 
 class ForwardPlatform(Platform):
@@ -188,10 +198,6 @@ class ForwardPlatform(Platform):
     Refer to the base class Platform.
 
     """
-
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
 
     def get_available_actions(self):
         actions = super().get_available_actions()
@@ -218,10 +224,6 @@ class HolonomicPlatform(ForwardPlatform):
     Platform that can translate in all directions, and rotate.
     Refer to the base class Platform.
     """
-
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
 
     def get_available_actions(self):
 
@@ -250,6 +252,8 @@ class Actuator(Part, ABC):
         anchor: Entity on which the Actuator is attached
 
     """
+
+    #pylint: disable=too-many-instance-attributes
 
     def __init__(self, anchor, coord_anchor=(0, 0), coord_part=(0, 0), angle_offset=0, **kwargs):
 
@@ -284,10 +288,10 @@ class Actuator(Part, ABC):
 
         self.set_relative_position()
 
-        x0, y0 = self.relative_position_of_anchor_on_anchor
-        x1, y1 = self.relative_position_of_anchor_on_part
+        x_0, y_0 = self.relative_position_of_anchor_on_anchor
+        x_1, y_1 = self.relative_position_of_anchor_on_part
 
-        self.joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body,  (y0, -x0), (y1, -x1))
+        self.joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body, (y_0, -x_0), (y_1, -x_1))
         self.joint.collide_bodies = False
         self.limit = pymunk.RotaryLimitJoint(anchor.pm_body, self.pm_body,
                                              self.angle_offset - self.rotation_range/2,
@@ -298,7 +302,10 @@ class Actuator(Part, ABC):
         self.pm_elements += [self.joint, self.motor, self.limit]
 
     def set_relative_position(self):
-
+        """
+        Calculates the position of a Part relative to its Anchor.
+        Sets the position of the Part.
+        """
         # Get position of the anchor point on anchor
         x_anchor_center, y_anchor_center = self.anchor.pm_body.position
         x_anchor_center, y_anchor_center = -y_anchor_center, x_anchor_center
@@ -322,9 +329,9 @@ class Actuator(Part, ABC):
                                      + y_anchor_relative_of_part * math.cos(theta_part - math.pi / 2))
 
         # Move part to align on anchor
-        y = -(x_anchor_coordinates_anchor - x_anchor_coordinates_part)
-        x = y_anchor_coordinates_anchor - y_anchor_coordinates_part
-        self.pm_body.position = (x, y)
+        pos_y = -(x_anchor_coordinates_anchor - x_anchor_coordinates_part)
+        pos_x = y_anchor_coordinates_anchor - y_anchor_coordinates_part
+        self.pm_body.position = (pos_x, pos_y)
 
         self.pm_body.angle = self.anchor.pm_body.angle + self.angle_offset
 
@@ -358,9 +365,6 @@ class Actuator(Part, ABC):
         elif angle_centered > self.rotation_range/2 - math.pi/20 and angular_velocity < 0:
             self.motor.rate = 0
 
-    def reset(self):
-        super().reset()
-
 
 class Head(Actuator):
     """
@@ -369,7 +373,7 @@ class Head(Actuator):
 
     """
 
-    def __init__(self, anchor, position_anchor=(0, 0), angle_offset=0,  **kwargs):
+    def __init__(self, anchor, position_anchor=(0, 0), angle_offset=0, **kwargs):
 
         default_config = self._parse_configuration('head')
         body_part_params = {**default_config, **kwargs}
@@ -378,13 +382,13 @@ class Head(Actuator):
 
         self.pm_visible_shape.sensor = True
 
-    def _create_mask(self, is_interactive = False):
+    def _create_mask(self, is_interactive=False):
 
         mask = super()._create_mask()
 
-        y = self.radius * (1 + math.cos(self.pm_body.angle))
-        x = self.radius * (1 + math.sin(self.pm_body.angle))
-        pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (x, y), 2)
+        pos_y = self.radius * (1 + math.cos(self.pm_body.angle))
+        pos_x = self.radius * (1 + math.sin(self.pm_body.angle))
+        pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (pos_x, pos_y), 2)
 
         return mask
 
@@ -397,7 +401,7 @@ class Eye(Actuator):
 
     """
 
-    def __init__(self, anchor, position_anchor, angle_offset=0,  **kwargs):
+    def __init__(self, anchor, position_anchor, angle_offset=0, **kwargs):
 
         default_config = self._parse_configuration('eye')
         body_part_params = {**default_config, **kwargs}
@@ -406,13 +410,13 @@ class Eye(Actuator):
 
         self.pm_visible_shape.sensor = True
 
-    def _create_mask(self, is_interactive = False):
+    def _create_mask(self, is_interactive=False):
 
         mask = super()._create_mask()
 
-        y = self.radius * (1 + math.cos(self.pm_body.angle))
-        x = self.radius * (1 + math.sin(self.pm_body.angle))
-        pygame.draw.line(mask, pygame.color.THECOLORS["brown"], (self.radius, self.radius), (x, y), 2)
+        pos_y = self.radius * (1 + math.cos(self.pm_body.angle))
+        pos_x = self.radius * (1 + math.sin(self.pm_body.angle))
+        pygame.draw.line(mask, pygame.color.THECOLORS["brown"], (self.radius, self.radius), (pos_x, pos_y), 2)
 
         return mask
 

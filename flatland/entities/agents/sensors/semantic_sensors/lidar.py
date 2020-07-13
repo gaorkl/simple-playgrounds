@@ -25,12 +25,26 @@ class Lidar(SemanticSensor):
         # Field of View of the Sensor
         self.fovRange = sensor_params.get('range')
         self.fovAngle = sensor_params.get('fov') * math.pi / 180
-        self.number_rays = sensor_params['number_rays']
+        self.number_beams = sensor_params['number_beams']
+        self.full_coverage = sensor_params.get('full_coverage', False)
 
-        if self.number_rays == 1:
-            self.angles = [0]
+        if self.full_coverage and self.number_beams == 1:
+            raise ValueError
+
+        if self.full_coverage:
+            self.radius_beam = self.fovRange * self.fovAngle
+
+            angle = self.fovAngle - self.fovAngle / (self.number_beams)
+            self.angles = [n * angle / (self.number_beams - 1) - angle / 2 for n in
+                           range(self.number_beams)]
+
         else:
-            self.angles = [n * self.fovAngle / (self.number_rays - 1) - self.fovAngle / 2 for n in range(self.number_rays)]
+            self.radius_beam = 1
+
+            if self.number_beams == 1:
+                self.angles = [0]
+            else:
+                self.angles = [n * self.fovAngle / (self.number_beams - 1) - self.fovAngle / 2 for n in range(self.number_beams)]
         self.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 0b1)
 
     def update_sensor(self, pg):
@@ -46,12 +60,12 @@ class Lidar(SemanticSensor):
                              position[1] + self.fovRange * math.sin(angle)
                              )
 
-            collisions = pg.space.segment_query(position, position_end, 10, self.filter)
+            collisions = pg.space.segment_query(position, position_end, 2*self.radius_beam, self.filter)
 
             shapes = [collision.shape for collision in collisions]
             distances = [collision.alpha * self.fovRange for collision in collisions]
 
-            entities = [pg._get_scene_element_from_shape(shape) for shape in shapes]
+            entities = [pg._get_scene_element_from_shape(shape) for shape in shapes if shape.sensor == False]
             entities = list(set([ LidarPoint(ent, dist, sensor_angle) for ent, dist in zip(entities, distances)
                                   if ent is not None and ent.pm_visible_shape is not None]))
 

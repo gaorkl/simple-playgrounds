@@ -1,10 +1,26 @@
-from flatland.entities import Entity
+"""
+Module that defines Base Class SceneElement
+"""
 
 from abc import ABC
 import os
 import yaml
 
+from flatland.entities import Entity
+
+
 class SceneElement(Entity, ABC):
+    """
+    A SceneElement can have interactive properties, passive properties.
+
+    Attributes:
+        absorbable: Disappears upon contact with an Agent.
+        edible: Can be eaten by an agent.
+        movable: Can move.
+        graspable: Can be grasped by an agent.
+        timed: Behavior depends on timer.
+        terminate_upon_contact: Terminates the episode upon contact with an Agent.
+    """
 
     absorbable = False
     edible = False
@@ -17,7 +33,7 @@ class SceneElement(Entity, ABC):
 
     terminate_upon_contact = False
 
-    def __init__(self, initial_position=None, **kwargs ):
+    def __init__(self, initial_position=None, **kwargs):
 
         self.graspable = kwargs.get('graspable', self.graspable)
         self.movable = kwargs.get('movable', self.movable)

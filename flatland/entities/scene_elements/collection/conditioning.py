@@ -1,27 +1,30 @@
+"""
+Scene Elements used for conditioning experiments
+"""
+from flatland.entities.scene_elements import Lever
 from flatland.entities.scene_elements.element import SceneElement
+from flatland.playgrounds.playground import Playground
 
 
 class ColorChanging(SceneElement):
+
+    """ SceneElement that changes its texture based on a timer."""
 
     entity_type = 'color_changing'
     timed = True
 
     def __init__(self, initial_position, timers, textures, **kwargs):
-        """ Base class for traffic light entities
+        """
 
-        Traffic Light entity changes color and is controlled at the level of the playground.
+        ColorChanging changes color and is controlled at the level of the playground.
+        The color changes depending on a list of timers.
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            default_config_key: can be 'apple' or 'rotten_apple'
-            **kwargs: other params to configure entity. Refer to Entity class
-
-        Keyword Args:
-            shrink_ratio_when_eaten: When eaten by an agent, the mass, size, and reward are multiplied by this ratio.
-                Default: 0.9
-            initial_reward: Initial reward of the edible
-            min_reward: When reward is lower than min_reward, the edible entity disappears
-
+            initial_position: initial position of the SeneElement.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
+            timers: Single timer (int) or list of Timers.
+            textures: Single texture or list of Textures.
+            **kwargs: other params to configure entity. Refer to Entity class.
         """
 
         default_config = self._parse_configuration('basic', 'color_changing')
@@ -42,7 +45,6 @@ class ColorChanging(SceneElement):
 
         super().__init__(initial_position=initial_position, **entity_params)
 
-
         self.textures = []
         for texture in self.list_texture_params:
             texture_surface = self._create_texture(texture)
@@ -50,10 +52,12 @@ class ColorChanging(SceneElement):
 
         self.texture_surface = self.textures[0]
         self.force_redraw = False
-        self.reset_timer()
 
+        self.timer = 0
+        self.current_index = 0
+        self._reset_timer()
 
-    def reset_timer(self):
+    def _reset_timer(self):
 
         self.current_index = 0
         self.timer = self.timers[self.current_index]
@@ -64,37 +68,67 @@ class ColorChanging(SceneElement):
         self.timer -= 1
 
     def activate(self, activating_entity):
+        """
+        When timer finishes, changes texture.
+
+        Args:
+            activating_entity: must be Playground.
+        """
+
+        assert isinstance(activating_entity, Playground)
 
         self.current_index = (self.current_index + 1) % len(self.timers)
 
         self.timer = self.timers[self.current_index]
         self.texture_surface = self.textures[self.current_index]
-
         self.force_redraw = True
 
         return [], []
 
     def draw(self, surface, draw_interaction=False, force_recompute_mask=False):
 
-        super().draw(surface, draw_interaction=draw_interaction, force_recompute_mask=self.force_redraw)
+        super().draw(surface, draw_interaction=draw_interaction,
+                     force_recompute_mask=self.force_redraw)
         self.force_redraw = False
-
 
     def reset(self):
 
         super().reset()
-        self.reset_timer()
+        self._reset_timer()
 
 
 class ConditionedColorChanging(ColorChanging):
+    """
+    Flips the reward of an SceneElement based on timers.
+    Intended to work with Lever SceneElement.
+    """
 
     def __init__(self, initial_position, conditioned_entity, timers, textures, **kwargs):
+        """
+
+        Args:
+            initial_position: initial_position: initial position of the SeneElement.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
+            conditioned_entity: Lever SceneElement.
+            timers: list of Timers.
+            textures: list of Textures.
+            **kwargs: other params to configure entity. Refer to Entity class.
+
+        Notes:
+            The length of timers and textures should be 2.
+        """
+
+        assert isinstance(conditioned_entity, Lever)
+        assert len(timers) == len(textures) == 2
 
         super().__init__(initial_position, timers, textures, **kwargs)
 
         self.conditioned_entity = conditioned_entity
 
     def activate(self, activating_entity):
+        """
+        When timers finishes, change color and flip rewards.
+        """
 
         super().activate(activating_entity)
 

@@ -3,6 +3,8 @@ Module for Field
 """
 import random
 
+#pylint: disable=too-many-instance-attributes
+#pylint: disable=too-many-arguments
 
 class Field:
     """
@@ -67,7 +69,8 @@ class Field:
 
         """
 
-        obj = self.entity_produced(initial_position=self.location_sampler, **self.entity_produced_params)
+        obj = self.entity_produced(initial_position=self.location_sampler,
+                                   **self.entity_produced_params)
         obj.is_temporary_entity = True
 
         self.total_produced += 1

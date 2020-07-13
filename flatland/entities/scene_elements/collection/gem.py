@@ -1,8 +1,15 @@
+"""
+Module for Gem SceneElements.
+Gem interacts with other SceneElements.
+"""
 from flatland.entities.scene_elements.element import SceneElement
 from flatland.utils import CollisionTypes
 
 
 class GemSceneElement(SceneElement):
+    """
+    A Gem interacts with other SceneElements.
+    """
 
     entity_type = 'gem'
     movable = True
@@ -15,17 +22,15 @@ class GemSceneElement(SceneElement):
 
 class Coin(GemSceneElement):
 
+    """Coins are used with a VendingMachine to get rewards.
+    A Coin disappears when in contact with its VendingMachine."""
+
     entity_type = 'coin'
     movable = True
 
     def __init__(self, initial_position, **kwargs):
-        """ Coins are used with a VendingMachine to get rewards.
-
-        Default: Gold circle of radius 5 and mass 5.
-
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            **kwargs: other params to configure entity. Refer to Entity class
+        """
+        Default: Gold circle of radius 5 and mass 5, movable.
         """
 
         default_config = self._parse_configuration('interactive', 'coin')
@@ -34,25 +39,20 @@ class Coin(GemSceneElement):
         super(Coin, self).__init__(initial_position=initial_position, **entity_params)
 
 
-
-
 class Key(GemSceneElement):
+
+    """Keys are used to open Chests or Doors.
+    A Key disappears when in contact with its VendingMachine."""
 
     entity_type = 'key'
     movable = True
 
     def __init__(self, initial_position, **kwargs):
-        """ Key entity to open chest
-
-        Default: Grey hexagon of radius 8 and mass 5, movable
-
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            **kwargs: other params to configure entity. Refer to Entity class
+        """
+        Default: Grey hexagon of radius 8 and mass 5, movable.
         """
 
         default_config = self._parse_configuration('interactive', 'key')
         entity_params = {**default_config, **kwargs}
 
         super(Key, self).__init__(initial_position=initial_position, **entity_params)
-

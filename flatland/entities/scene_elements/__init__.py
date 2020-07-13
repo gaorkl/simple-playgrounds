@@ -1,6 +1,5 @@
 from flatland.entities.scene_elements.collection.basic import *
 from flatland.entities.scene_elements.collection.contact import *
-from flatland.entities.scene_elements.collection.basic import *
 from flatland.entities.scene_elements.collection.passive import *
 from flatland.entities.scene_elements.collection.interactive import *
 from flatland.entities.scene_elements.collection.proximity import *

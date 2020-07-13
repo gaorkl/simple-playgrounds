@@ -1,6 +1,10 @@
+"""
+Module for Agent Class.
+"""
 from flatland.utils.definitions import SensorModality
 from flatland.utils.position_utils import PositionAreaSampler
 
+#pylint: disable=too-many-instance-attributes
 
 class Agent:
     """
@@ -9,13 +13,14 @@ class Agent:
     """
     index_agent = 0
 
-    def __init__(self, initial_position, base, **agent_params):
+    def __init__(self, initial_position, base_platform, **agent_params):
         """
-        Base class for agents. Need a base object (BodyBase)
+        Base class for agents.
 
         Args:
             initial_position: initial position of the base
-            base: BodyBase object, required to initialize an agent (all agents have a base)
+            base_platform: Platform object, required to initialize an agent.
+                All agents have a Platform.
             **agent_param: other parameters
         """
 
@@ -29,8 +34,8 @@ class Agent:
         self.sensors = []
 
         # Body parts
-        self.base = base
-        self.body_parts = [self.base]
+        self.base_platform = base_platform
+        self.body_parts = [self.base_platform]
 
         # Possible actions
         self.available_actions = {}
@@ -53,17 +58,24 @@ class Agent:
 
     @property
     def key_mapping(self):
+        """
+        A key mapping links keyboard strokes with actions.
+        Necessary when the Agent is controlled by Keyboard Controller.
+        """
         return None
 
     @property
     def initial_position(self):
-        # differentiate between case where initial position is fixed and case where it is random
-        if isinstance(self._initial_position, list) or isinstance(self._initial_position, tuple):
+        """
+        Initial position can be fixed (list, tuple) or a PositionAreaSampler.
+        """
+
+        if isinstance(self._initial_position, (list, tuple)):
             return self._initial_position
-        elif isinstance(self._initial_position, PositionAreaSampler):
+        if isinstance(self._initial_position, PositionAreaSampler):
             return self._initial_position.sample()
-        else:
-            return self._initial_position
+
+        return self._initial_position
 
     @initial_position.setter
     def initial_position(self, position):
@@ -71,30 +83,39 @@ class Agent:
 
     @property
     def position(self):
-        return self.base.position
+        """
+        Position of the agent.
+        In case of an Agent with multiple Parts, its position is the position of the base_platform.
+        """
+        return self.base_platform.position
 
     @position.setter
     def position(self, position):
 
         for part in self.body_parts:
-
-            if part is self.base:
+            if part is self.base_platform:
                 part.position = position
-
             else:
                 part.set_relative_position()
 
     @property
     def velocity(self):
-        return self.base.velocity
+        """
+        Velocity of the agent.
+        In case of an Agent with multiple Parts, its position is the position of the base_platform.
+        """
+        return self.base_platform.velocity
 
     @velocity.setter
     def velocity(self, velocity):
-        for part in self.base:
+        for part in self.base_platform:
             part.velocity = velocity
 
     @property
     def size_playground(self):
+        """
+        Size of the Playground where agents are playing.
+        """
         return self.size_playground
 
     @size_playground.setter
@@ -104,7 +125,15 @@ class Agent:
             part.size_playground = size_pg
 
     def add_sensor(self, new_sensor):
+        """
+        Add a Sensor to an agent.
 
+        Args:
+            new_sensor: Sensor.
+
+        Returns:
+
+        """
         if new_sensor.sensor_modality == SensorModality.GEOMETRIC:
             self.has_geometric_sensor = True
         elif new_sensor.sensor_modality == SensorModality.VISUAL:
@@ -113,43 +142,63 @@ class Agent:
         self.sensors.append(new_sensor)
 
     def add_body_part(self, part):
+        """
+        Add a Part to the agent
+        Args:
+            part: Part to add to the agent.
 
+        """
         part.part_number = len(self.body_parts)
         self.body_parts.append(part)
 
     def get_bodypart_from_shape(self, pm_shape):
+        #pylint: disable=line-too-long
         return next(iter([part for part in self.body_parts if part.pm_visible_shape == pm_shape]), None)
 
     def assign_controller(self, controller):
-        # Controller
+        """
+        Assigns a Controller to the agent
+        """
         self.controller = controller
-        # self.controller.set_available_actions(self.get_all_available_actions())
-        #
-        # if self.controller.require_key_mapping:
-        #     self.controller.assign_key_mapping(self.key_mapping)
 
     def owns_shape(self, pm_shape):
+        """
+        Verifies if a pm_shape belongs to an agent.
 
+        Args:
+            pm_shape: pymunk_shape.
+
+        Returns: True if pm_shape belongs to the agent.
+
+        """
         all_shapes = [part.pm_visible_shape for part in self.body_parts]
         if pm_shape in all_shapes:
             return True
         return False
 
-    def find_part_by_name(self, body_part_name):
+    def _find_part_by_name(self, body_part_name):
 
         body_part = next((x for x in self.body_parts if x.name == body_part_name), None)
 
         if body_part is None:
-            raise ValueError('Body part '+str(body_part_name)+' does not belong to Agent '+str(self.name))
+            raise ValueError('Body part '+str(body_part_name) +
+                             ' does not belong to Agent '+str(self.name))
 
         return body_part
 
     def pre_step(self):
+        """
+        Reinitializes reward to 0 before a new step of the environment.
+        """
 
         self.reward = 0
-        self.energy_spent = 0
 
     def get_all_available_actions(self):
+        """
+        Computes all the available actions of the agent.
+
+        Returns: List of available actions.
+        """
 
         actions = []
         for part in self.body_parts:
@@ -158,14 +207,22 @@ class Agent:
         return actions
 
     def apply_actions_to_body_parts(self, actions_dict):
+        """
+        Apply actions to each body part of the agent.
+
+        Args:
+            actions_dict: dictionary of body_part_name, Action.
+        """
 
         for body_part_name, actions in actions_dict.items():
 
-            body_part = self.find_part_by_name(body_part_name)
+            body_part = self._find_part_by_name(body_part_name)
             body_part.apply_actions(actions)
 
     def reset(self):
-
+        """
+        Resets all body parts
+        """
         for part in self.body_parts:
             part.reset()
 

@@ -11,14 +11,18 @@ from pygame import Surface
 from pygame import surfarray
 import cv2
 
+#pylint: disable=all
 
 class TextureGenerator:
+    """
+    Class to register Textures.
+    """
 
     subclasses = {}
 
     @classmethod
     def register_subclass(cls, texture_type):
-
+        """ Registers a class Texture """
         def decorator(subclass):
 
             cls.subclasses[texture_type] = subclass
@@ -28,7 +32,7 @@ class TextureGenerator:
 
     @classmethod
     def create(cls, params):
-
+        """ Create a new instance of Class Texture based on its parameters."""
         texture_type = params['texture_type']
 
         if texture_type not in cls.subclasses:
@@ -39,6 +43,8 @@ class TextureGenerator:
 
 class Texture(ABC):
 
+    """ Base Class for Textue"""
+
     def __init__(self, **kwargs):
 
         self.size = int(kwargs.get('radius')*2 + 1)
@@ -47,11 +53,14 @@ class Texture(ABC):
 
     @abstractmethod
     def generate(self):
-        pass
+
+        """ Generates a pygame surface at the correct dimension"""
 
 
 @TextureGenerator.register_subclass('color')
 class ColorTexture(Texture):
+
+    """ Simple Uniform texture of a single color"""
 
     def __init__(self, **params):
         super().__init__(**params)
@@ -66,6 +75,8 @@ class ColorTexture(Texture):
 
 @TextureGenerator.register_subclass('uniform')
 class UniformTexture(Texture):
+
+    """ Random Uniform Texture."""
 
     def __init__(self, **params):
         super().__init__(**params)

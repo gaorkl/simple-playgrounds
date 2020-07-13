@@ -42,7 +42,7 @@ class Playground(ABC):
         self._width, self._length = self.size
 
         # Initialization of the pymunk space, modelling all the physics
-        self._space = self._initialize_space()
+        self.space = self._initialize_space()
 
         # Public attributes for entities in the playground
         self.scene_elements = []
@@ -112,12 +112,12 @@ class Playground(ABC):
             agent.pre_step()
 
         for _ in range(steps):
-            self._space.step(1. / steps)
+            self.space.step(1. / steps)
 
         for elem in self.scene_elements:
             elem.pre_step()
             if elem.follows_waypoints:
-                self._space.reindex_shapes_for_body(elem.pm_body)
+                self.space.reindex_shapes_for_body(elem.pm_body)
 
         self._fields_produce()
         self._check_timers()
@@ -173,7 +173,7 @@ class Playground(ABC):
         agent.position = agent.initial_position
 
         for body_part in agent.body_parts:
-            self._space.add(*body_part.pm_elements)
+            self.space.add(*body_part.pm_elements)
 
     def add_scene_element(self, new_scene_element, new_position=True):
         """ Method to add a SceneElement to the Playground
@@ -194,7 +194,7 @@ class Playground(ABC):
             if new_position:
                 new_scene_element.position = new_scene_element.initial_position
 
-            self._space.add(*new_scene_element.pm_elements)
+            self.space.add(*new_scene_element.pm_elements)
             self.scene_elements.append(new_scene_element)
             if new_scene_element in self._disappeared_scene_elements:
                 self._disappeared_scene_elements.remove(new_scene_element)
@@ -216,7 +216,7 @@ class Playground(ABC):
         visible_collide = True
         interactive_collide = True
 
-        all_shapes = self._space.shapes.copy()
+        all_shapes = self.space.shapes.copy()
 
         while (visible_collide or interactive_collide) and trial < tries:
 
@@ -244,13 +244,13 @@ class Playground(ABC):
 
         for agent in self.agents:
             for part in agent.body_parts:
-                self._space.remove(*part.pm_elements)
+                self.space.remove(*part.pm_elements)
                 part.velocity = [0, 0, 0]
         self.agents = []
 
     def _remove_scene_element(self, scene_element):
 
-        self._space.remove(*scene_element.pm_elements)
+        self.space.remove(*scene_element.pm_elements)
         self.scene_elements.remove(scene_element)
 
         if not scene_element.is_temporary_entity:
@@ -266,7 +266,7 @@ class Playground(ABC):
 
         if scene_element in self._grasped_scene_elements.keys():
             body_part = self._grasped_scene_elements[scene_element]
-            self._space.remove(*body_part.grasped)
+            self.space.remove(*body_part.grasped)
             body_part.grasped = []
 
     def _fields_produce(self):
@@ -299,7 +299,7 @@ class Playground(ABC):
                 if not part.is_holding and part.can_grasp:
 
                     for joint in part.grasped:
-                        self._space.remove(joint)
+                        self.space.remove(joint)
                     part.grasped = []
 
     def _get_scene_element_from_shape(self, pm_shape):
@@ -383,7 +383,7 @@ class Playground(ABC):
             j_3 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5, 5), (0, 5))
             j_4 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5, -5), (0, 5))
 
-            self._space.add(j_1, j_2, j_3, j_4)
+            self.space.add(j_1, j_2, j_3, j_4)
             body_part.grasped = [j_1, j_2, j_3, j_4]
 
             self._grasped_scene_elements[interacting_entity] = body_part
@@ -445,20 +445,20 @@ class Playground(ABC):
 
     def _handle_collisions(self):
 
-        h_touch = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
+        h_touch = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
         h_touch.pre_solve = self._agent_touches_entity
 
-        h_eat = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.EDIBLE)
+        h_eat = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.EDIBLE)
         h_eat.pre_solve = self._agent_eats
 
-        h_interact = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE)
+        h_interact = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE)
         h_interact.pre_solve = self._agent_interacts
 
-        h_zone = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.PASSIVE)
+        h_zone = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.PASSIVE)
         h_zone.pre_solve = self._agent_enters_zone
 
-        h_gem_interactive = self._space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
+        h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
         h_gem_interactive.pre_solve = self._gem_interacts
 
-        h_grasp = self._space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
+        h_grasp = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
         h_grasp.pre_solve = self._agent_grasps

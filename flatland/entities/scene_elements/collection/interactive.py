@@ -1,13 +1,17 @@
+"""
+InteractiveSceneElements can be activated by an agent.
+"""
+from abc import ABC, abstractmethod
+
 from flatland.entities.scene_elements.element import SceneElement
 from flatland.utils import CollisionTypes, PositionAreaSampler
 from flatland.entities.agents.body_parts import Part
 from flatland.playgrounds.playground import Playground
 
-from abc import ABC, abstractmethod
-
+#pylint: disable=line-too-long
 
 class InteractiveSceneElement(SceneElement, ABC):
-
+    """Base Class dor InteractiveSceneElements"""
     interactive = True
 
     def __init__(self, **kwargs):
@@ -16,6 +20,16 @@ class InteractiveSceneElement(SceneElement, ABC):
 
     @abstractmethod
     def activate(self, activating_entity):
+        """
+        Activate the SceneElement.
+
+        Args:
+            activating_entity: Entity that activated the SceneElement.
+
+        Returns:
+            A list of entities to be removed, and a list of entities to be added.
+
+        """
         list_remove = []
         list_add = []
 
@@ -24,6 +38,7 @@ class InteractiveSceneElement(SceneElement, ABC):
     @property
     @abstractmethod
     def reward(self):
+        """Reward provided upon activation."""
         ...
 
     @reward.setter
@@ -33,26 +48,11 @@ class InteractiveSceneElement(SceneElement, ABC):
 
 
 class Lever(InteractiveSceneElement):
+    """Lever Entities provide a reward when activated."""
 
     entity_type = 'lever'
 
     def __init__(self, initial_position, **kwargs):
-        """ Base class for edible entities
-
-        Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
-
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            default_config_key: can be 'apple' or 'rotten_apple'
-            **kwargs: other params to configure entity. Refer to Entity class
-
-        Keyword Args:
-            shrink_ratio_when_eaten: When eaten by an agent, the mass, size, and reward are multiplied by this ratio.
-                Default: 0.9
-            initial_reward: Initial reward of the edible
-            min_reward: When reward is lower than min_reward, the edible entity disappears
-
-        """
 
         default_config = self._parse_configuration('interactive', 'lever')
         entity_params = {**default_config, **kwargs}
@@ -82,33 +82,34 @@ class Lever(InteractiveSceneElement):
     def reward(self, rew):
         self._reward = rew
 
-    def activate(self, _):
-        return super().activate(_)
+    def activate(self, activating_entity):
+        #pylint: disable=useless-super-delegation
+        return super().activate(activating_entity)
 
 
 class Dispenser(InteractiveSceneElement):
+    """Dispenser produces a new entity in an area of the playground when activated.
+    """
 
     entity_type = 'dispenser'
     interactive = True
 
     def __init__(self, initial_position, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
 
-        """ Dispenser Entity
-
-        Dispenser entities produce a new entity in an area of the playground when activated.
+        """
         Default: pink circle of radius 15.
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            entity_produced: Class of the entity produced by the dispenser
-            entity_produced_params: Dictionary of additional parameters for the entity_produced
+            initial_position: initial position of the entity.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory
+            entity_produced: Class of the entity produced by the dispenser.
+            entity_produced_params: Dictionary of additional parameters for the entity_produced.
             production_area: PositionAreaSampler.
                 If no production_area has been set, the entities will be produced around the dispenser.
-            **kwargs: other params to configure entity. Refer to Entity class
+            **kwargs: other params to configure entity. Refer to Entity class.
 
         Keyword Args:
-            production_limit: maximum number of entities produced. Default: 15
-
+            production_limit: maximum number of entities produced. Default: 15.
         """
 
         default_config = self._parse_configuration('interactive', 'dispenser')
@@ -169,20 +170,23 @@ class Dispenser(InteractiveSceneElement):
 
 class Chest(InteractiveSceneElement):
 
+    """
+    Chest can be open when in contact with corresponding Key entity, and deliver a treasure.
+    When opened, Chest and key disappear, treasure appears.
+    """
+
     entity_type = 'chest'
     interactive = True
 
     def __init__(self, initial_position, key, treasure, **kwargs):
-        """ Chest Entity
-
-        Chest entities can be open when in contact with corresponding Key entity, and deliver a treasure.
-        When opened, Chest and key disappear.
+        """ Chest Entity.
         Default: Purple rectangle of size 20x30
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            key: Key entity
-            treasure: Entity that is delivered when chest is opened
+            initial_position: initial position of the entity.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
+            key: Key object.
+            treasure: SceneElement that is delivered when chest is opened.
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
@@ -200,12 +204,12 @@ class Chest(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, key):
+    def activate(self, activating_entity):
 
         list_remove = []
         list_add = []
 
-        if key is self.key:
+        if activating_entity is self.key:
 
             self.treasure.initial_position = self.position
 
@@ -217,18 +221,16 @@ class Chest(InteractiveSceneElement):
 
 class VendingMachine(InteractiveSceneElement):
 
+    """
+    When in contact with a coin, provide a reward to the agent closest to the coin.
+    """
+
     entity_type = 'vending_machine'
     interactive = True
 
     def __init__(self, initial_position, **kwargs):
-        """ Vending machine Entity
-
-        When in contact with a coin, provide a reward to the agent closest to the coin.
+        """ Vending machine Entity.
         Default: Orange square of size 20, provides a reward of 10.
-
-        Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            **kwargs: other params to configure entity. Refer to Entity class
         """
 
         default_config = self._parse_configuration('interactive', 'vending_machine')
@@ -248,19 +250,23 @@ class VendingMachine(InteractiveSceneElement):
     def reward(self, rew):
         self._reward = rew
 
-    def activate(self, coin):
+    def activate(self, activating_entity):
 
         list_add = []
         list_remove = []
 
-        if coin in self.accepted_coins.copy():
-            list_remove = [coin]
-            self.accepted_coins.remove(coin)
+        if activating_entity in self.accepted_coins.copy():
+            list_remove = [activating_entity]
+            self.accepted_coins.remove(activating_entity)
 
         return list_remove, list_add
 
 
 class OpenCloseSwitch(InteractiveSceneElement):
+
+    """
+    Opens or close a door when activated by an agent.
+    """
 
     entity_type = 'switch'
     interactive = True
@@ -268,13 +274,13 @@ class OpenCloseSwitch(InteractiveSceneElement):
     def __init__(self, initial_position, door, **kwargs):
         """ Switch used to open and close a door
 
-        Opens or close a door when activated by an agent.
         Default: Pale brown square of size 10.
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            door: Door opened by the switch
-            **kwargs: other params to configure entity. Refer to Entity class
+            initial_position: initial position of the entity.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
+            door: Door opened by the switch.
+            **kwargs: other params to configure entity. Refer to Entity class.
         """
 
         default_config = self._parse_configuration('interactive', 'switch')
@@ -294,11 +300,11 @@ class OpenCloseSwitch(InteractiveSceneElement):
         list_remove = []
 
         if self.door.opened:
-            self.door.close_door()
+            self.door.opened = False
             list_add = [self.door]
 
         else:
-            self.door.open_door()
+            self.door.opened = True
             list_remove = [self.door]
 
         return list_remove, list_add
@@ -306,21 +312,25 @@ class OpenCloseSwitch(InteractiveSceneElement):
 
 class TimerSwitch(InteractiveSceneElement):
 
+    """
+    Opens a door for a certain amount of time when activated by an agent.
+    If activated when door is still open, resets the timer.
+    """
+
     entity_type = 'switch'
     timed = True
 
     def __init__(self, initial_position, door, time_open, **kwargs):
-        """ Switch used to open a door for a certain duration
+        """ Switch used to open a door for a certain duration.
 
-        Opens a door for a certain amount of time when activated by an agent.
-        If activated when door is still open, resets the timer.
         Default: Pale brown square of size 10.
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            door: Door opened by the switch
-            time_open: Timesteps during which door will stay open
-            **kwargs: other params to configure entity. Refer to Entity class
+            initial_position: initial position of the entity.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
+            door: Door opened by the switch.
+            time_open: Timesteps during which door will stay open.
+            **kwargs: other params to configure entity. Refer to Entity class.
         """
 
         default_config = self._parse_configuration('interactive', 'switch')
@@ -344,23 +354,23 @@ class TimerSwitch(InteractiveSceneElement):
 
         if isinstance(activating_entity, Part):
             if not self.door.opened:
-                self.door.open_door()
+                self.door.opened = True
                 list_remove = [self.door]
 
-            self.reset_timer()
+            self._reset_timer()
 
         if isinstance(activating_entity, Playground):
-            self.door.close_door()
+            self.door.opened = False
             list_add = [self.door]
-            self.reset_timer()
+            self._reset_timer()
 
         return list_remove, list_add
 
-    def reset_timer(self):
+    def _reset_timer(self):
 
         self.timer = self.time_open
 
-    def update(self):
+    def pre_step(self):
 
         if self.door.opened:
             self.timer -= 1
@@ -373,18 +383,21 @@ class TimerSwitch(InteractiveSceneElement):
 
 class Lock(InteractiveSceneElement):
 
+    """
+    Opens a door when in contact with the associated key.
+    """
     entity_type = 'lock'
 
     def __init__(self, initial_position, door, key, **kwargs):
-        """ Lock for a door, opens with a key
+        """ Lock for a door, opens with a key.
 
-        Opens a door when in contact with the associated key.
-        Default: pale green 10x10 square
+        Default: pale green 10x10 square.
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
+            initial_position: initial position of the entity.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             door: Door opened by the lock
-            key: key associated with the lock
+            key: Key object associated with the lock
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
@@ -400,13 +413,13 @@ class Lock(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, key):
+    def activate(self, activating_entity):
 
         list_add = []
         list_remove = []
 
-        if key is self.key:
-            self.door.open_door()
+        if activating_entity is self.key:
+            self.door.opened = True
 
             list_remove = [self.door, self.key, self]
 

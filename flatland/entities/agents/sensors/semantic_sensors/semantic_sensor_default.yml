@@ -4,6 +4,7 @@
 lidar:
   range: 300
   fov: 180
-  number_rays: 20
+  number_beams: 20
+  full-coverage: False
 
 

@@ -3,6 +3,7 @@ from flatland.tests.test_basics.test_pg import *
 from flatland.entities.agents.basic_agents import *
 from flatland.controllers.controller import Keyboard, Random
 from flatland.entities.agents.sensors.visual_sensors import *
+from flatland.entities.agents.sensors.semantic_sensors.lidar import *
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
@@ -44,7 +45,7 @@ agents.append(my_agent)
 
 # Add sensors:
 
-sensor = RgbSensor(name='rgb_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, resolution=128, range=300)
+# sensor = RgbSensor(name='rgb_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts, resolution=128, range=300)
 # sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
 # sensor = GreySensor(name='grey_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
 # sensor = DepthSensor(name='depth_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
@@ -52,7 +53,8 @@ sensor = RgbSensor(name='rgb_1', anchor= my_agent.base, invisible_elements=my_ag
 #                              fov= 250,range = 400, number=1080)
 # sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, range = 200, only_front = True)
 
-# sensor = LidarOcclusionUnique(name='lidar', anchor=my_agent.base, invisible_elements = my_agent.body_parts, fov=90, number_rays=10, range=300)
+sensor = LidarOcclusionUnique(name='lidar', full_coverage=False, anchor=my_agent.base_platform,
+                              invisible_elements = my_agent.body_parts, fov=180, number_beams=5, range=100)
 my_agent.add_sensor(sensor)
 #
 #
@@ -119,7 +121,7 @@ while game.game_on:
     game.step(actions)
     game.update_observations()
 
-    #
+
     # for agent in game.agents:
     #
     #     # observations = agent.observations
@@ -133,8 +135,8 @@ while game.game_on:
     #         # print(observation.shape, sensor.shape())
     #
     #         if isinstance(sensor, Lidar) :
-    #             # print(sensor.sensor_value)
     #
+    #             print('---')
     #             for ang, obs in observation.items():
     #
     #                 for o in obs:
@@ -163,12 +165,12 @@ while game.game_on:
     # #         print(entity.position)
     # #         print(entity.velocity)
     # #
-    img = game.generate_topdown_image()
-    cv2.imshow('test', img)
-    cv2.waitKey(20)
-
-    game.display_full_scene()
-
+    # img = game.generate_topdown_image()
+    # cv2.imshow('test', img)
+    # cv2.waitKey(20)
+    #
+    # game.display_full_scene()
+    #
 
 print(10000 / (time.time() - t1))
 # game.terminate()
