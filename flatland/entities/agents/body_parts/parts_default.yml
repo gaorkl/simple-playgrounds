@@ -7,9 +7,10 @@ platform: &platform
   physical_shape: circle
   texture:  *platform-texture
   radius: 20
-  mass: 10
-  max_linear_force: 0.5
+  mass: 15
+  max_linear_force: 0.3
   max_angular_velocity: 0.25
+  max_longitudinal_velocity: 1.0
 
 #Head
 head_texture : &head-texture

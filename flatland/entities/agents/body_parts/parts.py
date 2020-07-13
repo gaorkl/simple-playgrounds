@@ -163,8 +163,8 @@ class Platform(Part, ABC):
             physical_shape (str): circle, square, pentagon, hexagon. Default: circle.
             texture (:obj: 'dict': dictionary of texture parameters.
             radius: radius of the platform. Default: 20.
-            mass: mass of the platform. Default: 10.
-            max_linear_force: Maximum longitudinal and lateral force. Default: 1.0.
+            mass: mass of the platform. Default: 15.
+            max_linear_force: Maximum longitudinal and lateral force. Default: 0.3.
             max_angular_velocity: Maximum angular velocity (radian per timestep). Default: 0.25.
         """
 
@@ -175,6 +175,7 @@ class Platform(Part, ABC):
 
         self.max_linear_force = body_part_params['max_linear_force']
         self.max_angular_velocity = body_part_params['max_angular_velocity']
+        self.max_longitudinal_velocity = body_part_params['max_longitudinal_velocity']
 
     def _create_mask(self, is_interactive=False):
 

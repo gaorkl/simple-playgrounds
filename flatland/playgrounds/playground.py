@@ -302,12 +302,12 @@ class Playground(ABC):
                         self.space.remove(joint)
                     part.grasped = []
 
-    def _get_scene_element_from_shape(self, pm_shape):
+    def get_scene_element_from_shape(self, pm_shape):
 
         entity = next(iter([e for e in self.scene_elements if pm_shape in e.pm_elements]), None)
         return entity
 
-    def _get_agent_from_shape(self, pm_shape):
+    def get_agent_from_shape(self, pm_shape):
 
         for agent in self.agents:
             if agent.owns_shape(pm_shape):
@@ -325,8 +325,8 @@ class Playground(ABC):
 
     def _agent_touches_entity(self, arbiter, space, data):
 
-        agent = self._get_agent_from_shape(arbiter.shapes[0])
-        touched_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        touched_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
         agent.reward += touched_entity.reward
 
@@ -345,9 +345,9 @@ class Playground(ABC):
 
     def _agent_interacts(self, arbiter, space, data):
 
-        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
+        interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
         if body_part.is_activating:
 
@@ -370,9 +370,9 @@ class Playground(ABC):
 
     def _agent_grasps(self, arbiter, space, data):
 
-        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
+        interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
         if body_part.is_grasping and not body_part.is_holding:
 
@@ -392,8 +392,8 @@ class Playground(ABC):
 
     def _agent_enters_zone(self, arbiter, space, data):
 
-        agent = self._get_agent_from_shape(arbiter.shapes[0])
-        zone_reached = self._get_scene_element_from_shape(arbiter.shapes[1])
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        zone_reached = self.get_scene_element_from_shape(arbiter.shapes[1])
 
         agent.reward += zone_reached.reward
 
@@ -404,8 +404,8 @@ class Playground(ABC):
 
     def _gem_interacts(self, arbiter, space, data):
 
-        gem = self._get_scene_element_from_shape(arbiter.shapes[0])
-        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
+        gem = self.get_scene_element_from_shape(arbiter.shapes[0])
+        interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
         agent = self._get_closest_agent(gem)
         agent.reward += interacting_entity.reward
@@ -425,9 +425,9 @@ class Playground(ABC):
 
     def _agent_eats(self, arbiter, space, data):
 
-        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        edible_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
+        edible_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
         if body_part.is_eating:
 

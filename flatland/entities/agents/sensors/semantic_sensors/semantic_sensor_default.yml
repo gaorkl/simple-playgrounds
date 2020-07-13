@@ -1,10 +1,14 @@
 #####################
 # Sensors
 
-lidar:
+lidar-rays:
   range: 300
   fov: 180
-  number_beams: 20
-  full-coverage: False
+  number_rays: 20
 
+
+lidar-cones:
+  range: 300
+  fov: 180
+  number_cones: 10
 
