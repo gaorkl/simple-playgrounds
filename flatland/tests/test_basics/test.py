@@ -46,16 +46,16 @@ agents.append(my_agent)
 # Add sensors:
 
 # sensor = RgbSensor(name='rgb_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts, resolution=128, range=300)
-# sensor = TouchSensor(name='touch_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
-# sensor = GreySensor(name='grey_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
-# sensor = DepthSensor(name='depth_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts)
-# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts,
+sensor = TouchSensor(name='touch_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts)
+# sensor = GreySensor(name='grey_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts)
+# sensor = DepthSensor(name='depth_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts)
+# sensor = DistanceArraySensor(name='test_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts,
 #                              fov= 250,range = 400, number=1080)
-# sensor = TopdownSensor(name='td_1', anchor= my_agent.base, invisible_elements=my_agent.body_parts, range = 200, only_front = True)
+# sensor = TopdownSensor(name='td_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts, range = 200, only_front = True)
 #
-sensor = LidarCones(name='lidar', anchor=my_agent.base_platform,
-                   invisible_elements=my_agent.body_parts, fov=90, number_cones=10, range=300,
-                   remove_occluded=True, allow_duplicates=False)
+# sensor = LidarCones(name='lidar', anchor=my_agent.base_platform,
+#                    invisible_elements=my_agent.body_parts, fov=90, number_cones=10, range=300,
+#                    remove_occluded=True, allow_duplicates=False)
 
 my_agent.add_sensor(sensor)
 #
@@ -111,7 +111,7 @@ game = Engine(playground=pg, agents=agents, time_limit=1000, replay=True)
 
 import cv2
 import time
-
+import numpy
 t1 = time.time()
 
 while game.game_on:

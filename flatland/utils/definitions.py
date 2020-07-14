@@ -5,8 +5,11 @@ Default definitions
 from enum import IntEnum, Enum, auto
 from collections import namedtuple
 
+#pylint: disable=missing-class-docstring
+
 SIMULATION_STEPS = 5
 SPACE_DAMPING = 0.9
+
 
 class SceneElementTypes(Enum):
 
@@ -65,6 +68,8 @@ class SensorModality(Enum):
 
 
 Action = namedtuple('Action', 'body_part action action_type min max')
+
 Keymap = namedtuple('KeyMap', 'body_part action key key_behavior key_value')
 
-geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3, 'square': 4, 'pentagon': 5, 'hexagon': 6}
+geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3,
+                    'square': 4, 'pentagon': 5, 'hexagon': 6}

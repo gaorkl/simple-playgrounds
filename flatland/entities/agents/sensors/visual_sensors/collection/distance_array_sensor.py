@@ -1,46 +1,72 @@
-from flatland.entities.agents.sensors.visual_sensors.visual_sensor import VisualSensor
+"""
+Module defining Distance Array Sensor
+"""
 import numpy as np
 import cv2
 
+from flatland.entities.agents.sensors.visual_sensors.visual_sensor import VisualSensor
+
+# pylint: disable=no-member
+
 
 class DistanceArraySensor(VisualSensor):
-
+    """
+    Distance Array Sensor calculates the distance of obstacles along Cones.
+    """
     sensor_type = 'distance_array'
 
-    def __init__(self, anchor, invisible_elements, **kwargs):
+    def __init__(self, anchor, invisible_elements, normalize, **kwargs):
+        """
+        Args:
+            anchor: body Part to which the sensor is attached.
+                Sensor is attached to the center of the Part.
+            invisible_elements: elements that the sensor does not perceive.
+                List of Parts of SceneElements.
+            normalize: if true, Sensor values are normalized between 0 and 1.
+
+        Keyword Args:
+            point_angle: angle of opening of the Cone.
+            number: number of cones.
+        """
 
         default_config = self.parse_configuration(self.sensor_type)
         sensor_params = {**default_config, **kwargs}
 
-        self.angle_laser_point = sensor_params['point_angle']
-        self.number_laser_point = sensor_params['number']
+        self._angle_laser_point = sensor_params['point_angle']
+        self._number_laser_point = sensor_params['number']
 
-        if self.number_laser_point < 1:
+        if self._number_laser_point < 1:
             raise ValueError('number_laser_point should be higher than 1')
 
-        res= int(sensor_params['fov'] / sensor_params['point_angle'])
+        res = int(sensor_params['fov'] / sensor_params['point_angle'])
 
-        super().__init__(anchor, invisible_elements, resolution=res,  **kwargs)
+        super().__init__(anchor, invisible_elements, normalize=normalize, resolution=res, **kwargs)
 
         self.index_sensors = []
-        for i in range(self.number_laser_point):
-            index = int( i * ((self.fovResolution-1) / (self.number_laser_point - 1)) )
-            self.index_sensors.append( index )
+        for i in range(self._number_laser_point):
+            index = int(i * ((self._resolution - 1) / (self._number_laser_point - 1)))
+            self.index_sensors.append(index)
 
-    def update_sensor(self, img, entities, agents):
+    def update_sensor(self, img):
 
-        super().update_sensor(img, None, None)
+        super().update_sensor(img)
 
         mask = self.polar_view != 0
-        sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.polar_view.shape[1] - 1), axis=1)
+        sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1), self.polar_view.shape[1]-1),
+                        axis=1)
 
-        im = np.asarray(sensor)
-        im = np.expand_dims(im, 0)
-        sensor_value = cv2.resize(im, (self.fovResolution, 1), interpolation=cv2.INTER_NEAREST)
+        image = np.asarray(sensor)
+        image = np.expand_dims(image, 0)
+        sensor_value = cv2.resize(image, (self._resolution, 1), interpolation=cv2.INTER_NEAREST)
 
-        sensor_value = [ 1+ int(sensor_value[0, index]*float(self.fovRange)/self.polar_view.shape[1]) for index in self.index_sensors]
+        sensor_value = [1+int(sensor_value[0, index]*float(self._range)/self.polar_view.shape[1])
+                        for index in self.index_sensors]
 
         self.sensor_value = np.asarray(sensor_value)
 
+        if self.normalize:
+            self.sensor_value = self.sensor_value*1.0/self._range
+
+    @property
     def shape(self):
-        return self.number_laser_point,
+        return self._number_laser_point

@@ -1,2 +1,2 @@
-from .visual_sensors import  RgbSensor
+from .visual_sensors import *
 from .semantic_sensors import *

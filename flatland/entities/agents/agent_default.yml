@@ -1,9 +1,0 @@
-
-# Metabolism
-metabolism:
-  'health' : 1000
-  'latent_metabolism' : 0.001
-  'base_metabolism' : 0.01
-  'action_metabolism': 0.1
-  'head_metabolism': 0.005
-  'arms_metabolism' : 0.003

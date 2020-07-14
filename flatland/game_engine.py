@@ -200,16 +200,11 @@ class Engine:
                     img_sensor = numpy.rot90(img_sensor, 1, (1, 0))
                     img_sensor = img_sensor[::-1, :, ::-1]
 
-                    sensor.update_sensor(img_sensor, None, None)
-
-                elif sensor.sensor_modality is SensorModality.GEOMETRIC:
-
-                    sensor.update_sensor(None, self.playground.entities, self.playground.agents)
+                    sensor.update_sensor(img_sensor)
 
                 elif sensor.sensor_modality is SensorModality.SEMANTIC:
 
                     sensor.update_sensor(self.playground)
-
 
                 else:
                     raise ValueError
