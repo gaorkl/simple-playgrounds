@@ -29,7 +29,7 @@ class DepthSensor(VisualSensor):
         sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1),
                                  self.polar_view.shape[1] - 1), axis=1)
 
-        sensor_value = (self.polar_view.shape[1] - sensor) / self.polar_view.shape[1]
+        sensor_value = (self.polar_view.shape[1] - sensor)
 
         image = np.asarray(sensor_value)
         image = np.expand_dims(image, 0)

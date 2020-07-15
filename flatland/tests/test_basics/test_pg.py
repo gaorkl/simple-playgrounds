@@ -15,6 +15,24 @@ class Empty_01(SingleRoom):
         self.agent_starting_area = PositionAreaSampler(area_shape='circle', center=[150, 150], radius=20)
 
 
+class Empty_02(SingleRoom):
+
+    def __init__(self, size = (100, 100), **playground_params):
+
+        super(Empty_02, self).__init__(size = size, **playground_params)
+
+        rect = Basic([50, 50, 0], name='tada', default_config_key='circle', movable=False, mass=10, width_length=[10, 20])
+        self.add_scene_element(rect)
+        # rect = Basic([30, 80, 0], default_config_key='rectangle', movable=True, mass=10, width_length=[10, 20])
+        # self.add_scene_element(rect)
+        #
+        #
+        # rect = Basic([30, 60, 0], default_config_key='rectangle', movable=True, mass=10, width_length=[10, 30],
+        #              texture= [250,250,250])
+        # self.add_scene_element(rect)
+
+        self.agent_starting_area = [20, 20, 0]
+
 class Empty_Color_01(SingleRoom):
 
     def __init__(self, size = (200, 800), **playground_params):

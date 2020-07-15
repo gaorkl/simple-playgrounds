@@ -52,7 +52,7 @@ class GreySensor(VisualSensor):
     """
     sensor_type = 'grey'
 
-    def __init__(self, anchor, invisible_elements, normalize=True,**kwargs):
+    def __init__(self, anchor, invisible_elements, normalize=True, **kwargs):
         super().__init__(anchor, invisible_elements, normalize=normalize, **kwargs)
 
     def update_sensor(self, img):
@@ -68,7 +68,7 @@ class GreySensor(VisualSensor):
         image = np.expand_dims(image, 0)
 
         image = cv2.resize(image, (self._resolution, 1),
-                                   interpolation=cv2.INTER_NEAREST)[0, :]
+                           interpolation=cv2.INTER_NEAREST)[0, :]
 
         image = np.expand_dims(image, 0)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

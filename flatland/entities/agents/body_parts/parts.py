@@ -181,8 +181,8 @@ class Platform(Part, ABC):
 
         mask = Part._create_mask(self)
 
-        pos_y = self.radius * (1 + math.cos(self.pm_body.angle))
-        pos_x = self.radius * (1 + math.sin(self.pm_body.angle))
+        pos_y = self.radius + (self.radius-2) * ( math.cos(self.pm_body.angle))
+        pos_x = self.radius + (self.radius-2) * ( math.sin(self.pm_body.angle))
         pygame.draw.line(mask, pygame.color.THECOLORS["blue"],
                          (self.radius, self.radius), (pos_x, pos_y), 2)
 
@@ -387,8 +387,8 @@ class Head(Actuator):
 
         mask = super()._create_mask()
 
-        pos_y = self.radius * (1 + math.cos(self.pm_body.angle))
-        pos_x = self.radius * (1 + math.sin(self.pm_body.angle))
+        pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
+        pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
         pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (pos_x, pos_y), 2)
 
         return mask
@@ -415,8 +415,8 @@ class Eye(Actuator):
 
         mask = super()._create_mask()
 
-        pos_y = self.radius * (1 + math.cos(self.pm_body.angle))
-        pos_x = self.radius * (1 + math.sin(self.pm_body.angle))
+        pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
+        pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
         pygame.draw.line(mask, pygame.color.THECOLORS["brown"], (self.radius, self.radius), (pos_x, pos_y), 2)
 
         return mask

@@ -7,7 +7,7 @@ cicrle_texture: &circle-texture
 circle:
   texture: *circle-texture
   physical_shape: circle
-  radius: 15
+  radius: 16
 
 # square
 square_texture: &square-texture

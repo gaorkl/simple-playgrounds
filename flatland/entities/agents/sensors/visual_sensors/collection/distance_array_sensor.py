@@ -15,7 +15,7 @@ class DistanceArraySensor(VisualSensor):
     """
     sensor_type = 'distance_array'
 
-    def __init__(self, anchor, invisible_elements, normalize, **kwargs):
+    def __init__(self, anchor, invisible_elements, normalize=True, **kwargs):
         """
         Args:
             anchor: body Part to which the sensor is attached.

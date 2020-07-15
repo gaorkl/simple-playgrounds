@@ -4,6 +4,7 @@ Module that defines Base Class Entity
 
 import math
 from abc import ABC
+import numpy, cv2
 
 import pymunk
 import pygame
@@ -266,8 +267,8 @@ class Entity(ABC):
                 width = self.width + border
                 length = self.length + border
 
-            coord_pts_in_entity_base = [[width/2., length/2.], [-width/2., length/2.],
-                                        [-width/2., -length/2.], [width/2., -length/2.]]
+            coord_pts_in_entity_base = [[width/2., length/2.], [-width/2.-1, length/2.],
+                                        [-width/2.-1, -length/2.-1], [width/2., -length/2.-1]]
 
             for coord in coord_pts_in_entity_base:
 
@@ -325,6 +326,8 @@ class Entity(ABC):
 
         #pylint: disable-all
 
+        delta = (0, 0)
+
         if is_interactive:
             radius = self.interaction_radius
             alpha = 75
@@ -338,25 +341,30 @@ class Entity(ABC):
             mask.fill((0, 0, 0, 0))
             pygame.draw.circle(mask, (255, 255, 255, alpha), (int(radius), int(radius)), int(radius))
 
-        else:
+        elif self.physical_shape == 'rectangle':
 
-            vert = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border=-1)
-            vertices = [[x[1] + radius - 1, x[0] + radius - 1] for x in vert]
+            vert = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border=0)
+            vertices = [[x[1] + radius , x[0] + radius ] for x in vert]
 
             mask = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 0))
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
+
+        else:
+
+            vert = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border=0)
+            vertices = [[x[1] + radius , x[0] + radius ] for x in vert]
+
+            mask = pygame.Surface((2 * radius+2, 2 * radius+2), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
+
 
         if is_interactive:
             texture_surface = pygame.transform.scale(self.texture_surface, (2 * int(self.interaction_radius),
                                                                             2 * int(self.interaction_radius)))
         else:
             texture_surface = self.texture_surface.copy()
-
-        texture_surface = pygame.transform.rotate(texture_surface, 180*self.pm_body.angle/math.pi)
-        delta = ((2 * radius + 1) - texture_surface.get_width(), (2 * radius + 1) - texture_surface.get_height())
-
-        delta = (delta[0]/2, delta[1]/2)
 
         mask.blit(texture_surface, delta, None, pygame.BLEND_MULT)
 

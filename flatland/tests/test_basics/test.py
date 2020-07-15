@@ -7,7 +7,8 @@ from flatland.entities.agents.sensors.semantic_sensors.lidar import *
 
 # from flatland.agents.body_parts.body_part import BodyBase
 
-pg = Basic_01()
+# pg = Basic_01()
+pg = Empty_02()
 # pg = Contact_01()
 # pg = PositionObject_01()
 # pg = Empty_01()
@@ -46,12 +47,12 @@ agents.append(my_agent)
 # Add sensors:
 
 # sensor = RgbSensor(name='rgb_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts, resolution=128, range=300)
-sensor = TouchSensor(name='touch_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts)
+# sensor = TouchSensor(name='touch_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts)
 # sensor = GreySensor(name='grey_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts)
 # sensor = DepthSensor(name='depth_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts)
 # sensor = DistanceArraySensor(name='test_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts,
-#                              fov= 250,range = 400, number=1080)
-# sensor = TopdownSensor(name='td_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts, range = 200, only_front = True)
+#                              fov= 250,range = 100, number=30)
+sensor = TopdownSensor(name='td_1', anchor= my_agent.base_platform, invisible_elements=my_agent.body_parts, range = 100, only_front = True)
 #
 # sensor = LidarCones(name='lidar', anchor=my_agent.base_platform,
 #                    invisible_elements=my_agent.body_parts, fov=90, number_cones=10, range=300,
@@ -157,6 +158,7 @@ while game.game_on:
                 #im = observation
                 cv2.imshow(sensor_name+'__', im)
                 cv2.waitKey(1)
+                print(numpy.max(im))
 
         if agent.reward != 0: print(agent.name, agent.reward)
 
