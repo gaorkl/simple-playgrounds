@@ -43,9 +43,12 @@ class Engine:
         # Playground already exists
         self.playground = playground
 
-        self.agents = agents
-        for agent in self.agents:
-            self.playground.add_agent(agent)
+        for agent in agents:
+            could_place_agent = self.playground.add_agent_without_overlapping(agent, tries=100)
+            if not could_place_agent:
+                raise ValueError('Could not place agent without overlapping')
+
+        self.agents = self.playground.agents
 
         # Rules
         self.replay_until_time_limit = replay

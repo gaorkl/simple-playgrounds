@@ -19,7 +19,7 @@ def run(nbAgents = 1, mapSize = 200, steps = 100, display = False, map = "basic_
 
         'display': {
             'playground' : False,
-            'body_parts' : True,
+            'parts' : True,
         }
     }
 

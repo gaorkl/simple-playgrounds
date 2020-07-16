@@ -129,7 +129,6 @@ class Part(Entity, ABC):
         if self.is_holding and not self.is_grasping:
             self.is_holding = False
 
-    @abstractmethod
     def reset(self):
 
         super().reset()

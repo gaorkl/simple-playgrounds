@@ -7,7 +7,7 @@ import pymunk
 from pygame.locals import *
 
 from flatland.entities.agents.agent import Agent
-from flatland.entities.agents.body_parts.parts import Head, Hand, HolonomicPlatform, Eye, Arm
+from flatland.entities.agents.parts.parts import Head, Hand, HolonomicPlatform, Eye, Arm
 from flatland.utils import Keymap
 from flatland.utils.definitions import ActionTypes, KeyTypes
 

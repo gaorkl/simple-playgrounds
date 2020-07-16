@@ -7,7 +7,7 @@ TODO:
    self.stuff = agent_params.get("stuff", default["stuff"])
    where default is a dict (cleverly named) defined in a config file
 
-- clean the texture, add an arrow for the body_parts direction
+- clean the texture, add an arrow for the parts direction
 - similarly for forward_head_agent : arrow for head direction
 
 Maybe:

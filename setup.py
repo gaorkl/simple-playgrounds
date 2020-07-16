@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='flatland',
-    version='1.0',
+    version='0.9',
     description='Flatland for AGI and RL',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia.ortiz@gmail.com',

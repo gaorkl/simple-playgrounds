@@ -6,6 +6,7 @@ Module defining Playground Base Class
 """
 
 import os
+import math
 from abc import ABC
 import yaml
 import pymunk
@@ -172,8 +173,55 @@ class Playground(ABC):
 
         agent.position = agent.initial_position
 
-        for body_part in agent.body_parts:
+        for body_part in agent.parts:
             self.space.add(*body_part.pm_elements)
+
+    def add_agent_without_overlapping(self, agent, tries=100):
+        """ Method to add am Agent to the Playground without overlapping.
+
+        Useful when an Agent has a random initial position, to avoid overlapping.
+
+        Args:
+            agent: Agent to add to the Playground
+            tries: Number of times the Playground will try to place the new_entity
+
+        """
+
+        trial = 0
+        visible_collide_parts = True
+        interactive_collide_parts = True
+
+        all_shapes = self.space.shapes.copy()
+
+        while (interactive_collide_parts or visible_collide_parts) and trial < tries:
+
+            self.add_agent(agent)
+
+            visible_collide_parts = False
+            interactive_collide_parts = False
+
+            for part in agent.parts:
+
+                visible_collide = False
+                interactive_collide = False
+
+                if part.pm_visible_shape is not None:
+                    collisions = [part.pm_visible_shape.shapes_collide(shape) for shape in all_shapes]
+                    visible_collide = any([len(collision.points) != 0 for collision in collisions])
+
+                if part.pm_interaction_shape is not None:
+                    collisions = [part.pm_interaction_shape.shapes_collide(shape) for shape in all_shapes]
+                    interactive_collide = any([len(collision.points) != 0 for collision in collisions])
+
+                visible_collide_parts = visible_collide or visible_collide_parts
+                interactive_collide_parts = interactive_collide or interactive_collide_parts
+
+            if visible_collide_parts or interactive_collide_parts:
+                self.remove_agent(agent)
+
+            trial += 1
+
+        return not (interactive_collide_parts or visible_collide_parts)
 
     def add_scene_element(self, new_scene_element, new_position=True):
         """ Method to add a SceneElement to the Playground
@@ -243,10 +291,13 @@ class Playground(ABC):
     def _remove_agents(self):
 
         for agent in self.agents:
-            for part in agent.body_parts:
-                self.space.remove(*part.pm_elements)
-                part.velocity = [0, 0, 0]
-        self.agents = []
+            self.remove_agent(agent)
+
+    def remove_agent(self, agent):
+        for part in agent.parts:
+            self.space.remove(*part.pm_elements)
+            part.velocity = [0, 0, 0]
+        self.agents.remove(agent)
 
     def _remove_scene_element(self, scene_element):
 
@@ -295,7 +346,7 @@ class Playground(ABC):
 
         for agent in self.agents:
 
-            for part in agent.body_parts:
+            for part in agent.parts:
                 if not part.is_holding and part.can_grasp:
 
                     for joint in part.grasped:
@@ -322,6 +373,20 @@ class Playground(ABC):
         closest_agent = self.agents[index_min_dist]
 
         return closest_agent
+
+    @staticmethod
+    def get_relative_postion_of_entities(entity_1, entity_2):
+
+        entity_1_x, entity_1_y, entity_1_angle = entity_1.position
+        entity_2_x, entity_2_y, entity_2_angle = entity_2.position
+
+        relative_angle = (entity_2_angle - entity_1_angle)%(2*math.pi)
+
+        relative_x = (entity_2_x - entity_1_x)*math.cos(entity_1_angle) - (entity_2_y - entity_1_y)*math.sin(entity_1_angle)
+        relative_y = (entity_2_x - entity_1_x)*math.sin(entity_1_angle) + (entity_2_y - entity_1_y)*math.cos(entity_1_angle)
+
+        return relative_x, relative_y, relative_angle
+
 
     def _agent_touches_entity(self, arbiter, space, data):
 

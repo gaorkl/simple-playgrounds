@@ -35,7 +35,7 @@ class Agent:
 
         # Body parts
         self.base_platform = base_platform
-        self.body_parts = [self.base_platform]
+        self.parts = [self.base_platform]
 
         # Possible actions
         self.available_actions = {}
@@ -92,7 +92,7 @@ class Agent:
     @position.setter
     def position(self, position):
 
-        for part in self.body_parts:
+        for part in self.parts:
             if part is self.base_platform:
                 part.position = position
             else:
@@ -121,7 +121,7 @@ class Agent:
     @size_playground.setter
     def size_playground(self, size_pg):
         self._size_playground = size_pg
-        for part in self.body_parts:
+        for part in self.parts:
             part.size_playground = size_pg
 
     def add_sensor(self, new_sensor):
@@ -148,12 +148,12 @@ class Agent:
             part: Part to add to the agent.
 
         """
-        part.part_number = len(self.body_parts)
-        self.body_parts.append(part)
+        part.part_number = len(self.parts)
+        self.parts.append(part)
 
     def get_bodypart_from_shape(self, pm_shape):
         #pylint: disable=line-too-long
-        return next(iter([part for part in self.body_parts if part.pm_visible_shape == pm_shape]), None)
+        return next(iter([part for part in self.parts if part.pm_visible_shape == pm_shape]), None)
 
     def assign_controller(self, controller):
         """
@@ -171,14 +171,14 @@ class Agent:
         Returns: True if pm_shape belongs to the agent.
 
         """
-        all_shapes = [part.pm_visible_shape for part in self.body_parts]
+        all_shapes = [part.pm_visible_shape for part in self.parts]
         if pm_shape in all_shapes:
             return True
         return False
 
     def _find_part_by_name(self, body_part_name):
 
-        body_part = next((x for x in self.body_parts if x.name == body_part_name), None)
+        body_part = next((x for x in self.parts if x.name == body_part_name), None)
 
         if body_part is None:
             raise ValueError('Body part '+str(body_part_name) +
@@ -201,7 +201,7 @@ class Agent:
         """
 
         actions = []
-        for part in self.body_parts:
+        for part in self.parts:
             actions = actions + part.get_available_actions()
 
         return actions
@@ -223,7 +223,7 @@ class Agent:
         """
         Resets all body parts
         """
-        for part in self.body_parts:
+        for part in self.parts:
             part.reset()
 
     def draw(self, surface, excluded=None):
@@ -236,6 +236,6 @@ class Agent:
         else:
             list_excluded = excluded
 
-        for part in self.body_parts:
+        for part in self.parts:
             if part not in list_excluded:
                 part.draw(surface)

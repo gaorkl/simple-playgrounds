@@ -11,4 +11,10 @@ lidar-cones:
   range: 300
   fov: 180
   number_cones: 10
+  minimum_detection_size: 20
 
+
+lidar-cones-approximated:
+  range: 300
+  fov: 180
+  number_cones: 10

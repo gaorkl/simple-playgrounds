@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from flatland.entities.scene_elements.element import SceneElement
 from flatland.utils import CollisionTypes, PositionAreaSampler
-from flatland.entities.agents.body_parts import Part
+from flatland.entities.agents.parts import Part
 from flatland.playgrounds.playground import Playground
 
 #pylint: disable=line-too-long
