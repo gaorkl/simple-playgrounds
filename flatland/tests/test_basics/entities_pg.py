@@ -12,7 +12,7 @@ class Basic_01(SingleRoom):
         rectangle_01 = Basic([150, 160, 0.2], default_config_key='rectangle')
         self.add_scene_element(rectangle_01)
 
-        circle_01 = Basic([50, 60, 0], default_config_key='circle',
+        circle_01 = Basic([50, 50, 0], default_config_key='circle',
                                            movable=False, mass=100, texture=[150, 150, 150])
         self.add_scene_element(circle_01)
 

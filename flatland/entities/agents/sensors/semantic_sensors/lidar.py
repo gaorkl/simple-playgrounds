@@ -26,8 +26,6 @@ class LidarRays(SemanticSensor):
         super().__init__(anchor, invisible_elements, remove_occluded = remove_occluded, allow_duplicates = allow_duplicates, **sensor_params)
 
         # Field of View of the Sensor
-        self._range = sensor_params.get('range')
-        self._angle = sensor_params.get('fov') * math.pi / 180
         self.number_rays = sensor_params.get('number_rays')
 
         self.radius_beam = 1
@@ -125,9 +123,6 @@ class LidarRays(SemanticSensor):
             self.sensor_value = self.remove_duplicates(self.sensor_value)
 
 
-    @property
-    def shape(self):
-        return None
 
 
 class LidarCones(LidarRays):
@@ -147,7 +142,6 @@ class LidarCones(LidarRays):
         self.resolution = sensor_params['resolution']
         self._range = sensor_params.get('range')
         self._angle = sensor_params.get('fov') * math.pi / 180
-
         number_rays = int((self._range * self._angle / self.resolution)) + 1
 
         super().__init__(anchor, invisible_elements, number_rays=number_rays,
@@ -200,6 +194,3 @@ class LidarCones(LidarRays):
 
             self.sensor_value = self.remove_duplicates(self.sensor_value)
 
-    @property
-    def shape(self):
-        return None

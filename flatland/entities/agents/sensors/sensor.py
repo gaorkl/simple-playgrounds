@@ -43,4 +43,3 @@ class Sensor(ABC):
     @abstractmethod
     def shape(self):
         """ Returns the shape of the numpy array, if applicable."""
-

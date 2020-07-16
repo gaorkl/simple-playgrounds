@@ -32,7 +32,7 @@ class TouchSensor(VisualSensor):
             Touch sensor is always normalized.
         """
 
-        super(TouchSensor, self).__init__(anchor, invisible_elements, normalize=False,
+        super(TouchSensor, self).__init__(anchor, invisible_elements, normalize=True,
                                           min_range=anchor.radius, **kwargs)
 
         self._range = self._min_range + self._range

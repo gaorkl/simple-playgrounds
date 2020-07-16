@@ -1,6 +1,8 @@
 """
 Module for Agent Class.
 """
+import numpy
+
 from flatland.utils.definitions import SensorModality
 from flatland.utils.position_utils import PositionAreaSampler
 
@@ -239,3 +241,5 @@ class Agent:
         for part in self.parts:
             if part not in list_excluded:
                 part.draw(surface)
+
+

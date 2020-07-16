@@ -1,6 +1,7 @@
 from ..sensor import Sensor
 from flatland.utils.definitions import SensorModality
 
+import math
 from abc import abstractmethod
 import os
 import yaml
@@ -17,6 +18,9 @@ class SemanticSensor(Sensor):
         super().__init__(anchor, invisible_elements,  **sensor_param)
 
         self.sensor_modality = SensorModality.SEMANTIC
+
+        self._range = sensor_param.get('range')
+        self._angle = sensor_param.get('fov') * math.pi / 180
 
         self.remove_occluded = remove_occluded
         self.allow_duplicates = allow_duplicates
@@ -38,6 +42,6 @@ class SemanticSensor(Sensor):
     def update_sensor(self, pg):
         pass
 
-    @abstractmethod
+    @property
     def shape(self):
-        pass
+        return 2*self._range, 2*self._range

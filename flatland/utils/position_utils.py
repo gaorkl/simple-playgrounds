@@ -253,3 +253,16 @@ class Trajectory(Generator):
             self._index_start = index_start
 
         self.current_index = self._index_start
+
+
+def get_relative_postion_of_entities(entity_1, entity_2):
+
+    entity_1_x, entity_1_y, entity_1_angle = entity_1.position
+    entity_2_x, entity_2_y, entity_2_angle = entity_2.position
+
+    relative_angle = (entity_2_angle - entity_1_angle)%(2*math.pi)
+
+    relative_x = (entity_2_x - entity_1_x)*math.cos(-entity_1_angle) - (entity_2_y - entity_1_y)*math.sin(-entity_1_angle)
+    relative_y = (entity_2_x - entity_1_x)*math.sin(-entity_1_angle) + (entity_2_y - entity_1_y)*math.cos(-entity_1_angle)
+
+    return relative_x, relative_y, relative_angle

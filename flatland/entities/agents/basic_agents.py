@@ -7,7 +7,7 @@ import pymunk
 from pygame.locals import *
 
 from flatland.entities.agents.agent import Agent
-from flatland.entities.agents.parts.parts import Head, Hand, HolonomicPlatform, Eye, Arm
+from flatland.entities.agents import Head, Hand, HolonomicPlatform, Eye, Arm, FixedPlatform
 from flatland.utils import Keymap
 from flatland.utils.definitions import ActionTypes, KeyTypes
 
@@ -138,6 +138,36 @@ class HeadAgent(Agent):
 
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_n, KeyTypes.PRESS_HOLD, -1))
         keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_m, KeyTypes.PRESS_HOLD, 1))
+
+        return keys
+
+
+class TurretAgent(Agent):
+
+    """
+    Agent with a Head.
+    Base is fixed.
+
+    Attributes:
+        head: Head of the agent
+    """
+
+    def __init__(self, initial_position, **kwargs):
+
+        base_agent = FixedPlatform(radius=15)
+        super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
+
+        self.head = Head(base_agent, [0, 0], angle_offset=0, rotation_range=math.pi, radius=10, name='head')
+        self.add_body_part(self.head)
+
+
+    @property
+    def key_mapping(self):
+
+        keys = []
+
+        keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, -1))
+        keys.append(Keymap(self.head.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, 1))
 
         return keys
 
