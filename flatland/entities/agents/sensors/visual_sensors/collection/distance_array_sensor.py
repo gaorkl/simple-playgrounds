@@ -47,6 +47,8 @@ class DistanceArraySensor(VisualSensor):
             index = int(i * ((self._resolution - 1) / (self._number_laser_point - 1)))
             self.index_sensors.append(index)
 
+        self._value_range = self._range
+
     def update_sensor(self, img):
 
         super().update_sensor(img)
@@ -64,9 +66,26 @@ class DistanceArraySensor(VisualSensor):
 
         self.sensor_value = np.asarray(sensor_value)
 
+        self.apply_normalization()
+
+    def apply_normalization(self):
+
         if self.normalize:
             self.sensor_value = self.sensor_value*1.0/self._range
 
     @property
     def shape(self):
         return self._number_laser_point
+
+    def draw(self, width_display, height_sensor):
+
+        expanded = np.zeros((self.shape, 3))
+        for i in range(3):
+            expanded[:, i] = self.sensor_value[:]
+        img = np.expand_dims(expanded, 0)
+        img = cv2.resize(img, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
+
+        if self.apply_normalization is False:
+            img /= 255
+
+        return img

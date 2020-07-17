@@ -37,6 +37,10 @@ class RgbSensor(VisualSensor):
         self.sensor_value = cv2.resize(image, (self._resolution, 1),
                                        interpolation=cv2.INTER_NEAREST)[0, :]
 
+        self.apply_normalization()
+
+    def apply_normalization(self):
+
         if self.normalize:
             self.sensor_value = self.sensor_value/255.
 
@@ -44,6 +48,13 @@ class RgbSensor(VisualSensor):
     def shape(self):
         return self._resolution, 3
 
+    def draw(self, width_display, height_sensor):
+
+        im = np.expand_dims(self.sensor_value, 0)
+        im = cv2.resize(im, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
+        if self.apply_normalization is False: im /= 255
+
+        return im
 
 class GreySensor(VisualSensor):
     """
@@ -77,9 +88,25 @@ class GreySensor(VisualSensor):
 
         self.sensor_value = image
 
-        if self.normalize:
-            self.sensor_value = self.sensor_value/255.
+        self.apply_normalization()
 
     @property
     def shape(self):
         return self._resolution
+
+    def draw(self, width_display, height_sensor):
+
+        expanded = np.zeros((self.shape, 3))
+        for i in range(3):
+            expanded[:, i] = self.sensor_value[:]
+        im = np.expand_dims(expanded, 0)
+        im = cv2.resize(im, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
+
+        if self.normalize is False: im /= 255
+
+        return im
+
+    def apply_normalization(self):
+
+        if self.normalize:
+            self.sensor_value = self.sensor_value/255.

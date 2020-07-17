@@ -6,7 +6,6 @@ Module defining Playground Base Class
 """
 
 import os
-import math
 from abc import ABC
 import yaml
 import pymunk

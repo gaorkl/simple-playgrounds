@@ -79,6 +79,10 @@ class TopdownSensor(VisualSensor):
             self.sensor_value = cv2.resize(result, (2*self._resolution, 2*self._resolution),
                                            interpolation=cv2.INTER_NEAREST)
 
+        self.apply_normalization()
+
+    def apply_normalization(self):
+
         if self.normalize:
             self.sensor_value = self.sensor_value/255.
 
@@ -88,3 +92,11 @@ class TopdownSensor(VisualSensor):
         if self.only_front:
             return self._resolution, 2 * self._resolution, 3
         return 2 * self._resolution, 2 * self._resolution, 3
+
+    def draw(self, width_display, height_sensor):
+
+        h = int(width_display * self.shape[0] / self.shape[1])
+        im = cv2.resize(self.sensor_value, (width_display, h), interpolation=cv2.INTER_NEAREST)
+        if self.apply_normalization is False: im /= 255
+
+        return im

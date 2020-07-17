@@ -15,6 +15,8 @@ class TouchSensor(VisualSensor):
     It is intended to be used with Circular anchors.
     """
 
+    # cvbxc
+
     sensor_type = 'touch'
 
     def __init__(self, anchor, invisible_elements, **kwargs):
@@ -37,6 +39,8 @@ class TouchSensor(VisualSensor):
 
         self._range = self._min_range + self._range
 
+        self._value_range = self._range
+
     def update_sensor(self, img):
 
         # pylint: disable=no-member
@@ -49,7 +53,7 @@ class TouchSensor(VisualSensor):
             sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1),
                                      self.polar_view.shape[1] - 1), axis=1)
 
-            sensor_value = (self.polar_view.shape[1] - sensor) / (self.polar_view.shape[1])
+            sensor_value = (self.polar_view.shape[1] - sensor)
 
             image = np.asarray(sensor_value)
             image = np.expand_dims(image, 0)
@@ -60,6 +64,25 @@ class TouchSensor(VisualSensor):
         else:
             self.sensor_value = np.zeros((self.polar_view.shape[0]))
 
+        self.apply_normalization()
+
+    def apply_normalization(self):
+        if self.normalize:
+
+            self.sensor_value /= self._range
+
     @property
     def shape(self):
         return self._resolution
+
+    def draw(self, width_display, height_sensor):
+
+        # pylint: disable=no-member
+
+        expanded = np.zeros((self.shape, 3))
+        for i in range(3):
+            expanded[:, i] = self.sensor_value[:]
+        img = np.expand_dims(expanded, 0)
+        img = cv2.resize(img, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
+
+        return img

@@ -1,8 +1,6 @@
 """
 Module for Agent Class.
 """
-import numpy
-
 from flatland.utils.definitions import SensorModality
 from flatland.utils.position_utils import PositionAreaSampler
 
@@ -15,7 +13,7 @@ class Agent:
     """
     index_agent = 0
 
-    def __init__(self, initial_position, base_platform, **agent_params):
+    def __init__(self, initial_position, base_platform, controller, **agent_params):
         """
         Base class for agents.
 
@@ -56,7 +54,21 @@ class Agent:
         self.size_playground = [0, 0]
 
         # Controller should be replaced
-        self.controller = None
+        self.controller = controller
+
+    @property
+    def controller(self):
+        return self._controller
+
+    @controller.setter
+    def controller(self, contr):
+
+        self._controller = contr
+
+        self.controller.available_actions = self.get_all_available_actions()
+
+        if self._controller.require_key_mapping:
+            self._controller.key_mapping = self.key_mapping
 
     @property
     def key_mapping(self):

@@ -1,21 +1,46 @@
+"""
+Module defining Controllers.
+Controllers are used to chose actions for agents.
+"""
 from abc import ABC, abstractmethod
 import random
+
+import pygame
+from pygame.locals import *
+
 from flatland.utils.definitions import ActionTypes, KeyTypes
 
+
 class Controller(ABC):
+    """ Base Class for Controllers."""
 
     def __init__(self):
 
         self.require_key_mapping = False
-        self.available_actions = []
-        self.null_actions = {}
+        self.null_actions = []
+        self.actions = []
+
+    @property
+    def available_actions(self):
+        """
+        Dictionary of available actions.
+        """
+        return self._available_actions
+
+    @available_actions.setter
+    def available_actions(self, act):
+        self._available_actions = act
+        self.actions = self.generate_null_actions_dict()
+        self.null_actions = self.generate_null_actions_dict()
 
     @abstractmethod
     def generate_actions(self):
-        pass
+        """ Generate actions for each part of an agent,
+        Returns a dictionary of parts and associated actions,
+        """
 
     def generate_null_actions_dict(self):
-
+        """ Generates a dictionary of null actions."""
         actions = {}
         for action in self.available_actions:
             actions[action.body_part] = {}
@@ -25,22 +50,14 @@ class Controller(ABC):
 
         return actions
 
-#
-# class BaseController(Controller):
-#     def __init__(self, controller_params):
-#
-#         super().__init__(controller_params)
-
 
 class Random(Controller):
-
+    """
+    A random controller picks actions randomly.
+    If the action is continuous, it picks the action using a uniform distribution.
+    If the aciton is discrete (binary), it picks a random action.
+    """
     controller_type = 'random'
-
-    def __init__(self, available_actions):
-
-        super().__init__()
-        self.available_actions = available_actions
-        self.null_actions = self.generate_null_actions_dict()
 
     def generate_actions(self):
 
@@ -61,38 +78,32 @@ class Random(Controller):
 
         return actions
 
-import pygame
-from pygame.locals import *
-
 
 class Keyboard(Controller):
-
+    """
+    Keyboard controller require that a keymapping is defined in the agent.
+    The keymapping should be assigned to the controller.
+    """
     controller_type = 'keyboard'
 
-    def __init__(self, available_actions, key_mapping):
+    def __init__(self):
 
         super().__init__()
 
         self.require_key_mapping = True
         self.press_state = {}
-        self.available_actions = available_actions
-        self.key_mapping = key_mapping
-
-        self.actions = self.generate_null_actions_dict()
-
-    # def set_available_actions(self, available_actions):
-    #
-    #     super().set_available_actions(available_actions)
-    #
-    #     self.assign_key_mapping(available_actions)
+        self.key_mapping = None
 
     @property
     def key_mapping(self):
-
+        """ Key mapping that links keyboard strokes with a desired action."""
         return self._key_mapping
 
     @key_mapping.setter
     def key_mapping(self, keymap):
+
+        if keymap is None:
+            keymap = []
 
         self._key_mapping = {}
 
@@ -106,16 +117,18 @@ class Keyboard(Controller):
             if action.key_behavior == KeyTypes.PRESS_RELEASE:
                 self.press_state[action.key_behavior] = True
 
-    def reset_press_once_actions(self):
+    def _reset_press_once_actions(self):
 
-        for k, action in self.key_mapping.items():
+        for _, action in self.key_mapping.items():
 
             if action.key_behavior == KeyTypes.PRESS_RELEASE:
                 self.actions[action.body_part][action.action] = 0
 
     def generate_actions(self):
 
-        self.reset_press_once_actions()
+        # pylint: disable=undefined-variable
+
+        self._reset_press_once_actions()
 
         for event in pygame.event.get():
 
@@ -146,4 +159,3 @@ class Keyboard(Controller):
                         self.actions[action.body_part][action.action] = 0
 
         return self.actions
-

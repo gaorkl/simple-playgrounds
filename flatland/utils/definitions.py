@@ -71,5 +71,7 @@ Action = namedtuple('Action', 'body_part action action_type min max')
 
 Keymap = namedtuple('KeyMap', 'body_part action key key_behavior key_value')
 
+LidarPoint = namedtuple('Point', 'entity distance angle')
+
 geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3,
                     'square': 4, 'pentagon': 5, 'hexagon': 6}

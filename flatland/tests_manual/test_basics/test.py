@@ -1,10 +1,10 @@
-from flatland.tests.test_basics.entities_pg import *
-from flatland.tests.test_basics.test_pg import *
+from flatland.tests_manual.test_basics.entities_pg import *
+from flatland.tests_manual.test_basics.test_pg import *
 from flatland.entities.agents.basic_agents import *
 from flatland.controllers.controller import Keyboard, Random
 from flatland.entities.agents.sensors.visual_sensors import *
 from flatland.entities.agents.sensors.semantic_sensors.lidar import *
-
+from flatland.entities.agents.sensors.sensor import NoisySensor
 from flatland.utils.position_utils import get_relative_postion_of_entities
 # from flatland.agents.parts.body_part import BodyBase
 
@@ -28,7 +28,7 @@ agents = []
 
 initial_position = PositionAreaSampler(area_shape='circle', center=[100 , 100], radius=100)
 # initial_position = [25,25, math.pi/4]
-my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position)
+my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position, controller=Random())
 # my_agent = TurretAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = HeadAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = HeadEyeAgent(initial_position=initial_position)
@@ -36,8 +36,8 @@ my_agent = BaseAgent(name = 'test_agent', initial_position=initial_position)
 # my_agent = ArmHandAgent(initial_position=initial_position)
 
 # controller = Random(available_actions=my_agent.get_all_available_actions())
-controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
-my_agent.assign_controller(controller)
+# controller = Keyboard(available_actions=my_agent.get_all_available_actions(), key_mapping= my_agent.key_mapping)
+# my_agent.assign_controller(controller)
 agents.append(my_agent)
 
 
@@ -49,24 +49,30 @@ agents.append(my_agent)
 
 # Add sensors:
 
-my_agent.add_sensor(RgbSensor(name='rgb_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts, resolution=128, range=300))
-my_agent.add_sensor(TouchSensor(name='touch_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts))
-my_agent.add_sensor(GreySensor(name='grey_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts))
+# my_agent.add_sensor(RgbSensor(name='rgb_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts, resolution=128, range=300))
+# my_agent.add_sensor(TouchSensor(name='touch_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts))
+# my_agent.add_sensor(GreySensor(name='grey_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts))
+#
+#
+# my_agent.add_sensor(DepthSensor(name='depth_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts))
+# my_agent.add_sensor(DistanceArraySensor(name='test_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts,
+#                              fov= 180,range = 100, number=30))
+# my_agent.add_sensor(TopdownSensor(name='td_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts,
+#                                   range = 100, only_front = True))
+#
+# my_agent.add_sensor(LidarRays(name='lidar', anchor=my_agent.base_platform,
+#                     invisible_elements=my_agent.parts, fov=180, range=200, number_rays=100,
+#                     remove_occluded=True, allow_duplicates=True))
+#
+# my_agent.add_sensor(LidarCones(name='lidar', anchor=my_agent.base_platform,
+#                     invisible_elements=my_agent.parts, fov=180, range=100, number_cones=10, resolution = 30,
+#                     remove_occluded=True, allow_duplicates=True))
 
 
-my_agent.add_sensor(DepthSensor(name='depth_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts))
-my_agent.add_sensor(DistanceArraySensor(name='test_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts,
-                             fov= 180,range = 100, number=30))
-my_agent.add_sensor(TopdownSensor(name='td_1', anchor= my_agent.base_platform, invisible_elements=my_agent.parts,
-                                  range = 100, only_front = True))
-#
-my_agent.add_sensor(LidarRays(name='lidar', anchor=my_agent.base_platform,
-                    invisible_elements=my_agent.parts, fov=180, range=100, number_rays=20,
-                    remove_occluded=True, allow_duplicates=True))
-#
-my_agent.add_sensor(LidarCones(name='lidar', anchor=my_agent.base_platform,
-                    invisible_elements=my_agent.parts, fov=180, range=100, number_cones=10, resolution = 30,
-                    remove_occluded=True, allow_duplicates=True))
+# Noisy sensor
+sensor = RgbSensor(name='rgb_1', anchor=my_agent.base_platform, invisible_elements=my_agent.parts, resolution=128, range=300)
+noisy = NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True)
+my_agent.add_sensor(noisy)
 
 
 #
@@ -121,10 +127,10 @@ game = Engine(playground=pg, agents=agents, time_limit=1000, replay=True, screen
 
 import cv2
 import time
-import numpy
 t1 = time.time()
 
 while game.game_on:
+
 
     actions = {}
     for agent in game.agents:
@@ -136,57 +142,20 @@ while game.game_on:
 
     for agent in game.agents:
 
-        # observations = agent.observations
-        # print(observations)
-
-        for sensor_ in agent.sensors:
-
-            observation = sensor_.sensor_value
-            sensor_name = sensor_.name
-
-            # print(observation.shape, sensor.shape())
-
-            if isinstance(sensor_, SemanticSensor) :
-
-                print('---')
-                for ang, obs in observation.items():
-
-                    for o in obs:
-
-                        print(ang, o.distance, o.entity, get_relative_postion_of_entities(sensor_.anchor, o.entity))
-
-            elif isinstance(sensor_, TopdownSensor):
-                cv2.imshow(sensor_name + '__', observation)
-                cv2.waitKey(1)
-
-
-            else:
-
-                im = numpy.expand_dims(observation, 0)
-                im = cv2.resize(im, (512, 50), interpolation=cv2.INTER_NEAREST)
-                #im = observation
-                cv2.imshow(sensor_name+'__', im)
-                cv2.waitKey(1)
-                # print(numpy.max(im))
-
         img = game.generate_sensor_image(my_agent)
-        cv2.imshow('agent', img)
+        cv2.imshow(agent.name+'_sensors', img)
         cv2.waitKey(1)
 
         if agent.reward != 0: print(agent.name, agent.reward)
 
+    if game.screen:
+        game.display_full_scene()
 
-
-    # for entity in game.playground.entities:
-    #     if entity.velocity[0] != 0:
-    #         print(entity.position)
-    #         print(entity.velocity)
-    #
-    img = game.generate_topdown_image()
-    cv2.imshow('test', img)
+    else:
+        img = game.generate_topdown_image()
+        cv2.imshow('test', img)
     cv2.waitKey(30)
 
-    game.display_full_scene()
 
 
 print(1000 / (time.time() - t1))

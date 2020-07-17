@@ -150,3 +150,7 @@ class VisualSensor(Sensor):
     @abstractmethod
     def shape(self):
         pass
+
+    @abstractmethod
+    def apply_normalization(self):
+        pass

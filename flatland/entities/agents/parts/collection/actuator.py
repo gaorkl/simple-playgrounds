@@ -8,7 +8,7 @@ from abc import ABC
 import pymunk
 import pygame
 
-from flatland.entities.agents.parts.parts import Part
+from flatland.entities.agents.parts.part import Part
 from flatland.utils import ActionTypes, Action
 
 # pylint: disable=line-too-long

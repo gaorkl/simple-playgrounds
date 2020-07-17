@@ -248,77 +248,103 @@ class Engine:
 
         return imgdata
 
-    def generate_sensor_image(self, agent, width_sensor=200, height_visual=30):
+    def generate_sensor_image(self, agent, width_sensor=200, height_sensor=30):
+        """
+        Generate a full image contaning all the sensor representations of an Agent.
+        Args:
+            agent: Agent
+            width_display: width of the display for drawing.
+            height_sensor: when applicable (1D sensor), the height of the display.
+
+
+        Returns:
+
+        """
 
         border = 5
-        height_image = border
-        height_semantic = width_sensor
 
-        #Calculate full image size
-        for sensor in agent.sensors:
-            if sensor.sensor_modality is SensorModality.VISUAL:
-                if isinstance(sensor.shape, int):
-                    height_image += height_visual + border
-                elif len(sensor.shape) == 2:
-                    height_image += height_visual + border
-                elif len(sensor.shape) == 3:
-                    h = int(width_sensor * sensor.shape[0]/sensor.shape[1])
-                    height_image += h + border
-            if sensor.sensor_modality is SensorModality.SEMANTIC:
-                height_image += height_semantic + border
+        list_sensor_images = [sensor.draw(width_sensor, height_sensor) for sensor in agent.sensors]
 
-        full_img = numpy.ones( (height_image, width_sensor, 3))*0.2
+        full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images)*(border+1)
+
+        full_img = numpy.ones((full_height, width_sensor, 3)) * 0.2
 
         current_height = 0
-        for sensor in agent.sensors:
-            if sensor.sensor_modality is SensorModality.VISUAL:
-                if isinstance(sensor.shape, int):
-                    current_height += border
-                    expanded = numpy.zeros((sensor.shape, 3))
-                    for i in range(3):
-                        expanded[:, i] = sensor.sensor_value[:]
-                    im = numpy.expand_dims(expanded, 0)
-                    im = cv2.resize(im, (width_sensor, height_visual), interpolation=cv2.INTER_NEAREST)
-                    if sensor.normalize is False: im /= 255
-
-                    full_img[current_height:height_visual+current_height, :, :] = im[:,:,:]
-                    current_height += height_visual
-
-                elif len(sensor.shape) == 2:
-                    current_height += border
-                    im = numpy.expand_dims(sensor.sensor_value, 0)
-                    im = cv2.resize(im, (width_sensor, height_visual), interpolation=cv2.INTER_NEAREST)
-                    full_img[current_height:height_visual + current_height, :, :] = im[:, :, :]
-                    if sensor.normalize is False: im /= 255
-                    current_height += height_visual
-
-                elif len(sensor.shape) == 3:
-                    current_height += border
-
-                    h = int(width_sensor * sensor.shape[0] / sensor.shape[1])
-                    im = cv2.resize(sensor.sensor_value, (width_sensor, h), interpolation=cv2.INTER_NEAREST)
-                    if sensor.normalize is False: im /= 255
-
-                    full_img[current_height:h + current_height, :, :] = im[:, :, :]
-                    current_height += h
-
-            if sensor.sensor_modality is SensorModality.SEMANTIC:
-                current_height += border
-
-                td = numpy.zeros((height_semantic,width_sensor, 3))
-
-                for angle, points in sensor.sensor_value.items():
-
-                    for pt in points:
-                        distance = pt.distance * height_semantic / sensor.shape[0]
-
-                        x = int(height_semantic/2 - distance*math.cos(angle))
-                        y = int(height_semantic/2 + distance*math.sin(angle))
-
-                        cv2.circle(td, (y, x), 2, [0.1, 0.5, 1.0], thickness=-1)
-
-                full_img[current_height:height_semantic + current_height, :, :] = td[:, :, :]
-                current_height += height_semantic
-
+        for im in list_sensor_images:
+            current_height += border
+            full_img[current_height:im.shape[0] + current_height, :, :] = im[:, :, :]
+            current_height += im.shape[0]
 
         return full_img
+
+        # height_image = border
+        # height_semantic = width_sensor
+        #
+        # #Calculate full image size
+        # for sensor in agent.sensors:
+        #     if sensor.sensor_modality is SensorModality.VISUAL:
+        #         if isinstance(sensor.shape, int):
+        #             height_image += height_visual + border
+        #         elif len(sensor.shape) == 2:
+        #             height_image += height_visual + border
+        #         elif len(sensor.shape) == 3:
+        #             h = int(width_sensor * sensor.shape[0]/sensor.shape[1])
+        #             height_image += h + border
+        #     if sensor.sensor_modality is SensorModality.SEMANTIC:
+        #         height_image += height_semantic + border
+        #
+        # full_img = numpy.ones( (height_image, width_sensor, 3))*0.2
+        #
+        # current_height = 0
+        # for sensor in agent.sensors:
+        #     if sensor.sensor_modality is SensorModality.VISUAL:
+        #         if isinstance(sensor.shape, int):
+        #             current_height += border
+        #             expanded = numpy.zeros((sensor.shape, 3))
+        #             for i in range(3):
+        #                 expanded[:, i] = sensor.sensor_value[:]
+        #             im = numpy.expand_dims(expanded, 0)
+        #             im = cv2.resize(im, (width_sensor, height_visual), interpolation=cv2.INTER_NEAREST)
+        #             if sensor.normalize is False: im /= 255
+        #
+        #             full_img[current_height:height_visual+current_height, :, :] = im[:,:,:]
+        #             current_height += height_visual
+        #
+        #         elif len(sensor.shape) == 2:
+        #             current_height += border
+        #             im = numpy.expand_dims(sensor.sensor_value, 0)
+        #             im = cv2.resize(im, (width_sensor, height_visual), interpolation=cv2.INTER_NEAREST)
+        #             full_img[current_height:height_visual + current_height, :, :] = im[:, :, :]
+        #             if sensor.normalize is False: im /= 255
+        #             current_height += height_visual
+        #
+        #         elif len(sensor.shape) == 3:
+        #             current_height += border
+        #
+        #             h = int(width_sensor * sensor.shape[0] / sensor.shape[1])
+        #             im = cv2.resize(sensor.sensor_value, (width_sensor, h), interpolation=cv2.INTER_NEAREST)
+        #             if sensor.normalize is False: im /= 255
+        #
+        #             full_img[current_height:h + current_height, :, :] = im[:, :, :]
+        #             current_height += h
+        #
+        #     if sensor.sensor_modality is SensorModality.SEMANTIC:
+        #         current_height += border
+        #
+        #         td = numpy.zeros((height_semantic,width_sensor, 3))
+        #
+        #         for angle, points in sensor.sensor_value.items():
+        #
+        #             for pt in points:
+        #                 distance = pt.distance * height_semantic / sensor.shape[0]
+        #
+        #                 x = int(height_semantic/2 - distance*math.cos(angle))
+        #                 y = int(height_semantic/2 + distance*math.sin(angle))
+        #
+        #                 cv2.circle(td, (y, x), 2, [0.1, 0.5, 1.0], thickness=-1)
+        #
+        #         full_img[current_height:height_semantic + current_height, :, :] = td[:, :, :]
+        #         current_height += height_semantic
+        #
+        #
+        # return full_img

@@ -20,7 +20,7 @@ class BaseAgent(Agent):
     """
     Base Agent with a single HolonomicPlatform as a Base
     """
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, initial_position=None, **kwargs):
 
         base_agent = HolonomicPlatform(name='base', radius=10,
                                        can_eat=True, can_grasp=True, can_activate=True, can_absorb=True)
@@ -56,7 +56,7 @@ class HeadEyeAgent(Agent):
         eye_r: Right Eye
     """
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, initial_position=None, **kwargs):
 
         base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb=True)
 
@@ -108,7 +108,7 @@ class HeadAgent(Agent):
         head: Head of the agent
     """
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, initial_position=None, **kwargs):
 
         base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb=True, radius=15)
         super(HeadAgent, self).__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
@@ -152,7 +152,7 @@ class TurretAgent(Agent):
         head: Head of the agent
     """
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, initial_position=initial_position, **kwargs):
 
         base_agent = FixedPlatform(radius=15)
         super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
@@ -183,7 +183,7 @@ class ArmAgent(Agent):
             arm_r: right arm
             arm_r_2: second segment of right arm
         """
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, initial_position=None, **kwargs):
 
         base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb=True, radius=15)
 
@@ -244,7 +244,7 @@ class ArmHandAgent(Agent):
             arm_r_2: second segment of right arm
             hand_r: hand attached to arm_r_2
         """
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, initial_position=None, **kwargs):
 
         base_agent = HolonomicPlatform(radius=15)
 
