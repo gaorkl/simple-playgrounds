@@ -10,7 +10,7 @@ from pygame.locals import K_q  # pylint: disable=no-name-in-module
 from pygame.color import THECOLORS  # pylint: disable=no-name-in-module
 
 from flatland.utils.definitions import SensorModality, SIMULATION_STEPS
-
+from flatland.entities.agents.agent import Agent
 
 class Engine:
 
@@ -23,7 +23,7 @@ class Engine:
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, playground, agents, time_limit, replay=False, screen=False):
+    def __init__(self, playground, time_limit, agents=None, replay=False, screen=False):
 
         """
 
@@ -44,10 +44,17 @@ class Engine:
         # Playground already exists
         self.playground = playground
 
-        for agent in agents:
-            could_place_agent = self.playground.add_agent_without_overlapping(agent, tries=100)
+        if agents is None:
+            pass
+        elif isinstance(agents, Agent):
+            could_place_agent = self.playground.add_agent_without_overlapping(agents, tries=100)
             if not could_place_agent:
                 raise ValueError('Could not place agent without overlapping')
+        else:
+            for agent in agents:
+                could_place_agent = self.playground.add_agent_without_overlapping(agent, tries=100)
+                if not could_place_agent:
+                    raise ValueError('Could not place agent without overlapping')
 
         self.agents = self.playground.agents
 
@@ -277,74 +284,14 @@ class Engine:
 
         return full_img
 
-        # height_image = border
-        # height_semantic = width_sensor
-        #
-        # #Calculate full image size
-        # for sensor in agent.sensors:
-        #     if sensor.sensor_modality is SensorModality.VISUAL:
-        #         if isinstance(sensor.shape, int):
-        #             height_image += height_visual + border
-        #         elif len(sensor.shape) == 2:
-        #             height_image += height_visual + border
-        #         elif len(sensor.shape) == 3:
-        #             h = int(width_sensor * sensor.shape[0]/sensor.shape[1])
-        #             height_image += h + border
-        #     if sensor.sensor_modality is SensorModality.SEMANTIC:
-        #         height_image += height_semantic + border
-        #
-        # full_img = numpy.ones( (height_image, width_sensor, 3))*0.2
-        #
-        # current_height = 0
-        # for sensor in agent.sensors:
-        #     if sensor.sensor_modality is SensorModality.VISUAL:
-        #         if isinstance(sensor.shape, int):
-        #             current_height += border
-        #             expanded = numpy.zeros((sensor.shape, 3))
-        #             for i in range(3):
-        #                 expanded[:, i] = sensor.sensor_value[:]
-        #             im = numpy.expand_dims(expanded, 0)
-        #             im = cv2.resize(im, (width_sensor, height_visual), interpolation=cv2.INTER_NEAREST)
-        #             if sensor.normalize is False: im /= 255
-        #
-        #             full_img[current_height:height_visual+current_height, :, :] = im[:,:,:]
-        #             current_height += height_visual
-        #
-        #         elif len(sensor.shape) == 2:
-        #             current_height += border
-        #             im = numpy.expand_dims(sensor.sensor_value, 0)
-        #             im = cv2.resize(im, (width_sensor, height_visual), interpolation=cv2.INTER_NEAREST)
-        #             full_img[current_height:height_visual + current_height, :, :] = im[:, :, :]
-        #             if sensor.normalize is False: im /= 255
-        #             current_height += height_visual
-        #
-        #         elif len(sensor.shape) == 3:
-        #             current_height += border
-        #
-        #             h = int(width_sensor * sensor.shape[0] / sensor.shape[1])
-        #             im = cv2.resize(sensor.sensor_value, (width_sensor, h), interpolation=cv2.INTER_NEAREST)
-        #             if sensor.normalize is False: im /= 255
-        #
-        #             full_img[current_height:h + current_height, :, :] = im[:, :, :]
-        #             current_height += h
-        #
-        #     if sensor.sensor_modality is SensorModality.SEMANTIC:
-        #         current_height += border
-        #
-        #         td = numpy.zeros((height_semantic,width_sensor, 3))
-        #
-        #         for angle, points in sensor.sensor_value.items():
-        #
-        #             for pt in points:
-        #                 distance = pt.distance * height_semantic / sensor.shape[0]
-        #
-        #                 x = int(height_semantic/2 - distance*math.cos(angle))
-        #                 y = int(height_semantic/2 + distance*math.sin(angle))
-        #
-        #                 cv2.circle(td, (y, x), 2, [0.1, 0.5, 1.0], thickness=-1)
-        #
-        #         full_img[current_height:height_semantic + current_height, :, :] = td[:, :, :]
-        #         current_height += height_semantic
-        #
-        #
-        # return full_img
+    def run(self):
+        """ Run the engine for the full duration of the game"""
+
+        while self.game_on:
+
+            actions = {}
+            for agent in self.agents:
+                actions[agent.name] = agent.controller.generate_actions()
+
+            self.step(actions)
+            self.update_observations()
