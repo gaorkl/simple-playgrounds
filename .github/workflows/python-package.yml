@@ -12,11 +12,10 @@ on:
 jobs:
   build:
 
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest] # Add windows later
-        python-version: [3.6, 3.7, pypy3]
+    runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          python-version: [3.6, 3.7]
         
     steps:
     - uses: actions/checkout@v2
