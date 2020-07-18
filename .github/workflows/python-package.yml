@@ -35,7 +35,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Requires sdl on Pypy3
-      run: sudo apt-get install libsdl2-2.0
+      run: sudo apt install libsdl1.2-dev
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
