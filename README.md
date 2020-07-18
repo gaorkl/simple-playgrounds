@@ -1,5 +1,10 @@
-To install: 
+# Intro
+
+# Install
+
 (sudo) pip install -e /path/to/package
+
+# Tutorials
 
 # Coordinates, shapes of environments
 
