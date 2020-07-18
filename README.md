@@ -24,4 +24,4 @@ Todo: add drawing to summarize coordinate system
 tuto:
 
 markdown
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]( https://colab.research.google.com/github/mgarciaortiz/flatland/blob/master/tutorials/test.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]( https://colab.research.google.com/github/mgarciaortiz/simple_playgrounds/blob/master/tutorials/test.ipynb)

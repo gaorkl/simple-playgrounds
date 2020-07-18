@@ -1,12 +1,12 @@
 from setuptools import setup
 
 setup(
-    name='flatland',
+    name='simple_playgrounds',
     version='0.9',
-    description='Flatland for AGI and RL',
+    description='simple_playgrounds for AGI and RL',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia.ortiz@gmail.com',
-    packages=['flatland'],  #same as name
+    packages=['simple_playgrounds'],  #same as name
     install_requires=[ 'pyyaml',
                        'markdown',
                        'pymunk',

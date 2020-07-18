@@ -1,7 +1,7 @@
-from flatland.playgrounds import SingleRoom, LinearRooms, ConnectedRooms2D
-from flatland.controllers import Random
-from flatland.entities.agents import BaseAgent
-from flatland.game_engine import Engine
+from simple_playgrounds.playgrounds import SingleRoom, LinearRooms, ConnectedRooms2D
+from simple_playgrounds.controllers import Random
+from simple_playgrounds.entities.agents import BaseAgent
+from simple_playgrounds.game_engine import Engine
 
 agent = BaseAgent(controller=Random())
 
