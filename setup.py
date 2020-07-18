@@ -6,14 +6,5 @@ setup(
     description='simple_playgrounds for AGI and RL',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia.ortiz@gmail.com',
-    packages=['simple_playgrounds'],  #same as name
-    install_requires=[ 'pyyaml',
-                       'markdown',
-                       'pymunk',
-                       'pygame',
-                       'opencv-python',
-                       'numpy',
-
-
-      ],
+    packages=['simple_playgrounds']
 )
