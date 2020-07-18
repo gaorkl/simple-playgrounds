@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='simple_playgrounds',
-    version='0.9.1',
+    version='0.9.2',
     description='simple_playgrounds for AGI and RL',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia.ortiz@gmail.com',
