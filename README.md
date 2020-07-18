@@ -1,6 +1,7 @@
 # Intro
 
-Intro 
+Intro .
+Currently working on pypi
 
 # Install
 
