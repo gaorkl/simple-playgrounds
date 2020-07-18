@@ -1,6 +1,7 @@
 pyyaml
 markdown
 pymunk
+libsdl2-2.0
 pygame
 opencv-python
 numpy
