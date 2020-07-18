@@ -1,0 +1,13 @@
+language: python
+python:
+  - "3.5"
+  - "3.5"
+  - "3.7"
+  # PyPy versions
+  - "pypy3"  # currently Python 3.6.1,  PyPy 7.1.1-beta0
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - pip install .
+# command to run tests
+script: python tests/test_playgrounds.py
