@@ -1,4 +1,6 @@
 from flatland.playgrounds.empty import SingleRoom
+from flatland.entities.field import Field
+from flatland.utils.position_utils import PositionAreaSampler
 from flatland.entities.scene_elements import *
 import math
 
@@ -225,11 +227,11 @@ class Fields_01(SingleRoom):
         super(Fields_01, self).__init__(size = size, **playground_params)
 
         area_1 = PositionAreaSampler(area_shape='rectangle', center=[70, 70], width_length=[30, 100])
-        field = Field(Poison, None, production_area=area_1)
+        field = Field(Poison, production_area=area_1)
         self.add_scene_element(field)
 
         area_2 = PositionAreaSampler(area_shape='rectangle', center=[200, 70], width_length=[50, 50])
-        field = Field(Candy, None, production_area=area_2)
+        field = Field(Candy, production_area=area_2)
         self.add_scene_element(field)
 
         goal_1 = GoalZone([20, 20, 0])

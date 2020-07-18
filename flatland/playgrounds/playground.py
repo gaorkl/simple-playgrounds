@@ -12,8 +12,9 @@ import pymunk
 
 from flatland.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
 
-#pylint: disable=unused-argument
-#pylint: disable=line-too-long
+# pylint: disable=unused-argument
+# pylint: disable=line-too-long
+
 
 class Playground(ABC):
     """ Playground is a Base Class that manages the physical simulation.
@@ -353,12 +354,18 @@ class Playground(ABC):
                     part.grasped = []
 
     def get_scene_element_from_shape(self, pm_shape):
+        """
+        Returns: Returns the Scene Element associated with the pymunk shape.
 
+        """
         entity = next(iter([e for e in self.scene_elements if pm_shape in e.pm_elements]), None)
         return entity
 
     def get_agent_from_shape(self, pm_shape):
+        """
+        Returns: Returns the Agent associated with the pymunk shape.
 
+        """
         for agent in self.agents:
             if agent.owns_shape(pm_shape):
                 return agent

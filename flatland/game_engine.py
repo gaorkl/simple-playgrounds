@@ -9,7 +9,7 @@ import pygame
 from pygame.locals import K_q  # pylint: disable=no-name-in-module
 from pygame.color import THECOLORS  # pylint: disable=no-name-in-module
 
-from flatland.utils.definitions import SensorModality, SIMULATION_STEPS
+from flatland.utils.definitions import SensorModality, SIMULATION_STEPS, ActionTypes
 from flatland.entities.agents.agent import Agent
 
 class Engine:
@@ -89,15 +89,49 @@ class Engine:
     def multiple_steps(self, actions, n_steps=1):
         """
         Runs multiple steps of the game, with the same actions for the agents.
+        Perforns Interactive (eat and activate) actions oly at the last timestep.
 
         Args:
             actions: Dictionary containing the actions for each agent.
             n_steps: Number of consecutive steps where the same actions will be applied
 
         """
+        hold_actions = {}
+        last_action = {}
 
-        for _ in range(n_steps):
-            self.step(actions)
+        for agent_name, agent_actions in actions.items():
+            hold_actions[agent_name] = {}
+            last_action[agent_name] = {}
+
+            for part_name, part_actions in agent_actions.items():
+
+                hold_actions[agent_name][part_name] = {}
+                last_action[agent_name][part_name] = {}
+
+                for act, val in part_actions.items():
+
+                    if act in [ActionTypes.ACTIVATE, ActionTypes.EAT]:
+                        hold_actions[agent_name][part_name][act] = 0
+                        last_action[agent_name][part_name][act] = val
+
+                    else:
+                        hold_actions[agent_name][part_name][act] = val
+                        last_action[agent_name][part_name][act] = val
+
+        cumulated_rewards = {}
+        for agent_name in actions:
+            cumulated_rewards[agent_name] = 0
+
+        for _ in range(n_steps-1):
+            self.step(hold_actions)
+
+            for agent in self.agents:
+                cumulated_rewards[agent.name] += agent.reward
+
+        self.step(last_action)
+
+        for agent in self.agents:
+            agent.reward += cumulated_rewards[agent.name]
 
     def step(self, actions):
         """

@@ -8,7 +8,7 @@ from flatland.entities.agents.sensors.sensor import NoisySensor
 from flatland.utils.position_utils import get_relative_postion_of_entities
 # from flatland.agents.parts.body_part import BodyBase
 
-pg = Basic_01()
+# pg = Basic_01()
 # pg = Empty_02()
 # pg = Contact_01()
 # pg = PositionObject_01()
@@ -17,7 +17,7 @@ pg = Basic_01()
 # pg = Zones_01()
 # pg = Proximity_01()
 # pg = Trajectory_01()
-# pg = Fields_01()
+pg = Fields_01()
 # pg = Interactive_01()
 # pg = Conditioning_01()
 # pg = Overlap()
@@ -136,7 +136,7 @@ while game.game_on:
     for agent in game.agents:
         actions[agent.name] = agent.controller.generate_actions()
 
-    game.step(actions)
+    game.multiple_steps(actions,4)
     game.update_observations()
 
 

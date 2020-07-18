@@ -2,6 +2,7 @@
 Module for Field
 """
 import random
+from flatland.utils.definitions import SceneElementTypes
 
 #pylint: disable=too-many-instance-attributes
 #pylint: disable=too-many-arguments
@@ -12,7 +13,7 @@ class Field:
     """
 
     id_number = 0
-    entity_type = 'field'
+    entity_type = SceneElementTypes.FIELD
 
     def __init__(self, entity_produced, production_area, probability=0.05, limit=10, total_limit=30,
                  entity_produced_params=None):
