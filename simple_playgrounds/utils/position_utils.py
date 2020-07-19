@@ -205,7 +205,7 @@ class Trajectory(Generator):
             for i in range(n_points):
                 trajectory_points.append([pts_x[i], pts_y[i], 0])
 
-        for pt_index, trajectory_point in trajectory_points:
+        for pt_index, trajectory_point in enumerate(trajectory_points):
 
             angle = (pt_index * self.n_rotations) * (2*math.pi) / len(trajectory_points) % (2*math.pi)
 

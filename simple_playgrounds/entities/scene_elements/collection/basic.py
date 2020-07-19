@@ -48,6 +48,7 @@ class Door(SceneElement):
 
         self.opened = False
 
+
     @property
     def opened(self):
         """ State of the door. True if door is opened."""

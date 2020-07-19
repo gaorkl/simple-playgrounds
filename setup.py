@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='simple_playgrounds',
-    version='0.9.8',
+    version='0.9.9',
     description='Simulator for AGI and RL',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia-ortiz@city.ac.uk',

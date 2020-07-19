@@ -5,11 +5,12 @@ from abc import ABC, abstractmethod
 
 from simple_playgrounds.entities.scene_elements.element import SceneElement
 from simple_playgrounds.utils.definitions import CollisionTypes
-from simple_playgrounds.utils.position_utils import  PositionAreaSampler
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
 from simple_playgrounds.entities.agents.parts import Part
 from simple_playgrounds.playgrounds.playground import Playground
 
 #pylint: disable=line-too-long
+
 
 class InteractiveSceneElement(SceneElement, ABC):
     """Base Class dor InteractiveSceneElements"""
@@ -18,6 +19,8 @@ class InteractiveSceneElement(SceneElement, ABC):
     def __init__(self, **kwargs):
         SceneElement.__init__(self, **kwargs)
         self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
+
+        self.activated = False
 
     @abstractmethod
     def activate(self, activating_entity):
@@ -47,6 +50,10 @@ class InteractiveSceneElement(SceneElement, ABC):
     def reward(self, rew):
         ...
 
+    def pre_step(self):
+        self.activated = False
+
+
 
 class Lever(InteractiveSceneElement):
     """Lever Entities provide a reward when activated."""
@@ -67,7 +74,7 @@ class Lever(InteractiveSceneElement):
         self.reward_provided = False
 
     def pre_step(self):
-
+        super().pre_step()
         self.reward_provided = False
 
     @property
@@ -148,7 +155,7 @@ class Dispenser(InteractiveSceneElement):
         list_remove = []
         list_add = []
 
-        if len(self.produced_entities) < self.production_limit:
+        if len(self.produced_entities) < self.production_limit and self.activated is False:
 
             if self.local_dispenser:
                 initial_position = self.location_sampler.sample([self.position[0], self.position[1]])
@@ -160,6 +167,8 @@ class Dispenser(InteractiveSceneElement):
 
             self.produced_entities.append(obj)
             list_add = [obj]
+
+            self.activated = True
 
         return list_remove, list_add
 
@@ -256,9 +265,10 @@ class VendingMachine(InteractiveSceneElement):
         list_add = []
         list_remove = []
 
-        if activating_entity in self.accepted_coins.copy():
+        if activating_entity in self.accepted_coins.copy() and self.activated is False:
             list_remove = [activating_entity]
             self.accepted_coins.remove(activating_entity)
+            self.activated = True
 
         return list_remove, list_add
 
@@ -282,6 +292,10 @@ class OpenCloseSwitch(InteractiveSceneElement):
                 Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             door: Door opened by the switch.
             **kwargs: other params to configure entity. Refer to Entity class.
+
+        Notes:
+            It is possible to have multiple switches for a single door.
+            However the behavior is unstable in multiagent setting.
         """
 
         default_config = self._parse_configuration('interactive', 'switch')
@@ -300,13 +314,16 @@ class OpenCloseSwitch(InteractiveSceneElement):
         list_add = []
         list_remove = []
 
-        if self.door.opened:
-            self.door.opened = False
-            list_add = [self.door]
+        if self.activated is False:
+            if self.door.opened:
+                self.door.opened = False
+                list_add = [self.door]
 
-        else:
-            self.door.opened = True
-            list_remove = [self.door]
+            else:
+                self.door.opened = True
+                list_remove = [self.door]
+
+            self.activated = True
 
         return list_remove, list_add
 
@@ -353,12 +370,13 @@ class TimerSwitch(InteractiveSceneElement):
         list_remove = []
         list_add = []
 
-        if isinstance(activating_entity, Part):
+        if isinstance(activating_entity, Part) and self.activated is False:
             if not self.door.opened:
                 self.door.opened = True
                 list_remove = [self.door]
 
             self._reset_timer()
+            self.activated = True
 
         if isinstance(activating_entity, Playground):
             self.door.opened = False
@@ -373,13 +391,14 @@ class TimerSwitch(InteractiveSceneElement):
 
     def pre_step(self):
 
+        self.activated = False
         if self.door.opened:
             self.timer -= 1
 
     def reset(self):
 
         self.timer = self.time_open
-        self.door.close_door()
+        self.door.opened = False
 
 
 class Lock(InteractiveSceneElement):

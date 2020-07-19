@@ -1,7 +1,7 @@
 """
 Scene Elements used for conditioning experiments
 """
-from simple_playgrounds.entities.scene_elements import Lever
+from simple_playgrounds.entities.scene_elements.collection.interactive import Lever
 from simple_playgrounds.entities.scene_elements.element import SceneElement
 from simple_playgrounds.playgrounds.playground import Playground
 

@@ -7,7 +7,7 @@ from collections import namedtuple
 
 #pylint: disable=missing-class-docstring
 
-SIMULATION_STEPS = 5
+SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9
 
 

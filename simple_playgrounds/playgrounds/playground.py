@@ -233,6 +233,9 @@ class Playground(ABC):
 
         """
 
+        if new_scene_element in self.scene_elements:
+            return True
+
         new_scene_element.size_playground = self.size
 
         if new_scene_element.entity_type is SceneElementTypes.FIELD:
@@ -257,6 +260,9 @@ class Playground(ABC):
             tries: Number of times the Playground will try to place the new_entity
 
         """
+
+        if scene_element in self.scene_elements:
+            return True
 
         scene_element.size_playground = self.size
 
@@ -297,9 +303,13 @@ class Playground(ABC):
         for part in agent.parts:
             self.space.remove(*part.pm_elements)
             part.velocity = [0, 0, 0]
+            part.grasped = []
         self.agents.remove(agent)
 
     def _remove_scene_element(self, scene_element):
+
+        if scene_element not in self.scene_elements:
+            return True
 
         self.space.remove(*scene_element.pm_elements)
         self.scene_elements.remove(scene_element)
@@ -319,6 +329,7 @@ class Playground(ABC):
             body_part = self._grasped_scene_elements[scene_element]
             self.space.remove(*body_part.grasped)
             body_part.grasped = []
+            # self._grasped_scene_elements.pop(scene_element)
 
     def _fields_produce(self):
 
@@ -353,6 +364,10 @@ class Playground(ABC):
                         self.space.remove(joint)
                     part.grasped = []
 
+        for element_grasped, part in self._grasped_scene_elements.copy().items():
+            if part.grasped == []:
+                self._grasped_scene_elements.pop(element_grasped)
+
     def get_scene_element_from_shape(self, pm_shape):
         """
         Returns: Returns the Scene Element associated with the pymunk shape.
@@ -385,6 +400,8 @@ class Playground(ABC):
         agent = self.get_agent_from_shape(arbiter.shapes[0])
         touched_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
+        if touched_entity is None: return True
+
         agent.reward += touched_entity.reward
 
         list_remove, list_add = touched_entity.activate()
@@ -405,6 +422,8 @@ class Playground(ABC):
         agent = self.get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
         interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
+
+        if interacting_entity is None: return True
 
         if body_part.is_activating:
 
@@ -431,17 +450,18 @@ class Playground(ABC):
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
         interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
+        if interacting_entity is None: return True
+
         if body_part.is_grasping and not body_part.is_holding:
 
             body_part.is_holding = True
 
-            j_1 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0, 5), (0, -5))
-            j_2 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (0, -5), (0, 5))
-            j_3 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5, 5), (0, 5))
-            j_4 = pymunk.PinJoint(interacting_entity.pm_body, body_part.pm_body, (5, -5), (0, 5))
+            j_1 = pymunk.PinJoint(body_part.pm_body, interacting_entity.pm_body, (0, 5), (0, 0))
+            j_2 = pymunk.PinJoint(body_part.pm_body, interacting_entity.pm_body, (0, -5), (0, 0))
+            motor = pymunk.SimpleMotor(body_part.pm_body, interacting_entity.pm_body, 0)
 
-            self.space.add(j_1, j_2, j_3, j_4)
-            body_part.grasped = [j_1, j_2, j_3, j_4]
+            self.space.add(j_1, j_2, motor)  # , j_3, j_4, j_5, j_6, j_7, j_8)
+            body_part.grasped = [j_1, j_2, motor]  # , j_3, j_4, j_5, j_6, j_7, j_8]
 
             self._grasped_scene_elements[interacting_entity] = body_part
 
@@ -451,6 +471,8 @@ class Playground(ABC):
 
         agent = self.get_agent_from_shape(arbiter.shapes[0])
         zone_reached = self.get_scene_element_from_shape(arbiter.shapes[1])
+
+        if zone_reached is None: return True
 
         agent.reward += zone_reached.reward
 
@@ -463,6 +485,9 @@ class Playground(ABC):
 
         gem = self.get_scene_element_from_shape(arbiter.shapes[0])
         interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
+
+        if interacting_entity is None or gem is None: return True
+
 
         agent = self._get_closest_agent(gem)
         agent.reward += interacting_entity.reward
@@ -486,6 +511,8 @@ class Playground(ABC):
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
         edible_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
 
+        if edible_entity is None: return True
+
         if body_part.is_eating:
 
             agent.reward += edible_entity.get_reward()
@@ -502,6 +529,11 @@ class Playground(ABC):
 
     def _handle_collisions(self):
 
+        # Order is important
+
+        h_grasp = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
+        h_grasp.pre_solve = self._agent_grasps
+
         h_touch = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
         h_touch.pre_solve = self._agent_touches_entity
 
@@ -517,5 +549,27 @@ class Playground(ABC):
         h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
         h_gem_interactive.pre_solve = self._gem_interacts
 
-        h_grasp = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
-        h_grasp.pre_solve = self._agent_grasps
+
+class PlaygroundRegister:
+    """
+    Class to register Textures.
+    """
+
+    subclasses = {'test':[], 'rl':[]}
+
+    @classmethod
+    def register(cls, playground_type):
+        """
+        Registers a playground
+        """
+        def decorator(subclass):
+
+            if playground_type not in cls.subclasses:
+                cls.subclasses[playground_type] = []
+
+            cls.subclasses[playground_type].append(subclass)
+
+            return subclass
+
+        return decorator
+

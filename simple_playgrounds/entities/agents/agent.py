@@ -122,7 +122,7 @@ class Agent:
 
     @velocity.setter
     def velocity(self, velocity):
-        for part in self.base_platform:
+        for part in self.parts:
             part.velocity = velocity
 
     @property

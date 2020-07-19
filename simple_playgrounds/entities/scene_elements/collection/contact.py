@@ -192,6 +192,6 @@ class PushButton(ContactSceneElement):
         list_remove = [self, self.door]
         list_add = []
 
-        self.door.open_door()
+        self.door.opened = True
 
         return list_remove, list_add

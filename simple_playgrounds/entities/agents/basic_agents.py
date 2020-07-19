@@ -18,19 +18,31 @@ from simple_playgrounds.utils.definitions import ActionTypes, KeyTypes
 
 class BaseAgent(Agent):
     """
-    Base Agent with a single HolonomicPlatform as a Base
+    Base Agent with a single HolonomicPlatform as a Base.
+    No interactive actions.
     """
     def __init__(self, initial_position=None, **kwargs):
 
+        base_agent = HolonomicPlatform(name='base', radius=10,
+                                       can_eat=False, can_grasp=False, can_activate=False, can_absorb=False)
+
+        super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
+
+
+class BaseInteractiveAgent(Agent):
+    """
+        Base Agent with a single HolonomicPlatform as a Base.
+        With Interactive actions.
+        """
+
+    def __init__(self, initial_position=None, **kwargs):
         base_agent = HolonomicPlatform(name='base', radius=10,
                                        can_eat=True, can_grasp=True, can_activate=True, can_absorb=True)
 
         super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
 
-
     @property
     def key_mapping(self):
-
         keys = []
 
         keys.append(Keymap(self.base_platform.name, ActionTypes.GRASP, K_g, KeyTypes.PRESS_HOLD, 1))

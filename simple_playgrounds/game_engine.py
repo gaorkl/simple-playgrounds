@@ -318,7 +318,7 @@ class Engine:
 
         return full_img
 
-    def run(self):
+    def run(self, with_screen = False):
         """ Run the engine for the full duration of the game"""
 
         while self.game_on:
@@ -329,3 +329,11 @@ class Engine:
 
             self.step(actions)
             self.update_observations()
+
+            if with_screen:
+                self.display_full_scene()
+
+            # for agent in self.agents:
+            #     print(agent.position, agent.base_platform.pm_body.velocity, agent.base_platform.pm_body.kinetic_energy)
+            #     assert 0 < agent.position[0] < self.playground.size[0]
+            #     assert 0 < agent.position[1] < self.playground.size[1]
