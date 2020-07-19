@@ -1,2 +1,2 @@
-from .entity import *
-from .field import *
+from .entity import Entity
+from .field import Field
