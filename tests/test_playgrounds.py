@@ -1,7 +1,10 @@
+
 from simple_playgrounds.playgrounds import SingleRoom, LinearRooms, ConnectedRooms2D
+
 from simple_playgrounds.controllers import Random
 from simple_playgrounds.entities.agents import BaseAgent
-from simple_playgrounds.game_engine import Engine
+from simple_playgrounds import Engine
+
 
 
 # Add/remove agent from a playground

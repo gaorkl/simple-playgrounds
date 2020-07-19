@@ -4,7 +4,8 @@ InteractiveSceneElements can be activated by an agent.
 from abc import ABC, abstractmethod
 
 from simple_playgrounds.entities.scene_elements.element import SceneElement
-from simple_playgrounds.utils import CollisionTypes, PositionAreaSampler
+from simple_playgrounds.utils.definitions import CollisionTypes
+from simple_playgrounds.utils.position_utils import  PositionAreaSampler
 from simple_playgrounds.entities.agents.parts import Part
 from simple_playgrounds.playgrounds.playground import Playground
 

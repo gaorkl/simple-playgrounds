@@ -1,5 +1,5 @@
 from simple_playgrounds.entities.scene_elements.element import SceneElement
-from simple_playgrounds.utils import CollisionTypes
+from simple_playgrounds.utils.definitions import CollisionTypes
 
 from abc import ABC
 

@@ -6,7 +6,7 @@ from abc import ABC
 import os
 import yaml
 
-from simple_playgrounds.entities import Entity
+from simple_playgrounds.entities.entity import Entity
 
 
 class SceneElement(Entity, ABC):

@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 import yaml
 
 from simple_playgrounds.entities.entity import Entity
-from simple_playgrounds.utils import ActionTypes, CollisionTypes, Action
+from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes, Action
 
 # pylint: disable=line-too-long
 
