@@ -86,7 +86,7 @@ class VisualSensor(Sensor):
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         with open(os.path.join(__location__, fname), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file)
+            default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
         return default_config[key]
 

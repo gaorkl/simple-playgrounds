@@ -69,7 +69,7 @@ class TouchSensor(VisualSensor):
     def apply_normalization(self):
         if self.normalize:
 
-            self.sensor_value /= self._range
+            self.sensor_value = self.sensor_value/self._range
 
     @property
     def shape(self):
