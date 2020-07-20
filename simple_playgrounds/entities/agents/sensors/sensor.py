@@ -111,7 +111,7 @@ class NoisySensor(Sensor):
                 noise = numpy.random.binomial(1, proba, self.shape[0]).reshape((self.shape[0], 1))
 
             else:
-                noise = numpy.random.binomial(1, proba, (self.shape[0], self.shape[1]))
+                noise = numpy.random.binomial(1, proba, (self.shape[0], self.shape[1], 1))
 
             self.noise_application_type = 'multiplicative'
 
@@ -131,10 +131,10 @@ class NoisySensor(Sensor):
             self.compute_noise()
 
         if self.noise_application_type == 'multiplicative':
-            self.sensor_value = self.sensor_value * self.noise
+            self.sensor_value = numpy.multiply(self.sensor_value, self.noise)
 
         else:
-            self.sensor_value = self.sensor_value + self.noise
+            self.sensor_value = numpy.add(self.sensor_value, self.noise)
 
         self.sensor_value.clip(0, self._value_range)
 

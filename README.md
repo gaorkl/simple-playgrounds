@@ -1,13 +1,14 @@
 # Intro
 
-Intro .
-Currently working on pypi
+Early release of the simulator simple-playgrounds
+
+First tutorial:
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]( https://colab.research.google.com/github/mgarciaortiz/simple_playgrounds/blob/master/tutorials/test.ipynb)
 
 # Install
 
-(sudo) pip install -e /path/to/package
-
-# Tutorials
+pip3 install simple-playgrounds
 
 # Coordinates, shapes of environments
 
@@ -18,18 +19,18 @@ Carthesian coordinate system:
 
 
 Environment:
-- room shape and size: [width, length]
+- size: [width, length]
 - width along x axis, length along y axis
 
 Entities:
-- coordinates x, y
-- orientation phi
+- position x, y, phi
+- phi orientation
 - length along axis of phi = 0
 - width perpendicular to axis phi = 0
 
-Todo: add drawing to summarize coordinate system
+Examples:
 
-tuto:
+[Building a playground](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/simple_playgrounds/playgrounds/collection/test/test_scene_elements.py)
 
-markdown
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]( https://colab.research.google.com/github/mgarciaortiz/simple_playgrounds/blob/master/tutorials/test.ipynb)
+[Building an agent and adding sensors](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tests/test_sensors.py)
+
