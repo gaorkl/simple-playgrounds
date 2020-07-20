@@ -6,4 +6,4 @@ include simple_playgrounds/entities/scene_elements/configs/basic_default.yml
 include simple_playgrounds/entities/scene_elements/configs/contact_default.yml
 include simple_playgrounds/entities/scene_elements/configs/interactive_default.yml
 include simple_playgrounds/entities/scene_elements/configs/proximity_default.yml
-inclue simple_playgrounds/entities/scene_elements/configs/zone_default.yml
+include simple_playgrounds/entities/scene_elements/configs/zone_default.yml
