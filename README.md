@@ -4,7 +4,7 @@ Early release of the simulator simple-playgrounds
 
 First tutorial:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]( https://colab.research.google.com/github/mgarciaortiz/simple_playgrounds/blob/master/tutorials/test.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]( https://colab.research.google.com/github/mgarciaortiz/simple_playgrounds/blob/master/tutorials/example.ipynb)
 
 # Install
 
