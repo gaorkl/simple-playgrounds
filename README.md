@@ -6,6 +6,8 @@ First tutorial:
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](  https://colab.research.google.com/github/mgarciaortiz/simple-playgrounds/blob/master/tutorials/example.ipynb)
 
+We advise to run the notebook locally, so that more advanced display options are available.
+
 # Install
 
 pip3 install simple-playgrounds
