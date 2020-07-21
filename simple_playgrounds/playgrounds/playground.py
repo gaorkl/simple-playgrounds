@@ -223,14 +223,8 @@ class Playground(ABC):
 
         return not (interactive_collide_parts or visible_collide_parts)
 
-    def add_scene_element(self, new_scene_element, new_position=True):
-        """ Method to add a SceneElement to the Playground
-
-        Args:
-            new_scene_element: Scene Element to add to the Playground
-            new_position: If False, will not place the element in a new position.
-                Useful when entities are replaced by another.
-
+    def _add_scene_element(self, new_scene_element, new_position):
+        """ Method to add a SceneElement to the Playground.
         """
 
         if new_scene_element in self.scene_elements:
@@ -238,33 +232,15 @@ class Playground(ABC):
 
         new_scene_element.size_playground = self.size
 
-        if new_scene_element.entity_type is SceneElementTypes.FIELD:
-            self.fields.append(new_scene_element)
+        if new_position:
+            new_scene_element.position = new_scene_element.initial_position
 
-        else:
-            if new_position:
-                new_scene_element.position = new_scene_element.initial_position
+        self.space.add(*new_scene_element.pm_elements)
+        self.scene_elements.append(new_scene_element)
+        if new_scene_element in self._disappeared_scene_elements:
+            self._disappeared_scene_elements.remove(new_scene_element)
 
-            self.space.add(*new_scene_element.pm_elements)
-            self.scene_elements.append(new_scene_element)
-            if new_scene_element in self._disappeared_scene_elements:
-                self._disappeared_scene_elements.remove(new_scene_element)
-
-    def add_scene_element_without_overlapping(self, scene_element, tries=100):
-        """ Method to add a SceneElement to the Playground without overlapping
-
-        Useful when a SceneElement has a random initial position, to avoid overlapping.
-
-        Args:
-            scene_element: Scene Element to add to the Playground
-            tries: Number of times the Playground will try to place the new_entity
-
-        """
-
-        if scene_element in self.scene_elements:
-            return True
-
-        scene_element.size_playground = self.size
+    def _add_scene_element_without_ovelapping(self, scene_element, tries, new_position):
 
         trial = 0
         visible_collide = True
@@ -274,7 +250,7 @@ class Playground(ABC):
 
         while (visible_collide or interactive_collide) and trial < tries:
 
-            self.add_scene_element(scene_element)
+            self._add_scene_element(scene_element, new_position)
 
             visible_collide = False
             interactive_collide = False
@@ -293,6 +269,45 @@ class Playground(ABC):
             trial += 1
 
         return not (visible_collide or interactive_collide)
+
+    def add_scene_element(self, scene_element, tries=100, new_position=True):
+        """ Method to add a SceneElement to the Playground.
+        If the Element has its attribute allow_overlapping set to False,
+        the playground will try to add it multiple times.
+
+        Useful when a SceneElement has a random initial position, to avoid overlapping.
+
+        Args:
+            scene_element: Scene Element to add to the Playground
+            tries: Number of times the Playground will try to place the new_entity
+
+        """
+
+        if scene_element.entity_type is SceneElementTypes.FIELD:
+
+            # If already there
+            if scene_element in self.fields:
+                return True
+
+            self.fields.append(scene_element)
+            return True
+
+        # If already there
+        if scene_element in self.scene_elements:
+            return True
+
+        # Else
+        scene_element.size_playground = self.size
+
+        if scene_element.allow_overlapping:
+            self._add_scene_element(scene_element, new_position)
+            return True
+
+        else:
+            success = self._add_scene_element_without_ovelapping(scene_element, tries = tries, new_position=new_position)
+            return success
+
+
 
     def _remove_agents(self):
 

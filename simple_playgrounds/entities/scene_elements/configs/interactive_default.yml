@@ -122,8 +122,8 @@ vending_machine:
 
 door_texture : &door-texture
   texture_type: random_tiles
-  color_min: [150, 170, 80]
-  color_max: [180, 190, 100]
+  color_min: [150, 170, 220]
+  color_max: [180, 190, 240]
   size_tiles : 6
 
 door : &door
@@ -134,8 +134,8 @@ door : &door
 
 switch_texture : &switch-texture
   texture_type: random_tiles
-  color_min: [150, 130, 80]
-  color_max: [180, 150, 110]
+  color_min: [150, 130, 160]
+  color_max: [180, 150, 190]
   size_tiles : 3
   radius: 8
 

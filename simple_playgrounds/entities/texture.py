@@ -194,6 +194,39 @@ class PolarStripesTexture(Texture):
         return surf
 
 
+@TextureGenerator.register_subclass('unique_polar_stripe')
+class UniqueCenteredStripeTexture(Texture):
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.color = params['color']
+        self.color_stripe = params['color_stripe']
+        self.size_stripe = params['size_stripe']
+
+    def generate(self):
+        """
+        Generate a pygame Surface with pixels following a circular striped pattern from the center of the parent entity
+        :param width: the width of the generated surface
+        :param height: the height of the generated surface
+        :return: the pygame Surface
+        """
+
+        img = np.zeros( (self.size, self.size , 3) )
+        img[:,:,:] = self.color
+
+        x = int((self.size - 1) / 2.0)
+        y = int((self.size - 1) / 2.0)
+
+        dsize = int(self.size_stripe/2.0)
+
+        for dx in range(x, self.size):
+            for dy in range(-dsize, dsize+1):
+
+                img[y+dy, dx, :] = self.color_stripe
+
+        surf = surfarray.make_surface(img)
+        return surf
+
 @TextureGenerator.register_subclass('centered_random_tiles')
 class CenteredRandomTilesTexture(Texture):
 

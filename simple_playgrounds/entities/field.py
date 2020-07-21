@@ -49,6 +49,7 @@ class Field:
         self.name = 'field_' + str(Field.id_number)
         Field.id_number += 1
 
+
     def can_produce(self):
         """
         Tests if the field can produce a new SceneElement.

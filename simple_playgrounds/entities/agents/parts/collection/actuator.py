@@ -154,15 +154,15 @@ class Head(Actuator):
 
         self.pm_visible_shape.sensor = True
 
-    def _create_mask(self, is_interactive=False):
-
-        mask = super()._create_mask()
-
-        pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
-        pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
-        pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (pos_x, pos_y), 2)
-
-        return mask
+    # def _create_mask(self, is_interactive=False):
+    #
+    #     mask = super()._create_mask()
+    #
+    #     pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
+    #     pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
+    #     pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (pos_x, pos_y), 2)
+    #
+    #     return mask
 
 
 class Eye(Actuator):
@@ -182,15 +182,15 @@ class Eye(Actuator):
 
         self.pm_visible_shape.sensor = True
 
-    def _create_mask(self, is_interactive=False):
-
-        mask = super()._create_mask()
-
-        pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
-        pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
-        pygame.draw.line(mask, pygame.color.THECOLORS["brown"], (self.radius, self.radius), (pos_x, pos_y), 2)
-
-        return mask
+    # def _create_mask(self, is_interactive=False):
+    #
+    #     mask = super()._create_mask()
+    #
+    #     pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
+    #     pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
+    #     pygame.draw.line(mask, pygame.color.THECOLORS["brown"], (self.radius, self.radius), (pos_x, pos_y), 2)
+    #
+    #     return mask
 
 
 class Hand(Actuator):

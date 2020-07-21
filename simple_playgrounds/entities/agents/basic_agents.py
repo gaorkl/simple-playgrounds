@@ -242,6 +242,9 @@ class ArmAgent(Agent):
         self.arm_l_2 = Arm(self.arm_l, self.arm_l.extremity_anchor_point, rotation_range=9 * math.pi / 5)
         self.add_body_part(self.arm_l_2)
 
+        # Assign controller once all body parts are declared
+        self.controller = controller
+
     @property
     def key_mapping(self):
 

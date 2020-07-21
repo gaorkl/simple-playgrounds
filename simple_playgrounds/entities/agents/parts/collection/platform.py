@@ -47,16 +47,16 @@ class Platform(Part, ABC):
         self.max_angular_velocity = body_part_params['max_angular_velocity']
         self.max_longitudinal_velocity = body_part_params['max_longitudinal_velocity']
 
-    def _create_mask(self, is_interactive=False):
-
-        mask = Part._create_mask(self)
-
-        pos_y = self.radius + (self.radius-2) * (math.cos(self.pm_body.angle))
-        pos_x = self.radius + (self.radius-2) * (math.sin(self.pm_body.angle))
-        pygame.draw.line(mask, pygame.color.THECOLORS["blue"],
-                         (self.radius, self.radius), (pos_x, pos_y), 2)
-
-        return mask
+    # def _create_mask(self, is_interactive=False):
+    #
+    #     mask = Part._create_mask(self)
+    #
+    #     # pos_y = self.radius + (self.radius-2) * (math.cos(self.pm_body.angle))
+    #     # pos_x = self.radius + (self.radius-2) * (math.sin(self.pm_body.angle))
+    #     # pygame.draw.line(mask, pygame.color.THECOLORS["blue"],
+    #     #                  (self.radius, self.radius), (pos_x, pos_y), 2)
+    #
+    #     return mask
 
 
 class FixedPlatform(Platform):

@@ -65,7 +65,7 @@ class SemanticSensor(Sensor):
                 distance = point.distance * height_semantic / self.shape[0]
 
                 pos_x = int(height_semantic / 2 - distance * math.cos(angle))
-                pos_y = int(height_semantic / 2 + distance * math.sin(angle))
+                pos_y = int(height_semantic / 2 - distance * math.sin(angle))
 
                 # pylint: disable=no-member
                 cv2.circle(img, (pos_y, pos_x), 2, [0.1, 0.5, 1.0], thickness=-1)

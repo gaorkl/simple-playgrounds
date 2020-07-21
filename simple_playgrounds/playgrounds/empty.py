@@ -277,7 +277,7 @@ class ConnectedRooms2D(Playground):
             if not close_to_doorstep:
                 break
 
-        return pos_x, pos_y
+        return pos_x, pos_y, 0
 
     def get_quarter_area(self, area_coordinates, area_location):
 

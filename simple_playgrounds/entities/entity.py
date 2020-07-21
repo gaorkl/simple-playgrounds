@@ -101,6 +101,9 @@ class Entity(ABC):
         self.velocity = [0, 0, 0]
         self.position = [0, 0, 0]
 
+        # Used to set an element which is not supposed to overlap
+        self.allow_overlapping = entity_params.get('allow_overlapping', True)
+
     def _get_physical_properties(self, params):
 
         # Physical Shape
@@ -374,12 +377,20 @@ class Entity(ABC):
         if is_interactive:
             texture_surface = pygame.transform.scale(self.texture_surface, (2 * int(self.interaction_radius),
                                                                             2 * int(self.interaction_radius)))
+
+            texture_surface = pygame.transform.rotate(texture_surface, self.pm_body.angle * 180 / math.pi)
+            mask_rect = texture_surface.get_rect()
+            mask_rect.center = self.interaction_radius, self.interaction_radius
+            mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
         else:
             texture_surface = self.texture_surface.copy()
-
-        mask.blit(texture_surface, delta, None, pygame.BLEND_MULT)
+            texture_surface = pygame.transform.rotate(texture_surface, self.pm_body.angle * 180 / math.pi)
+            mask_rect = texture_surface.get_rect()
+            mask_rect.center = self.radius, self.radius
+            mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
 
         return mask
+
 
     def draw(self, surface, draw_interaction=False, force_recompute_mask=False):
         """
