@@ -3,7 +3,6 @@ Game Engine manages the interacitons between agents and Playgrounds.
 """
 import math
 import numpy
-import matplotlib.pyplot as plt
 
 import pygame
 from pygame.locals import K_q, K_r  # pylint: disable=no-name-in-module
@@ -144,19 +143,19 @@ class Engine:
         self.playground.update(SIMULATION_STEPS)
 
         # Termination
-        reset, terminate = self.game_terminated()
+        game_reset, game_terminates = self.game_terminated()
 
-        if reset:
-            self.game_reset()
+        if game_reset:
+            self.reset()
 
-        if terminate:
+        if game_terminates:
             self.game_on = False
             self.terminate()
 
         self.total_elapsed_time += 1
         self.episode_elapsed_time += 1
 
-    def game_reset(self):
+    def reset(self):
         """
         Resets the game to its initial state.
 
@@ -187,6 +186,8 @@ class Engine:
 
         if self.screen is not None:
 
+            pygame.event.get()
+
             # Press Q to terminate
             if pygame.key.get_pressed()[K_q] and self.quit_key_ready is False:
                 self.quit_key_ready = True
@@ -197,11 +198,11 @@ class Engine:
                 terminate_game = True
 
             # Press R to reset
-            if pygame.key.get_pressed()[K_r] and self.quit_key_ready is False:
-                self.quit_key_ready = True
+            if pygame.key.get_pressed()[K_r] and self.reset_key_ready is False:
+                self.reset_key_ready = True
 
-            elif pygame.key.get_pressed()[K_r] and self.quit_key_ready is True:
-                self.quit_key_ready = False
+            elif pygame.key.get_pressed()[K_r] and self.reset_key_ready is True:
+                self.reset_key_ready = False
 
                 if self.replay_until_time_limit:
                     reset_game = True
@@ -291,7 +292,7 @@ class Engine:
         else:
             raise ValueError
 
-    def generate_topdown_image(self):
+    def generate_topdown_image(self, mode=None):
         """
         Updates the Environment Surface and convert it into an array.
         Color code follows OpenCV
@@ -306,20 +307,12 @@ class Engine:
         imgdata = numpy.rot90(imgdata, 1, (1, 0))
         imgdata = imgdata[::-1, :, ::-1]
 
+        if mode == 'plt':
+            imgdata = imgdata[:, :, ::-1]
+
         return imgdata
 
-    def plt_topdown_display(self):
-        """
-        Plot the Environment using pyplot.
-
-        """
-        img = self.generate_topdown_image()
-        img = img[:, :, ::-1]
-
-        plt.axis('off')
-        plt.imshow(img)
-
-    def generate_sensor_image(self, agent, width_sensor=200, height_sensor=30):
+    def generate_sensor_image(self, agent, width_sensor=200, height_sensor=30, mode = None):
         """
         Generate a full image contaning all the sensor representations of an Agent.
         Args:
@@ -345,6 +338,9 @@ class Engine:
             current_height += border
             full_img[current_height:im.shape[0] + current_height, :, :] = im[:, :, :]
             current_height += im.shape[0]
+
+        if mode == 'plt':
+            full_img = full_img[:, :, ::-1]
 
         return full_img
 

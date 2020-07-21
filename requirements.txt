@@ -4,4 +4,3 @@ pygame
 pymunk
 opencv-python
 numpy
-matplotlib

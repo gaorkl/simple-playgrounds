@@ -4,6 +4,7 @@ Module defining the Base Class for Sensors
 from abc import abstractmethod, ABC
 import numpy
 from simple_playgrounds.utils.definitions import SensorModality
+from simple_playgrounds.entities.entity import Entity
 
 class Sensor(ABC):
     """
@@ -16,12 +17,15 @@ class Sensor(ABC):
         invisible_elements: elements that the sensor does not perceive. List of Parts of SceneElements.
         name: Name of the sensor.
 
+    Note:
+        The anchor is always invisible to the sensor.
+
     """
 
     index_sensor = 0
     sensor_type = 'sensor'
 
-    def __init__(self, anchor, invisible_elements, **sensor_param):
+    def __init__(self, anchor, invisible_elements=None, **sensor_param):
 
         # Sensor name
         # Internal counter to assign number and name to each sensor
@@ -34,7 +38,12 @@ class Sensor(ABC):
         # self.sensor_params = sensor_param
         self.sensor_value = None
 
-        self.invisible_elements = invisible_elements
+        if invisible_elements == None:
+            invisible_elements = []
+        elif isinstance(invisible_elements, Entity ):
+            invisible_elements = [invisible_elements]
+
+        self.invisible_elements = [anchor] + invisible_elements
 
         self._value_range = 255
 

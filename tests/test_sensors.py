@@ -19,21 +19,21 @@ def test_sensors_on_all_test_playgrounds():
     agent.add_sensor(
         RgbSensor(name='rgb_1', anchor=agent.base_platform, invisible_elements=agent.parts, resolution=128,
                   range=300))
-    agent.add_sensor(TouchSensor(name='touch_1', anchor=agent.base_platform, invisible_elements=agent.parts))
-    agent.add_sensor(GreySensor(name='grey_1', anchor=agent.base_platform, invisible_elements=agent.parts))
-    agent.add_sensor(DepthSensor(name='depth_1', anchor=agent.base_platform, invisible_elements=agent.parts))
+    agent.add_sensor(TouchSensor(name='touch_1', anchor=agent.base_platform))
+    agent.add_sensor(GreySensor(name='grey_1', anchor=agent.base_platform))
+    agent.add_sensor(DepthSensor(name='depth_1', anchor=agent.base_platform))
     agent.add_sensor(
-        DistanceArraySensor(name='test_1', anchor=agent.base_platform, invisible_elements=agent.parts,
+        DistanceArraySensor(name='test_1', anchor=agent.base_platform,
                             fov=180, range=100, number=30))
-    agent.add_sensor(TopdownSensor(name='td_1', anchor=agent.base_platform, invisible_elements=agent.parts,
+    agent.add_sensor(TopdownSensor(name='td_1', anchor=agent.base_platform,
                                       range=100, only_front=True))
 
     agent.add_sensor(LidarRays(name='lidar', anchor=agent.base_platform,
-                                  invisible_elements=agent.parts, fov=180, range=200, number_rays=100,
+                                   fov=180, range=200, number_rays=100,
                                   remove_occluded=True, allow_duplicates=True))
 
     agent.add_sensor(LidarCones(name='lidar', anchor=agent.base_platform,
-                                   invisible_elements=agent.parts, fov=180, range=100, number_cones=10,
+                                   fov=180, range=100, number_cones=10,
                                    resolution=30,
                                    remove_occluded=True, allow_duplicates=True))
 
@@ -57,24 +57,24 @@ def test_noisy_sensors_on_all_test_playgrounds():
     agent = BaseInteractiveAgent(controller=Random())
 
 
-    sensor = RgbSensor(name='rgb_1', anchor=agent.base_platform, invisible_elements=agent.parts, resolution=128,
+    sensor = RgbSensor(name='rgb_1', anchor=agent.base_platform, resolution=128,
                   range=300)
     agent.add_sensor( NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True) )
 
-    sensor = TouchSensor(name='touch_1', anchor=agent.base_platform, invisible_elements=agent.parts)
+    sensor = TouchSensor(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
 
-    sensor = GreySensor(name='grey_1', anchor=agent.base_platform, invisible_elements=agent.parts)
+    sensor = GreySensor(name='grey_1', anchor=agent.base_platform)
     agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
 
-    sensor = DepthSensor(name='depth_1', anchor=agent.base_platform, invisible_elements=agent.parts)
+    sensor = DepthSensor(name='depth_1', anchor=agent.base_platform)
     agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
 
-    sensor = DistanceArraySensor(name='test_1', anchor=agent.base_platform, invisible_elements=agent.parts,
+    sensor = DistanceArraySensor(name='test_1', anchor=agent.base_platform,
                             fov=180, range=100, number=30)
     agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
 
-    sensor = TopdownSensor(name='td_1', anchor=agent.base_platform, invisible_elements=agent.parts,
+    sensor = TopdownSensor(name='td_1', anchor=agent.base_platform,
                                    range=100, only_front=True)
     agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
 

@@ -20,7 +20,7 @@ class SemanticSensor(Sensor):
     """
     sensor_type = 'semantic'
 
-    def __init__(self, anchor, invisible_elements, remove_occluded=True, allow_duplicates=False, **sensor_param):
+    def __init__(self, anchor, invisible_elements=None, remove_occluded=True, allow_duplicates=False, **sensor_param):
 
         super().__init__(anchor, invisible_elements, **sensor_param)
 

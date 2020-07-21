@@ -11,7 +11,6 @@ from simple_playgrounds.entities.agents.parts import Head, Hand, HolonomicPlatfo
 from simple_playgrounds.utils import Keymap
 from simple_playgrounds.utils.definitions import ActionTypes, KeyTypes
 
-
 #pylint: disable=line-too-long
 #pylint: disable=undefined-variable
 #pylint: disable=abstract-class-instantiated
@@ -21,12 +20,15 @@ class BaseAgent(Agent):
     Base Agent with a single HolonomicPlatform as a Base.
     No interactive actions.
     """
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, initial_position=None, controller = None, **kwargs):
 
         base_agent = HolonomicPlatform(name='base', radius=10,
                                        can_eat=False, can_grasp=False, can_activate=False, can_absorb=False)
 
         super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
+
+        # Assign controller once all body parts are declared
+        self.controller = controller
 
     @property
     def key_mapping(self):
@@ -47,11 +49,14 @@ class BaseInteractiveAgent(Agent):
         With Interactive actions.
         """
 
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, initial_position=None, controller = None, **kwargs):
         base_agent = HolonomicPlatform(name='base', radius=10,
                                        can_eat=True, can_grasp=True, can_activate=True, can_absorb=True)
 
         super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
+
+        # Assign controller once all body parts are declared
+        self.controller = controller
 
     @property
     def key_mapping(self):
@@ -80,7 +85,7 @@ class HeadEyeAgent(Agent):
         eye_r: Right Eye
     """
 
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, initial_position=None, controller = None,**kwargs):
 
         base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb=True)
 
@@ -94,6 +99,9 @@ class HeadEyeAgent(Agent):
 
         self.eye_r = Eye(self.head, [8, 8], angle_offset=-math.pi/4, rotation_range=math.pi, name='rigth_eye')
         self.add_body_part(self.eye_r)
+
+        # Assign controller once all body parts are declared
+        self.controller = controller
 
 
     @property
@@ -132,7 +140,7 @@ class HeadAgent(Agent):
         head: Head of the agent
     """
 
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, initial_position=None,controller = None, **kwargs):
 
         base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb=True, radius=15)
         super(HeadAgent, self).__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
@@ -140,6 +148,8 @@ class HeadAgent(Agent):
         self.head = Head(base_agent, [0, 0], angle_offset=0, rotation_range=math.pi, radius=10, name='head')
         self.add_body_part(self.head)
 
+        # Assign controller once all body parts are declared
+        self.controller = controller
 
     @property
     def key_mapping(self):
@@ -149,7 +159,6 @@ class HeadAgent(Agent):
         keys.append(Keymap(self.base_platform.name, ActionTypes.GRASP, K_g, KeyTypes.PRESS_HOLD, 1))
         keys.append(Keymap(self.base_platform.name, ActionTypes.ACTIVATE, K_a, KeyTypes.PRESS_RELEASE, 1))
         keys.append(Keymap(self.base_platform.name, ActionTypes.EAT, K_e, KeyTypes.PRESS_RELEASE, 1))
-
 
         keys.append(Keymap(self.base_platform.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1))
         keys.append(Keymap(self.base_platform.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1))
@@ -176,13 +185,16 @@ class TurretAgent(Agent):
         head: Head of the agent
     """
 
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, initial_position=None, controller = None,**kwargs):
 
         base_agent = FixedPlatform(radius=15)
         super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
 
         self.head = Head(base_agent, [0, 0], angle_offset=0, rotation_range=math.pi, radius=10, name='head')
         self.add_body_part(self.head)
+
+        # Assign controller once all body parts are declared
+        self.controller = controller
 
 
     @property
@@ -207,7 +219,7 @@ class ArmAgent(Agent):
             arm_r: right arm
             arm_r_2: second segment of right arm
         """
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, initial_position=None,controller = None, **kwargs):
 
         base_agent = HolonomicPlatform(can_eat=True, can_grasp=True, can_activate=True, can_absorb=True, radius=15)
 
@@ -268,7 +280,7 @@ class ArmHandAgent(Agent):
             arm_r_2: second segment of right arm
             hand_r: hand attached to arm_r_2
         """
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, initial_position=None,controller = None, **kwargs):
 
         base_agent = HolonomicPlatform(radius=15)
 
@@ -285,6 +297,8 @@ class ArmHandAgent(Agent):
         self.hand_r = Hand(self.arm_r_2, self.arm_r_2.extremity_anchor_point, radius=8, rotation_range=math.pi)
         self.add_body_part(self.hand_r)
 
+        # Assign controller once all body parts are declared
+        self.controller = controller
 
     @property
     def key_mapping(self):

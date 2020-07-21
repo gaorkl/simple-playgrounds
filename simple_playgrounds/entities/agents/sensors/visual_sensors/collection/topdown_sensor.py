@@ -17,7 +17,7 @@ class TopdownSensor(VisualSensor):
     """
     sensor_type = 'topdown'
 
-    def __init__(self, anchor, invisible_elements, normalize=True, only_front=False, **kwargs):
+    def __init__(self, anchor, invisible_elements=None, normalize=True, only_front=False, **kwargs):
         """
         Refer to VisualSensor Class.
 

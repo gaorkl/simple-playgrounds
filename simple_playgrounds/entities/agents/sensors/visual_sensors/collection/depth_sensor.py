@@ -17,7 +17,7 @@ class DepthSensor(VisualSensor):
 
     sensor_type = 'depth'
 
-    def __init__(self, anchor, invisible_elements, normalize=True, **kwargs):
+    def __init__(self, anchor, invisible_elements=None, normalize=True, **kwargs):
 
         super(DepthSensor, self).__init__(anchor, invisible_elements, normalize, **kwargs)
 

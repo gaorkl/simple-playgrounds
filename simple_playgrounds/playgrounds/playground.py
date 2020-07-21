@@ -131,7 +131,7 @@ class Playground(ABC):
 
         # remove entities and filter out entities which are temporary
         for entity in self.scene_elements.copy():
-            self._remove_scene_element(entity)
+            self.remove_scene_element(entity)
 
         # reset and replace entities that are not temporary
         for entity in self._disappeared_scene_elements.copy():
@@ -288,7 +288,7 @@ class Playground(ABC):
                 interactive_collide = any([len(collision.points) != 0 for collision in collisions])
 
             if visible_collide or interactive_collide:
-                self._remove_scene_element(scene_element)
+                self.remove_scene_element(scene_element)
 
             trial += 1
 
@@ -300,16 +300,22 @@ class Playground(ABC):
             self.remove_agent(agent)
 
     def remove_agent(self, agent):
+
+        if agent not in self.agents:
+            return False
+
         for part in agent.parts:
             self.space.remove(*part.pm_elements)
             part.velocity = [0, 0, 0]
             part.grasped = []
         self.agents.remove(agent)
 
-    def _remove_scene_element(self, scene_element):
+        return True
+
+    def remove_scene_element(self, scene_element):
 
         if scene_element not in self.scene_elements:
-            return True
+            return False
 
         self.space.remove(*scene_element.pm_elements)
         self.scene_elements.remove(scene_element)
@@ -331,6 +337,9 @@ class Playground(ABC):
             body_part.grasped = []
             # self._grasped_scene_elements.pop(scene_element)
 
+        return True
+
+
     def _fields_produce(self):
 
         for field in self.fields:
@@ -348,7 +357,7 @@ class Playground(ABC):
                 list_remove, list_add = entity.activate(self)
 
                 for entity_removed in list_remove:
-                    self._remove_scene_element(entity_removed)
+                    self.remove_scene_element(entity_removed)
 
                 for entity_added in list_add:
                     self.add_scene_element(entity_added)
@@ -407,7 +416,7 @@ class Playground(ABC):
         list_remove, list_add = touched_entity.activate()
 
         for entity_removed in list_remove:
-            self._remove_scene_element(entity_removed)
+            self.remove_scene_element(entity_removed)
 
         for entity_added in list_add:
             self.add_scene_element(entity_added)
@@ -432,7 +441,7 @@ class Playground(ABC):
             list_remove, list_add = interacting_entity.activate(body_part)
 
             for entity_removed in list_remove:
-                self._remove_scene_element(entity_removed)
+                self.remove_scene_element(entity_removed)
 
             for entity_added in list_add:
                 self.add_scene_element(entity_added)
@@ -495,7 +504,7 @@ class Playground(ABC):
         list_remove, list_add = interacting_entity.activate(gem)
 
         for entity_removed in list_remove:
-            self._remove_scene_element(entity_removed)
+            self.remove_scene_element(entity_removed)
 
         for entity_added in list_add:
             self.add_scene_element(entity_added)
@@ -517,7 +526,7 @@ class Playground(ABC):
 
             agent.reward += edible_entity.get_reward()
 
-            self._remove_scene_element(edible_entity)
+            self.remove_scene_element(edible_entity)
             completely_eaten = edible_entity.eats()
 
             if not completely_eaten:

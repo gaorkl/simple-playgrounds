@@ -19,7 +19,7 @@ class TouchSensor(VisualSensor):
 
     sensor_type = 'touch'
 
-    def __init__(self, anchor, invisible_elements, **kwargs):
+    def __init__(self, anchor, invisible_elements=None, **kwargs):
         """
         Args:
             anchor: body Part to which the sensor is attached.

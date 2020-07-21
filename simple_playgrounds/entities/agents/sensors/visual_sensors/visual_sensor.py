@@ -28,7 +28,7 @@ class VisualSensor(Sensor):
 
     sensor_type = 'visual'
 
-    def __init__(self, anchor, invisible_elements, normalize=False, **kwargs):
+    def __init__(self, anchor, invisible_elements=None, normalize=False, **kwargs):
         """
 
         Args:

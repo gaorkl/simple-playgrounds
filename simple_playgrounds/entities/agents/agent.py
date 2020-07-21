@@ -13,7 +13,7 @@ class Agent:
     """
     index_agent = 0
 
-    def __init__(self, initial_position, base_platform, controller, **agent_params):
+    def __init__(self, initial_position, base_platform, **agent_params):
         """
         Base class for agents.
 
@@ -53,8 +53,6 @@ class Agent:
         # Replaced when agent is put in playground
         self.size_playground = [0, 0]
 
-        # Controller should be replaced
-        self.controller = controller
 
     @property
     def controller(self):

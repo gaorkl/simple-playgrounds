@@ -22,7 +22,7 @@ class LidarRays(SemanticSensor):
 
     sensor_type = 'lidar-rays'
 
-    def __init__(self, anchor, invisible_elements,
+    def __init__(self, anchor, invisible_elements=None,
                  remove_occluded=True, allow_duplicates=False, **sensor_params):
         """
         Args:
@@ -156,7 +156,7 @@ class LidarCones(LidarRays):
 
     sensor_type = 'lidar-cones'
 
-    def __init__(self, anchor, invisible_elements,
+    def __init__(self, anchor, invisible_elements=None,
                  remove_occluded=True, allow_duplicates=False, **sensor_params):
         """
         Args:

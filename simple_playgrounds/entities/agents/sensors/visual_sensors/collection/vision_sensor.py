@@ -18,7 +18,7 @@ class RgbSensor(VisualSensor):
     """
     sensor_type = 'rgb'
 
-    def __init__(self, anchor, invisible_elements, normalize=True, **kwargs):
+    def __init__(self, anchor, invisible_elements=None, normalize=True, **kwargs):
 
         super().__init__(anchor, invisible_elements, normalize=normalize, **kwargs)
 
@@ -63,7 +63,7 @@ class GreySensor(VisualSensor):
     """
     sensor_type = 'grey'
 
-    def __init__(self, anchor, invisible_elements, normalize=True, **kwargs):
+    def __init__(self, anchor, invisible_elements=None, normalize=True, **kwargs):
         super().__init__(anchor, invisible_elements, normalize=normalize, **kwargs)
 
     def update_sensor(self, img):
