@@ -27,7 +27,7 @@ the keyboard control of the agents.
 Alternatively, you can run the colab versions, which are less interactive.
 (not ready yet)
 
-[01 - Welcome to simple-playgrounds](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/01_Intro.ipynb.ipynb)
+[01 - Welcome to simple-playgrounds](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/01_Intro.ipynb)
 
 [02 - Learn to build playgrounds](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/02_Playgrounds_and_positions.ipynb)
 
