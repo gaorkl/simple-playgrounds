@@ -1,5 +1,6 @@
 """
 Module for Texture of SceneElements and Parts of Agents.
+Documentation is incomplete/missing. Refer to the tutorials for now.
 """
 
 import math
@@ -265,73 +266,3 @@ class ListCenteredRandomTiles(Texture):
         surf = surfarray.make_surface(img)
         return surf
 
-
-#
-# class NormalTexture(TextureGenerator):
-#
-#     def __init__(self, m, d):
-#         super(NormalTexture, self).__init__()
-#         self.m = m
-#         self.d = d
-#
-#     def generate(self, width, height):
-#         """
-#         Generate a pygame Surface with pixels following a normal density of diagonal covariance matrix.
-#         :param width: the width of the generated Surface
-#         :param height: the height of the generated Surface
-#         :return: the pygame Surface
-#         """
-#
-#         surface = Surface((width, height), SRCALPHA)
-#         pxarray = PixelArray(surface)
-#
-#         m = np.array(self.m)
-#         d = np.array(self.d)
-#
-#         t = np.zeros((width, height, 3))
-#
-#         for c in range(3):
-#             a, b = (0 - m[c]) / d[c], (255 - m[c])/d[c]
-#             tc = truncnorm.rvs(a, b, size=width * height)
-#             t[:, :, c] = tc.reshape(width, height)
-#
-#         for i in range(width):
-#             for j in range(height):
-#                 pxarray[i, j] = tuple((d * t[i, j] + m).astype(int))
-#
-#         return surface
-#
-#
-# class StripesTexture(TextureGenerator):
-#
-#     def __init__(self, colors, lengths, angle):
-#         super(StripesTexture, self).__init__()
-#         self.colors = colors
-#         self.lengths = lengths
-#         self.angle = angle
-#         assert len(self.colors) == len(self.lengths), "Parameters 'lengths' and 'colors' should be the same length."
-#
-#     def generate(self, width, height):
-#         """
-#         Generate a pygame Surface with pixels following a striped pattern.
-#         :param width: the width of the generated surface
-#         :param height: the height of the generated surface
-#         :return: the pygame Surface
-#         """
-#
-#         surface = Surface((width, height), SRCALPHA)
-#         pxarray = PixelArray(surface)
-#
-#         for i in range(width):
-#             for j in range(height):
-#                 l = np.sqrt(i**2 + j**2) * np.cos(np.arctan((j+1)/(i+1)) - self.angle)
-#                 r = l % sum(self.lengths)
-#                 for mode, d in enumerate(np.cumsum(self.lengths)):
-#                     if r < d:
-#                         pxarray[i, j] = self.colors[mode]
-#                         break
-#
-#         return surface
-#
-#
-#

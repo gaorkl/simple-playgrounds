@@ -22,7 +22,7 @@ colorful :
   n_colors: 20
   delta_uniform: 10
   size_tiles : 10
-  color_min : [ 120, 120, 120 ]
+  color_min : [ 0, 0, 0 ]
   color_max: [150, 150, 150 ]
 
 wall:

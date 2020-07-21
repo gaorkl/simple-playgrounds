@@ -28,6 +28,18 @@ class BaseAgent(Agent):
 
         super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
 
+    @property
+    def key_mapping(self):
+        keys = []
+
+        keys.append(Keymap(self.base_platform.name, ActionTypes.ANGULAR_VELOCITY, K_RIGHT, KeyTypes.PRESS_HOLD, -1))
+        keys.append(Keymap(self.base_platform.name, ActionTypes.ANGULAR_VELOCITY, K_LEFT, KeyTypes.PRESS_HOLD, 1))
+
+        keys.append(Keymap(self.base_platform.name, ActionTypes.LONGITUDINAL_FORCE, K_UP, KeyTypes.PRESS_HOLD, 1))
+        keys.append(Keymap(self.base_platform.name, ActionTypes.LONGITUDINAL_FORCE, K_DOWN, KeyTypes.PRESS_HOLD, -1))
+
+        return keys
+
 
 class BaseInteractiveAgent(Agent):
     """

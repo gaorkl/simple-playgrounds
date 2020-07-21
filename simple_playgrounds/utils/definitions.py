@@ -26,6 +26,7 @@ class CollisionTypes(IntEnum):
     GEM = 5
     EDIBLE = 6
     GRASPABLE = 7
+    ACTIVATED_BY_GEM = 8
 
 
 class ControllerTypes(Enum):

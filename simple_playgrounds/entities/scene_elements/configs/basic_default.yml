@@ -9,6 +9,16 @@ circle:
   physical_shape: circle
   radius: 16
 
+# triangle
+triangle_texture: &triangle-texture
+  texture_type: color
+  color: [50, 220, 200]
+
+triangle:
+  texture: *triangle-texture
+  physical_shape: triangle
+  radius: 16
+
 # square
 square_texture: &square-texture
   texture_type: uniform

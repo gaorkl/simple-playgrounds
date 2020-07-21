@@ -143,10 +143,10 @@ class Playground(ABC):
             entity.reset()
 
         # reset agents
-        self._remove_agents()
+        #self._remove_agents()
         for agent in self.agents:
             agent.reset()
-            self.add_agent(agent)
+            #self.add_agent(agent)
 
         self.done = False
 
@@ -546,7 +546,7 @@ class Playground(ABC):
         h_zone = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.PASSIVE)
         h_zone.pre_solve = self._agent_enters_zone
 
-        h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.INTERACTIVE)
+        h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.ACTIVATED_BY_GEM)
         h_gem_interactive.pre_solve = self._gem_interacts
 
 

@@ -135,7 +135,7 @@ class Entity(ABC):
             texture = texture_params
 
         else:
-            if isinstance(texture_params, list):
+            if isinstance(texture_params, (list, tuple)):
                 texture_params = {'texture_type': 'color', 'color': texture_params}
 
             texture_params['radius'] = self.radius
@@ -225,6 +225,17 @@ class Entity(ABC):
 
         self.pm_body.velocity = (-v_y, v_x)
         self.pm_body.angular_velocity = v_phi
+
+    @property
+    def relative_velocity(self):
+
+        abs_vel_x, abs_vel_y, abs_ang_vel = self.velocity
+        _, _, angle = self.position
+
+        rel_vel_x = abs_vel_x * math.cos(angle) + abs_vel_y * math.cos(angle - math.pi / 2)
+        rel_vel_y = abs_vel_x * math.sin(angle) + abs_vel_y * math.sin(angle - math.pi / 2)
+
+        return rel_vel_x, rel_vel_y, abs_ang_vel
 
     def _create_pm_body(self):
 

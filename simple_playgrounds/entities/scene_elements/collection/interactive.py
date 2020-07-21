@@ -204,7 +204,7 @@ class Chest(InteractiveSceneElement):
         entity_params = {**default_config, **kwargs}
 
         super(Chest, self).__init__(initial_position=initial_position, **entity_params)
-        self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
+        self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.key = key
         self.treasure = treasure
@@ -247,6 +247,7 @@ class VendingMachine(InteractiveSceneElement):
         entity_params = {**default_config, **kwargs}
 
         super(VendingMachine, self).__init__(initial_position=initial_position, **entity_params)
+        self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.reward = entity_params.get('reward')
 
@@ -425,6 +426,7 @@ class Lock(InteractiveSceneElement):
         entity_params = {**default_config, **kwargs}
 
         super(Lock, self).__init__(initial_position=initial_position, **entity_params)
+        self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.door = door
         self.key = key

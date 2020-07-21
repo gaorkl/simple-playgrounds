@@ -3,10 +3,10 @@ Game Engine manages the interacitons between agents and Playgrounds.
 """
 import math
 import numpy
-import cv2
+import matplotlib.pyplot as plt
 
 import pygame
-from pygame.locals import K_q  # pylint: disable=no-name-in-module
+from pygame.locals import K_q, K_r  # pylint: disable=no-name-in-module
 from pygame.color import THECOLORS  # pylint: disable=no-name-in-module
 
 from simple_playgrounds.utils.definitions import SensorModality, SIMULATION_STEPS, ActionTypes
@@ -38,6 +38,7 @@ class Engine:
 
         Note:
             A pygame screen is created by default if one agent is controlled by Keyboard.
+            You can reset the game by using R key, and terminate it using Q key.
 
         """
 
@@ -63,20 +64,15 @@ class Engine:
         self.time_limit = time_limit
 
         # Display screen
-        self.need_command_display = False
-        for agent in self.agents:
-            if agent.controller and agent.controller.controller_type == 'keyboard':
-                self.need_command_display = True
-
-        self.quit_key_ready = False
-        if self.need_command_display:
-            self.quit_key_ready = True
 
         self.screen = None
-        if self.need_command_display or screen:
+        if screen:
             # Screen for Pygame
             self.screen = pygame.display.set_mode((self.playground.width, self.playground.length))
             self.screen.set_alpha(None)
+            self.quit_key_ready = True
+            self.reset_key_ready = True
+
 
         # Pygame Surfaces to display the environment
         self.surface_environment = pygame.Surface((self.playground.width, self.playground.length))
@@ -148,13 +144,14 @@ class Engine:
         self.playground.update(SIMULATION_STEPS)
 
         # Termination
-        if self.game_terminated():
+        reset, terminate = self.game_terminated()
 
-            if self.replay_until_time_limit and self.total_elapsed_time < self.time_limit:
-                self.game_reset()
+        if reset:
+            self.game_reset()
 
-            else:
-                self.game_on = False
+        if terminate:
+            self.game_on = False
+            self.terminate()
 
         self.total_elapsed_time += 1
         self.episode_elapsed_time += 1
@@ -177,19 +174,41 @@ class Engine:
             True if the game is terminated
             False if the game continues
         """
+        reset_game = False
+        terminate_game = False
 
         if self.total_elapsed_time == self.time_limit or self.playground.done:
-            return True
 
-        if self.need_command_display:
-            if not pygame.key.get_pressed()[K_q] and self.quit_key_ready is False:
+            if self.replay_until_time_limit and self.total_elapsed_time < self.time_limit:
+                reset_game = True
+            else:
+                terminate_game = True
+
+
+        if self.screen is not None:
+
+            # Press Q to terminate
+            if pygame.key.get_pressed()[K_q] and self.quit_key_ready is False:
                 self.quit_key_ready = True
 
             elif pygame.key.get_pressed()[K_q] and self.quit_key_ready is True:
                 self.quit_key_ready = False
-                return True
 
-        return False
+                terminate_game = True
+
+            # Press R to reset
+            if pygame.key.get_pressed()[K_r] and self.quit_key_ready is False:
+                self.quit_key_ready = True
+
+            elif pygame.key.get_pressed()[K_r] and self.quit_key_ready is True:
+                self.quit_key_ready = False
+
+                if self.replay_until_time_limit:
+                    reset_game = True
+                else:
+                    terminate_game = True
+
+        return reset_game, terminate_game
 
     def update_surface_environment(self):
         """
@@ -289,6 +308,17 @@ class Engine:
 
         return imgdata
 
+    def plt_topdown_display(self):
+        """
+        Plot the Environment using pyplot.
+
+        """
+        img = self.generate_topdown_image()
+        img = img[:, :, ::-1]
+
+        plt.axis('off')
+        plt.imshow(img)
+
     def generate_sensor_image(self, agent, width_sensor=200, height_sensor=30):
         """
         Generate a full image contaning all the sensor representations of an Agent.
@@ -318,7 +348,7 @@ class Engine:
 
         return full_img
 
-    def run(self, with_screen = False):
+    def run(self, with_screen = False, print_rewards = False):
         """ Run the engine for the full duration of the game"""
 
         while self.game_on:
@@ -330,10 +360,22 @@ class Engine:
             self.step(actions)
             self.update_observations()
 
-            if with_screen:
+            if with_screen and self.game_on:
                 self.display_full_scene()
+                pygame.time.wait(30)
+
+            if print_rewards:
+                for agent in self.agents:
+                    if agent.reward != 0:
+                        print(agent.name, ' got reward ', agent.reward)
+
+
 
             # for agent in self.agents:
             #     print(agent.position, agent.base_platform.pm_body.velocity, agent.base_platform.pm_body.kinetic_energy)
             #     assert 0 < agent.position[0] < self.playground.size[0]
             #     assert 0 < agent.position[1] < self.playground.size[1]
+
+    def terminate(self):
+
+        pygame.quit()

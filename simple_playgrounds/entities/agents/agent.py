@@ -116,7 +116,7 @@ class Agent:
     def velocity(self):
         """
         Velocity of the agent.
-        In case of an Agent with multiple Parts, its position is the position of the base_platform.
+        In case of an Agent with multiple Parts, its velocity is the velocity of the base_platform.
         """
         return self.base_platform.velocity
 
@@ -124,6 +124,14 @@ class Agent:
     def velocity(self, velocity):
         for part in self.parts:
             part.velocity = velocity
+
+    @property
+    def relative_velocity(self):
+        """
+        Velocity of the agent from the point of view of the agent.
+        In case of an Agent with multiple Parts, its velocity is the velocity of the base_platform.
+        """
+        return self.base_platform.relative_velocity
 
     @property
     def size_playground(self):
@@ -237,8 +245,10 @@ class Agent:
         """
         Resets all body parts
         """
-        for part in self.parts:
-            part.reset()
+        self.position = self.initial_position
+        self.velocity = [0,0,0]
+        # for part in self.parts:
+        #     part.reset()
 
     def draw(self, surface, excluded=None):
         """
