@@ -203,7 +203,7 @@ class Playground(ABC):
         for body_part in agent.parts:
             self.space.add(*body_part.pm_elements)
 
-    def _add_agent_without_overlapping(self, agent, tries=100):
+    def _add_agent_without_ovelapping(self, agent, tries=100):
         """ Method to add am Agent to the Playground without overlapping.
 
         Useful when an Agent has a random initial position, to avoid overlapping.

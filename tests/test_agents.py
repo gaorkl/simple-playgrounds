@@ -25,21 +25,18 @@ def test_base_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        success = pg.add_agent(agent, tries=100)
+        pg.add_agent(agent)
 
-        if success:
-            print('Starting testing of ', pg_class.__name__)
+        print('Starting testing of ', pg_class.__name__)
 
-            engine = Engine(pg, time_limit=1000, replay=False)
-            engine.run()
+        engine = Engine(pg, time_limit=1000, replay=False)
+        engine.run()
 
-            assert 0 < agent.position[0] < pg.size[0]
-            assert 0 < agent.position[1] < pg.size[1]
+        assert 0 < agent.position[0] < pg.size[0]
+        assert 0 < agent.position[1] < pg.size[1]
 
-            pg.remove_agent(agent)
+        pg.remove_agent(agent)
 
-        else:
-            print("Couldn't place agent")
 
 
 
@@ -57,21 +54,17 @@ def test_baseinteractive_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        success = pg.add_agent_without_overlapping(agent, tries=100)
+        pg.add_agent(agent)
 
-        if success:
-            print('Starting testing of ', pg_class.__name__)
+        print('Starting testing of ', pg_class.__name__)
 
-            engine = Engine(pg, time_limit=1000, replay=False)
-            engine.run()
+        engine = Engine(pg, time_limit=1000, replay=False)
+        engine.run()
 
-            assert 0 < agent.position[0] < pg.size[0]
-            assert 0 < agent.position[1] < pg.size[1]
+        assert 0 < agent.position[0] < pg.size[0]
+        assert 0 < agent.position[1] < pg.size[1]
 
-            pg.remove_agent(agent)
-
-        else:
-            print("Couldn't place agent")
+        pg.remove_agent(agent)
 
 
 def test_turret_agent_on_all_test_playgrounds():
@@ -88,28 +81,24 @@ def test_turret_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        success = pg.add_agent_without_overlapping(agent, tries=100)
+        pg.add_agent(agent)
 
-        if success:
-            print('Starting testing of ', pg_class.__name__)
+        print('Starting testing of ', pg_class.__name__)
 
-            engine = Engine(pg, time_limit=1000, replay=False)
-            engine.run()
+        engine = Engine(pg, time_limit=1000, replay=False)
+        engine.run()
 
-            assert 0 < agent.position[0] < pg.size[0]
-            assert 0 < agent.position[1] < pg.size[1]
+        assert 0 < agent.position[0] < pg.size[0]
+        assert 0 < agent.position[1] < pg.size[1]
 
-            pg.remove_agent(agent)
-
-        else:
-            print("Couldn't place agent")
+        pg.remove_agent(agent)
 
 
 def test_armhand_agent_on_all_test_playgrounds():
 
     print('Testing of ArmHandAgent..............')
 
-    agent = ArmHandAgent(controller=Random())
+    agent = ArmHandAgent(controller=Random(), allow_overlapping=False)
 
     for pg_class in PlaygroundRegister.filter('test'):
 
@@ -119,21 +108,15 @@ def test_armhand_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        success = pg.add_agent_without_overlapping(agent, tries=100)
+        pg.add_agent(agent)
 
-        if success:
-            print('Starting testing of ', pg_class.__name__)
+        engine = Engine(pg, time_limit=1000, replay=False)
+        engine.run()
 
-            engine = Engine(pg, time_limit=1000, replay=False)
-            engine.run()
+        assert 0 < agent.position[0] < pg.size[0]
+        assert 0 < agent.position[1] < pg.size[1]
 
-            assert 0 < agent.position[0] < pg.size[0]
-            assert 0 < agent.position[1] < pg.size[1]
-
-            pg.remove_agent(agent)
-
-        else:
-            print("Couldn't place agent")
+        pg.remove_agent(agent)
 
 
 def test_headeye_agent_on_all_test_playgrounds():
@@ -150,28 +133,25 @@ def test_headeye_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        success = pg.add_agent_without_overlapping(agent, tries=100)
+        pg.add_agent(agent)
 
-        if success:
-            print('Starting testing of ', pg_class.__name__)
+        print('Starting testing of ', pg_class.__name__)
 
-            engine = Engine(pg, time_limit=1000, replay=False)
-            engine.run()
+        engine = Engine(pg, time_limit=1000, replay=False)
+        engine.run()
 
-            assert 0 < agent.position[0] < pg.size[0]
-            assert 0 < agent.position[1] < pg.size[1]
+        assert 0 < agent.position[0] < pg.size[0]
+        assert 0 < agent.position[1] < pg.size[1]
 
-            pg.remove_agent(agent)
+        pg.remove_agent(agent)
 
-        else:
-            print("Couldn't place agent")
 
 
 def test_arm_agent_on_all_test_playgrounds():
 
     print('Testing of ArmAgent..............')
 
-    agent = ArmAgent(controller=Random())
+    agent = ArmAgent(controller=Random(), allow_overlapping=False)
 
     for pg_class in PlaygroundRegister.filter('test'):
 
@@ -181,19 +161,16 @@ def test_arm_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        success = pg.add_agent_without_overlapping(agent, tries=100)
+        pg.add_agent(agent)
 
-        if success:
-            print('Starting testing of ', pg_class.__name__)
+        print('Starting testing of ', pg_class.__name__)
 
-            engine = Engine(pg, time_limit=1000, replay=False)
-            engine.run()
+        engine = Engine(pg, time_limit=1000, replay=False)
+        engine.run()
 
-            assert 0 < agent.position[0] < pg.size[0]
-            assert 0 < agent.position[1] < pg.size[1]
+        assert 0 < agent.position[0] < pg.size[0]
+        assert 0 < agent.position[1] < pg.size[1]
 
-            pg.remove_agent(agent)
+        pg.remove_agent(agent)
 
-        else:
-            print("Couldn't place agent")
 

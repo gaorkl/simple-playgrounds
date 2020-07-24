@@ -53,7 +53,8 @@ class Agent:
         # Replaced when agent is put in playground
         self.size_playground = [0, 0]
 
-        self.allow_overlapping = True
+        # By default, and agent can start at an overlapping position
+        self.allow_overlapping = agent_params.get('allow_overlapping', True)
 
 
     @property
