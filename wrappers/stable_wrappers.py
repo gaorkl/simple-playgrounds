@@ -92,8 +92,6 @@ class PlaygroundEnv(gym.Env):
         self.observation_space = spaces.Box(low=0, high=1, shape=(height_all_sensors, width_all_sensors, 3), dtype=numpy.float32)
         self.observations = numpy.zeros((height_all_sensors, width_all_sensors, 3))
 
-        self.n_steps = game_engine.playground.time_limit
-
 
     def step(self, action):
 
@@ -275,7 +273,7 @@ class CustomPolicy(CnnLnLstmPolicy):
 
             features.append(h_dense)
 
-        h_concat =  tf.concat( features, axis=1 )
+        h_concat = tf.concat(features, 1)
 
         h_out_1 = self.dense_all_1(h_concat)
 
