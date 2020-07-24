@@ -1,3 +1,6 @@
 __pycache__
 .idea
 simple_playgrounds.egg-info
+
+test.ipynb
+wrappers/

@@ -37,7 +37,7 @@ def test_sensors_on_all_test_playgrounds():
                                    resolution=30,
                                    remove_occluded=True, allow_duplicates=True))
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
         pg = pg_class()
 
         pg.add_agent(agent)
@@ -79,14 +79,14 @@ def test_noisy_sensors_on_all_test_playgrounds():
     agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
 
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
         pg = pg_class()
 
         pg.add_agent(agent)
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=1000, replay=False)
+        engine = Engine(pg, time_limit=100, replay=False)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]

@@ -123,9 +123,9 @@ class UniqueRandomTilesTexture(Texture):
         self.color_min = color_min
         self.color_max = color_max
 
-        n_r_splits = int( n_colors ** (1/3) )
-        n_g_splits = int( n_colors ** (1/3))
-        n_b_splits = n_colors - 2*int(n_colors ** (1/3))
+        n_r_splits = n_colors #int( n_colors ** (1/3) )
+        n_g_splits = n_colors #int( n_colors ** (1/3))
+        n_b_splits = n_colors #n_colors - 2*int(n_colors ** (1/3))
 
         r_list = [ color_min[0] + n_r * (color_max[0] - color_min[0] )/ (n_r_splits-1) for n_r in range(0, n_r_splits) ]
         g_list = [ color_min[1] + n_g * (color_max[1] - color_min[1] ) / (n_g_splits-1) for n_g in range(0, n_g_splits) ]

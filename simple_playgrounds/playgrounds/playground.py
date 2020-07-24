@@ -64,6 +64,8 @@ class Playground(ABC):
 
         self._handle_collisions()
 
+        self.time_limit = None
+
     @staticmethod
     def parse_configuration(key):
         """ Private method that parses yaml configuration files.
@@ -150,7 +152,34 @@ class Playground(ABC):
 
         self.done = False
 
-    def add_agent(self, agent):
+    def add_agent(self, new_agent, tries=100):
+        """ Method to add an Agent to the Playground.
+        If the Agent has its attribute allow_overlapping set to False,
+        the playground will try to add it multiple times.
+
+        Args:
+            new_agent: Agent to add to the Playground
+            tries: Number of times the Playground will try to place the agent
+
+        """
+
+
+        # If already there
+        if new_agent in self.scene_elements:
+            return True
+
+        # Else
+        new_agent.size_playground = self.size
+
+        if new_agent.allow_overlapping:
+            self._add_agent(new_agent)
+            return True
+
+        else:
+            self._add_agent_without_ovelapping(new_agent, tries = tries)
+            return True
+
+    def _add_agent(self, agent):
         """ Add an agent to the playground.
 
         Args:
@@ -159,8 +188,6 @@ class Playground(ABC):
         """
 
         self.agents.append(agent)
-
-        agent.size_playground = self.size
 
         if agent.initial_position is not None:
             pass
@@ -176,7 +203,7 @@ class Playground(ABC):
         for body_part in agent.parts:
             self.space.add(*body_part.pm_elements)
 
-    def add_agent_without_overlapping(self, agent, tries=100):
+    def _add_agent_without_overlapping(self, agent, tries=100):
         """ Method to add am Agent to the Playground without overlapping.
 
         Useful when an Agent has a random initial position, to avoid overlapping.
@@ -195,7 +222,7 @@ class Playground(ABC):
 
         while (interactive_collide_parts or visible_collide_parts) and trial < tries:
 
-            self.add_agent(agent)
+            self._add_agent(agent)
 
             visible_collide_parts = False
             interactive_collide_parts = False
@@ -221,7 +248,8 @@ class Playground(ABC):
 
             trial += 1
 
-        return not (interactive_collide_parts or visible_collide_parts)
+        if interactive_collide_parts or visible_collide_parts:
+            raise ValueError("Couldn't place agent")
 
     def _add_scene_element(self, new_scene_element, new_position):
         """ Method to add a SceneElement to the Playground.
@@ -268,7 +296,8 @@ class Playground(ABC):
 
             trial += 1
 
-        return not (visible_collide or interactive_collide)
+        if visible_collide or interactive_collide:
+            raise ValueError('Scene Element could not be placed')
 
     def add_scene_element(self, scene_element, tries=100, new_position=True):
         """ Method to add a SceneElement to the Playground.
@@ -304,8 +333,8 @@ class Playground(ABC):
             return True
 
         else:
-            success = self._add_scene_element_without_ovelapping(scene_element, tries = tries, new_position=new_position)
-            return success
+            self._add_scene_element_without_ovelapping(scene_element, tries = tries, new_position=new_position)
+            return True
 
 
 
@@ -576,24 +605,28 @@ class Playground(ABC):
 
 class PlaygroundRegister:
     """
-    Class to register Textures.
+    Class to register Playgrounds.
     """
 
-    subclasses = {'test':[], 'rl':[]}
+    playgrounds = {}
 
     @classmethod
-    def register(cls, playground_type):
+    def register(cls, playground_name):
         """
         Registers a playground
         """
         def decorator(subclass):
 
-            if playground_type not in cls.subclasses:
-                cls.subclasses[playground_type] = []
+            if playground_name in cls.playgrounds:
+                raise ValueError(playground_name+' already registered')
 
-            cls.subclasses[playground_type].append(subclass)
-
+            cls.playgrounds[playground_name] = subclass
             return subclass
 
         return decorator
+
+    @classmethod
+    def filter(cls, name):
+
+        return [pg for name_pg, pg in cls.playgrounds.items() if name in name_pg]
 

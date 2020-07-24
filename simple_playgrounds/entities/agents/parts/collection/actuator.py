@@ -111,7 +111,7 @@ class Actuator(Part, ABC):
 
         actions = super().get_available_actions()
 
-        actions.append(Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS, -1, 1))
+        actions.append(Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS_CENTERED, -1, 1))
 
         return actions
 

@@ -17,7 +17,7 @@ def test_base_agent_on_all_test_playgrounds():
 
     agent = BaseAgent(controller=Random())
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
 
         pg = pg_class()
 
@@ -25,7 +25,7 @@ def test_base_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        success = pg.add_agent_without_overlapping(agent, tries=100)
+        success = pg.add_agent(agent, tries=100)
 
         if success:
             print('Starting testing of ', pg_class.__name__)
@@ -49,7 +49,7 @@ def test_baseinteractive_agent_on_all_test_playgrounds():
 
     agent = BaseInteractiveAgent(controller=Random())
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
 
         pg = pg_class()
 
@@ -80,7 +80,7 @@ def test_turret_agent_on_all_test_playgrounds():
 
     agent = TurretAgent(controller=Random())
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
 
         pg = pg_class()
 
@@ -111,7 +111,7 @@ def test_armhand_agent_on_all_test_playgrounds():
 
     agent = ArmHandAgent(controller=Random())
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
 
         pg = pg_class()
 
@@ -142,7 +142,7 @@ def test_headeye_agent_on_all_test_playgrounds():
 
     agent = HeadEyeAgent(controller=Random())
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
 
         pg = pg_class()
 
@@ -173,7 +173,7 @@ def test_arm_agent_on_all_test_playgrounds():
 
     agent = ArmAgent(controller=Random())
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
 
         pg = pg_class()
 

@@ -1,1 +1,1 @@
-from simple_playgrounds.controllers.controller import Random, Keyboard
+from simple_playgrounds.controllers.controller import Random, Keyboard, External

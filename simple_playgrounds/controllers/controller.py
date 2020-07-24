@@ -51,6 +51,12 @@ class Controller(ABC):
         return actions
 
 
+class External(Controller):
+
+    def generate_actions(self):
+
+        pass
+
 class Random(Controller):
     """
     A random controller picks actions randomly.
@@ -65,7 +71,10 @@ class Random(Controller):
 
         for action in self.available_actions:
 
-            if action.action_type == ActionTypes.CONTINUOUS:
+            if action.action_type == ActionTypes.CONTINUOUS_CENTERED:
+                act_value = random.uniform(action.min, action.max)
+
+            elif action.action_type == ActionTypes.CONTINUOUS_NOT_CENTERED:
                 act_value = random.uniform(action.min, action.max)
 
             elif action.action_type == ActionTypes.DISCRETE:

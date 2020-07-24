@@ -22,13 +22,12 @@ class Engine:
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, playground, time_limit, agents=None, replay=False, screen=False):
+    def __init__(self, playground, time_limit=None, replay=False, screen=False):
 
         """
 
         Args:
             playground (:obj: 'Playground): Playground where the agents will be placed
-            agents (:obj: 'list' of :obj: 'Agent'): List of the agents in the playground.
             time_limit (:obj: 'int'): Total number of timesteps.
             replay (:obj: 'bool'): Restarts upon termination, until time_limit is reached.
                 Default: False
@@ -44,23 +43,16 @@ class Engine:
         # Playground already exists
         self.playground = playground
 
-        if agents is None:
-            pass
-        elif isinstance(agents, Agent):
-            could_place_agent = self.playground.add_agent_without_overlapping(agents, tries=100)
-            if not could_place_agent:
-                raise ValueError('Could not place agent without overlapping')
-        else:
-            for agent in agents:
-                could_place_agent = self.playground.add_agent_without_overlapping(agent, tries=100)
-                if not could_place_agent:
-                    raise ValueError('Could not place agent without overlapping')
-
         self.agents = self.playground.agents
 
         # Rules
         self.replay_until_time_limit = replay
+
         self.time_limit = time_limit
+        if time_limit is None:
+            self.time_limit = self.playground.time_limit
+
+        assert isinstance(self.time_limit, int)
 
         # Display screen
 
@@ -163,6 +155,8 @@ class Engine:
         self.episode_elapsed_time = 0
 
         self.playground.reset()
+
+        self.game_on = True
 
 
     def game_terminated(self):

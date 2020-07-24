@@ -53,6 +53,8 @@ class Agent:
         # Replaced when agent is put in playground
         self.size_playground = [0, 0]
 
+        self.allow_overlapping = True
+
 
     @property
     def controller(self):
@@ -262,4 +264,20 @@ class Agent:
             if part not in list_excluded:
                 part.draw(surface)
 
+
+    def get_visual_sensor_shapes(self):
+
+        shapes = []
+
+        for sensor in self.sensors:
+
+            if sensor.sensor_modality is SensorModality.VISUAL:
+                if isinstance(sensor.shape, int):
+                    shapes.append( [1, sensor.shape, 1])
+                elif len(sensor.shape) == 2:
+                    shapes.append([1, sensor.shape[0], 3])
+                else:
+                    shapes.append(sensor.shape)
+
+        return shapes
 

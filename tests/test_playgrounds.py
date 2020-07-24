@@ -34,7 +34,8 @@ def test_engine():
 def test_engine_run():
     playground = SingleRoom(size=(200, 200))
     agent = BaseAgent(controller=Random())
-    engine = Engine(playground, agents=agent, time_limit=100)
+    playground.add_agent(agent)
+    engine = Engine(playground, time_limit=100)
 
     pos_start = agent.position
     assert pos_start == (100., 100., 0.)
@@ -42,12 +43,17 @@ def test_engine_run():
     assert pos_start != agent.position
 
     playground.remove_agent(agent)
-    engine = Engine(playground, agents=agent, time_limit=100)
+    playground.add_agent(agent)
+
+    engine = Engine(playground, time_limit=100)
+    assert len(engine.agents) == 1
     engine.run()
 
     playground.remove_agent(agent)
     engine = Engine(playground,  time_limit=100)
     playground.add_agent(agent)
+    assert len(engine.agents) == 1
+
     engine.run()
 
 
@@ -57,7 +63,7 @@ def test_all_test_playgrounds():
 
     agent = BaseAgent(controller=Random())
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
         pg = pg_class()
 
         pg.add_agent(agent)
@@ -74,43 +80,42 @@ def test_all_test_playgrounds():
         pg.reset()
 
 
-# Run all test playgrounds with basic non-interactive agent
-def test_grasp_playgrounds():
-
-    for pg_class in PlaygroundRegister.subclasses['test-grasp']:
-
-        pg = pg_class()
-        print('Starting testing of ', pg_class.__name__)
-
-        agent = BaseInteractiveAgent(controller=Random())
-
-        engine = Engine(pg, agents=agent, time_limit=10000, replay=False)
-        engine.run()
-
-        assert 0 < agent.position[0] < pg.size[0]
-        assert 0 < agent.position[1] < pg.size[1]
-
-        pg.remove_agent(agent)
-        pg.reset()
-
-# Run all test playgrounds with 10 agents
+# Run all test playgrounds with 100 agents
 def test_multiagents():
 
-    for pg_class in PlaygroundRegister.subclasses['test']:
+    for pg_class in PlaygroundRegister.filter('test'):
 
         pg = pg_class()
         print('Starting Multiagent testing of ', pg_class.__name__)
         center, shape = pg.area_rooms[(0,0)]
         pos_area_sampler = PositionAreaSampler(center = center, area_shape='rectangle', width_length=shape)
 
-        for i in range(20):
+        for i in range(100):
             agent = BaseInteractiveAgent(pos_area_sampler, controller=Random())
-            pg.add_agent_without_overlapping(agent, 1000)
+            pg.add_agent(agent)
 
-        assert len(pg.agents) == 20
+        assert len(pg.agents) == 100
 
-        engine = Engine(pg, time_limit=10000, replay=False, screen=False)
+        engine = Engine(pg, time_limit=100, replay=False, screen=False)
         engine.run(with_screen = False)
 
-            # pg.remove_agent(agent)
-            # pg.reset()
+
+# Run all test playgrounds with 10 agents
+def test_multiagents_no_overlapping():
+
+    for pg_class in PlaygroundRegister.filter('test'):
+
+        pg = pg_class()
+        print('Starting Multiagent testing of ', pg_class.__name__)
+        center, shape = pg.area_rooms[(0,0)]
+        pos_area_sampler = PositionAreaSampler(center = center, area_shape='rectangle', width_length=shape)
+
+        for i in range(10):
+            agent = BaseInteractiveAgent(pos_area_sampler, controller=Random(), allow_overlapping = False)
+            pg.add_agent(agent, 1000)
+
+        assert len(pg.agents) == 10
+
+        engine = Engine(pg, time_limit=100, replay=False, screen=False)
+        engine.run(with_screen = False)
+

@@ -38,16 +38,17 @@ class ControllerTypes(Enum):
 
 class ActionTypes(IntEnum):
 
-    DISCRETE = 1
-    CONTINUOUS = 2
+    DISCRETE = auto()
+    CONTINUOUS_CENTERED = auto()
+    CONTINUOUS_NOT_CENTERED = auto()
 
-    LONGITUDINAL_FORCE = 3
-    LATERAL_FORCE = 4
-    ANGULAR_VELOCITY = 5
+    LONGITUDINAL_FORCE = auto()
+    LATERAL_FORCE = auto()
+    ANGULAR_VELOCITY = auto()
 
-    GRASP = 6
-    EAT = 7
-    ACTIVATE = 8
+    GRASP = auto()
+    EAT = auto()
+    ACTIVATE = auto()
 
 
 class SensorTypes(IntEnum):

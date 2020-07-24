@@ -7,7 +7,7 @@ from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 import math
 
 
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_basic')
 class Basics(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -32,8 +32,7 @@ class Basics(SingleRoom):
 
         self.agent_starting_area = [100, 60, 0]
 
-@PlaygroundRegister.register('test-grasp')
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_grasp')
 class Graspables(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -59,7 +58,7 @@ class Graspables(SingleRoom):
         self.agent_starting_area = [100, 60, 0]
 
 
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_contacts')
 class Contacts(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -94,7 +93,7 @@ class Contacts(SingleRoom):
         self.agent_starting_area = [100, 60, 0]
 
 
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_zones')
 class Zones(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -121,8 +120,7 @@ class Zones(SingleRoom):
 
         self.agent_starting_area = [100, 60, 0]
 
-@PlaygroundRegister.register('test-grasp')
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_interactives')
 class Interactives(SingleRoom):
 
     def __init__(self, size = (300, 300), **playground_params):
@@ -188,7 +186,7 @@ class Interactives(SingleRoom):
         self.agent_starting_area = [130, 60, 0]
 
 
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_conditioning')
 class Conditioning(SingleRoom):
 
     def __init__(self, size = (300, 300), **playground_params):
@@ -205,8 +203,7 @@ class Conditioning(SingleRoom):
         self.agent_starting_area = [100, 60, 0]
 
 
-@PlaygroundRegister.register('test-grasp')
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_doors')
 class Doors(SingleRoom):
 
     def __init__(self, size = (300, 300), **playground_params):
@@ -241,7 +238,7 @@ class Doors(SingleRoom):
         self.agent_starting_area = [40, 40, 0]
 
 
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_proximity')
 class Proximity(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -260,7 +257,7 @@ class Proximity(SingleRoom):
         self.agent_starting_area = [100, 60, 0]
 
 
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_fields')
 class Fields(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
@@ -278,7 +275,7 @@ class Fields(SingleRoom):
         self.agent_starting_area = [100, 60, 0]
 
 
-@PlaygroundRegister.register('test')
+@PlaygroundRegister.register('test_trajectories')
 class Trajectories(SingleRoom):
 
     def __init__(self, size = (200, 200), **playground_params):
