@@ -8,6 +8,7 @@ from simple_playgrounds import Engine
 
 
 from simple_playgrounds.playgrounds.collection.test import *
+from simple_playgrounds.playgrounds import SingleRoom
 
 
 # Run all test playgrounds with basic non-interactive agent
@@ -94,29 +95,55 @@ def test_turret_agent_on_all_test_playgrounds():
         pg.remove_agent(agent)
 
 
-def test_armhand_agent_on_all_test_playgrounds():
+def test_agents_in_empty_playgrounds():
 
-    print('Testing of ArmHandAgent..............')
+    pg = SingleRoom()
+    center, shape = pg.area_rooms[(0, 0)]
+    pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
+
 
     agent = ArmHandAgent(controller=Random(), allow_overlapping=False)
+    print('Starting testing of ', ArmHandAgent.__name__)
 
-    for pg_class in PlaygroundRegister.filter('test'):
+    agent.initial_position = pos_area_sampler
+    pg.add_agent(agent)
 
-        pg = pg_class()
+    engine = Engine(pg, time_limit=10000, replay=False)
+    engine.run()
 
-        center, shape = pg.area_rooms[(0, 0)]
-        pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
-        agent.initial_position = pos_area_sampler
+    assert 0 < agent.position[0] < pg.size[0]
+    assert 0 < agent.position[1] < pg.size[1]
 
-        pg.add_agent(agent)
+    pg.remove_agent(agent)
 
-        engine = Engine(pg, time_limit=1000, replay=False)
-        engine.run()
+    agent = HeadEyeAgent(controller=Random(), allow_overlapping=False)
+    print('Starting testing of ', HeadEyeAgent.__name__)
 
-        assert 0 < agent.position[0] < pg.size[0]
-        assert 0 < agent.position[1] < pg.size[1]
+    agent.initial_position = pos_area_sampler
+    pg.add_agent(agent)
 
-        pg.remove_agent(agent)
+    engine = Engine(pg, time_limit=10000, replay=False)
+    engine.run()
+
+    assert 0 < agent.position[0] < pg.size[0]
+    assert 0 < agent.position[1] < pg.size[1]
+
+    pg.remove_agent(agent)
+
+    agent = ArmAgent(controller=Random(), allow_overlapping=False)
+    print('Starting testing of ', ArmAgent.__name__)
+
+    agent.initial_position = pos_area_sampler
+    pg.add_agent(agent)
+
+    engine = Engine(pg, time_limit=10000, replay=False)
+    engine.run()
+
+    assert 0 < agent.position[0] < pg.size[0]
+    assert 0 < agent.position[1] < pg.size[1]
+
+    pg.remove_agent(agent)
+
 
 
 def test_headeye_agent_on_all_test_playgrounds():
@@ -154,6 +181,7 @@ def test_arm_agent_on_all_test_playgrounds():
     agent = ArmAgent(controller=Random(), allow_overlapping=False)
 
     for pg_class in PlaygroundRegister.filter('test'):
+
 
         pg = pg_class()
 
