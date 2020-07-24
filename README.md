@@ -59,9 +59,9 @@ When applicable, the length of a scene element follows the element's x axis.
 # Acknowledgements
 
 The first version of the simulator was called Flatland, and was designed by 
-Hugo Caselles-Dupre, Louis Anabi, Oksana Hagen and Michael Garcia Ortiz.
+Hugo Caselles-Dupre, Louis Annabi, Oksana Hagen and Michael Garcia Ortiz.
 
-The new version was developped by Hugo Caselles-Dupre, Louis Anabi and Michael Garcia Ortiz.
+The new version was developped by Hugo Caselles-Dupre, Louis Annabi and Michael Garcia Ortiz.
 
 We would like to thank Clement Moulin-Frier and Younes Rabii for their helpful 
 suggestions and their contributions to the new version of the simulator.
