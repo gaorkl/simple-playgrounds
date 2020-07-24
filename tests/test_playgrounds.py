@@ -119,3 +119,27 @@ def test_multiagents_no_overlapping():
         engine = Engine(pg, time_limit=100, replay=False, screen=False)
         engine.run(with_screen = False)
 
+
+# Run all test playgrounds with 10 agents
+def multisteps():
+
+    agent = BaseAgent(controller=Random())
+
+    for pg_class in PlaygroundRegister.filter('test'):
+
+        pg = pg_class()
+        print('Starting Multistep testing of ', pg_class.__name__)
+        pg.add_agent(agent, 1000)
+
+        engine = Engine(pg, time_limit=100, replay=False, screen=False)
+
+
+        while engine.game_on:
+
+            actions = {}
+            for agent in engine.agents:
+                actions[agent.name] = agent.controller.generate_actions()
+
+            engine.multiple_steps(actions, n_steps=4)
+
+
