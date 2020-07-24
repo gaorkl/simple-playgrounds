@@ -161,7 +161,7 @@ def test_arm_agent_on_all_test_playgrounds():
         pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
         agent.initial_position = pos_area_sampler
 
-        pg.add_agent(agent)
+        pg.add_agent(agent, tries=1000)
 
         print('Starting testing of ', pg_class.__name__)
 
