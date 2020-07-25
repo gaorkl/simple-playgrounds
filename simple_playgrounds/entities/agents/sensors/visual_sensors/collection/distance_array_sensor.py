@@ -86,6 +86,6 @@ class DistanceArraySensor(VisualSensor):
         img = cv2.resize(img, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
 
         if self.apply_normalization is False:
-            img /= 255
+            img *= 1.0/self._range
 
         return img

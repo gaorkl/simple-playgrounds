@@ -97,6 +97,6 @@ class TopdownSensor(VisualSensor):
 
         h = int(width_display * self.shape[0] / self.shape[1])
         im = cv2.resize(self.sensor_value, (width_display, h), interpolation=cv2.INTER_NEAREST)
-        if self.apply_normalization is False: im /= 255
+        if self.apply_normalization is False: im /= 255.
 
         return im

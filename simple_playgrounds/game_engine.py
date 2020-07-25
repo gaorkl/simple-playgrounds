@@ -338,10 +338,12 @@ class Engine:
 
         return full_img
 
-    def run(self, with_screen = False, print_rewards = False):
+    def run(self, steps=None, with_screen = False, print_rewards = False):
         """ Run the engine for the full duration of the game"""
 
-        while self.game_on:
+        continue_for_n_steps = True
+
+        while self.game_on and continue_for_n_steps:
 
             actions = {}
             for agent in self.agents:
@@ -359,6 +361,10 @@ class Engine:
                     if agent.reward != 0:
                         print(agent.name, ' got reward ', agent.reward)
 
+            if steps is not None:
+                steps -= 1
+                if steps ==0:
+                    continue_for_n_steps = False
 
 
             # for agent in self.agents:

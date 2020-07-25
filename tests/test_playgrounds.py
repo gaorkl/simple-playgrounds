@@ -133,7 +133,6 @@ def multisteps():
 
         engine = Engine(pg, time_limit=100, replay=False, screen=False)
 
-
         while engine.game_on:
 
             actions = {}

@@ -85,4 +85,7 @@ class TouchSensor(VisualSensor):
         img = np.expand_dims(expanded, 0)
         img = cv2.resize(img, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
 
+        if self.normalize is False: img /= (self._range - self._min_range)/(2.0*self._scale_ratio)
+
+
         return img

@@ -227,7 +227,7 @@ class CustomPolicy(CnnLnLstmPolicy):
 
                     conv_1 = tf.keras.layers.Conv2D(filters=64, kernel_size=8, strides=(4, 4), activation=activ)
                     conv_2 = tf.keras.layers.Conv2D(filters=32, kernel_size=4, strides=(2, 2), activation=activ)
-                    conv_3 = tf.keras.layers.Conv1D(filters=32, kernel_size=3, strides=(1,1), activation=activ)
+                    conv_3 = tf.keras.layers.Conv2D(filters=32, kernel_size=3, strides=(1,1), activation=activ)
 
                 flat = tf.keras.layers.Flatten()
                 dense = tf.keras.layers.Dense(units=128, activation=activ)

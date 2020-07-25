@@ -1,5 +1,9 @@
 from setuptools import setup, find_packages
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+
 setup(
     name='simple_playgrounds',
     version='0.9.15',
@@ -8,5 +12,6 @@ setup(
     author_email='michael.garcia-ortiz@city.ac.uk',
     packages=[package for package in find_packages()
                 if package.startswith('simple_playgrounds')],
-    include_package_data=True
+    include_package_data=True,
+    install_requires=requirements
 )
