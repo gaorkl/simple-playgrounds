@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='simple_playgrounds',
-    version='0.9.15',
+    version='0.9.16',
     description='Simulator for AGI and RL',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia-ortiz@city.ac.uk',
