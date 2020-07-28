@@ -30,7 +30,7 @@ def test_base_agent_on_all_test_playgrounds():
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=1000, replay=False)
+        engine = Engine(pg, time_limit=1000, replay=True)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]

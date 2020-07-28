@@ -32,7 +32,7 @@ class Endgoal9Rooms(ConnectedRooms2D):
 
     def __init__(self):
 
-        super().__init__(size = (600, 600), n_rooms=(3,3),wall_type='colorful')
+        super().__init__(size = (600, 600), n_rooms=(3,3), wall_type='colorful')
 
         # Starting area of the agent
         area_start = PositionAreaSampler(center=(300, 300), area_shape='rectangle', width_length=(600, 600))
@@ -52,7 +52,7 @@ class DispenserEnv(LinearRooms):
         super().__init__(size = (200, 100), n_rooms=2, wall_type='colorful')
 
         # Starting area of the agent
-        area_start = PositionAreaSampler(center=(100, 50), area_shape='rectangle', width_length=(200, 100))
+        area_start = PositionAreaSampler(center=(50, 50), area_shape='rectangle', width_length=(100, 100))
         self.agent_starting_area = area_start
 
         # invisible endzone at one corner of the game

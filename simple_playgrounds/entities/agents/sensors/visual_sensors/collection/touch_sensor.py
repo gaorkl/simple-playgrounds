@@ -35,7 +35,7 @@ class TouchSensor(VisualSensor):
         """
 
         super(TouchSensor, self).__init__(anchor, invisible_elements, normalize=normalize,
-                                          min_range=anchor.radius+1, **kwargs)
+                                          min_range=anchor.radius, **kwargs)
 
         self._range = self._min_range + self._range
 
@@ -53,8 +53,7 @@ class TouchSensor(VisualSensor):
             sensor = np.min(np.where(mask.any(axis=1), mask.argmax(axis=1),
                                      self.polar_view.shape[1] ), axis=1)
 
-            sensor_value = (self.polar_view.shape[1] - sensor)
-
+            sensor_value = (self._range - self._min_range) * (self.polar_view.shape[1] - sensor )/self.polar_view.shape[1]
             image = np.asarray(sensor_value)
             image = np.expand_dims(image, 0)
 
@@ -69,7 +68,7 @@ class TouchSensor(VisualSensor):
     def apply_normalization(self):
         if self.normalize:
 
-            self.sensor_value = self.sensor_value /(self._range - self._min_range)/(2*self._scale_ratio)
+            self.sensor_value = self.sensor_value /(self._range - self._min_range)
 
     @property
     def shape(self):

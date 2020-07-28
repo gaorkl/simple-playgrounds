@@ -12,6 +12,9 @@ and runs experiments very quickly.
 
 # Installation
 
+Before installing, you might have to install libsdl1.2-dev and pygame manually.
+
+Once these dependencies are installed, you can install simple-playgrounds using pip.
 A pip package is available and regularly updated:
 
 `pip3 install simple-playgrounds`

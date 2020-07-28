@@ -70,8 +70,7 @@ class Engine:
         self.surface_sensors = pygame.Surface((self.playground.width, self.playground.length))
 
         self.game_on = True
-        self.episode_elapsed_time = 0
-        self.total_elapsed_time = 0
+        self.elapsed_time = 0
 
     def multiple_steps(self, actions, n_steps=1):
         """
@@ -109,16 +108,32 @@ class Engine:
         for agent_name in actions:
             cumulated_rewards[agent_name] = 0
 
-        for _ in range(n_steps-1):
-            self.step(hold_actions)
+        step = 0
+        continue_actions = True
+
+        while step < n_steps and continue_actions:
+
+            if step < n_steps-1:
+                action = hold_actions
+            else:
+                action = last_action
+
+            self._engine_step(action)
 
             for agent in self.agents:
                 cumulated_rewards[agent.name] += agent.reward
 
-        self.step(last_action)
+            step += 1
+
+            reset, terminate = self._handle_terminations()
+
+            if reset or terminate:
+                continue_actions = False
 
         for agent in self.agents:
-            agent.reward += cumulated_rewards[agent.name]
+            agent.reward = cumulated_rewards[agent.name]
+
+        return reset, terminate
 
     def step(self, actions):
         """
@@ -129,37 +144,67 @@ class Engine:
 
         """
 
+        self._engine_step(actions)
+
+        # Termination
+        reset, terminate = self._handle_terminations()
+
+        return reset, terminate
+
+    def _handle_terminations(self):
+
+        reset = False
+        terminate = False
+
+        playground_terminated = self.playground.done
+        reached_time_limit = self._check_time()
+        keyboard_reset, keyboard_quit = self._check_keyboard()
+
+        if keyboard_quit:
+            terminate = True
+
+        elif keyboard_reset:
+            reset = True
+
+        elif playground_terminated:
+
+            if self.replay_until_time_limit:
+                reset = True
+
+            else:
+                terminate = True
+
+        elif reached_time_limit:
+
+            terminate = True
+
+        return reset, terminate
+
+    def _engine_step(self, actions):
+
         for agent in self.agents:
             agent.apply_actions_to_body_parts(actions[agent.name])
 
         self.playground.update(SIMULATION_STEPS)
 
-        # Termination
-        game_reset, game_terminates = self.game_terminated()
-
-        if game_reset:
-            self.reset()
-
-        if game_terminates:
-            self.game_on = False
-            self.terminate()
-
-        self.total_elapsed_time += 1
-        self.episode_elapsed_time += 1
+        self.elapsed_time += 1
 
     def reset(self):
         """
         Resets the game to its initial state.
 
         """
-        self.episode_elapsed_time = 0
-
         self.playground.reset()
-
         self.game_on = True
 
+    def _check_time(self):
+        if self.elapsed_time >= self.time_limit:
+            return True
+        else:
+            return False
 
-    def game_terminated(self):
+
+    def _check_keyboard(self):
         """
         Tests whether the game came to an end, because of time limit or termination of playground.
 
@@ -169,14 +214,6 @@ class Engine:
         """
         reset_game = False
         terminate_game = False
-
-        if self.total_elapsed_time == self.time_limit or self.playground.done:
-
-            if self.replay_until_time_limit and self.total_elapsed_time < self.time_limit:
-                reset_game = True
-            else:
-                terminate_game = True
-
 
         if self.screen is not None:
 
@@ -198,10 +235,7 @@ class Engine:
             elif pygame.key.get_pressed()[K_r] and self.reset_key_ready is True:
                 self.reset_key_ready = False
 
-                if self.replay_until_time_limit:
-                    reset_game = True
-                else:
-                    terminate_game = True
+                reset_game = True
 
         return reset_game, terminate_game
 
@@ -349,7 +383,7 @@ class Engine:
             for agent in self.agents:
                 actions[agent.name] = agent.controller.generate_actions()
 
-            self.step(actions)
+            reset, terminate = self.step(actions)
             self.update_observations()
 
             if with_screen and self.game_on:
@@ -366,12 +400,15 @@ class Engine:
                 if steps ==0:
                     continue_for_n_steps = False
 
+            if reset:
+                self.reset()
 
-            # for agent in self.agents:
-            #     print(agent.position, agent.base_platform.pm_body.velocity, agent.base_platform.pm_body.kinetic_energy)
-            #     assert 0 < agent.position[0] < self.playground.size[0]
-            #     assert 0 < agent.position[1] < self.playground.size[1]
+            if terminate:
+                continue_for_n_steps = False
+                self.terminate()
+
 
     def terminate(self):
 
+        self.game_on = False
         pygame.quit()

@@ -98,11 +98,58 @@ class VisualSensor(Sensor):
         # # Position of the sensor
         sensor_x, sensor_y = self.anchor.pm_body.position
 
-        x_1 = int(max(0, (width - sensor_x) - self._range))
-        x_2 = int(min(width, (width - sensor_x) + self._range))
+        sensor_angle = (self.anchor.pm_body.angle + math.pi/2)%(2*math.pi)
 
-        y_1 = int(max(0, (height - sensor_y) - self._range))
-        y_2 = int(min(height, (height - sensor_y) + self._range))
+        theta_left = (sensor_angle + self._fov / 2.0)%(2*math.pi)
+        theta_right = (sensor_angle - self._fov / 2.0)%(2*math.pi)
+
+        pos_left = ( self._range * math.cos(theta_left), self._range * math.sin(theta_left) )
+        pos_right = ( self._range * math.cos(theta_right), self._range * math.sin(theta_right) )
+
+        pts_extrema = [pos_left, pos_right, (0,0)]
+
+        # angle 0
+        angles = [0, math.pi/2, 2*math.pi/2, 3*math.pi/2]
+
+        for angle in angles:
+
+            pt = (self._range * math.cos(angle), self._range * math.sin(angle))
+
+            if self._fov == 2*math.pi:
+                pts_extrema.append(pt)
+
+            elif angle == 0:
+
+                if theta_right > theta_left:
+                    pts_extrema.append(pt)
+
+            else:
+
+                if theta_left >= angle:
+
+                    if theta_right <= angle or theta_left <= theta_right:
+                        pts_extrema.append(pt)
+
+                if theta_left < angle:
+
+                    if theta_left <= theta_right <= angle:
+                        pts_extrema.append(pt)
+
+        # if theta_left <= theta_right <= 2*math.pi:
+        #     theta_right = theta_right - 2*math.pi
+
+        x_min = min([x for x,y in pts_extrema])
+        x_max = max([x for x,y in pts_extrema])
+        y_min = min([y for x,y in pts_extrema])
+        y_max = max([y for x,y in pts_extrema])
+
+        # print(x_min, x_max, y_min, y_max)
+
+        y_1 = int(max(0,  (height - sensor_y) + x_min))
+        y_2 = int(min(height, (height - sensor_y) + x_max))
+
+        x_2 = width - int(max(0, sensor_x + y_min))
+        x_1 = width - int(min(width, sensor_x + y_max))
 
         self._center = (((height - sensor_y) - y_1), ((width - sensor_x) - x_1))
 

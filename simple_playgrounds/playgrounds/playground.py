@@ -145,9 +145,11 @@ class Playground(ABC):
             entity.reset()
 
         # reset agents
-        #self._remove_agents()
-        for agent in self.agents:
+        # self._remove_agents()
+        for agent in self.agents.copy():
             agent.reset()
+            self.remove_agent(agent)
+            self.add_agent(agent)
             #self.add_agent(agent)
 
         self.done = False
@@ -368,7 +370,7 @@ class Playground(ABC):
             self._disappeared_scene_elements.append(scene_element)
 
         for elem in self.scene_elements:
-            if elem.entity_type is SceneElementTypes.DISPENSER and scene_element in elem.produced_entities:
+            if elem.entity_type == 'dispenser' and scene_element in elem.produced_entities:
                 elem.produced_entities.remove(scene_element)
 
         for field in self.fields:

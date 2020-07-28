@@ -4,6 +4,7 @@ from simple_playgrounds.playgrounds import SingleRoom, LinearRooms, ConnectedRoo
 from simple_playgrounds.controllers import Random
 from simple_playgrounds.entities.agents import BaseAgent, BaseInteractiveAgent
 from simple_playgrounds import Engine
+from simple_playgrounds.entities.agents.sensors import *
 
 
 from simple_playgrounds.playgrounds.collection.test import *
@@ -121,9 +122,11 @@ def test_multiagents_no_overlapping():
 
 
 # Run all test playgrounds with 10 agents
-def multisteps():
+def test_multisteps():
 
     agent = BaseAgent(controller=Random())
+    sensor = TouchSensor(name='touch_1', anchor=agent.base_platform)
+    agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
 
     for pg_class in PlaygroundRegister.filter('test'):
 
@@ -131,14 +134,22 @@ def multisteps():
         print('Starting Multistep testing of ', pg_class.__name__)
         pg.add_agent(agent, 1000)
 
-        engine = Engine(pg, time_limit=100, replay=False, screen=False)
+        engine = Engine(pg, time_limit=10000, replay=False, screen=False)
 
-        while engine.game_on:
+        done = False
+        while not done:
 
             actions = {}
             for agent in engine.agents:
                 actions[agent.name] = agent.controller.generate_actions()
 
-            engine.multiple_steps(actions, n_steps=4)
+            reset, terminate = engine.multiple_steps(actions, n_steps=3)
+            engine.update_observations()
+
+            done = reset or terminate
+
+
+        pg.remove_agent(agent)
+        engine.terminate()
 
 
