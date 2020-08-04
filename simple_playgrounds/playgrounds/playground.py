@@ -10,6 +10,7 @@ from abc import ABC
 import yaml
 import pymunk
 
+
 from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
 
 # pylint: disable=unused-argument
@@ -65,6 +66,7 @@ class Playground(ABC):
         self._handle_collisions()
 
         self.time_limit = None
+        self.time_limit_reached_reward = None
 
     @staticmethod
     def parse_configuration(key):

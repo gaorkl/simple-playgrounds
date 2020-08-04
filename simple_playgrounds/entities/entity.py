@@ -275,8 +275,8 @@ class Entity(ABC):
         if self.physical_shape == 'rectangle':
 
             if is_interactive:
-                width = self.interaction_width
-                length = self.interaction_length
+                width = self.interaction_width + border
+                length = self.interaction_length + border
             else:
                 width = self.width + border
                 length = self.length + border

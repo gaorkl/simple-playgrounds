@@ -133,6 +133,10 @@ class Engine:
         for agent in self.agents:
             agent.reward = cumulated_rewards[agent.name]
 
+        if self._reached_time_limit() and self.playground.time_limit_reached_reward is not None:
+            for agent in self.agents:
+                agent.reward += self.playground.time_limit_reached_reward
+
         return reset, terminate
 
     def step(self, actions):
@@ -149,6 +153,10 @@ class Engine:
         # Termination
         reset, terminate = self._handle_terminations()
 
+        if self._reached_time_limit() and self.playground.time_limit_reached_reward is not None:
+            for agent in self.agents:
+                agent.reward += self.playground.time_limit_reached_reward
+
         return reset, terminate
 
     def _handle_terminations(self):
@@ -157,7 +165,7 @@ class Engine:
         terminate = False
 
         playground_terminated = self.playground.done
-        reached_time_limit = self._check_time()
+        reached_time_limit = self._reached_time_limit()
         keyboard_reset, keyboard_quit = self._check_keyboard()
 
         if keyboard_quit:
@@ -175,7 +183,6 @@ class Engine:
                 terminate = True
 
         elif reached_time_limit:
-
             terminate = True
 
         return reset, terminate
@@ -197,7 +204,7 @@ class Engine:
         self.playground.reset()
         self.game_on = True
 
-    def _check_time(self):
+    def _reached_time_limit(self):
         if self.elapsed_time >= self.time_limit:
             return True
         else:
