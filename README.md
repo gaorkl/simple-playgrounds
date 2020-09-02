@@ -2,7 +2,8 @@
 
 Welcome to simple-playgrounds, a library for designing simple playgrounds.
 
-The playgrounds are 2D environments equipped with physics (collision, friction)
+The playgrounds are 2D environments where agents can move around and interact with entities.
+The game engine deals with simple physics, such as collision and friction.
 Agents can act through continuous movements and discrete interactive actions.
 They perceive with realistic first-person view sensors, top-dow vew sensors, and 
 semantic sensors.
@@ -42,9 +43,7 @@ Alternatively, you can run the colab versions, which are less interactive.
 
 [06 - Using agents and sensors](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/06_Agents.ipynb)
 
-
 We advise to run the notebook locally, so that more advanced display options are available.
-
 
 # Structure of a playground
 
@@ -57,7 +56,6 @@ A playground has a size [width, length], with the width along x axis,
 and length along y axis
 
 When applicable, the length of a scene element follows the element's x axis.
-
 
 # Acknowledgements
 
