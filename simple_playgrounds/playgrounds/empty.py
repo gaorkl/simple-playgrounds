@@ -176,12 +176,6 @@ class ConnectedRooms2D(Playground):
             walls.append([self.width_room, (hor * self.width_room + self.width_room / 2.0, 0, 0)])
             walls.append([self.width_room, (hor * self.width_room + self.width_room / 2.0, self.length, 0)])
 
-
-        # walls = [[self.length, (0, self.length / 2.0, math.pi / 2.0)],
-        #          [self.length, (self.width, self.length / 2.0, math.pi / 2.0)],
-        #          [self.width, (self.width / 2.0, 0, 0.0)],
-        #          [self.width, (self.width / 2.0, self.length, 0.0)]]
-
         return walls
 
     def _generate_external_wall_entities(self, wall_lengths_and_positions):
