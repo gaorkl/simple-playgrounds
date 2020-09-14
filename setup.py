@@ -7,7 +7,7 @@ with open('requirements.txt') as f:
 setup(
     name='simple_playgrounds',
     version='0.9.18',
-    description='Simulator for AGI and RL',
+    description='Simulator for Embedded Learning',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia-ortiz@city.ac.uk',
     packages=[package for package in find_packages()
