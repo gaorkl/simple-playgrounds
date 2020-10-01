@@ -1,7 +1,6 @@
 """
 Game Engine manages the interacitons between agents and Playgrounds.
 """
-import math
 import numpy
 
 import pygame
@@ -9,7 +8,6 @@ from pygame.locals import K_q, K_r  # pylint: disable=no-name-in-module
 from pygame.color import THECOLORS  # pylint: disable=no-name-in-module
 
 from simple_playgrounds.utils.definitions import SensorModality, SIMULATION_STEPS, ActionTypes
-from simple_playgrounds.entities.agents.agent import Agent
 
 class Engine:
 
@@ -296,11 +294,19 @@ class Engine:
                         if element not in sensor.invisible_elements:
                             element.draw(surface_sensor)
 
-                    img_sensor = pygame.surfarray.array3d(surface_sensor)
-                    img_sensor = numpy.rot90(img_sensor, 1, (1, 0))
-                    img_sensor = img_sensor[::-1, :, ::-1]
+                    # Crop around field of view of agent
+                    cropped = pygame.Surface((2*sensor._range , 2*sensor._range ))
 
-                    sensor.update_sensor(img_sensor)
+                    x, y, theta = sensor.anchor.position
+
+                    pos_x = x + (sensor._range - 1) - self.playground.width
+                    pos_y = - y + (sensor._range - 1)
+
+                    cropped.blit(surface_sensor, ( pos_x , pos_y))
+                    img_cropped = pygame.surfarray.array3d(cropped)
+
+
+                    sensor.update_sensor(img_cropped)
 
                 elif sensor.sensor_modality is SensorModality.SEMANTIC:
 

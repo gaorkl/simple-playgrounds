@@ -160,8 +160,10 @@ class VisualSensor(Sensor):
     @abstractmethod
     def update_sensor(self, img):
 
-        cropped_img = self._crop_image(img)
-        sensor_angle = (math.pi / 2 - self.anchor.pm_body.angle)
+        cropped_img = img
+        self._center = (self._range + 1, self._range + 1)
+
+        sensor_angle = ( math.pi + self.anchor.pm_body.angle)
 
         if cropped_img.shape[0] < self._w_projection_img:
 
@@ -191,7 +193,7 @@ class VisualSensor(Sensor):
                                  int(scaled_img.shape[0] / 2.0 + n_pixels),
                                  start_crop:]
 
-        self.polar_view = cropped_img[:, :, :]
+        self.polar_view = cropped_img[::-1, :, ::-1]
 
     @property
     @abstractmethod
