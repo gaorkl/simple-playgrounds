@@ -20,7 +20,6 @@ A pip package is available and regularly updated:
 
 `pip3 install simple-playgrounds`
 
-Early release of the simulator simple-playgrounds
 
 # Tutorials
 
