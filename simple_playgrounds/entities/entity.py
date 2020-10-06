@@ -29,6 +29,9 @@ class Entity(ABC):
     index_entity = 0
     entity_type = None
 
+    background = True
+    drawn = False
+
     def __init__(self, initial_position=None, **entity_params):
         """ Base class for entities.
 
@@ -421,6 +424,8 @@ class Entity(ABC):
             mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
             surface.blit(self.visible_mask, mask_rect, None)
 
+        self.drawn = True
+
     def pre_step(self):
         """
         Performs calculation before the physical environment steps.
@@ -428,6 +433,9 @@ class Entity(ABC):
 
         if self.follows_waypoints:
             self.position = next(self.trajectory)
+
+        if not self.background:
+            self.drawn = False
 
     def reset(self):
         """

@@ -38,6 +38,7 @@ class Door(SceneElement):
     """
 
     entity_type = 'door'
+    background = False
 
     def __init__(self, initial_position, **kwargs):
 

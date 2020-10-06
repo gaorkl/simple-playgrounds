@@ -37,7 +37,7 @@ class SemanticSensor(Sensor):
         if key is None:
             return {}
 
-        fname = 'semantic_sensor_default.yml'
+        fname = 'geometric_sensor_default.yml'
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         with open(os.path.join(__location__, fname), 'r') as yaml_file:

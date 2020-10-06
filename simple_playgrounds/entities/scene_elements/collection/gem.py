@@ -13,6 +13,7 @@ class GemSceneElement(SceneElement):
 
     entity_type = 'gem'
     movable = True
+    background = False
 
     def __init__(self, initial_position, **kwargs):
 
@@ -27,6 +28,8 @@ class Coin(GemSceneElement):
 
     entity_type = 'coin'
     movable = True
+    background = False
+
 
     def __init__(self, initial_position, **kwargs):
         """
@@ -46,6 +49,8 @@ class Key(GemSceneElement):
 
     entity_type = 'key'
     movable = True
+    background = False
+
 
     def __init__(self, initial_position, **kwargs):
         """

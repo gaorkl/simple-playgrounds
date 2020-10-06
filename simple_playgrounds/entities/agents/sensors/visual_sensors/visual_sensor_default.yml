@@ -11,22 +11,6 @@ grey:
   range: 600
   fov: 180
 
-touch:
-  resolution: 128
-  range: 3
-  fov: 360
-
-depth :
-  resolution: 128
-  range: 300
-  fov: 180
-
-distance_array:
-  point_angle: 3
-  number: 9
-  range: 300
-  fov: 180
-
 topdown:
   resolution: 128
   range: 100

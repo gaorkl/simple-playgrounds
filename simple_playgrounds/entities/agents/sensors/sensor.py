@@ -47,9 +47,23 @@ class Sensor(ABC):
 
         self._value_range = 255
 
+
     @abstractmethod
-    def update_sensor(self):
-        """ Updates the sensor"""
+    def compute_raw_sensor(self, argument):
+        pass
+
+    @abstractmethod
+    def apply_normalization(self):
+        pass
+
+    @abstractmethod
+    def apply_noise(self):
+        pass
+
+    @abstractmethod
+    def update_sensor(self, argument):
+        pass
+
 
     @property
     def shape(self):

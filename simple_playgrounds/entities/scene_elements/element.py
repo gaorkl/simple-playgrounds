@@ -42,6 +42,9 @@ class SceneElement(Entity, ABC):
             self.interactive = True
             self.movable = True
 
+        if self.movable:
+            self.background = False
+
         Entity.__init__(self, initial_position=initial_position, **kwargs)
 
     @staticmethod

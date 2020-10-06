@@ -99,7 +99,7 @@ class Playground(ABC):
         space = pymunk.Space()
         space.gravity = pymunk.Vec2d(0., 0.)
         space.damping = SPACE_DAMPING
-
+        
         return space
 
     def update(self, steps):

@@ -18,6 +18,7 @@ class Edible(SceneElement):
 
     entity_type = 'edible'
     interactive = True
+    background = False
 
     def __init__(self, initial_position, default_config_key=None, **kwargs):
         """

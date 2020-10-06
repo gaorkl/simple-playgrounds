@@ -2,6 +2,8 @@
 Game Engine manages the interacitons between agents and Playgrounds.
 """
 import numpy
+import cv2, time
+
 
 import pygame
 from pygame.locals import K_q, K_r  # pylint: disable=no-name-in-module
@@ -64,8 +66,15 @@ class Engine:
 
 
         # Pygame Surfaces to display the environment
+        self.surface_background = pygame.Surface((self.playground.width, self.playground.length))
         self.surface_environment = pygame.Surface((self.playground.width, self.playground.length))
         self.surface_sensors = pygame.Surface((self.playground.width, self.playground.length))
+
+        self.surface_background.fill(THECOLORS["black"])
+
+        for elem in self.playground.scene_elements:
+            if elem.background:
+                elem.draw(self.surface_background)
 
         self.game_on = True
         self.elapsed_time = 0
@@ -251,10 +260,14 @@ class Engine:
 
         """
 
-        self.surface_environment.fill(THECOLORS["black"])
+        # self.surface_environment = self.surface_background.copy()
+        self.surface_environment.blit(self.surface_background, (0,0))
+        # self.surface_background.fill(THECOLORS["black"])
 
         for entity in self.playground.scene_elements:
-            entity.draw(self.surface_environment, draw_interaction=True)
+
+            if not entity.background or entity.graspable or entity.interactive:
+                entity.draw(self.surface_environment, draw_interaction=True)
 
         for agent in self.agents:
             agent.draw(self.surface_environment)
@@ -265,21 +278,26 @@ class Engine:
 
         """
         # list all elements that are invisible to an agent
-        invisible_elements = [inv_elem for agent in self.agents for sensor in agent.sensors
-                              for inv_elem in sensor.invisible_elements]
+        # invisible_elements = [inv_elem for agent in self.agents for sensor in agent.sensors
+        #                       for inv_elem in sensor.invisible_elements]
 
         # Generate surface only if an agent has visual sensor
-        if any([agent.has_visual_sensor for agent in self.agents]):
-            self.surface_sensors.fill(THECOLORS["black"])
+        # if any([agent.has_visual_sensor for agent in self.agents]):
+        #     self.surface_sensors.fill(THECOLORS["black"])
+        #
+        #     # Draw entities and agent parts that are not invisible
+        #
+        #     for entity in [ent for ent in self.playground.scene_elements
+        #                    if ent not in invisible_elements]:
+        #         entity.draw(self.surface_sensors, draw_interaction=False)
+        #
+        #     for agent in self.playground.agents:
+        #         agent.draw(self.surface_sensors, excluded=invisible_elements)
 
-            # Draw entities and agent parts that are not invisible
+        all_agent_parts = []
+        for agent in self.agents:
+            all_agent_parts += agent.parts
 
-            for entity in [ent for ent in self.playground.scene_elements
-                           if ent not in invisible_elements]:
-                entity.draw(self.surface_sensors, draw_interaction=False)
-
-            for agent in self.playground.agents:
-                agent.draw(self.surface_sensors, excluded=invisible_elements)
 
         for agent in self.agents:
 
@@ -287,33 +305,45 @@ class Engine:
 
                 if sensor.sensor_modality is SensorModality.VISUAL:
 
-                    surface_sensor = self.surface_sensors.copy()
+                    # self.surface_sensors.blit(self.surface_background, (0, 0))
+                    self.surface_sensors  = self.surface_background.copy()
+
+                    # take all elems and body parts which are close to sensor
+
+                    sc_elems = [elem for elem in self.playground.scene_elements
+                                if (not elem.background)
+                                and self.distance_elem(elem, sensor.anchor) - elem.radius < sensor._range]
+                    sc_elems += [elem for elem in all_agent_parts
+                                 if not elem.background
+                                 and self.distance_elem(elem, sensor.anchor) - elem.radius < sensor._range]
+
+                    # filter invisible
+                    visible_sc_elems = [elem for elem in sc_elems if elem not in sensor.invisible_elements]
 
                     # Draw elements that are not invisible to this agent
-                    for element in invisible_elements:
-                        if element not in sensor.invisible_elements:
-                            element.draw(surface_sensor)
+                    for element in visible_sc_elems:
+                        element.draw(self.surface_sensors)
 
-                    # Crop around field of view of agent
-                    cropped = pygame.Surface((2*sensor._range , 2*sensor._range ))
+                    cropped = pygame.Surface((2 * sensor._range+1, 2 * sensor._range+1))
 
-                    x, y, theta = sensor.anchor.position
+                    pos_x = sensor.anchor.position[0] + (sensor._range ) - self.playground.width
+                    pos_y = - sensor.anchor.position[1] + (sensor._range )
+                    cropped.blit(self.surface_sensors, (pos_x, pos_y))
 
-                    pos_x = x + (sensor._range - 1) - self.playground.width
-                    pos_y = - y + (sensor._range - 1)
-
-                    cropped.blit(surface_sensor, ( pos_x , pos_y))
-                    img_cropped = pygame.surfarray.array3d(cropped)
-
+                    img_cropped = pygame.surfarray.pixels3d(cropped)
 
                     sensor.update_sensor(img_cropped)
 
-                elif sensor.sensor_modality is SensorModality.SEMANTIC:
-
+                elif sensor.sensor_modality is SensorModality.SEMANTIC or sensor.sensor_modality is SensorModality.GEOMETRIC:
                     sensor.update_sensor(self.playground)
 
                 else:
                     raise ValueError
+
+    @staticmethod
+    def distance_elem(elem_1, elem_2):
+
+        return ((elem_1.position[0] - elem_2.position[0])**2 + (elem_1.position[1] - elem_2.position[1])**2)**(1/2)
 
     def display_full_scene(self):
         """
@@ -344,7 +374,7 @@ class Engine:
 
         self.update_surface_environment()
 
-        imgdata = pygame.surfarray.array3d(self.surface_environment)
+        imgdata = pygame.surfarray.pixels3d(self.surface_environment)
         imgdata = numpy.rot90(imgdata, 1, (1, 0))
         imgdata = imgdata[::-1, :, ::-1]
 

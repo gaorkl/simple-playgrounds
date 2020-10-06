@@ -115,6 +115,8 @@ class Absorbable(ContactSceneElement):
 
     entity_type = 'absorbable'
     absorbable = True
+    background = False
+
 
     def __init__(self, initial_position, default_config_key=None, **kwargs):
         """
@@ -168,6 +170,7 @@ class Poison(Absorbable):
 class PushButton(ContactSceneElement):
     """Push button used to open a door."""
     entity_type = 'pushbutton'
+    background = False
 
     def __init__(self, initial_position, door, **kwargs):
         """

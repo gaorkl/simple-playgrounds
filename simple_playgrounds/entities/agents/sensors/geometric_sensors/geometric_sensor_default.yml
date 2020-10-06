@@ -1,0 +1,22 @@
+#####################
+# Sensors
+
+distance-rays:
+  range: 300
+  fov: 180
+  resolution: 20
+
+touch:
+  range: 3
+  fov: 360
+  resolution: 360
+
+depth:
+  range: 300
+  fov: 180
+  resolution: 64
+
+proximity:
+  range: 300
+  fov: 180
+  resolution: 64

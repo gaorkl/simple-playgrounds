@@ -102,6 +102,7 @@ class Dispenser(InteractiveSceneElement):
     entity_type = 'dispenser'
     interactive = True
 
+
     def __init__(self, initial_position, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
 
         """
@@ -187,6 +188,8 @@ class Chest(InteractiveSceneElement):
 
     entity_type = 'chest'
     interactive = True
+    background = False
+
 
     def __init__(self, initial_position, key, treasure, **kwargs):
         """ Chest Entity.
@@ -408,6 +411,8 @@ class Lock(InteractiveSceneElement):
     Opens a door when in contact with the associated key.
     """
     entity_type = 'lock'
+    background = False
+
 
     def __init__(self, initial_position, door, key, **kwargs):
         """ Lock for a door, opens with a key.

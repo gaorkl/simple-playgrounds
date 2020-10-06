@@ -25,6 +25,7 @@ class Part(Entity, ABC):
     entity_type = 'part'
     part_type = None
     movable = True
+    background = False
 
     def __init__(self, **kwargs):
         """
