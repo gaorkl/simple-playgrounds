@@ -126,7 +126,7 @@ def test_multisteps():
 
     agent = BaseAgent(controller=Random())
     sensor = TouchSensor(name='touch_1', anchor=agent.base_platform)
-    agent.add_sensor(NoisySensor(sensor, 'deadpixel', proba=0.01, dynamic=True))
+    agent.add_sensor(sensor)
 
     for pg_class in PlaygroundRegister.filter('test'):
 

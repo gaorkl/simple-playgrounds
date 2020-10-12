@@ -3,16 +3,16 @@ Lidar Sensors provide the Entities detected by rays or cones, as well as their d
 and angle of the ray or cone.
 """
 import math
-import numpy, cv2
-from operator import attrgetter
+import numpy
+from abc import ABC
+import cv2
 
 import pymunk
 
 from simple_playgrounds.entities.agents.sensors.geometric_sensors.geometric_sensor import GeometricSensor
-from simple_playgrounds.utils.definitions import SensorModality, LidarPoint
 
 
-class DistanceRays(GeometricSensor):
+class DistanceRays(GeometricSensor, ABC):
     """
     DistanceRays are Sensors that measure distances by rays.
     """
@@ -58,8 +58,8 @@ class DistanceRays(GeometricSensor):
         position = self.anchor.pm_body.position
         angle = self.anchor.pm_body.angle + sensor_angle
 
-        position_end = (position[0] + self._range * math.cos(angle),
-                        position[1] + self._range * math.sin(angle)
+        position_end = (position[0] + self.range * math.cos(angle),
+                        position[1] + self.range * math.sin(angle)
                         )
 
         collisions = playground.space.segment_query(position, position_end, 0, self.filter)
@@ -70,9 +70,9 @@ class DistanceRays(GeometricSensor):
 
         # if len(distances) > 1 : print(distances)
 
-        return min(distances, default=1) * self._range
+        return min(distances, default=1) * self.range
 
-    def update_sensor(self, pg):
+    def compute_raw_sensor(self, pg):
 
         for index, sensor_angle in enumerate(self.angles):
 
@@ -81,7 +81,7 @@ class DistanceRays(GeometricSensor):
             self.sensor_value[index] = dist
 
 
-class Touch(DistanceRays):
+class TouchSensor(DistanceRays):
 
     sensor_type = 'touch'
 
@@ -103,19 +103,18 @@ class Touch(DistanceRays):
         super().__init__(anchor, invisible_elements, **sensor_params)
 
         self.normalize = normalize
-        self._range = self.anchor.radius + self._range
+        self.range = self.anchor.radius + self.range
 
-    def update_sensor(self, pg):
+    def compute_raw_sensor(self, pg):
 
-        super().update_sensor(pg)
+        super().compute_raw_sensor(pg)
 
         self.sensor_value = self.sensor_value - self.anchor.radius + 2
         self.sensor_value[ self.sensor_value<0] = 0
-        self.sensor_value = self._range - self.anchor.radius + 2 - self.sensor_value
+        self.sensor_value = self.range - self.anchor.radius + 2 - self.sensor_value
 
-        if self.normalize:
-
-            self.sensor_value = self.sensor_value  /  (self._range - self.anchor.radius + 2)
+    def apply_normalization(self):
+        self.sensor_value = self.sensor_value / (self.range - self.anchor.radius + 2)
 
     def draw(self, width_display, height_sensor):
 
@@ -127,12 +126,12 @@ class Touch(DistanceRays):
 
         if self.normalize is False:
             # img = (img - self.anchor.radius) / (self._range - self.anchor.radius)
-            img = img / (self._range - self.anchor.radius + 2)
+            img = img / (self.range - self.anchor.radius + 2)
 
         return img
 
 
-class Depth(DistanceRays):
+class DepthSensor(DistanceRays):
 
     sensor_type = 'depth'
 
@@ -155,16 +154,9 @@ class Depth(DistanceRays):
 
         self.normalize = normalize
 
-    def update_sensor(self, pg):
+    def apply_normalization(self):
 
-        super().update_sensor(pg)
-
-        # self.sensor_value = self.sensor_value - self.anchor.radius + 2
-        # self.sensor_value[ self.sensor_value<0] = 0
-        # self.sensor_value = self._range - self.anchor.radius + 2 - self.sensor_value
-
-        if self.normalize:
-            self.sensor_value = self.sensor_value  /  self._range
+        self.sensor_value = self.sensor_value / self.range
 
     def draw(self, width_display, height_sensor):
 
@@ -175,13 +167,12 @@ class Depth(DistanceRays):
         img = cv2.resize(img, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
 
         if self.normalize is False:
-            # img = (img - self.anchor.radius) / (self._range - self.anchor.radius)
-            img = img / (self._range )
+            img = img / (self.range)
 
         return img
 
 
-class Proximity(DistanceRays):
+class ProximitySensor(DistanceRays):
 
     sensor_type = 'proximity'
 
@@ -204,14 +195,14 @@ class Proximity(DistanceRays):
 
         self.normalize = normalize
 
-    def update_sensor(self, pg):
+    def compute_raw_sensor(self, pg):
 
-        super().update_sensor(pg)
+        super().compute_raw_sensor(pg)
 
-        self.sensor_value = self._range - self.sensor_value
+        self.sensor_value = self.range - self.sensor_value
 
-        if self.normalize:
-            self.sensor_value = self.sensor_value  /  self._range
+    def apply_normalization(self):
+        self.sensor_value = self.sensor_value / self.range
 
     def draw(self, width_display, height_sensor):
 
@@ -223,7 +214,7 @@ class Proximity(DistanceRays):
 
         if self.normalize is False:
             # img = (img - self.anchor.radius) / (self._range - self.anchor.radius)
-            img = img / (self._range )
+            img = img / (self.range)
 
         return img
 

@@ -2,7 +2,7 @@
 Module defining Semantic Sensors, that return Entities object detected.
 """
 import math
-from abc import abstractmethod
+from abc import ABC
 import os
 import yaml
 
@@ -13,14 +13,14 @@ from simple_playgrounds.entities.agents.sensors.sensor import Sensor
 from simple_playgrounds.utils.definitions import SensorModality
 
 
-class SemanticSensor(Sensor):
+class SemanticSensor(Sensor, ABC):
     """
     Base class for semantic sensors.
     Refer to base class Sensor.
     """
     sensor_type = 'semantic'
 
-    def __init__(self, anchor, invisible_elements=None, remove_occluded=True, allow_duplicates=False, **sensor_param):
+    def __init__(self, anchor, invisible_elements=None, remove_occluded=True, allow_duplicates=False, normalize = False, **sensor_param):
 
         super().__init__(anchor, invisible_elements, **sensor_param)
 
@@ -32,12 +32,14 @@ class SemanticSensor(Sensor):
         self.remove_occluded = remove_occluded
         self.allow_duplicates = allow_duplicates
 
+        self.normalize = normalize
+
     @staticmethod
     def _parse_configuration(key):
         if key is None:
             return {}
 
-        fname = 'geometric_sensor_default.yml'
+        fname = 'semantic_sensor_default.yml'
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         with open(os.path.join(__location__, fname), 'r') as yaml_file:
@@ -45,9 +47,18 @@ class SemanticSensor(Sensor):
 
         return default_config[key]
 
-    @abstractmethod
-    def update_sensor(self, pg):
+    def apply_normalization(self):
         pass
+
+    def apply_noise(self):
+        pass
+
+    def update_sensor(self, env):
+
+        self.compute_raw_sensor(env)
+
+        if self.normalize:
+            self.apply_normalization()
 
     @property
     def shape(self):

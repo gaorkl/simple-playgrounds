@@ -3,4 +3,5 @@ __pycache__
 simple_playgrounds.egg-info
 
 test.ipynb
+demo.ipynb
 wrappers/

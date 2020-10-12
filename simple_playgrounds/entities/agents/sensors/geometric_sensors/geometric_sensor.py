@@ -2,7 +2,7 @@
 Module defining Geometric Sensors, that return distance to object detected.
 """
 import math
-from abc import abstractmethod
+from abc import ABC
 import os
 import yaml
 
@@ -13,7 +13,7 @@ from simple_playgrounds.entities.agents.sensors.sensor import Sensor
 from simple_playgrounds.utils.definitions import SensorModality
 
 
-class GeometricSensor(Sensor):
+class GeometricSensor(Sensor, ABC):
     """
     Base class for semantic sensors.
     Refer to base class Sensor.
@@ -22,13 +22,15 @@ class GeometricSensor(Sensor):
 
     sensor_type = 'semantic'
 
-    def __init__(self, anchor, invisible_elements=None, **sensor_param):
+    def __init__(self, anchor, invisible_elements=None, normalize=False, **sensor_param):
 
         super().__init__(anchor, invisible_elements, **sensor_param)
 
-        self._range = sensor_param.get('range')
+        self.range = sensor_param.get('range')
         self._fov = sensor_param.get('fov') * math.pi / 180
         self._resolution = sensor_param.get('resolution')
+
+        self.normalize = normalize
 
     @staticmethod
     def _parse_configuration(key):
@@ -43,9 +45,15 @@ class GeometricSensor(Sensor):
 
         return default_config[key]
 
-    @abstractmethod
-    def update_sensor(self, pg):
+    def apply_noise(self):
         pass
+
+    def update_sensor(self, env):
+
+        self.compute_raw_sensor(env)
+
+        if self.normalize:
+            self.apply_normalization()
 
     @property
     def shape(self):

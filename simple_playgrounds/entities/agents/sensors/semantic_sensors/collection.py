@@ -133,7 +133,7 @@ class LidarRays(SemanticSensor):
 
         return entities + agents
 
-    def update_sensor(self, pg):
+    def compute_raw_sensor(self, pg):
 
         self.sensor_value = {}
 
@@ -206,10 +206,9 @@ class LidarCones(LidarRays):
         min_distance_point = min(collisions, key=attrgetter('distance'))
         return [min_distance_point]
 
+    def compute_raw_sensor(self, pg):
 
-    def update_sensor(self, pg):
-
-        super().update_sensor(pg)
+        super().compute_raw_sensor(pg)
 
         all_collisions = []
         for _, collisions in self.sensor_value.items():
@@ -218,7 +217,6 @@ class LidarCones(LidarRays):
         self.sensor_value = {}
         for sensor_angle in self.angles_cone_center:
             self.sensor_value[sensor_angle] = []
-
 
         # assign each collision to a cone
         for collision in all_collisions:

@@ -259,13 +259,16 @@ class Engine:
         Additionally, draws the interaction areas.
 
         """
+        # Check that some background elements maybe need to be drawn
+        for element in self.playground.scene_elements:
+            if element.background and not element.drawn:
+                element.draw(self.surface_background)
 
         self.surface_environment = self.surface_background.copy()
 
         for entity in self.playground.scene_elements:
 
-            if not entity.background or entity.graspable or entity.interactive or \
-                    (entity.background and not entity.drawn):
+            if not entity.background or entity.graspable or entity.interactive :
                 entity.draw(self.surface_environment, draw_interaction=True)
 
         for agent in self.agents:

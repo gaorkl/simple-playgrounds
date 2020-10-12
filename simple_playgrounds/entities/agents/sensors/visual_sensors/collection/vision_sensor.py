@@ -5,7 +5,6 @@ import numpy as np
 import cv2
 import math
 from skimage.draw import line
-from skimage.transform import resize
 
 from simple_playgrounds.entities.agents.sensors.visual_sensors.visual_sensor import VisualSensor
 

@@ -1,1 +1,1 @@
-from .basic import Endgoal9Rooms, EndgoalRoom
+from .basic import *
