@@ -4,4 +4,4 @@ pygame
 pymunk
 numpy
 opencv-contrib-python
-skimage
+scikit-image
