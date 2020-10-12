@@ -3,7 +3,9 @@ Module for Top-down Sensor.
 """
 import math
 import numpy as np
+
 import cv2
+
 from simple_playgrounds.entities.agents.sensors.visual_sensors.visual_sensor import VisualSensor
 
 #pylint: disable=line-too-long
@@ -35,41 +37,26 @@ class TopdownSensor(VisualSensor):
 
         self.only_front = only_front
 
-    def update_sensor(self, img):
+        self._center = ( int(self._resolution/2), int(self._resolution/2))
 
-        self._center = (self._range + 1, self._range + 1)
-        sensor_angle = ( math.pi + self.anchor.pm_body.angle)
+        mask_total_fov = np.zeros((self._resolution, self._resolution, 3))
 
-        width, height, _ = img.shape
-
-        mask_total_fov = np.zeros((width, height, 3))
-
-        mask_total_fov = cv2.ellipse(mask_total_fov, self._center, axes=(self._range, self._range), angle=0,
-                                     startAngle=(math.pi + sensor_angle - self._fov / 2) * 180 / math.pi,
-                                     endAngle=(math.pi + sensor_angle + self._fov / 2) * 180 / math.pi,
+        self.mask_total_fov = cv2.ellipse(mask_total_fov, self._center, axes=(self._resolution, self._resolution), angle=0,
+                                     startAngle=(-math.pi/2 - self._fov / 2) * 180 / math.pi,
+                                     endAngle=(-math.pi/2  + self._fov / 2) * 180 / math.pi,
                                      color=(1, 1, 1), thickness=-1)
 
-        masked_img = mask_total_fov * img
+    def compute_raw_sensor(self, img):
 
-        rot_mat = cv2.getRotationMatrix2D(self._center, sensor_angle*180/math.pi - 90, 1.0)
-        result = cv2.warpAffine(masked_img, rot_mat, masked_img.shape[1::-1], flags=cv2.INTER_NEAREST)
+        small_img = cv2.resize(img, (self._resolution, self._resolution), interpolation=cv2.INTER_NEAREST)
 
-        if self.only_front:
-            result = result[:self._range, :, :]
-            self.sensor_value = cv2.resize(result, (2*self._resolution, self._resolution),
-                                           interpolation=cv2.INTER_NEAREST)
-        else:
-            self.sensor_value = cv2.resize(result, (2*self._resolution, 2*self._resolution),
-                                           interpolation=cv2.INTER_NEAREST)
+        rot_mat = cv2.getRotationMatrix2D(self._center, self.anchor.pm_body.angle * 180 / math.pi + 90, 1.0)
+        rotated_img = cv2.warpAffine(small_img, rot_mat, small_img.shape[1::-1], flags=cv2.INTER_NEAREST)
 
-        self.sensor_value = self.sensor_value[:, :, ::-1]
+        masked_img = self.mask_total_fov * rotated_img
 
-        self.apply_normalization()
+        self.sensor_value = masked_img[:, ::-1, ::-1]
 
-    def apply_normalization(self):
-
-        if self.normalize:
-            self.sensor_value = self.sensor_value/255.
 
     @property
     def shape(self):

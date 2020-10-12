@@ -51,14 +51,14 @@ class VisualSensor(Sensor):
 
         # Field of View of the Sensor
         self._resolution = kwargs.get('resolution')
-        self._range = kwargs.get('range')
+        self.range = kwargs.get('range')
 
         self._fov = kwargs.get('fov') * math.pi / 180
 
         self.normalize = normalize
         self.noise = kwargs.get('noise', None)
 
-        self._center = (self._range, self._range)
+        self._center = (self.range, self.range)
 
     @staticmethod
     def parse_configuration(key):
