@@ -264,7 +264,8 @@ class Engine:
             if element.background and not element.drawn:
                 element.draw(self.surface_background)
 
-        self.surface_environment = self.surface_background.copy()
+        # self.surface_environment = self.surface_background.copy()
+        self.surface_environment.blit(self.surface_background.copy(), (0,0) )
 
         for entity in self.playground.scene_elements:
 

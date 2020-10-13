@@ -16,6 +16,7 @@ from simple_playgrounds.utils.definitions import geometric_shapes, CollisionType
 #pylint: disable=line-too-long
 #pylint: disable=too-many-instance-attributes
 
+
 class Entity(ABC):
     """
     Entity creates a physical object, and deals with interactive properties and visual appearance
