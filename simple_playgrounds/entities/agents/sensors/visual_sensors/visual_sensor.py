@@ -60,6 +60,8 @@ class VisualSensor(Sensor):
 
         self._center = (self.range, self.range)
 
+
+
     @staticmethod
     def parse_configuration(key):
         """ Parse configurations of different visual sensors. """

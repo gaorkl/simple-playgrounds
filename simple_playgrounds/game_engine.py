@@ -265,7 +265,7 @@ class Engine:
                 element.draw(self.surface_background)
 
         # self.surface_environment = self.surface_background.copy()
-        self.surface_environment.blit(self.surface_background.copy(), (0,0) )
+        self.surface_environment.blit(self.surface_background, (0,0) )
 
         for entity in self.playground.scene_elements:
 
@@ -296,7 +296,8 @@ class Engine:
 
                 if sensor.sensor_modality is SensorModality.VISUAL:
 
-                    self.surface_sensors = self.surface_background.copy()
+                    # self.surface_sensors = self.surface_background.copy()
+                    self.surface_sensors.blit(self.surface_background, (0,0))
 
                     # take all elems and body parts which are close to sensor
                     sc_elems = [elem for elem in self.playground.scene_elements

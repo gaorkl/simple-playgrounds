@@ -53,6 +53,41 @@ def test_sensors_on_all_test_playgrounds():
         pg.remove_agent(agent)
         pg.reset()
 #
+
+
+# Test angles visual
+def test_angle_visual_sensors():
+
+    from simple_playgrounds.playgrounds import SingleRoom
+
+
+    angles = [ a * 2*math.pi/12 for a in range(13)]
+
+    for angle in angles:
+
+        agent = BaseInteractiveAgent(initial_position=[100,100, angle], controller = Random())
+
+        agent.add_sensor(
+            RgbSensor(name='rgb_1', anchor=agent.base_platform, invisible_elements=agent.parts, resolution=128,
+                      range=300))
+
+        pg = SingleRoom((200, 200))
+
+        pg.add_agent(agent)
+
+        print('Starting testing of angle', angle)
+
+        engine = Engine(pg, time_limit=100, replay=False)
+        engine.run()
+
+        assert 0 < agent.position[0] < pg.size[0]
+        assert 0 < agent.position[1] < pg.size[1]
+
+        pg.remove_agent(agent)
+        pg.reset()
+#
+
+
 # def test_noisy_sensors_on_all_test_playgrounds():
 #     agent = BaseInteractiveAgent(controller=Random())
 #

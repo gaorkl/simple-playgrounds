@@ -36,7 +36,7 @@ class RgbSensor(VisualSensor):
 
         self.cropped_img = np.zeros((2 * self.range + 1, 2 * self.range + 1, 3))
 
-        self.n_precomputed_angles = 5000
+        self.n_precomputed_angles = int(self.range * 2*math.pi)
         self.lines = np.ones((self.n_precomputed_angles, 2, 2*self.range), dtype=int) * self._center[0]
 
         for n in range(self.n_precomputed_angles):
@@ -72,7 +72,7 @@ class RgbSensor(VisualSensor):
     def compute_raw_sensor(self, img):
 
         angles = [ (self.anchor.pm_body.angle + sensor_angle)%(2*math.pi) for sensor_angle in self.angles ]
-        number_angles = [int( angle * self.n_precomputed_angles/(2*math.pi)) for angle in angles ]
+        number_angles = [int( angle * (self.n_precomputed_angles-1)/(2*math.pi)) for angle in angles ]
 
         lines_coord = self.lines[number_angles]
         pixels = img[lines_coord[:,0], lines_coord[:,1]]
