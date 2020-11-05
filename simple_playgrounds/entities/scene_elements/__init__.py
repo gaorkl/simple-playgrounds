@@ -8,3 +8,4 @@ from simple_playgrounds.entities.scene_elements.collection.interactive \
 from simple_playgrounds.entities.scene_elements.collection.proximity import Fireball, Fairy
 from simple_playgrounds.entities.scene_elements.collection.edible import Apple, RottenApple
 from simple_playgrounds.entities.scene_elements.collection.gem import Key, Coin
+from simple_playgrounds.entities.scene_elements.collection.teleport import Teleport
