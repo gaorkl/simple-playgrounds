@@ -584,6 +584,18 @@ class Playground(ABC):
 
         return True
 
+    def _agent_teleports(self, arbiter, space, data):
+
+        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        teleport = self.get_scene_element_from_shape(arbiter.shapes[1])
+
+        if teleport is None:
+            return True
+
+        agent.position = (teleport.target.position[0], teleport.target.position[1],
+                          agent.position[2])
+        return True
+
     def _handle_collisions(self):
 
         # Order is important
@@ -606,6 +618,8 @@ class Playground(ABC):
         h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.ACTIVATED_BY_GEM)
         h_gem_interactive.pre_solve = self._gem_interacts
 
+        h_teleport = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.TELEPORT)
+        h_teleport.pre_solve = self._agent_teleports
 
 class PlaygroundRegister:
     """
