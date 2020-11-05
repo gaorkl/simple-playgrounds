@@ -33,6 +33,7 @@ class Basic(SceneElement):
 class Traversable(Basic):
     """ Traversable Scene elements are non-interactive visible and traversable objects."""
     traversable = True
+    background = False
 
 
 class Door(SceneElement):
