@@ -1,4 +1,4 @@
-from simple_playgrounds.entities.scene_elements.collection.basic import Basic, Door
+from simple_playgrounds.entities.scene_elements.collection.basic import Basic, Door, Traversable
 from simple_playgrounds.entities.scene_elements.collection.conditioning import ConditionedColorChanging, ColorChanging
 from simple_playgrounds.entities.scene_elements.collection.contact \
     import Candy, Poison, VisibleDeathTrap, VisibleEndGoal, PushButton

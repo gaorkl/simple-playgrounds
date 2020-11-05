@@ -30,6 +30,11 @@ class Basic(SceneElement):
         super(Basic, self).__init__(initial_position=initial_position, **entity_params)
 
 
+class Traversable(Basic):
+    """ Traversable Scene elements are non-interactive visible and traversable objects."""
+    traversable = True
+
+
 class Door(SceneElement):
     """ Door that can be opened with a switch.
 
@@ -48,7 +53,6 @@ class Door(SceneElement):
         super(Door, self).__init__(initial_position=initial_position, **entity_params)
 
         self.opened = False
-
 
     @property
     def opened(self):

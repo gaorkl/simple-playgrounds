@@ -23,6 +23,7 @@ class Entity(ABC):
     """
 
     visible = True
+    traversable = False
     interactive = False
     movable = False
     graspable = False
@@ -77,9 +78,10 @@ class Entity(ABC):
         self.pm_visible_shape = None
 
         if self.visible:
-            self.pm_visible_shape = self._create_pm_shape()
+            if not self.traversable:
+                self.pm_visible_shape = self._create_pm_shape()
+                self.pm_elements.append(self.pm_visible_shape)
             self.visible_mask = self._create_mask()
-            self.pm_elements.append(self.pm_visible_shape)
 
         if self.interactive:
             self.pm_interaction_shape = self._create_pm_shape(is_interactive=True)
