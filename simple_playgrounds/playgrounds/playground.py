@@ -592,8 +592,11 @@ class Playground(ABC):
         if teleport is None:
             return True
 
-        agent.position = (teleport.target.position[0], teleport.target.position[1],
-                          agent.position[2])
+        relative_speed = (teleport.position_np - agent.position_np) @ \
+            (agent.velocity_np - teleport.velocity_np)
+        if relative_speed > 0:
+            agent.position = (teleport.target.position[0], teleport.target.position[1],
+                              agent.position[2])
         return True
 
     def _handle_collisions(self):

@@ -97,6 +97,10 @@ class Agent:
         self._initial_position = position
 
     @property
+    def position_np(self):
+        return self.base_platform.position_np
+
+    @property
     def position(self):
         """
         Position of the agent.
@@ -112,6 +116,10 @@ class Agent:
                 part.position = position
             else:
                 part.set_relative_position()
+
+    @property
+    def velocity_np(self):
+        return self.base_platform.velocity_np
 
     @property
     def velocity(self):

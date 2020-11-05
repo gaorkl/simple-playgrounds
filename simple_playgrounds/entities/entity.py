@@ -184,6 +184,10 @@ class Entity(ABC):
             raise ValueError('Initial position not valid')
 
     @property
+    def position_np(self):
+        return numpy.array(self.position)
+
+    @property
     def position(self):
         '''
         Position (x, y, orientation) of the Entity
@@ -216,6 +220,10 @@ class Entity(ABC):
 
         self.pm_body.position = pos_x, pos_y
         self.pm_body.angle = phi
+
+    @property
+    def velocity_np(self):
+        return numpy.array(self.velocity)
 
     @property
     def velocity(self):
