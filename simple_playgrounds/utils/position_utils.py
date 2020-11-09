@@ -48,6 +48,7 @@ class PositionAreaSampler:
 
         elif self.area_shape == 'circle':
             self.radius = kwargs['radius']
+            self.excl_radius = kwargs.get('excl_radius', 0)
 
         elif self.area_shape == 'gaussian':
             self.radius = kwargs['radius']
@@ -77,7 +78,7 @@ class PositionAreaSampler:
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'circle':
-            r = self.radius * math.sqrt(random.random())
+            r = math.sqrt(random.uniform(self.excl_radius**2, self.radius**2))
             alpha = random.random() * 2 * math.pi
 
             pos_x = self.center[0] + r * math.cos(alpha)
