@@ -11,6 +11,7 @@ import yaml
 import pymunk
 
 
+from simple_playgrounds.utils import PositionAreaSampler
 from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
 
 # pylint: disable=unused-argument
@@ -589,14 +590,37 @@ class Playground(ABC):
         agent = self.get_agent_from_shape(arbiter.shapes[0])
         teleport = self.get_scene_element_from_shape(arbiter.shapes[1])
 
-        if teleport is None:
+        if teleport is None or teleport.target is None:
             return True
 
         relative_speed = (teleport.position_np[:-1] - agent.position_np[:-1]) @ \
             (agent.velocity_np[:-1] - teleport.velocity_np[:-1])
         if relative_speed > 0:
-            agent.position = (teleport.target.position[0], teleport.target.position[1],
+            if teleport.target.traversable:
+                agent.position = (teleport.target.position[0], teleport.target.position[1],
                               agent.position[2])
+            else:
+                area_shape = teleport.target.physical_shape
+                if area_shape == 'rectangle':
+                    width = teleport.target.width + agent.base_platform.radius * 2 + 1
+                    length = teleport.target.length + agent.base_platform.radius * 2 + 1
+                    angle = teleport.target.position[-1]
+                    sampler = PositionAreaSampler(
+                        center=[teleport.target.position[0], teleport.target.position[1]],
+                        area_shape=area_shape,
+                        angle=angle,
+                        width_length=[width+2, length+2],
+                        excl_width_length=[width, length],
+                    )
+                else:
+                    radius = teleport.target.radius + agent.base_platform.radius + 1
+                    sampler = PositionAreaSampler(
+                        center=[teleport.target.position[0], teleport.target.position[1]],
+                        area_shape=area_shape,
+                        radius=radius,
+                        excl_radius=radius,
+                    )
+                agent.position = sampler.sample()
         return True
 
     def _handle_collisions(self):
