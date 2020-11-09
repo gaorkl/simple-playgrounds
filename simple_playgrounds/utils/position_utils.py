@@ -77,15 +77,12 @@ class PositionAreaSampler:
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'circle':
+            r = self.radius * math.sqrt(random.random())
+            alpha = random.random() * 2 * math.pi
 
-            pos_x = math.inf
-            pos_y = math.inf
+            pos_x = self.center[0] + r * math.cos(alpha)
+            pos_y = self.center[1] + r * math.sin(alpha)
             theta = random.uniform(self.theta_min, self.theta_max)
-
-            while (pos_x - self.center[0]) ** 2 + (pos_y - self.center[1]) ** 2 > self.radius ** 2:
-                pos_x = random.uniform(self.center[0] - self.radius / 2, self.center[0] + self.radius / 2)
-
-                pos_y = random.uniform(self.center[1] - self.radius / 2, self.center[1] + self.radius / 2)
 
         elif self.area_shape == 'gaussian':
 
