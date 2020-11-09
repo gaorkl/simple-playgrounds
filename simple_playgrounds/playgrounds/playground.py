@@ -616,7 +616,7 @@ class Playground(ABC):
                     radius = teleport.target.radius + agent.base_platform.radius + 1
                     sampler = PositionAreaSampler(
                         center=[teleport.target.position[0], teleport.target.position[1]],
-                        area_shape=area_shape,
+                        area_shape='circle',
                         radius=radius,
                         excl_radius=radius,
                     )
