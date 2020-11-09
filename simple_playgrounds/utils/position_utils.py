@@ -45,6 +45,10 @@ class PositionAreaSampler:
         # Area shape
         if self.area_shape == 'rectangle':
             self.width, self.length = kwargs['width_length']
+            self.excl_width, self.excl_length = kwargs.get('excl_width_length', (0, 0))
+            h_area = self.width * (self.length - self.excl_length)
+            v_area = (self.width - self.excl_width) * (self.length - self.excl_length)
+            self.h_threshold = h_area / (h_area + v_area)
 
         elif self.area_shape == 'circle':
             self.radius = kwargs['radius']
@@ -73,8 +77,26 @@ class PositionAreaSampler:
             self.center = center
 
         if self.area_shape == 'rectangle':
-            pos_x = random.uniform(self.center[0] - self.width/2, self.center[0] + self.width/2)
-            pos_y = random.uniform(self.center[1] - self.length/2, self.center[1] + self.length/2)
+            # split the rectangle to horizontal and vertical pieces,
+            # choose based on h_threshold and then sample uniformaly and shift
+            if random.random() < self.h_threshold:
+                width = self.width
+                length = self.length - self.excl_length
+                x_shift = 0
+                y_shift = self.excl_length
+            else:
+                width = self.width - self.excl_width
+                length = self.length - self.excl_length
+                x_shift = self.excl_width
+                y_shift = 0
+
+            sign = lambda x: math.copysign(1, x)
+            pos_x = random.uniform(-width / 2, width / 2)
+            pos_x += sign(pos_x) * x_shift / 2
+            pos_x += self.center[0]
+            pos_y = random.uniform(-length / 2, length / 2)
+            pos_y += sign(pos_y) * y_shift / 2
+            pos_y += self.center[1]
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'circle':
