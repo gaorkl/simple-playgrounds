@@ -45,6 +45,7 @@ class PositionAreaSampler:
         # Area shape
         if self.area_shape == 'rectangle':
             self.width, self.length = kwargs['width_length']
+            self.angle = kwargs.get('angle', 0)
             self.excl_width, self.excl_length = kwargs.get('excl_width_length', (0, 0))
             h_area = self.width * (self.length - self.excl_length)
             v_area = (self.width - self.excl_width) * (self.length - self.excl_length)
@@ -93,10 +94,15 @@ class PositionAreaSampler:
             sign = lambda x: math.copysign(1, x)
             pos_x = random.uniform(-width / 2, width / 2)
             pos_x += sign(pos_x) * x_shift / 2
-            pos_x += self.center[0]
+
             pos_y = random.uniform(-length / 2, length / 2)
             pos_y += sign(pos_y) * y_shift / 2
-            pos_y += self.center[1]
+
+            pos_x_ = pos_x * math.cos(self.angle) - pos_y * math.sin(self.angle)
+            pos_y_ = pos_x * math.sin(self.angle) + pos_y * math.cos(self.angle)
+            pos_x = pos_x_ + self.center[0]
+            pos_y = pos_y_ + self.center[1]
+
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'circle':
