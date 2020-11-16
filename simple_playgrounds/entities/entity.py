@@ -23,6 +23,7 @@ class Entity(ABC):
     """
 
     visible = True
+    traversable = False
     interactive = False
     movable = False
     graspable = False
@@ -77,9 +78,10 @@ class Entity(ABC):
         self.pm_visible_shape = None
 
         if self.visible:
-            self.pm_visible_shape = self._create_pm_shape()
+            if not self.traversable:
+                self.pm_visible_shape = self._create_pm_shape()
+                self.pm_elements.append(self.pm_visible_shape)
             self.visible_mask = self._create_mask()
-            self.pm_elements.append(self.pm_visible_shape)
 
         if self.interactive:
             self.pm_interaction_shape = self._create_pm_shape(is_interactive=True)
@@ -185,6 +187,10 @@ class Entity(ABC):
             raise ValueError('Initial position not valid')
 
     @property
+    def position_np(self):
+        return numpy.array(self.position)
+
+    @property
     def position(self):
         '''
         Position (x, y, orientation) of the Entity
@@ -217,6 +223,10 @@ class Entity(ABC):
 
         self.pm_body.position = pos_x, pos_y
         self.pm_body.angle = phi
+
+    @property
+    def velocity_np(self):
+        return numpy.array(self.velocity)
 
     @property
     def velocity(self):

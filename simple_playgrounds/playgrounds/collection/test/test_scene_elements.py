@@ -238,6 +238,33 @@ class Doors(SingleRoom):
         self.agent_starting_area = [40, 40, 0]
 
 
+@PlaygroundRegister.register('test_teleports')
+class Teleports(SingleRoom):
+
+    def __init__(self, size = (300, 300), **playground_params):
+
+        super().__init__(size = size, **playground_params)
+
+        teleport_1 = Teleport([50, 50, 0], radius=10, physical_shape='circle')
+        target_1 = Traversable([250, 50, 0], radius=10, default_config_key='circle')
+        teleport_1.add_target(target_1)
+        self.add_scene_element(teleport_1)
+        self.add_scene_element(target_1)
+
+        teleport_2 = Teleport([50, 150, 0], radius=10, physical_shape='circle')
+        target_2 = Basic([250, 150, 0], radius=20, default_config_key='circle')
+        teleport_2.add_target(target_2)
+        self.add_scene_element(teleport_2)
+        self.add_scene_element(target_2)
+
+        teleport_3 = Teleport([50, 250, 0], radius=10, physical_shape='circle')
+        teleport_4 = Teleport([250, 250, 0], radius=10, physical_shape='circle')
+        teleport_3.add_target(teleport_4)
+        teleport_4.add_target(teleport_3)
+        self.add_scene_element(teleport_3)
+        self.add_scene_element(teleport_4)
+
+
 @PlaygroundRegister.register('test_proximity')
 class Proximity(SingleRoom):
 

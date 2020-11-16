@@ -300,12 +300,10 @@ class Engine:
                     self.surface_sensors.blit(self.surface_background, (0,0))
 
                     # take all elems and body parts which are close to sensor
-                    sc_elems = [elem for elem in self.playground.scene_elements
-                                if (not elem.background)
-                                and self.distance_elem(elem, sensor.anchor) - elem.radius < sensor.range]
-                    sc_elems += [elem for elem in all_agent_parts
-                                 if not elem.background
-                                 and self.distance_elem(elem, sensor.anchor) - elem.radius < sensor.range]
+                    sc_elems = [elem for elem in self.playground.scene_elements if
+                                self._check_elem(sensor, elem)]
+                    sc_elems += [elem for elem in all_agent_parts if
+                                 self._check_elem(sensor, elem)]
 
                     # filter invisible
                     visible_sc_elems = [elem for elem in sc_elems if elem not in sensor.invisible_elements]
@@ -330,6 +328,10 @@ class Engine:
 
                 else:
                     raise ValueError
+
+    def _check_elem(self, sensor, elem):
+        elem_dist = self.distance_elem(elem, sensor.anchor) - elem.radius
+        return (not elem.background) and elem_dist < sensor.range and elem_dist > 0
 
     @staticmethod
     def distance_elem(elem_1, elem_2):
