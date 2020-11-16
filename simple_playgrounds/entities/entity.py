@@ -108,6 +108,9 @@ class Entity(ABC):
         # Used to set an element which is not supposed to overlap
         self.allow_overlapping = entity_params.get('allow_overlapping', True)
 
+        for prop, value in entity_params.get('pm_attr', {}).items():
+            self._set_pm_attr(prop, value)
+
     def _get_physical_properties(self, params):
 
         # Physical Shape
@@ -339,6 +342,10 @@ class Entity(ABC):
             pm_shape.elasticity = 0.5
 
         return pm_shape
+
+    def _set_pm_attr(self, prop, value):
+        for pm_elem in self.pm_elements:
+            setattr(pm_elem, prop, value)
 
     def _create_mask(self, is_interactive=False):
 
