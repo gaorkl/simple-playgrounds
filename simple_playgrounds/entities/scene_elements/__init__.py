@@ -1,4 +1,4 @@
-from simple_playgrounds.entities.scene_elements.collection.basic import Basic, Door
+from simple_playgrounds.entities.scene_elements.collection.basic import Basic, Door, Traversable
 from simple_playgrounds.entities.scene_elements.collection.conditioning import ConditionedColorChanging, ColorChanging
 from simple_playgrounds.entities.scene_elements.collection.contact \
     import Candy, Poison, VisibleDeathTrap, VisibleEndGoal, PushButton
@@ -8,3 +8,4 @@ from simple_playgrounds.entities.scene_elements.collection.interactive \
 from simple_playgrounds.entities.scene_elements.collection.proximity import Fireball, Fairy
 from simple_playgrounds.entities.scene_elements.collection.edible import Apple, RottenApple
 from simple_playgrounds.entities.scene_elements.collection.gem import Key, Coin
+from simple_playgrounds.entities.scene_elements.collection.teleport import Teleport

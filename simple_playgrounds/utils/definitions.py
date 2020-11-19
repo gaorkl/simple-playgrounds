@@ -10,7 +10,6 @@ from collections import namedtuple
 SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9
 
-
 class SceneElementTypes(Enum):
 
     FIELD = 'field'
@@ -27,6 +26,7 @@ class CollisionTypes(IntEnum):
     EDIBLE = 6
     GRASPABLE = 7
     ACTIVATED_BY_GEM = 8
+    TELEPORT = 9
 
 
 class ControllerTypes(Enum):

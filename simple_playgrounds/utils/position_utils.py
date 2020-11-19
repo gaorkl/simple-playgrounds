@@ -45,9 +45,15 @@ class PositionAreaSampler:
         # Area shape
         if self.area_shape == 'rectangle':
             self.width, self.length = kwargs['width_length']
+            self.angle = kwargs.get('angle', 0)
+            self.excl_width, self.excl_length = kwargs.get('excl_width_length', (0, 0))
+            h_area = self.width * (self.length - self.excl_length)
+            v_area = (self.width - self.excl_width) * (self.length - self.excl_length)
+            self.h_threshold = h_area / (h_area + v_area)
 
         elif self.area_shape == 'circle':
             self.radius = kwargs['radius']
+            self.excl_radius = kwargs.get('excl_radius', 0)
 
         elif self.area_shape == 'gaussian':
             self.radius = kwargs['radius']
@@ -72,20 +78,40 @@ class PositionAreaSampler:
             self.center = center
 
         if self.area_shape == 'rectangle':
-            pos_x = random.uniform(self.center[0] - self.width/2, self.center[0] + self.width/2)
-            pos_y = random.uniform(self.center[1] - self.length/2, self.center[1] + self.length/2)
+            # split the rectangle to horizontal and vertical pieces,
+            # choose based on h_threshold and then sample uniformaly and shift
+            if random.random() < self.h_threshold:
+                width = self.width
+                length = self.length - self.excl_length
+                x_shift = 0
+                y_shift = self.excl_length
+            else:
+                width = self.width - self.excl_width
+                length = self.length - self.excl_length
+                x_shift = self.excl_width
+                y_shift = 0
+
+            sign = lambda x: math.copysign(1, x)
+            pos_x = random.uniform(-width / 2, width / 2)
+            pos_x += sign(pos_x) * x_shift / 2
+
+            pos_y = random.uniform(-length / 2, length / 2)
+            pos_y += sign(pos_y) * y_shift / 2
+
+            pos_x_ = pos_x * math.cos(self.angle) - pos_y * math.sin(self.angle)
+            pos_y_ = pos_x * math.sin(self.angle) + pos_y * math.cos(self.angle)
+            pos_x = pos_x_ + self.center[0]
+            pos_y = pos_y_ + self.center[1]
+
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'circle':
+            r = math.sqrt(random.uniform(self.excl_radius**2, self.radius**2))
+            alpha = random.random() * 2 * math.pi
 
-            pos_x = math.inf
-            pos_y = math.inf
+            pos_x = self.center[0] + r * math.cos(alpha)
+            pos_y = self.center[1] + r * math.sin(alpha)
             theta = random.uniform(self.theta_min, self.theta_max)
-
-            while (pos_x - self.center[0]) ** 2 + (pos_y - self.center[1]) ** 2 > self.radius ** 2:
-                pos_x = random.uniform(self.center[0] - self.radius / 2, self.center[0] + self.radius / 2)
-
-                pos_y = random.uniform(self.center[1] - self.radius / 2, self.center[1] + self.radius / 2)
 
         elif self.area_shape == 'gaussian':
 

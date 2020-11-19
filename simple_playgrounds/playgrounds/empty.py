@@ -274,24 +274,38 @@ class ConnectedRooms2D(Playground):
         return pos_x, pos_y, 0
 
     def get_quarter_area(self, area_coordinates, area_location):
+        return self.get_area(area_coordinates, area_location)
+
+    def get_half_area(self, area_coordinates, area_location):
+        return self.get_area(area_coordinates, area_location)
+
+    def get_area(self, area_coordinates, area_location):
 
         area_center, area_size = self.area_rooms[area_coordinates]
 
-        if area_location == 'up-left':
-            center = area_center[0] - area_size[0] / 4, area_center[1] + area_size[1] / 4
-        elif area_location == 'up-right':
-            center = area_center[0] + area_size[0] / 4, area_center[1] + area_size[1] / 4
-        elif area_location == 'down-left':
-            center = area_center[0] - area_size[0] / 4, area_center[1] - area_size[1] / 4
-        elif area_location == 'down-right':
-            center = area_center[0] + area_size[0] / 4, area_center[1] - area_size[1] / 4
+        assert area_location in [
+            'up', 'down', 'right', 'left', 'up-right', 'up-left', 'down-right', 'down-left'
+        ]
+
+        size_y = area_size[1] / 2
+        if 'up' in area_location:
+            center_y = area_center[1] + area_size[1] / 4
+        elif 'down' in area_location:
+            center_y = area_center[1] - area_size[1] / 4
         else:
-            raise ValueError
+            center_y = area_center[1]
+            size_y = area_size[1]
 
-        quarter_area_size = [area_size[0]/2, area_size[1]/2]
+        size_x = area_size[0] / 2
+        if 'right' in area_location:
+            center_x = area_center[0] + area_size[0] / 4
+        elif 'left' in area_location:
+            center_x = area_center[0] - area_size[0] / 4
+        else:
+            center_x = area_center[0]
+            size_x = area_size[0]
 
-        return center, quarter_area_size
-
+        return [center_x, center_y], [size_x, size_y]
 
 class SingleRoom(ConnectedRooms2D):
 

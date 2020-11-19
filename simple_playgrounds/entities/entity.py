@@ -23,6 +23,7 @@ class Entity(ABC):
     """
 
     visible = True
+    traversable = False
     interactive = False
     movable = False
     graspable = False
@@ -77,9 +78,10 @@ class Entity(ABC):
         self.pm_visible_shape = None
 
         if self.visible:
-            self.pm_visible_shape = self._create_pm_shape()
+            if not self.traversable:
+                self.pm_visible_shape = self._create_pm_shape()
+                self.pm_elements.append(self.pm_visible_shape)
             self.visible_mask = self._create_mask()
-            self.pm_elements.append(self.pm_visible_shape)
 
         if self.interactive:
             self.pm_interaction_shape = self._create_pm_shape(is_interactive=True)
@@ -107,6 +109,9 @@ class Entity(ABC):
 
         # Used to set an element which is not supposed to overlap
         self.allow_overlapping = entity_params.get('allow_overlapping', True)
+
+        for prop, value in entity_params.get('pm_attr', {}).items():
+            self._set_pm_attr(prop, value)
 
     def _get_physical_properties(self, params):
 
@@ -182,6 +187,10 @@ class Entity(ABC):
             raise ValueError('Initial position not valid')
 
     @property
+    def position_np(self):
+        return numpy.array(self.position)
+
+    @property
     def position(self):
         '''
         Position (x, y, orientation) of the Entity
@@ -214,6 +223,10 @@ class Entity(ABC):
 
         self.pm_body.position = pos_x, pos_y
         self.pm_body.angle = phi
+
+    @property
+    def velocity_np(self):
+        return numpy.array(self.velocity)
 
     @property
     def velocity(self):
@@ -339,6 +352,10 @@ class Entity(ABC):
             pm_shape.elasticity = 0.5
 
         return pm_shape
+
+    def _set_pm_attr(self, prop, value):
+        for pm_elem in self.pm_elements:
+            setattr(pm_elem, prop, value)
 
     def _create_mask(self, is_interactive=False):
 
