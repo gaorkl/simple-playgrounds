@@ -301,7 +301,9 @@ class Playground(ABC):
             trial += 1
 
         if visible_collide or interactive_collide:
-            raise ValueError('Scene Element could not be placed')
+            return False
+
+        return True
 
     def add_scene_element(self, scene_element, tries=100, new_position=True):
         """ Method to add a SceneElement to the Playground.
@@ -320,27 +322,25 @@ class Playground(ABC):
 
             # If already there
             if scene_element in self.fields:
-                return True
+                raise ValueError('Field already in Playground')
 
             self.fields.append(scene_element)
-            return True
-
-        # If already there
-        if scene_element in self.scene_elements:
-            return True
-
-        # Else
-        scene_element.size_playground = self.size
-
-        if scene_element.allow_overlapping:
-            self._add_scene_element(scene_element, new_position)
-            return True
 
         else:
-            self._add_scene_element_without_ovelapping(scene_element, tries = tries, new_position=new_position)
-            return True
+            if scene_element in self.scene_elements:
+                raise ValueError('Field already in Playground')
 
+            # Else
+            scene_element.size_playground = self.size
 
+            if scene_element.allow_overlapping:
+                self._add_scene_element(scene_element, new_position)
+
+            else:
+                success = self._add_scene_element_without_ovelapping(scene_element, tries = tries, new_position=new_position)
+
+                if not success:
+                    raise ValueError('Entity could not be placed without overlapping')
 
     def _remove_agents(self):
 
