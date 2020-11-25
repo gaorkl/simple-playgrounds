@@ -332,9 +332,11 @@ class Engine:
     def _check_elem(self, sensor, elem):
         # elem_dist = self.distance_elem(elem, sensor.anchor) - elem.radius
 
-        contact_points = elem.pm_visible_shape.shapes_collide( sensor.anchor.pm_visible_shape).points
+        if elem.pm_visible_shape is not None:
+            contact_points = elem.pm_visible_shape.shapes_collide( sensor.anchor.pm_visible_shape).points
+            return (not elem.background) and len(contact_points) == 0
 
-        return (not elem.background) and len(contact_points) == 0
+        return not elem.background
 
 
     @staticmethod
