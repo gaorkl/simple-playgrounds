@@ -265,7 +265,7 @@ class ConnectedRooms2D(Playground):
             close_to_doorstep = False
 
             for _, doorstep in self.doorsteps.items():
-                if ((doorstep[0] - pos_x) ** 2 + (doorstep[1] - pos_y)**2) < size_object ** 2:
+                if ((doorstep[0] - pos_x) ** 2 + (doorstep[1] - pos_y)**2) < ((size_object+self.doorstep_size)/2) ** 2:
                     close_to_doorstep = True
 
             if not close_to_doorstep:

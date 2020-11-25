@@ -8,8 +8,8 @@ platform_texture : &platform-texture
 platform: &platform
   physical_shape: circle
   texture:  *platform-texture
-  radius: 20
-  mass: 15
+  radius: 16
+  mass: 10
   max_linear_force: 0.5
   max_angular_velocity: 0.25
   max_longitudinal_velocity: 1.0
@@ -25,7 +25,7 @@ head: &head
   texture:  *head-texture
   physical_shape: circle
   mass: 5
-  radius: 14
+  radius: 12
   max_angular_velocity: 0.25
   rotation_range: 90
 

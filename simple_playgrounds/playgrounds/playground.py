@@ -171,18 +171,19 @@ class Playground(ABC):
 
         # If already there
         if new_agent in self.scene_elements:
-            return True
+            raise ValueError('Agent already in Playground')
 
         # Else
         new_agent.size_playground = self.size
 
         if new_agent.allow_overlapping:
             self._add_agent(new_agent)
-            return True
 
         else:
-            self._add_agent_without_ovelapping(new_agent, tries = tries)
-            return True
+            success = self._add_agent_without_ovelapping(new_agent, tries = tries)
+
+            if not success:
+                raise ValueError("Agent couldn't be placed without overlapping")
 
     def _add_agent(self, agent):
         """ Add an agent to the playground.
@@ -254,14 +255,16 @@ class Playground(ABC):
             trial += 1
 
         if interactive_collide_parts or visible_collide_parts:
-            raise ValueError("Couldn't place agent")
+            return False
+
+        return True
 
     def _add_scene_element(self, new_scene_element, new_position):
         """ Method to add a SceneElement to the Playground.
         """
 
         if new_scene_element in self.scene_elements:
-            return True
+            raise ValueError('Scene element already in Playground')
 
         new_scene_element.size_playground = self.size
 

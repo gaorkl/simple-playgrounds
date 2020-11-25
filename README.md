@@ -1,15 +1,33 @@
-# 2D playgrounds for AI
+# Welcome to simple-playgrounds
 
-Welcome to simple-playgrounds, a library for designing simple playgrounds.
+The goal of this project is to provide easy-to-use, fast and flexible
+simulation environments for research in Deep Reinforcement Learning and Artificial Intelligence.
+This simulator offers test beds which can be easily tuned to the need of the researcher.
+It bridges the gap between simple and efficient grid environments, and complex and challenging 3D environments.
 
 The playgrounds are 2D environments where agents can move around and interact with entities.
 The game engine deals with simple physics, such as collision and friction.
 Agents can act through continuous movements and discrete interactive actions.
-They perceive with realistic first-person view sensors, top-dow vew sensors, and 
+They can perceive the scene with realistic first-person view sensors, top-dow vew sensors, and 
 semantic sensors.
+
+![Alt Text](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/assets/spg.gif)
 
 This simulator is easy to handle. It allows very fast design of AI experiments
 and runs experiments very quickly.
+
+If you are interested in using this simulator for your research, please use the following reference:
+
+```
+@misc{Simple-Playgrounds,
+  author = {Garcia Ortiz, Michael and Caselles-Dupre Hugo and Annabi, Louis},
+  title = {Simple-Playgrounds},
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/mgarciaortiz/simple-playgrounds}},
+}
+```
 
 # Installation
 
@@ -47,7 +65,7 @@ We advise to run the notebook locally, so that more advanced display options are
 # Structure of a playground
 
 A playground is described using a carthesian coordinate system. 
-Each element has a position (x,y,$$\Theta$$), 
+Each element has a position (x,y, &theta), 
 with x along the horizontal axis, y along the vertical axis, and
 theta the orientation, aligned on horizontal axis.
 

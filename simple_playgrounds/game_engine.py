@@ -330,8 +330,12 @@ class Engine:
                     raise ValueError
 
     def _check_elem(self, sensor, elem):
-        elem_dist = self.distance_elem(elem, sensor.anchor) - elem.radius
-        return (not elem.background) and elem_dist < sensor.range and elem_dist > 0
+        # elem_dist = self.distance_elem(elem, sensor.anchor) - elem.radius
+
+        contact_points = elem.pm_visible_shape.shapes_collide( sensor.anchor.pm_visible_shape).points
+
+        return (not elem.background) and len(contact_points) == 0
+
 
     @staticmethod
     def distance_elem(elem_1, elem_2):
@@ -367,7 +371,7 @@ class Engine:
 
         self.update_surface_environment()
 
-        np_image = pygame.surfarray.pixels3d(self.surface_environment)
+        np_image = pygame.surfarray.pixels3d(self.surface_environment.copy())
         np_image = numpy.rot90(np_image, 1, (1, 0))
         np_image = np_image[::-1, :, ::-1]
 
