@@ -7,7 +7,7 @@ distance-rays:
   resolution: 20
 
 touch:
-  range: 3
+  range: 5
   fov: 360
   resolution: 360
 

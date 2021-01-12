@@ -11,6 +11,7 @@ import cv2
 
 from simple_playgrounds.entities.agents.sensors.sensor import Sensor
 from simple_playgrounds.utils.definitions import SensorModality
+from simple_playgrounds.utils.definitions import LidarPoint
 
 
 class SemanticSensor(Sensor, ABC):
@@ -48,7 +49,19 @@ class SemanticSensor(Sensor, ABC):
         return default_config[key]
 
     def apply_normalization(self):
-        pass
+
+        new_sensor_values = {}
+
+        for angle, points in self.sensor_value.items():
+
+            new_sensor_values[angle] = []
+
+            for point in points:
+
+                new_point = LidarPoint(point.entity, point.distance/self._range, point.angle )
+                new_sensor_values[angle].append(new_point)
+
+        self.sensor_value = new_sensor_values
 
     def apply_noise(self):
         pass
@@ -75,10 +88,13 @@ class SemanticSensor(Sensor, ABC):
             for point in points:
                 distance = point.distance * height_semantic / self.shape[0]
 
+                if self.normalize:
+                    distance *= self._range
+
                 pos_x = int(height_semantic / 2 - distance * math.cos(angle))
                 pos_y = int(height_semantic / 2 - distance * math.sin(angle))
 
                 # pylint: disable=no-member
-                cv2.circle(img, (pos_y, pos_x), 2, [0.1, 0.5, 1.0], thickness=-1)
+                cv2.circle(img, (pos_y, pos_x), 2, [25, 130, 255], thickness=-1)
 
         return img

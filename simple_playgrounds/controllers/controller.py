@@ -1,91 +1,74 @@
 """
 Module defining Controllers.
-Controllers are used to chose actions for agents.
+Controllers are used to generate commands to control the actuators of an agent.
 """
 from abc import ABC, abstractmethod
 import random
 
 import pygame
-from pygame.locals import *
 
 from simple_playgrounds.utils.definitions import ActionTypes, KeyTypes
 
 
 class Controller(ABC):
-    """ Base Class for Controllers."""
+    """ Base Class for Controllers.
+    """
 
     def __init__(self):
 
         self.require_key_mapping = False
-        self.null_actions = []
-        self.actions = []
-
-    @property
-    def available_actions(self):
-        """
-        Dictionary of available actions.
-        """
-        return self._available_actions
-
-    @available_actions.setter
-    def available_actions(self, act):
-        self._available_actions = act
-        self.actions = self.generate_null_actions_dict()
-        self.null_actions = self.generate_null_actions_dict()
+        self.controlled_actuators = []
 
     @abstractmethod
-    def generate_actions(self):
+    def generate_commands(self):
         """ Generate actions for each part of an agent,
         Returns a dictionary of parts and associated actions,
         """
 
-    def generate_null_actions_dict(self):
-        """ Generates a dictionary of null actions."""
-        actions = {}
-        for action in self.available_actions:
-            actions[action.body_part] = {}
+    def generate_empty_commands(self):
+        commands = {}
+        for actuator in self.controlled_actuators:
+            commands[actuator] = 0
 
-        for action in self.available_actions:
-            actions[action.body_part][action.action] = 0
-
-        return actions
+        return commands
 
 
 class External(Controller):
 
-    def generate_actions(self):
-
+    def generate_commands(self):
         pass
+
 
 class Random(Controller):
     """
-    A random controller picks actions randomly.
-    If the action is continuous, it picks the action using a uniform distribution.
-    If the aciton is discrete (binary), it picks a random action.
+    A random controller generate random commands.
+    If the actuator is continuous, it picks the action using a uniform distribution.
+    If the actuator is discrete (binary), it picks a random action.
     """
     controller_type = 'random'
 
-    def generate_actions(self):
+    def generate_commands(self):
 
-        actions = self.null_actions.copy()
+        # actions = self.null_actions.copy()
+        commands = {}
 
-        for action in self.available_actions:
+        for actuator in self.controlled_actuators:
 
-            if action.action_type == ActionTypes.CONTINUOUS_CENTERED:
-                act_value = random.uniform(action.min, action.max)
+            if actuator.action_type == ActionTypes.CONTINUOUS_CENTERED:
+                act_value = random.uniform(actuator.min, actuator.max)
 
-            elif action.action_type == ActionTypes.CONTINUOUS_NOT_CENTERED:
-                act_value = random.uniform(action.min, action.max)
+            elif actuator.action_type == ActionTypes.CONTINUOUS_NOT_CENTERED:
+                act_value = random.uniform(actuator.min, actuator.max)
 
-            elif action.action_type == ActionTypes.DISCRETE:
-                act_value = random.choice([action.min, action.max])
+            elif actuator.action_type == ActionTypes.DISCRETE:
+                act_value = random.choice([actuator.min, actuator.max])
 
             else:
                 raise ValueError
 
-            actions[action.body_part][action.action] = act_value
+            commands[actuator] = act_value
 
-        return actions
+        return commands
 
 
 class Keyboard(Controller):
@@ -100,71 +83,62 @@ class Keyboard(Controller):
         super().__init__()
 
         self.require_key_mapping = True
-        self.press_state = {}
-        self.key_mapping = None
+        self.key_map = None
 
-    @property
-    def key_mapping(self):
+        self.press_once = []
+        self.press_hold = []
+
+        self.hold = []
+
+    def discover_key_mapping(self):
         """ Key mapping that links keyboard strokes with a desired action."""
-        return self._key_mapping
 
-    @key_mapping.setter
-    def key_mapping(self, keymap):
+        self.key_map = {}
 
-        if keymap is None:
-            keymap = []
+        for actuator in self.controlled_actuators:
 
-        self._key_mapping = {}
+            if actuator.has_key_mapping:
 
-        for action in keymap:
+                for key, (behavior, value) in actuator.key_map.items():
 
-            if action.key in self._key_mapping:
-                raise ValueError('Key assigned twice ')
+                    if key in self.key_map:
+                        raise ValueError("Key assigned twice")
 
-            self._key_mapping[action.key] = action
+                    self.key_map[key] = (actuator, behavior, value)
 
-            if action.key_behavior == KeyTypes.PRESS_RELEASE:
-                self.press_state[action.key_behavior] = True
-
-    def _reset_press_once_actions(self):
-
-        for _, action in self.key_mapping.items():
-
-            if action.key_behavior == KeyTypes.PRESS_RELEASE:
-                self.actions[action.body_part][action.action] = 0
-
-    def generate_actions(self):
+    def generate_commands(self):
 
         # pylint: disable=undefined-variable
 
-        self._reset_press_once_actions()
+        all_key_pressed = pygame.key.get_pressed()
 
-        for event in pygame.event.get():
+        pressed = []
+        for key, _ in self.key_map.items():
+            if all_key_pressed[key] == 1:
+                pressed.append(key)
 
-            if event.type == KEYDOWN:
+        for key_pressed in self.press_hold:
+            if key_pressed not in pressed:
+                self.press_hold.remove(key_pressed)
 
-                if event.key in self.key_mapping:
+        for key_pressed in self.press_once:
+            if key_pressed not in pressed:
+                self.press_once.remove(key_pressed)
 
-                    action = self.key_mapping[event.key]
+        commands = self.generate_empty_commands()
 
-                    if action.key_behavior == KeyTypes.PRESS_RELEASE:
-                        self.actions[action.body_part][action.action] = action.key_value
-                        self.press_state[event.key] = False
+        for key_pressed in pressed:
 
-                    elif action.key_behavior == KeyTypes.PRESS_HOLD:
-                        self.actions[action.body_part][action.action] = action.key_value
+            actuator, behavior, value = self.key_map[key_pressed]
 
-            if event.type == KEYUP:
+            if behavior == KeyTypes.PRESS_HOLD:
+                commands[actuator] = value
 
-                if event.key in self.key_mapping:
+                if key_pressed not in self.press_hold:
+                    self.press_hold.append(key_pressed)
 
-                    action = self.key_mapping[event.key]
+            if behavior == KeyTypes.PRESS_ONCE and key_pressed not in self.press_once:
+                commands[actuator] = value
+                self.press_once.append(key_pressed)
 
-                    if action.key_behavior == KeyTypes.PRESS_RELEASE:
-                        self.press_state[event.key] = True
-
-                    if action.key_behavior == KeyTypes.PRESS_HOLD:
-                        self.press_state[event.key] = True
-                        self.actions[action.body_part][action.action] = 0
-
-        return self.actions
+        return commands

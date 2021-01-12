@@ -79,7 +79,7 @@ class RgbSensor(VisualSensor):
 
         self.sensor_value = pixels[self.indices, np.argmax(pixels.any(axis=2), axis = 1)].astype(float)
 
-        self.sensor_value = self.sensor_value[:,::-1].astype(float)
+        self.sensor_value = self.sensor_value[::-1,::-1].astype(float)
 
     @property
     def shape(self):
@@ -89,7 +89,7 @@ class RgbSensor(VisualSensor):
 
         im = np.expand_dims(self.sensor_value, 0)
         im = cv2.resize(im, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
-        if self.normalize is False: im /= 255.
+        if self.normalize: im *= 255.
 
         return im
 

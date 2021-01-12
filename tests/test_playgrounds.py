@@ -111,11 +111,11 @@ def test_multiagents_no_overlapping():
         center, shape = pg.area_rooms[(0,0)]
         pos_area_sampler = PositionAreaSampler(center = center, area_shape='rectangle', width_length=shape)
 
-        for i in range(10):
+        for i in range(2):
             agent = BaseInteractiveAgent(pos_area_sampler, controller=Random(), allow_overlapping = False)
             pg.add_agent(agent, 1000)
 
-        assert len(pg.agents) == 10
+        assert len(pg.agents) == 2
 
         engine = Engine(pg, time_limit=100, replay=False, screen=False)
         engine.run(with_screen = False)
@@ -141,7 +141,7 @@ def test_multisteps():
 
             actions = {}
             for agent in engine.agents:
-                actions[agent.name] = agent.controller.generate_actions()
+                actions[agent.name] = agent.controller.generate_commands()
 
             reset, terminate = engine.multiple_steps(actions, n_steps=3)
             engine.update_observations()

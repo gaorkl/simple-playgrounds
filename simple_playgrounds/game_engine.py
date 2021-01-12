@@ -1,11 +1,14 @@
 """
 Game Engine manages the interacitons between agents and Playgrounds.
 """
-import numpy
+import numpy as np
 
 import pygame
 from pygame.locals import K_q, K_r  # pylint: disable=no-name-in-module
 from pygame.color import THECOLORS  # pylint: disable=no-name-in-module
+import matplotlib.pyplot as plt
+
+import cv2
 
 from simple_playgrounds.utils.definitions import SensorModality, SIMULATION_STEPS, ActionTypes
 
@@ -97,20 +100,13 @@ class Engine:
             hold_actions[agent_name] = {}
             last_action[agent_name] = {}
 
-            for part_name, part_actions in agent_actions.items():
+            for actuator, value in agent_actions.items():
 
-                hold_actions[agent_name][part_name] = {}
-                last_action[agent_name][part_name] = {}
+                last_action[agent_name][actuator] = value
+                hold_actions[agent_name][actuator] = value
 
-                for act, val in part_actions.items():
-
-                    if act in [ActionTypes.ACTIVATE, ActionTypes.EAT]:
-                        hold_actions[agent_name][part_name][act] = 0
-                        last_action[agent_name][part_name][act] = val
-
-                    else:
-                        hold_actions[agent_name][part_name][act] = val
-                        last_action[agent_name][part_name][act] = val
+                if actuator.action in [ActionTypes.ACTIVATE, ActionTypes.EAT]:
+                    hold_actions[agent_name][actuator] = 0
 
         cumulated_rewards = {}
         for agent_name in actions:
@@ -362,7 +358,7 @@ class Engine:
         else:
             raise ValueError
 
-    def generate_topdown_image(self, mode=None):
+    def generate_topdown_image(self, max_size=None, mode=None):
         """
         Updates the Environment Surface and convert it into an array.
         Color code follows OpenCV
@@ -374,8 +370,15 @@ class Engine:
         self.update_surface_environment()
 
         np_image = pygame.surfarray.pixels3d(self.surface_environment.copy())
-        np_image = numpy.rot90(np_image, 1, (1, 0))
+        np_image = np.rot90(np_image, 1, (1, 0))
         np_image = np_image[::-1, :, ::-1]
+
+        if max_size != None:
+
+            scaling_factor = max_size/max(np_image.shape[0], np_image.shape[1])
+
+            np_image = cv2.resize(np_image, None, fx = scaling_factor, fy = scaling_factor)
+
 
         if mode == 'plt':
             np_image = np_image[:, :, ::-1]
@@ -397,11 +400,13 @@ class Engine:
 
         border = 5
 
-        list_sensor_images = [sensor.draw(width_sensor, height_sensor) for sensor in agent.sensors]
+        list_sensor_images = []
+        for sensor in agent.sensors:
+            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
 
         full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images)*(border+1)
 
-        full_img = numpy.ones((full_height, width_sensor, 3)) * 0.2
+        full_img = np.ones((full_height, width_sensor, 3)) * 0.2
 
         current_height = 0
         for im in list_sensor_images:
@@ -414,6 +419,124 @@ class Engine:
 
         return full_img
 
+    def generate_state_image(self, agent):
+
+        state_width = 200
+        text_box_height = 30
+        h_space = 5
+        offset_string = 10
+
+        number_parts_with_actions = len(agent.parts)
+        count_all_actions = len(agent.current_actions)
+
+        state_height = (text_box_height + h_space)*(count_all_actions + number_parts_with_actions) - h_space
+
+        current_height = text_box_height
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 0.5 #height_slot - 2 * space_string
+        fontColor = (0, 0, 0)
+        lineType = 1
+
+        img_state = np.ones((state_height, state_width, 4))*255
+
+        # for action, value in agent.current_actions.items():
+        #
+        #     print(action, value)
+
+        # for action, value in agent.current_actions.items():
+        #
+        #     center = 100 - int(10*len(part_name)/2)
+        #
+        #     bottomLeftCornerOfText = (center, current_height-offset_string)
+        #
+        #     cv2.putText(img_state, part_name.upper(),
+        #                 bottomLeftCornerOfText,
+        #                 font,
+        #                 fontScale,
+        #                 fontColor,
+        #                 lineType)
+        #
+        #     img_state = cv2.rectangle(img_state, (3, current_height-3), (state_width-3, current_height - text_box_height+3), (0,0,0), 3)
+        #
+        #
+        #     current_height += text_box_height + h_space
+        #
+        #
+        #     for action_index in range(1, len(ActionTypes)+1):
+        #
+        #         if ActionTypes(action_index) in actions:
+        #
+        #
+        #             action_value = actions[ActionTypes(action_index)]
+        #             action_name = ActionTypes(action_index).name
+        #
+        #             center = 100 - int(8 * len(action_name) / 2)
+        #
+        #             bottomLeftCornerOfText = (center, current_height - offset_string)
+        #
+        #             cv2.putText(img_state, action_name.lower(),
+        #                         bottomLeftCornerOfText,
+        #                         font,
+        #                         fontScale,
+        #                         fontColor,
+        #                         lineType)
+        #
+        #
+        #             # img_state = cv2.rectangle(img_state, (3, current_height - 3),
+        #             #                           (state_width - 3, current_height - text_box_height + 3), (0, 0, 0), 3)
+        #
+        #             current_height += text_box_height + h_space
+        #
+        img_state = cv2.cvtColor(img_state.astype('float32'), cv2.COLOR_RGBA2BGR)
+
+        return img_state
+
+    def generate_agent_image(self, agent,
+                             with_pg = True, max_size_pg = 400, rotate_pg=False,
+                             with_state = True,
+                             with_sensors = True, sensor_width = 150, sensor_height = 30, mode = None):
+
+        border = 10
+
+        images = []
+
+        if with_pg:
+            pg_image = self.generate_topdown_image( max_size = max_size_pg )
+
+            if rotate_pg:
+                pg_image = np.rot90(pg_image)
+
+
+            images.append(pg_image)
+
+        if with_state:
+            state_image = self.generate_state_image(agent)
+            images.append(state_image)
+
+        if with_sensors:
+            sensor_image = self.generate_sensor_image(agent, sensor_width, sensor_height)
+            images.append(sensor_image)
+
+
+        full_image_width = sum( [img.shape[1] + border for img in images ]) + border
+        full_image_height = max( [img.shape[0] for img in images ] ) + 2*border
+
+        full_img = np.ones((full_image_height, full_image_width, 3))*255
+
+        current_width = border
+
+        for img in images:
+            full_img[border: border+img.shape[0], current_width:current_width + img.shape[1],:] = img[:, :, :]
+            current_width += img.shape[1] + border
+
+        if mode == 'plt':
+            full_img = full_img[:, :, ::-1]
+
+        return full_img
+
+
+
     def run(self, steps=None, with_screen=False, print_rewards=False):
         """ Run the engine for the full duration of the game"""
 
@@ -423,7 +546,7 @@ class Engine:
 
             actions = {}
             for agent in self.agents:
-                actions[agent.name] = agent.controller.generate_actions()
+                actions[agent.name] = agent.controller.generate_commands()
 
             reset, terminate = self.step(actions)
             self.update_observations()

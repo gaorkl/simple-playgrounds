@@ -37,8 +37,8 @@ class Agent:
         self.base_platform = base_platform
         self.parts = [self.base_platform]
 
-        # Possible actions
-        self.available_actions = {}
+        # List of Actuators
+        self.actuators = {}
 
         self.reward = 0
         self.energy_spent = 0
@@ -56,6 +56,9 @@ class Agent:
         # By default, and agent can start at an overlapping position
         self.allow_overlapping = agent_params.get('allow_overlapping', True)
 
+        # Keep track of the actions for display
+        self.current_actions = self.get_all_actuators()
+
 
     @property
     def controller(self):
@@ -66,18 +69,21 @@ class Agent:
 
         self._controller = contr
 
-        self.controller.available_actions = self.get_all_available_actions()
+        self.controller.controlled_actuators = self.get_all_actuators()
 
         if self._controller.require_key_mapping:
-            self._controller.key_mapping = self.key_mapping
+            self._controller.discover_key_mapping()
 
-    @property
-    def key_mapping(self):
-        """
-        A key mapping links keyboard strokes with actions.
-        Necessary when the Agent is controlled by Keyboard Controller.
-        """
-        return None
+            print(self._controller.key_map)
+
+
+    # @property
+    # def key_mapping(self):
+    #     """
+    #     A key mapping links keyboard strokes with actions.
+    #     Necessary when the Agent is controlled by Keyboard Controller.
+    #     """
+    #     return None
 
     @property
     def initial_position(self):
@@ -219,23 +225,26 @@ class Agent:
 
     def pre_step(self):
         """
-        Reinitializes reward to 0 before a new step of the environment.
+        Reset actuators and reward to 0 before a new step of the environment.
         """
+
+        # for part in self.parts:
+        #     part.reset_actuators()
 
         self.reward = 0
 
-    def get_all_available_actions(self):
+    def get_all_actuators(self):
         """
         Computes all the available actions of the agent.
 
         Returns: List of available actions.
         """
 
-        actions = []
+        actuators = []
         for part in self.parts:
-            actions = actions + part.get_available_actions()
+            actuators = actuators + part.actuators
 
-        return actions
+        return actuators
 
     def apply_actions_to_body_parts(self, actions_dict):
         """
@@ -245,10 +254,12 @@ class Agent:
             actions_dict: dictionary of body_part_name, Action.
         """
 
-        for body_part_name, actions in actions_dict.items():
+        self.current_actions = actions_dict
 
-            body_part = self._find_part_by_name(body_part_name)
-            body_part.apply_actions(actions)
+        for actuator, value in actions_dict.items():
+
+            for body_part in self.parts:
+                body_part.apply_action(actuator, value)
 
     def reset(self):
         """
@@ -272,7 +283,6 @@ class Agent:
         for part in self.parts:
             if part not in list_excluded:
                 part.draw(surface)
-
 
     def get_visual_sensor_shapes(self):
 

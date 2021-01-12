@@ -10,6 +10,9 @@ import pymunk
 from simple_playgrounds.entities.agents.sensors.semantic_sensors.semantic_sensor import SemanticSensor
 from simple_playgrounds.utils.definitions import SensorModality, LidarPoint
 
+import numpy as np
+
+import cv2
 
 class LidarRays(SemanticSensor):
     """
@@ -54,7 +57,7 @@ class LidarRays(SemanticSensor):
         else:
             self.angles = [n * self._angle / (self.number_rays - 1) - self._angle / 2 for n in range(self.number_rays)]
 
-        self.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 0b1)
+        self.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS() ^ 0b1)
         self.sensor_value = {}
 
         self.invisible_shapes = []
@@ -196,7 +199,7 @@ class LidarCones(LidarRays):
             self.angles_cone_center = [n * angle / (self.number_cones - 1) - angle / 2 for n in
                                        range(self.number_cones)]
 
-        self.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 0b1)
+        self.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS() ^ 0b1)
 
     @staticmethod
     def _remove_cone_occlusions(collisions):
@@ -233,3 +236,80 @@ class LidarCones(LidarRays):
         if not self.allow_duplicates:
 
             self.sensor_value = self._remove_duplicates(self.sensor_value)
+
+
+class RgbTest(LidarRays):
+
+    def __init__(self, anchor, invisible_elements=None, **sensor_params):
+
+        super().__init__( anchor = anchor, invisible_elements=invisible_elements, allow_duplicates=True, **sensor_params)
+
+
+    def _compute_collisions(self, playground, sensor_angle):
+
+        position = self.anchor.pm_body.position
+        angle = self.anchor.pm_body.angle + sensor_angle
+
+        position_end = (position[0] + self._range * math.cos(angle),
+                        position[1] + self._range * math.sin(angle)
+                        )
+
+        collisions = playground.space.segment_query(position, position_end, 2 * self.radius_beam, self.filter)
+
+        # remove invisibles
+        collisions = [col for col in collisions
+                      if col.shape not in self.invisible_shapes and col.shape.sensor != True]
+
+        # filter occlusions
+        if self.remove_occluded:
+            collisions = self._remove_occlusions(collisions)
+
+        return collisions
+
+    def compute_raw_sensor(self, pg):
+
+        super().compute_raw_sensor(pg)
+
+        print('-------')
+
+        pixels = np.zeros((len(self.sensor_value),3))
+
+        idx = 0
+        for angle, collisions in self.sensor_value.items():
+
+            if collisions != None:
+                col = collisions[0]
+
+                element_colliding = pg.get_entity_from_shape(pm_shape=col.shape)
+
+                angle_element = element_colliding.position[2]
+                pos_element = element_colliding.position[0:2]
+                pos_collision = pg.size[0] - col.point.y, col.point.x
+
+                rel_pos_collision = pos_collision[0] - pos_element[0], pos_collision[1] - pos_element[1]
+
+                rel_pos_point = (rel_pos_collision[0]*math.cos(angle_element) + rel_pos_collision[1]*math.sin(angle_element),
+                                -rel_pos_collision[0] * math.sin(angle_element) + rel_pos_collision[1] * math.cos(angle_element))
+
+                coord = (int(rel_pos_point[0] + (element_colliding.texture_surface.get_size()[0]-1)/2),
+                        int(rel_pos_point[1] + (element_colliding.texture_surface.get_size()[1]-1)/2))
+
+                rgb = element_colliding.texture_surface.get_at(coord)[:3]
+
+                pixels[idx] = rgb
+
+            else:
+
+                pixels[idx] = [0,0,0]
+
+            idx += 1
+
+        pixels = pixels[::-1,::-1]
+        print(pixels)
+
+        im = np.expand_dims(pixels, 0)
+        im = cv2.resize(im, (200, 50), interpolation=cv2.INTER_NEAREST)
+        # if self.normalize: im *= 255.
+
+        cv2.imshow('rgb test', im/255.)
+        cv2.waitKey(20)

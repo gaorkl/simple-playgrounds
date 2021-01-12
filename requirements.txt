@@ -3,5 +3,5 @@ markdown
 pygame
 pymunk
 numpy
-opencv-contrib-python
+opencv-python
 scikit-image

@@ -448,6 +448,30 @@ class Playground(ABC):
 
         return None
 
+    def get_entity_from_shape(self, pm_shape):
+        """
+        Returns the element associated with the pymunk shape
+
+        Args:
+            pm_shape: Pymunk shaape
+
+        Returns:
+            Single entitiy or None
+
+        """
+
+        scene_element = self.get_scene_element_from_shape(pm_shape)
+        if scene_element is not None: return scene_element
+
+        for agent in self.agents:
+
+            part = agent.get_bodypart_from_shape(pm_shape)
+            if part is not None: return part
+
+        return None
+
+
+
     def _get_closest_agent(self, ent):
 
         dist_list = [(a.position[0] - ent.position[0])**2 + (a.position[1] - ent.position[1])**2 for a in self.agents]

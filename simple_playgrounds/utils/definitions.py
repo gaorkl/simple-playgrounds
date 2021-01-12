@@ -59,7 +59,7 @@ class SensorTypes(IntEnum):
 class KeyTypes(IntEnum):
 
     PRESS_HOLD = 1
-    PRESS_RELEASE = 2
+    PRESS_ONCE = 2
 
 
 class SensorModality(Enum):
@@ -67,11 +67,6 @@ class SensorModality(Enum):
     GEOMETRIC = auto()
     SEMANTIC = auto()
     UNDEFINED = auto()
-
-
-Action = namedtuple('Action', 'body_part action action_type min max')
-
-Keymap = namedtuple('KeyMap', 'body_part action key key_behavior key_value')
 
 LidarPoint = namedtuple('Point', 'entity distance angle')
 

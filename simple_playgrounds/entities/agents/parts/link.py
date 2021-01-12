@@ -6,18 +6,17 @@ import math
 from abc import ABC
 
 import pymunk
-import pygame
 
-from simple_playgrounds.entities.agents.parts.part import Part
-from simple_playgrounds.utils import ActionTypes, Action
+from simple_playgrounds.entities.agents.parts.part import Part, Actuator
+from simple_playgrounds.utils import ActionTypes
 
 # pylint: disable=line-too-long
 
 
-class Actuator(Part, ABC):
+class Link(Part, ABC):
 
     """
-    Base class for Actuators.
+    Base class for Links.
     Contains methods to calculate coordinates of anchor points, create joints and motors between actuator and anchor.
 
     Attributes:
@@ -30,15 +29,16 @@ class Actuator(Part, ABC):
     def __init__(self, anchor, coord_anchor=(0, 0), coord_part=(0, 0), angle_offset=0, **kwargs):
 
         """
-        An Actuator is attached to an other Part (anchor).
+        A Link is attached to an other Part (anchor).
         They are joined at a single point.
-        An Actuator can never collide with its Anchor.
+        A Link can never collide with its Anchor.
+        A link has at least one actuator controlling its angular velocity.
 
         Args:
-            anchor: Part on which the new Actuator will be attached
+            anchor: Part on which the new Link will be attached
             coord_anchor: coordinates of the joint on the anchor. Default: (0,0)
             coord_part: coordinates of the joint on the actuator. Default: (0,0)
-            angle_offset: angle offset of the actuator compared to the anchor (in rads). Default: 0
+            angle_offset: angle offset of the link compared to the anchor (in rads). Default: 0
             **kwargs: additional Keyword Parameters
 
         Keyword Args:
@@ -72,6 +72,10 @@ class Actuator(Part, ABC):
         self.motor = pymunk.SimpleMotor(anchor.pm_body, self.pm_body, 0)
 
         self.pm_elements += [self.joint, self.motor, self.limit]
+
+        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
+                                                    ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+        self.actuators.append(self.angular_velocity_actuator)
 
     def set_relative_position(self):
         """
@@ -107,38 +111,32 @@ class Actuator(Part, ABC):
 
         self.pm_body.angle = self.anchor.pm_body.angle + self.angle_offset
 
-    def get_available_actions(self):
+    def apply_action(self, actuator, value):
 
-        actions = super().get_available_actions()
+        super().apply_action(actuator, value)
 
-        actions.append(Action(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS_CENTERED, -1, 1))
+        if actuator is self.angular_velocity_actuator:
 
-        return actions
+            angular_velocity = value
 
-    def apply_actions(self, actions):
+            self.motor.rate = angular_velocity * self.max_angular_velocity
 
-        super().apply_actions(actions)
+            # Case when theta close to limit -> speed to zero
+            theta_part = self.position[2]
+            theta_anchor = self.anchor.position[2]
 
-        angular_velocity = actions.get(ActionTypes.ANGULAR_VELOCITY, 0)
+            angle_centered = (theta_part - (theta_anchor+self.angle_offset)) % (2*math.pi)
+            angle_centered = angle_centered - 2 * math.pi if angle_centered > math.pi else angle_centered
 
-        self.motor.rate = angular_velocity * self.max_angular_velocity
+            # Do not set the motor if the limb is close to limit
+            if angle_centered < - self.rotation_range/2 + math.pi/20 and angular_velocity > 0:
+                self.motor.rate = 0
 
-        # Case when theta close to limit -> speed to zero
-        theta_part = self.position[2]
-        theta_anchor = self.anchor.position[2]
-
-        angle_centered = (theta_part - (theta_anchor+self.angle_offset)) % (2*math.pi)
-        angle_centered = angle_centered - 2 * math.pi if angle_centered > math.pi else angle_centered
-
-        # Do not set the motor if the limb is close to limit
-        if angle_centered < - self.rotation_range/2 + math.pi/20 and angular_velocity > 0:
-            self.motor.rate = 0
-
-        elif angle_centered > self.rotation_range/2 - math.pi/20 and angular_velocity < 0:
-            self.motor.rate = 0
+            elif angle_centered > self.rotation_range/2 - math.pi/20 and angular_velocity < 0:
+                self.motor.rate = 0
 
 
-class Head(Actuator):
+class Head(Link):
     """
     Circular Part, attached on its center.
     Not colliding with any Entity or Part.
@@ -150,22 +148,12 @@ class Head(Actuator):
         default_config = self._parse_configuration('head')
         body_part_params = {**default_config, **kwargs}
 
-        super(Head, self).__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
+        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
 
         self.pm_visible_shape.sensor = True
 
-    # def _create_mask(self, is_interactive=False):
-    #
-    #     mask = super()._create_mask()
-    #
-    #     pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
-    #     pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
-    #     pygame.draw.line(mask, pygame.color.THECOLORS["green"], (self.radius, self.radius), (pos_x, pos_y), 2)
-    #
-    #     return mask
 
-
-class Eye(Actuator):
+class Eye(Link):
 
     """
     Circular Part, attached on its center.
@@ -178,7 +166,7 @@ class Eye(Actuator):
         default_config = self._parse_configuration('eye')
         body_part_params = {**default_config, **kwargs}
 
-        super(Eye, self).__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
+        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
 
         self.pm_visible_shape.sensor = True
 
@@ -193,7 +181,7 @@ class Eye(Actuator):
     #     return mask
 
 
-class Hand(Actuator):
+class Hand(Link):
 
     """
     Circular Part, attached on its center.
@@ -206,10 +194,10 @@ class Hand(Actuator):
         default_config = self._parse_configuration('hand')
         body_part_params = {**default_config, **kwargs}
 
-        super(Hand, self).__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
+        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
 
 
-class Arm(Actuator):
+class Arm(Link):
     """
     Rectangular Part, attached on one extremity.
     Is colliding with other Entity or Part, except from anchor and other Parts attached to it.
@@ -230,6 +218,6 @@ class Arm(Actuator):
 
         self.extremity_anchor_point = [0, length/2.0 - width/2.0]
 
-        super(Arm, self).__init__(anchor, position_anchor, position_part, angle_offset, **body_part_params)
+        super().__init__(anchor, position_anchor, position_part, angle_offset, **body_part_params)
 
         self.motor.max_force = 500

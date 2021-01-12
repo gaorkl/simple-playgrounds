@@ -11,6 +11,8 @@ import pymunk
 
 from simple_playgrounds.entities.agents.sensors.geometric_sensors.geometric_sensor import GeometricSensor
 
+import time
+
 
 class DistanceRays(GeometricSensor, ABC):
     """
@@ -43,7 +45,7 @@ class DistanceRays(GeometricSensor, ABC):
         else:
             self.angles = [n * self._fov / (self._resolution - 1) - self._fov / 2 for n in range(self._resolution)]
 
-        self.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 0b1)
+        self.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS() ^ 0b1)
         self.sensor_value = numpy.zeros(self.shape)
 
         self.invisible_shapes = []
@@ -80,6 +82,8 @@ class DistanceRays(GeometricSensor, ABC):
 
             self.sensor_value[index] = dist
 
+        self.sensor_value = self.sensor_value[::-1].astype(float)
+
 
 class TouchSensor(DistanceRays):
 
@@ -107,11 +111,19 @@ class TouchSensor(DistanceRays):
 
     def compute_raw_sensor(self, pg):
 
+        # t_0 = time.time()
+
         super().compute_raw_sensor(pg)
+
+        # t_1 = time.time()
 
         self.sensor_value = self.sensor_value - self.anchor.radius + 2
         self.sensor_value[ self.sensor_value<0] = 0
         self.sensor_value = self.range - self.anchor.radius + 2 - self.sensor_value
+
+        # t_2 = time.time()
+
+        # print(t_1 - t_0, t_2 - t_1)
 
     def apply_normalization(self):
         self.sensor_value = self.sensor_value / (self.range - self.anchor.radius + 2)
@@ -124,9 +136,13 @@ class TouchSensor(DistanceRays):
         img = numpy.expand_dims(expanded, 0)
         img = cv2.resize(img, (width_display, height_sensor), interpolation=cv2.INTER_NEAREST)
 
-        if self.normalize is False:
+        if self.normalize:
+            img *= 255.
+
+        else:
             # img = (img - self.anchor.radius) / (self._range - self.anchor.radius)
-            img = img / (self.range - self.anchor.radius + 2)
+            img = img / (self.range - self.anchor.radius + 2) * 255.
+
 
         return img
 

@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 import yaml
 
 from simple_playgrounds.entities.entity import Entity
-from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes, Action
+from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes
 
 # pylint: disable=line-too-long
 
@@ -62,6 +62,20 @@ class Part(Entity, ABC):
         self.is_grasping = False
         self.is_holding = False
 
+        self.actuators = []
+
+        if self.can_grasp:
+            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP, ActionTypes.DISCRETE, 0, 1)
+            self.actuators.append(self.grasp_actuator)
+
+        if self.can_activate:
+            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE, ActionTypes.DISCRETE, 0, 1)
+            self.actuators.append(self.activate_actuator)
+
+        if self.can_eat:
+            self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionTypes.DISCRETE, 0, 1)
+            self.actuators.append(self.eat_actuator)
+
     @staticmethod
     def _parse_configuration(part_type):
         """
@@ -83,47 +97,29 @@ class Part(Entity, ABC):
 
         return default_config[part_type]
 
-    @abstractmethod
-    def get_available_actions(self):
-        """
-        Method that create a :obj: 'list' of :obj: 'Action'.
-        An :obj:'Action' is a namedtuple (see Action in the definitions)
+    def reset_actuators(self):
 
-        Returns:
-            List of available actions :obj: 'list' of :obj: 'Action'.
-
-        """
-        actions = []
-
-        if self.can_grasp:
-            actions.append(Action(self.name, ActionTypes.GRASP, ActionTypes.DISCRETE, 0, 1))
-
-        if self.can_activate:
-            actions.append(Action(self.name, ActionTypes.ACTIVATE, ActionTypes.DISCRETE, 0, 1))
-
-        if self.can_eat:
-            actions.append(Action(self.name, ActionTypes.EAT, ActionTypes.DISCRETE, 0, 1))
-
-        return actions
+        for actuator in self.actuators:
+            self.apply_action(actuator, value=0)
 
     @abstractmethod
-    def apply_actions(self, actions):
+    def apply_action(self, actuator, value):
         """
-        Apply the actions to the physical body part
+        Apply the action to the physical body part
 
         Args:
-            actions (:obj: 'dict'): dictionary of actions. keys are ActionTypes, values are floats.
+            actuator (:obj: 'dict'): dictionary of actions. keys are ActionTypes, values are floats.
 
         """
 
-        if self.can_activate:
-            self.is_activating = actions.get(ActionTypes.ACTIVATE, False)
+        if self.can_activate and actuator is self.activate_actuator:
+            self.is_activating = value
 
-        if self.can_eat:
-            self.is_eating = actions.get(ActionTypes.EAT, False)
+        if self.can_eat and actuator is self.eat_actuator:
+            self.is_eating = value
 
-        if self.can_grasp:
-            self.is_grasping = actions.get(ActionTypes.GRASP, False)
+        if self.can_grasp and actuator is self.grasp_actuator:
+            self.is_grasping = value
 
         if self.is_holding and not self.is_grasping:
             self.is_holding = False
@@ -140,3 +136,24 @@ class Part(Entity, ABC):
             self.is_grasping = False
             self.grasped = []
             self.is_holding = False
+
+
+class Actuator:
+
+    def __init__(self, part_name, action, action_type, min_value, max_value):
+
+        self.part_name = part_name
+
+        self.action = action
+        self.action_type = action_type
+
+        self.min = min_value
+        self.max = max_value
+
+        self.has_key_mapping = False
+        self.key_map = {}
+
+    def assign_key(self, key, key_behavior, value):
+
+        self.has_key_mapping= True
+        self.key_map[key] = [key_behavior, value]
