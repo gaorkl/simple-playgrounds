@@ -3,12 +3,12 @@ Default definitions
 """
 
 from enum import IntEnum, Enum, auto
-from collections import namedtuple
 
 #pylint: disable=missing-class-docstring
 
 SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9
+
 
 class SceneElementTypes(Enum):
 
@@ -64,11 +64,18 @@ class KeyTypes(IntEnum):
 
 class SensorModality(Enum):
     VISUAL = auto()
-    GEOMETRIC = auto()
     SEMANTIC = auto()
+    ROBOTIC = auto()
     UNDEFINED = auto()
 
-LidarPoint = namedtuple('Point', 'entity distance angle')
+
+class Detection:
+
+    def __init__(self, entity, distance, angle):
+
+        self.entity = entity
+        self.distance = distance
+        self.angle = angle
 
 geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3,
                     'square': 4, 'pentagon': 5, 'hexagon': 6}

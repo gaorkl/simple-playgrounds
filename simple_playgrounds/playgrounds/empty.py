@@ -6,8 +6,8 @@ Empty Playgrounds with built-in walls and rooms
 import math
 import random
 
-from simple_playgrounds.playgrounds.playground import Playground
-from simple_playgrounds.entities.scene_elements import Basic, Door
+from simple_playgrounds.playground import Playground
+from .scene_elements import Basic, Door
 
 #pylint: disable=line-too-long
 

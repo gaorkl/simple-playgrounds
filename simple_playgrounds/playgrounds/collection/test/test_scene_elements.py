@@ -1,8 +1,7 @@
-from simple_playgrounds.playgrounds.empty import SingleRoom
-from simple_playgrounds.entities import Field
-from simple_playgrounds.entities.scene_elements import *
-from simple_playgrounds.utils import PositionAreaSampler, Trajectory
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from ...empty import SingleRoom
+from ...scene_elements import *
+from ....utils import PositionAreaSampler, Trajectory
+from ....playground import PlaygroundRegister
 
 import math
 
@@ -31,6 +30,7 @@ class Basics(SingleRoom):
         self.add_scene_element(hexagon_01)
 
         self.agent_starting_area = [100, 60, 0]
+
 
 @PlaygroundRegister.register('test_grasp')
 class Graspables(SingleRoom):

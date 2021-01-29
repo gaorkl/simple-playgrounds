@@ -1,10 +1,9 @@
 import random
 
-from simple_playgrounds.playgrounds.empty import SingleRoom, ConnectedRooms2D
-from simple_playgrounds.entities.field import Field
-from simple_playgrounds.entities.scene_elements import *
-from simple_playgrounds.utils import PositionAreaSampler
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from ...empty import SingleRoom, ConnectedRooms2D
+from ...scene_elements import *
+from ....utils import PositionAreaSampler
+from ....playground import PlaygroundRegister
 
 
 @PlaygroundRegister.register('spg_endgoal_cue')

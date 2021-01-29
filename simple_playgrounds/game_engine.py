@@ -75,7 +75,7 @@ class Engine:
 
         for elem in self.playground.scene_elements:
             if elem.background:
-                elem.draw(self.surface_background)
+                elem.draw(self.surface_background, )
 
         self.game_on = True
         self.elapsed_time = 0
@@ -249,27 +249,28 @@ class Engine:
 
         return reset_game, terminate_game
 
+    def update_surface_background(self):
+        # Check that some background elements maybe need to be drawn
+        for element in self.playground.scene_elements:
+            if element.background and not element.drawn:
+                element.draw(self.surface_background, )
+
     def update_surface_environment(self):
         """
         Draw all agents and entities on the surface environment.
         Additionally, draws the interaction areas.
 
         """
-        # Check that some background elements maybe need to be drawn
-        for element in self.playground.scene_elements:
-            if element.background and not element.drawn:
-                element.draw(self.surface_background)
-
-        # self.surface_environment = self.surface_background.copy()
-        self.surface_environment.blit(self.surface_background, (0,0) )
+        self.update_surface_background()
+        self.surface_environment.blit(self.surface_background, (0 ,0) )
 
         for entity in self.playground.scene_elements:
 
             if not entity.background or entity.graspable or entity.interactive :
-                entity.draw(self.surface_environment, draw_interaction=True)
+                entity.draw(self.surface_environment, )
 
         for agent in self.agents:
-            agent.draw(self.surface_environment)
+            agent.draw(self.surface_environment, )
 
     def update_observations(self):
         """
@@ -277,63 +278,22 @@ class Engine:
 
         """
 
-        # Check that some background elements maybe need to be drawn
-        for element in self.playground.scene_elements:
-            if element.background and not element.drawn:
-                element.draw(self.surface_background)
-
-        all_agent_parts = []
-        for agent in self.agents:
-            all_agent_parts += agent.parts
-
         for agent in self.agents:
 
             for sensor in agent.sensors:
 
                 if sensor.sensor_modality is SensorModality.VISUAL:
 
-                    # self.surface_sensors = self.surface_background.copy()
-                    self.surface_sensors.blit(self.surface_background, (0,0))
+                    self.update_surface_background()
+                    self.surface_sensors.blit(self.surface_background, (0, 0))
+                    sensor.update(playground=self.playground, sensor_surface=self.surface_sensors)
 
-                    # take all elems and body parts which are close to sensor
-                    sc_elems = [elem for elem in self.playground.scene_elements if
-                                self._check_elem(sensor, elem)]
-                    sc_elems += [elem for elem in all_agent_parts if
-                                 self._check_elem(sensor, elem)]
-
-                    # filter invisible
-                    visible_sc_elems = [elem for elem in sc_elems if elem not in sensor.invisible_elements]
-
-                    # Draw elements that are not invisible to this agent
-                    for element in visible_sc_elems:
-                        element.draw(self.surface_sensors)
-
-                    cropped = pygame.Surface((2 * sensor.range+1, 2 * sensor.range+1))
-
-                    pos_x = sensor.anchor.position[0] + sensor.range - self.playground.width
-                    pos_y = - sensor.anchor.position[1] + sensor.range
-                    cropped.blit(self.surface_sensors, (pos_x, pos_y))
-
-                    img_cropped = pygame.surfarray.pixels3d(cropped).astype(float)
-
-                    sensor.update_sensor(img_cropped)
-
-                elif sensor.sensor_modality is SensorModality.SEMANTIC \
-                        or sensor.sensor_modality is SensorModality.GEOMETRIC:
-                    sensor.update_sensor(self.playground)
+                elif sensor.sensor_modality is SensorModality.ROBOTIC \
+                        or sensor.sensor_modality is SensorModality.SEMANTIC:
+                    sensor.update(playground=self.playground)
 
                 else:
                     raise ValueError
-
-    def _check_elem(self, sensor, elem):
-        # elem_dist = self.distance_elem(elem, sensor.anchor) - elem.radius
-
-        if elem.pm_visible_shape is not None:
-            contact_points = elem.pm_visible_shape.shapes_collide( sensor.anchor.pm_visible_shape).points
-            return (not elem.background) and len(contact_points) == 0
-
-        return not elem.background
-
 
     @staticmethod
     def distance_elem(elem_1, elem_2):
@@ -373,12 +333,10 @@ class Engine:
         np_image = np.rot90(np_image, 1, (1, 0))
         np_image = np_image[::-1, :, ::-1]
 
-        if max_size != None:
+        if max_size is not None:
 
             scaling_factor = max_size/max(np_image.shape[0], np_image.shape[1])
-
             np_image = cv2.resize(np_image, None, fx = scaling_factor, fy = scaling_factor)
-
 
         if mode == 'plt':
             np_image = np_image[:, :, ::-1]
@@ -402,7 +360,7 @@ class Engine:
 
         list_sensor_images = []
         for sensor in agent.sensors:
-            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
+            list_sensor_images.append(sensor.draw(width_sensor, ))
 
         full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images)*(border+1)
 

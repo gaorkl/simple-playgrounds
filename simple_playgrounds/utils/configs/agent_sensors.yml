@@ -1,0 +1,55 @@
+#####################
+# Robotic Sensors
+
+sensor:
+  resolution: None
+  max_range: None
+  fov: None
+
+# Camera-like sensors
+
+rgb:
+  resolution: 64
+  max_range: 600
+  fov: 120
+
+grey:
+  resolution: 128
+  max_range: 600
+  fov: 180
+
+# Distance-like sensors
+
+lidar:
+  max_range: 300
+  fov: 180
+  resolution: 64
+
+touch:
+  max_range: 5
+  fov: 360
+  resolution: 36
+
+#####################
+# TopDown Sensors
+
+topdown:
+  resolution: 200
+  max_range: 100
+  fov: 180
+
+#####################
+# Semantic Sensors
+
+semantic-ray:
+  resolution: 128
+  max_range: 200
+  fov: 360
+
+semantic-cone:
+  n_cones: 36
+  rays_per_cone: 4
+  max_range: 200
+  fov: 360
+
+

@@ -125,7 +125,7 @@ def test_multiagents_no_overlapping():
 def test_multisteps():
 
     agent = BaseAgent(controller=Random())
-    sensor = TouchSensor(name='touch_1', anchor=agent.base_platform)
+    sensor = Touch(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(sensor)
 
     for pg_class in PlaygroundRegister.filter('test'):
