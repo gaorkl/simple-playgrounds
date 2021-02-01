@@ -89,9 +89,9 @@ class Part(Entity, ABC):
 
         """
 
-        fname = 'parts_default.yml'
+        fname = 'utils/configs/agent_parts.yml'
 
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        __location__ = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))))
         with open(os.path.join(__location__, fname), 'r') as yaml_file:
             default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
 

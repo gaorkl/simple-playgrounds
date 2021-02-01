@@ -1,10 +1,10 @@
 
 from simple_playgrounds.playgrounds import SingleRoom, LinearRooms, ConnectedRooms2D
 
-from simple_playgrounds.controllers import Random
-from simple_playgrounds.entities.agents import BaseAgent, BaseInteractiveAgent
+from simple_playgrounds.agents.controllers import Random
+from simple_playgrounds.agents import BaseAgent, BaseInteractiveAgent
 from simple_playgrounds import Engine
-from simple_playgrounds.entities.agents.sensors import *
+from simple_playgrounds.agents.sensors import *
 
 
 from simple_playgrounds.playgrounds.collection.test import *

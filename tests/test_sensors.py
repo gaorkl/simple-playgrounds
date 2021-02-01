@@ -1,8 +1,8 @@
 
-from simple_playgrounds.entities.agents.sensors import *
+from simple_playgrounds.agents.sensors import *
 
-from simple_playgrounds.controllers import Random
-from simple_playgrounds.entities.agents import BaseInteractiveAgent
+from simple_playgrounds.agents.controllers import Random
+from simple_playgrounds.agents import BaseInteractiveAgent
 from simple_playgrounds import Engine
 
 
@@ -16,11 +16,11 @@ def test_camera_sensors():
 
     agent = BaseInteractiveAgent(controller=Random())
 
-    for resolution in [1, 16]:
+    for resolution in [5, 16]:
 
-        for range_sensor in [1, 16]:
+        for range_sensor in [5, 16]:
 
-            for fov in [1, 30, 90, 180, 360, 380]:
+            for fov in [2, 30, 90, 180, 360, 380]:
 
                 for sens in [RgbCamera, GreyCamera, Lidar, Touch, SemanticRay, SemanticCones, TopdownSensor]:
 

@@ -1,8 +1,8 @@
 
-from simple_playgrounds.entities.agents.sensors import *
+from simple_playgrounds.agents.sensors import *
 
-from simple_playgrounds.controllers import Random
-from simple_playgrounds.entities.agents import BaseAgent, BaseInteractiveAgent,\
+from simple_playgrounds.agents.controllers import Random
+from simple_playgrounds.agents.agents import BaseAgent, BaseInteractiveAgent,\
                                                 TurretAgent, ArmHandAgent, HeadEyeAgent,ArmAgent
 from simple_playgrounds import Engine
 

@@ -127,7 +127,7 @@ class SemanticCones(SemanticRay):
         sensor_params['n_rays'] = n_rays
 
         super().__init__(anchor, invisible_elements=invisible_elements, number_rays=n_rays,
-                         remove_occluded=remove_occluded, remove_duplicates=remove_duplicates ** sensor_params)
+                         remove_occluded=remove_occluded, remove_duplicates=remove_duplicates, ** sensor_params)
 
         if self.number_cones == 1:
             self.angles_cone_center = [0]

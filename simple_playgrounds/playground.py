@@ -81,7 +81,7 @@ class Playground(ABC):
 
         """
 
-        fname = 'configs/playground_default.yml'
+        fname = 'utils/configs/playground.yml'
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         with open(os.path.join(__location__, fname), 'r') as yaml_file:
@@ -168,12 +168,11 @@ class Playground(ABC):
 
         """
 
-
         # If already there
         if new_agent in self.scene_elements:
             raise ValueError('Agent already in Playground')
 
-        # Else
+        # Inform agent of the playground size
         new_agent.size_playground = self.size
 
         if new_agent.allow_overlapping:
