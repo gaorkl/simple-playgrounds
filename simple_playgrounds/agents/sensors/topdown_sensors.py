@@ -1,10 +1,14 @@
+"""
+Module that defines TopDown Sensors.
+Topdown sensors are based computed using the image provided by the environment.
+"""
 import numpy as np
 import math
 import cv2
 import pygame
 
 from .sensor import Sensor
-from simple_playgrounds.utils.definitions import SensorModality
+from ...utils.definitions import SensorModality
 
 
 class TopdownSensor(Sensor):
@@ -85,7 +89,7 @@ class TopdownSensor(Sensor):
 
         return not elem.background
 
-    def _compute_raw_sensor(self, playground, sensor_surface):
+    def _compute_raw_sensor(self, playground, sensor_surface, **kwargs):
 
         cropped_img = self.get_local_sensor_image(playground, sensor_surface)
 
