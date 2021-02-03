@@ -360,7 +360,7 @@ class Engine:
 
         list_sensor_images = []
         for sensor in agent.sensors:
-            list_sensor_images.append(sensor.draw(width_sensor, ))
+            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
 
         full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images)*(border+1)
 
