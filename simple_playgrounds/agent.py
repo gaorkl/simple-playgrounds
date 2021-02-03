@@ -75,8 +75,9 @@ class Agent:
         if self._controller.require_key_mapping:
             self._controller.discover_key_mapping()
 
+    def print_key_map(self):
+        if self._controller:
             print(self._controller.key_map)
-
 
     # @property
     # def key_mapping(self):
