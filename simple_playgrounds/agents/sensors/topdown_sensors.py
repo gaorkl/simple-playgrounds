@@ -18,7 +18,7 @@ class TopdownSensor(Sensor):
     sensor_type = 'topdown'
     sensor_modality = SensorModality.VISUAL
 
-    def __init__(self, normalize=True, noise_params=None, only_front=False, **sensor_params):
+    def __init__(self, anchor, invisible_elements=None, normalize=True, noise_params=None, only_front=False, **sensor_params):
         """
         Refer to VisualSensor Class.
 
@@ -35,7 +35,8 @@ class TopdownSensor(Sensor):
         default_config = self._parse_configuration()
         sensor_params = {**default_config, **sensor_params}
 
-        super().__init__( normalize=normalize, noise_params=noise_params, **sensor_params)
+        super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
+                         noise_params=noise_params, **sensor_params)
 
         assert self._resolution > 0
         assert self._fov > 0
