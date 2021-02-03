@@ -25,6 +25,8 @@ class SemanticRay(RayCollisionSensor):
         super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
                          noise_params=noise_params, remove_duplicates=remove_duplicates, remove_occluded=remove_occluded, **sensor_params)
 
+        self._sensor_max_value = self._range
+
     def _compute_raw_sensor(self, playground):
 
         collision_points = self._compute_points(playground)
@@ -65,9 +67,13 @@ class SemanticRay(RayCollisionSensor):
     def _apply_normalization(self):
 
         for detection in self.sensor_values:
-            detection.distance /= self._range
+            detection.distance /= self._sensor_max_value
 
-    def draw(self, size_display, **kwargs):
+    def _apply_noise(self):
+
+        raise ValueError('Noise not implemented for Semantic sensors')
+
+    def draw(self, size_display, *args, **kwargs):
 
         img = np.zeros((size_display, size_display, 3))
 
@@ -173,7 +179,7 @@ class SemanticCones(SemanticRay):
         min_distance_detection = min(detections, key=attrgetter('distance'))
         return [min_distance_detection]
 
-    def draw(self, size_display, **kwargs):
+    def draw(self, size_display, *args, **kwargs):
 
         img = np.zeros((size_display, size_display, 3))
 

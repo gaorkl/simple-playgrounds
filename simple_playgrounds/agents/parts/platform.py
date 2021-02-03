@@ -1,5 +1,6 @@
 """
-Body Parts of an Agent.
+Module that defines Platforms for agents.
+All agents need a platform to attach other links and parts.
 """
 
 from abc import ABC
@@ -43,7 +44,7 @@ class Platform(Part, ABC):
 
         self.max_linear_force = body_part_params['max_linear_force']
         self.max_angular_velocity = body_part_params['max_angular_velocity']
-        self.max_longitudinal_velocity = body_part_params['max_longitudinal_velocity']
+        # self.max_longitudinal_velocity = body_part_params['max_longitudinal_velocity']
 
 
 class FixedPlatform(Platform):
@@ -71,7 +72,7 @@ class ForwardPlatform(Platform):
 
         super().__init__(**kwargs)
 
-        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS_NOT_CENTERED, 0, 1)
         self.actuators.append(self.longitudinal_force_actuator)
 
         self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
@@ -85,7 +86,31 @@ class ForwardPlatform(Platform):
             self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * self.max_linear_force * 100, (0, 0))
 
         if actuator is self.angular_velocity_actuator:
-            self.pm_body.angular_velocity = value * self.max_angular_velocity
+            self.pm_body.angular_velocity = - value * self.max_angular_velocity
+
+
+class ForwardBackwardPlatform(ForwardPlatform):
+    """
+    Platform that can move forward and rotate.
+    Refer to the base class Platform.
+
+    """
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+
+    def apply_action(self, actuator, value):
+
+        super().apply_action(actuator, value)
+
+        if actuator is self.longitudinal_force_actuator:
+            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * self.max_linear_force * 100, (0, 0))
+
+        if actuator is self.angular_velocity_actuator:
+            self.pm_body.angular_velocity = - value * self.max_angular_velocity
+
 
 
 class HolonomicPlatform(ForwardPlatform):

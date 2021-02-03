@@ -360,7 +360,7 @@ class Engine:
 
         list_sensor_images = []
         for sensor in agent.sensors:
-            list_sensor_images.append(sensor.draw(width_sensor, ))
+            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
 
         full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images)*(border+1)
 
@@ -377,30 +377,124 @@ class Engine:
 
         return full_img
 
-    def generate_state_image(self, agent):
+    def generate_actions_image(self, agent, width_action=100, height_action=30, mode=None):
 
-        state_width = 200
-        text_box_height = 30
-        h_space = 5
-        offset_string = 10
+        """
+        Function that draws all action values of the agent.
+
+        Args:
+            agent:
+            width_action:
+            height_action:
+            mode:
+
+        Returns:
+
+        """
+        border = 3
 
         number_parts_with_actions = len(agent.parts)
         count_all_actions = len(agent.current_actions)
 
-        state_height = (text_box_height + h_space)*(count_all_actions + number_parts_with_actions) - h_space
+        total_height_actions = number_parts_with_actions*(border+height_action) \
+                               + (border + height_action)*count_all_actions + border
 
-        current_height = text_box_height
+        current_height = border
+
 
         font = cv2.FONT_HERSHEY_SIMPLEX
-        fontScale = 0.5 #height_slot - 2 * space_string
         fontColor = (0, 0, 0)
         lineType = 1
 
-        img_state = np.ones((state_height, state_width, 4))*255
 
-        # for action, value in agent.current_actions.items():
-        #
-        #     print(action, value)
+        img_actions = np.ones((total_height_actions,width_action, 4))
+
+        fontScale = 0.5 #height_slot - 2 * space_string
+        offset_string_name = int(height_action/2.0 - fontScale * 10 )
+
+        action_names_length = max([ len(action.action.name) for action, value in agent.current_actions.items() ])
+        fontScaleAction = 0.95*width_action/action_names_length * 0.5 / 10
+        offset_string_action = int(height_action/2.0 - fontScaleAction*10)
+
+
+        for action, value in agent.current_actions.items():
+
+            print(action.part_name, action.action.name, action.min, action.max, value)
+
+        for part in agent.parts:
+
+            current_height += height_action
+
+            start_box = int(width_action/2.0 - 18*fontScale * len(part.name) / 2)
+            bottom_left = (start_box, current_height - offset_string_name)
+
+            cv2.putText(img_actions, part.name.upper(),
+                        bottom_left,
+                        font,
+                        fontScale,
+                        fontColor,
+                        lineType)
+
+            cv2.rectangle(img_actions, (0, current_height),
+                                      (width_action, current_height - height_action ), (0, 0, 0), 3)
+
+            current_height += border
+
+            all_action_parts = [(action, value) for action, value in agent.current_actions.items() if action.part_name == part.name ]
+
+            for action, value in all_action_parts:
+
+                current_height += height_action
+
+                if action.action_type == ActionTypes.DISCRETE and value == action.max:
+
+                    cv2.rectangle(img_actions, (0, current_height),
+                                                (width_action, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+
+                # TODO: cases UNCENTERED, account for min and max
+                elif action.action_type == ActionTypes.CONTINUOUS_CENTERED:
+
+                    if value < 0 :
+                        left = int(width_action/2. + value * width_action/2.)
+                        right = int(width_action/2.)
+                    else:
+                        right = int(width_action / 2. + value * width_action / 2.)
+                        left = int(width_action / 2.)
+
+                    cv2.rectangle(img_actions, (left, current_height),
+                                  (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+
+                start_box = int(width_action / 2.0 - 18 * fontScaleAction * len(action.action.name) / 2.)
+                bottom_left = (start_box, current_height - offset_string_action)
+
+                cv2.putText(img_actions, action.action.name.upper(),
+                            bottom_left,
+                            font,
+                            fontScaleAction,
+                            fontColor,
+                            lineType)
+
+
+
+
+                # cv2.rectangle(img_actions, (0, current_height),
+                #               (width_action, current_height - height_action), (0, 0, 0), 3)
+
+                current_height += border
+
+            #
+            #     bottomLeftCornerOfText = (center, current_height-offset_string)
+            #
+            #     cv2.putText(img_state, part_name.upper(),
+            #                 bottomLeftCornerOfText,
+            #                 font,
+            #                 fontScale,
+            #                 fontColor,
+            #                 lineType)
+
+            # img_state = cv2.rectangle(img_state, (3, current_height - 3),
+            #                           (state_width - 3, current_height - text_box_height + 3), (0, 0, 0), 3)
+
 
         # for action, value in agent.current_actions.items():
         #
@@ -446,9 +540,9 @@ class Engine:
         #
         #             current_height += text_box_height + h_space
         #
-        img_state = cv2.cvtColor(img_state.astype('float32'), cv2.COLOR_RGBA2BGR)
+        img_actions = cv2.cvtColor(img_actions.astype('float32'), cv2.COLOR_RGBA2BGR)
 
-        return img_state
+        return img_actions
 
     def generate_agent_image(self, agent,
                              with_pg = True, max_size_pg = 400, rotate_pg=False,
