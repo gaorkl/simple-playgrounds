@@ -4,6 +4,7 @@ Module collecting all robotic sensors: Cameras, Lidar, touch sensing.
 import math
 import numpy as np
 import cv2
+from operator import attrgetter
 
 from .sensor import RayCollisionSensor
 
@@ -20,6 +21,8 @@ class RgbCamera(RayCollisionSensor):
         super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
                          noise_params=noise_params, remove_duplicates=False, remove_occluded=False, **sensor_params)
 
+        self._sensor_max_value = 255
+
     def _compute_raw_sensor(self, playground):
 
         collision_points = self._compute_points(playground)
@@ -32,7 +35,8 @@ class RgbCamera(RayCollisionSensor):
 
             if collisions:
 
-                col = collisions[0]
+                col = min(collisions, key=attrgetter('alpha'))
+
                 element_colliding = playground.get_entity_from_shape(pm_shape=col.shape)
 
                 angle_element = element_colliding.position[2]
@@ -125,6 +129,8 @@ class Lidar(RayCollisionSensor):
         super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
                          noise_params=noise_params, remove_duplicates=False, remove_occluded=False, **sensor_params)
 
+        self._sensor_max_value = self._range
+
     def _compute_raw_sensor(self, playground):
 
         collision_points = self._compute_points(playground)
@@ -147,7 +153,7 @@ class Lidar(RayCollisionSensor):
 
     def _apply_normalization(self):
 
-        self.sensor_values = self.sensor_values / self._range
+        self.sensor_values /= self._sensor_max_value
 
     def draw(self, width, height):
 
@@ -158,7 +164,7 @@ class Lidar(RayCollisionSensor):
         img = cv2.resize(img, (width, height), interpolation=cv2.INTER_NEAREST)
 
         if not self._normalize:
-            img /= self._range
+            img /= self._sensor_max_value
 
         return img
 
@@ -178,6 +184,7 @@ class Touch(Lidar):
         super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
                          noise_params=noise_params, **sensor_params)
 
+        self._sensor_max_value = self._range
         self._range = self.anchor.radius + self._range
 
     def _compute_raw_sensor(self, playground):
@@ -186,20 +193,6 @@ class Touch(Lidar):
 
         distance_to_anchor = self.sensor_values - self.anchor.radius
         distance_to_anchor[distance_to_anchor < 0] = 0
-        self.sensor_values = self._range - self.anchor.radius - distance_to_anchor
+        self.sensor_values = self._sensor_max_value - distance_to_anchor
 
-    def _apply_normalization(self):
-        self.sensor_values = self.sensor_values / (self._range - self.anchor.radius)
 
-    def draw(self, width, height):
-
-        expanded = np.zeros((self.shape, 3))
-        for i in range(3):
-            expanded[:, i] = self.sensor_values[:]
-        img = np.expand_dims(expanded, 0)
-        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_NEAREST)
-
-        if not self._normalize:
-            img = img / (self._range - self.anchor.radius)
-
-        return img

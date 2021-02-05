@@ -20,7 +20,7 @@ class Link(Part, ABC):
     Contains methods to calculate coordinates of anchor points, create joints and motors between actuator and anchor.
 
     Attributes:
-        anchor: Entity on which the Actuator is attached
+        anchor: Part on which the Actuator is attached
 
     """
 

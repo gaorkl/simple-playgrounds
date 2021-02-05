@@ -53,6 +53,8 @@ class TopdownSensor(Sensor):
                                           endAngle=(-math.pi / 2 + self._fov / 2) * 180 / math.pi,
                                           color=(1, 1, 1), thickness=-1)
 
+        self._sensor_max_value = 255
+
     def get_local_sensor_image(self, pg, sensor_surface):
 
         all_agent_parts = []
@@ -104,10 +106,30 @@ class TopdownSensor(Sensor):
         if self.only_front:
             masked_img = masked_img[:int(self._resolution / 2), ...]
 
-        self.sensor_value = masked_img[:, ::-1, ::-1]
+        self.sensor_values = masked_img[:, ::-1, ::-1]
 
     def _apply_normalization(self):
-        self.sensor_value /= 255.
+        self.sensor_values /= self._sensor_max_value
+
+    def _apply_noise(self):
+
+        if self._noise_type == 'gaussian':
+
+            additive_noise = np.random.normal(self._noise_mean, self._noise_scale, size = self.shape)
+
+        elif self._noise_type == 'salt_pepper':
+
+            additive_noise = np.random.choice([-self._sensor_max_value, 0, self._sensor_max_value],
+                                               p=[self._noise_probability/2, 1-self._noise_probability, self._noise_probability/2],
+                                               size= self.shape)
+
+        else:
+            raise ValueError
+
+        self.sensor_values += additive_noise
+
+        self.sensor_values[self.sensor_values < 0] = 0
+        self.sensor_values[self.sensor_values > self._sensor_max_value] = self._sensor_max_value
 
     @property
     def shape(self):
@@ -123,7 +145,9 @@ class TopdownSensor(Sensor):
 
         im = cv2.resize(self.sensor_value, (width_display, height_display),
                         interpolation=cv2.INTER_NEAREST)
+
         if not self._apply_normalization:
             im /= 255.
 
         return im
+

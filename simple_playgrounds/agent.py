@@ -1,10 +1,12 @@
 """
 Module for Agent Class.
 """
+import random
+
 from .utils.definitions import SensorModality
 from .utils.position_utils import PositionAreaSampler
 
-#pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes
 
 
 class Agent:
@@ -14,7 +16,7 @@ class Agent:
     """
     index_agent = 0
 
-    def __init__(self, initial_position, base_platform, **agent_params):
+    def __init__(self, initial_position, base_platform, name=None, allow_overlapping=True, noise_params=None,  **agent_params):
         """
         Base class for agents.
 
@@ -25,10 +27,10 @@ class Agent:
             **agent_param: other parameters
         """
 
-        self.name = agent_params.get('name', None)
-
-        if self.name is None:
+        if name is None:
             self.name = 'agent_' + str(Agent.index_agent)
+        else:
+            self.name = name
         Agent.index_agent += 1
 
         # Dictionary for sensors
@@ -54,12 +56,26 @@ class Agent:
         # Replaced when agent is put in playground
         self.size_playground = [0, 0]
 
-        # By default, and agent can start at an overlapping position
-        self.allow_overlapping = agent_params.get('allow_overlapping', True)
-
         # Keep track of the actions for display
         self.current_actions = self.get_all_actuators()
 
+        # Allows overlapping when placing the agent
+        self.allow_overlapping = allow_overlapping
+
+        # Motor noise
+        self._noise = False
+        if noise_params is not None:
+            self._noise = True
+            self._noise_type = noise_params.get('type', 'gaussian')
+
+            if self._noise_type == 'gaussian':
+                self._noise_mean = noise_params.get('mean', 0)
+                self._noise_scale = noise_params.get('scale', 1)
+
+            else:
+                raise ValueError('Noise type not implemented')
+
+        self._controller = None
 
     @property
     def controller(self):
@@ -78,14 +94,6 @@ class Agent:
     def print_key_map(self):
         if self._controller:
             print(self._controller.key_map)
-
-    # @property
-    # def key_mapping(self):
-    #     """
-    #     A key mapping links keyboard strokes with actions.
-    #     Necessary when the Agent is controlled by Keyboard Controller.
-    #     """
-    #     return None
 
     @property
     def initial_position(self):
@@ -256,12 +264,35 @@ class Agent:
             actions_dict: dictionary of body_part_name, Action.
         """
 
-        self.current_actions = actions_dict
+        if self._noise:
+            self.current_actions = self._apply_noise(actions_dict)
+        else:
+            self.current_actions = actions_dict
 
-        for actuator, value in actions_dict.items():
+        for actuator, value in self.current_actions.items():
 
             for body_part in self.parts:
                 body_part.apply_action(actuator, value)
+
+    def _apply_noise(self, actions_dict):
+
+        noisy_actions = {}
+
+        if self._noise_type == 'gaussian':
+
+            for actuator, value in actions_dict.items():
+
+                additive_noise = random.gauss(self._noise_mean, self._noise_scale)
+                new_value = additive_noise + value
+                new_value = new_value if new_value > actuator.min else actuator.min
+                new_value = new_value if new_value < actuator.max else actuator.max
+
+                noisy_actions[actuator] = new_value
+
+        else:
+            raise ValueError
+
+        return noisy_actions
 
     def reset(self):
         """

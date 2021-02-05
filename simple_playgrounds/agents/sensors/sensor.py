@@ -7,6 +7,7 @@ import os
 import yaml
 import math
 import pymunk
+import numpy as np
 
 from operator import attrgetter
 
@@ -22,6 +23,8 @@ class Sensor(ABC):
             Sensor is attached to the center of the Anchor.
         sensor_values: current values of the sensor.
         name: Name of the sensor.
+
+    Class Attributes:
         sensor_type: string that represents the type of sensor (e.g. 'rgb' or 'lidar').
 
     Note:
@@ -40,13 +43,20 @@ class Sensor(ABC):
 
         Args:
             anchor: Body Part or Scene Element on which the sensor will be attached.
-            fov: Field of view of the sensor (in degrees)
-            resolution: Resolution of the sensor (in pixels, or number of rays)
-            max_range: maximum range of the sensor (in the same units as the playground distances)
-            invisible_elements: list of elements invisible to the sensor
+            fov: Field of view of the sensor (in degrees).
+            resolution: Resolution of the sensor (in pixels, or number of rays).
+            max_range: maximum range of the sensor (in the same units as the playground distances).
+            invisible_elements: list of elements invisible to the sensor.
             normalize: boolean. If True, sensor values are scaled between 0 and 1.
-            noise_params: Not implemented.
+            noise_params: Dictionary of noise parameters. Noise is applied to the raw sensor, before normalization.
             name: name of the sensor. If not provided, a name will be chosen by default.
+
+        Noise Parameters:
+            type: 'gaussian', 'salt_pepper'
+            mean: mean of gaussian noise (default 0)
+            scale: scale / std of gaussian noise (default 1)
+            salt_pepper_probability: probability for a pixel to be turned off or max
+
         """
 
         # Sensor name
@@ -71,7 +81,17 @@ class Sensor(ABC):
         self._noise = False
         if noise_params is not None:
             self._noise = True
-            self._noise_params = noise_params
+            self._noise_type = noise_params.get('type', 'gaussian')
+
+            if self._noise_type == 'gaussian':
+                self._noise_mean = noise_params.get('mean', 0)
+                self._noise_scale = noise_params.get('scale', 1)
+
+            elif self._noise_type == 'salt_pepper':
+                self._noise_probability = noise_params.get('probability', 0.1)
+
+            else:
+                raise ValueError('Noise type not implemented')
 
         self._range = max_range
         self._fov = fov * math.pi / 180
@@ -80,6 +100,9 @@ class Sensor(ABC):
         assert self._range > 0
         assert self._fov > 0
         assert self._resolution > 0
+
+        # Sensor max value is used for noise and normalization calculation
+        self._sensor_max_value = None
 
     def update(self, **kwargs):
         """
@@ -94,7 +117,7 @@ class Sensor(ABC):
         """
         self._compute_raw_sensor(**kwargs)
 
-        if self._noise is not None:
+        if self._noise:
             self._apply_noise()
 
         if self._normalize:
@@ -118,8 +141,8 @@ class Sensor(ABC):
     def _apply_normalization(self):
         pass
 
+    @abstractmethod
     def _apply_noise(self):
-        # Will become abstract method later
         pass
 
     @property
@@ -148,8 +171,9 @@ class RayCollisionSensor(Sensor, ABC):
     sensor_modality = SensorModality.ROBOTIC
 
     """
-    Base class for Robotic sensors.
-    Robotic sensors are computed using pymunk segment queries, that detect intersection with obstacles.
+    Base class for Ray Collision sensors.
+    Ray collisions are computed using pymunk segment queries, that detect intersection with obstacles.
+    Robotic sensors and Semantic sensors inherit from this class.
 
     """
 
@@ -173,9 +197,10 @@ class RayCollisionSensor(Sensor, ABC):
         else:
             self._ray_angles = [n * self._fov / (self._resolution - 1) - self._fov / 2 for n in range(self._resolution)]
 
-        self._filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS() ^ 0b1)
+        #self._filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS() )#^ 0b1)
 
         self._invisible_shapes = []
+
         for entity in self._invisible_elements:
             self._invisible_shapes += [entity.pm_visible_shape, entity.pm_interaction_shape]
         self._invisible_shapes = list(set(self._invisible_shapes))
@@ -222,7 +247,8 @@ class RayCollisionSensor(Sensor, ABC):
                         position[1] + self._range * math.sin(angle)
                         )
 
-        collisions = playground.space.segment_query(position, position_end, 1, self._filter)
+        collisions = playground.space.segment_query(position, position_end, 1, pymunk.ShapeFilter())
+
 
         # remove invisible entities
         collisions = [col for col in collisions
@@ -247,3 +273,23 @@ class RayCollisionSensor(Sensor, ABC):
             points = self._remove_duplicate_collisions(points)
 
         return points
+
+    def _apply_noise(self):
+
+        if self._noise_type == 'gaussian':
+
+            additive_noise = np.random.normal(self._noise_mean, self._noise_scale, size = self.shape)
+
+        elif self._noise_type == 'salt_pepper':
+
+            additive_noise = np.random.choice([-self._sensor_max_value, 0, self._sensor_max_value],
+                                               p=[self._noise_probability/2, 1-self._noise_probability, self._noise_probability/2],
+                                               size= self.shape)
+
+        else:
+            raise ValueError
+
+        self.sensor_values += additive_noise
+
+        self.sensor_values[self.sensor_values < 0] = 0
+        self.sensor_values[self.sensor_values > self._sensor_max_value] = self._sensor_max_value

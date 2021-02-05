@@ -31,8 +31,8 @@ class BaseAgent(Agent):
         self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
         self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN, KeyTypes.PRESS_HOLD, -1)
 
-        self.base_platform.angular_velocity_actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, -1)
-        self.base_platform.angular_velocity_actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, 1)
+        self.base_platform.angular_velocity_actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, 1)
+        self.base_platform.angular_velocity_actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -53,8 +53,8 @@ class BaseInteractiveAgent(Agent):
         self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
         self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN, KeyTypes.PRESS_HOLD, -1)
 
-        self.base_platform.angular_velocity_actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, -1)
-        self.base_platform.angular_velocity_actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, 1)
+        self.base_platform.angular_velocity_actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, 1)
+        self.base_platform.angular_velocity_actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, -1)
 
         self.base_platform.grasp_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, 1)
         self.base_platform.activate_actuator.assign_key(K_a, KeyTypes.PRESS_ONCE, 1)
@@ -109,11 +109,11 @@ class HeadEyeAgent(HeadAgent):
         self.add_body_part(self.eye_r)
 
         # New Key maps
-        self.eye_l.angular_velocity_actuator.assign_key(K_h, KeyTypes.PRESS_HOLD, -1)
-        self.eye_l.angular_velocity_actuator.assign_key(K_j, KeyTypes.PRESS_HOLD, 1)
+        self.eye_l.angular_velocity_actuator.assign_key(K_h, KeyTypes.PRESS_HOLD, 1)
+        self.eye_l.angular_velocity_actuator.assign_key(K_j, KeyTypes.PRESS_HOLD, -1)
 
-        self.eye_r.angular_velocity_actuator.assign_key(K_k, KeyTypes.PRESS_HOLD, -1)
-        self.eye_r.angular_velocity_actuator.assign_key(K_l, KeyTypes.PRESS_HOLD, 1)
+        self.eye_r.angular_velocity_actuator.assign_key(K_k, KeyTypes.PRESS_HOLD, 1)
+        self.eye_r.angular_velocity_actuator.assign_key(K_l, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -138,8 +138,8 @@ class TurretAgent(Agent):
         self.add_body_part(self.head)
 
         # New Key maps
-        self.head.angular_velocity_actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, -1)
-        self.head.angular_velocity_actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, 1)
+        self.head.angular_velocity_actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, 1)
+        self.head.angular_velocity_actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -172,17 +172,17 @@ class ArmAgent(HeadAgent):
         self.arm_l_2 = Arm(self.arm_l, self.arm_l.extremity_anchor_point, rotation_range=9 * math.pi / 5)
         self.add_body_part(self.arm_l_2)
 
-        self.arm_r.angular_velocity_actuator.assign_key(K_v, KeyTypes.PRESS_HOLD, -1)
-        self.arm_r.angular_velocity_actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r.angular_velocity_actuator.assign_key(K_v, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r.angular_velocity_actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_x, KeyTypes.PRESS_HOLD, -1)
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_c, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_x, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_c, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_l.angular_velocity_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, -1)
-        self.arm_l.angular_velocity_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, 1)
+        self.arm_l.angular_velocity_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, 1)
+        self.arm_l.angular_velocity_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_l_2.angular_velocity_actuator.assign_key(K_s, KeyTypes.PRESS_HOLD, -1)
-        self.arm_l_2.angular_velocity_actuator.assign_key(K_d, KeyTypes.PRESS_HOLD, 1)
+        self.arm_l_2.angular_velocity_actuator.assign_key(K_s, KeyTypes.PRESS_HOLD, 1)
+        self.arm_l_2.angular_velocity_actuator.assign_key(K_d, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -214,14 +214,14 @@ class ArmHandAgent(BaseInteractiveAgent):
         self.hand_r = Hand(self.arm_r_2, self.arm_r_2.extremity_anchor_point, radius=8, rotation_range=math.pi)
         self.add_body_part(self.hand_r)
 
-        self.arm_r.angular_velocity_actuator.assign_key(K_v, KeyTypes.PRESS_HOLD, -1)
-        self.arm_r.angular_velocity_actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r.angular_velocity_actuator.assign_key(K_v, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r.angular_velocity_actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_x, KeyTypes.PRESS_HOLD, -1)
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_c, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_x, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_c, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, -1)
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller

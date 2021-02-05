@@ -1,5 +1,6 @@
 """
-Body Parts of an Agent.
+Module that defines the Base Class for Body Parts of an Agent.
+
 """
 
 import os
@@ -139,6 +140,10 @@ class Part(Entity, ABC):
 
 
 class Actuator:
+
+    """
+    Actuator classes defines how one body part moves relative to its anchor.
+    """
 
     def __init__(self, part_name, action, action_type, min_value, max_value):
 
