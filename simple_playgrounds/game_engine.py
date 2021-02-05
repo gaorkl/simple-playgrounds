@@ -206,6 +206,7 @@ class Engine:
 
         """
         self.playground.reset()
+        self.elapsed_time = 0
         self.game_on = True
 
     def _reached_time_limit(self):
