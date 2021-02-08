@@ -2,8 +2,10 @@
 Module for Agent Class.
 """
 import random
+import numpy as np
+import cv2
 
-from .utils.definitions import SensorModality
+from .utils.definitions import SensorModality, ActionTypes
 from .utils.position_utils import PositionAreaSampler
 
 # pylint: disable=too-many-instance-attributes
@@ -16,7 +18,8 @@ class Agent:
     """
     index_agent = 0
 
-    def __init__(self, initial_position, base_platform, name=None, allow_overlapping=True, noise_params=None,  **agent_params):
+    def __init__(self, initial_position, base_platform, name=None, allow_overlapping=True, noise_params=None,
+                 **agent_params):
         """
         Base class for agents.
 
@@ -199,7 +202,6 @@ class Agent:
         self.parts.append(part)
 
     def get_bodypart_from_shape(self, pm_shape):
-        #pylint: disable=line-too-long
         return next(iter([part for part in self.parts if part.pm_visible_shape == pm_shape]), None)
 
     def assign_controller(self, controller):
@@ -299,7 +301,7 @@ class Agent:
         Resets all body parts
         """
         self.position = self.initial_position
-        self.velocity = [0,0,0]
+        self.velocity = [0, 0, 0]
         # for part in self.parts:
         #     part.reset()
 
@@ -325,7 +327,7 @@ class Agent:
 
             if sensor.sensor_modality is SensorModality.VISUAL:
                 if isinstance(sensor.shape, int):
-                    shapes.append( [1, sensor.shape, 1])
+                    shapes.append([1, sensor.shape, 1])
                 elif len(sensor.shape) == 2:
                     shapes.append([1, sensor.shape[0], 3])
                 else:
@@ -333,3 +335,133 @@ class Agent:
 
         return shapes
 
+    def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode = False):
+        """
+        Generate a full image containing all the sensor representations of an Agent.
+        Args:
+            width_sensor: width of the display for drawing.
+            height_sensor: when applicable (1D sensor), the height of the display.
+            plt_mode: if True, returns images compatible with pyplot.
+
+        Returns:
+
+        """
+
+        border = 5
+
+        list_sensor_images = []
+        for sensor in self.sensors:
+            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
+
+        full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images) * (border + 1)
+
+        full_img = np.ones((full_height, width_sensor, 3)) * 0.2
+
+        current_height = 0
+        for im in list_sensor_images:
+            current_height += border
+            full_img[current_height:im.shape[0] + current_height, :, :] = im[:, :, :]
+            current_height += im.shape[0]
+
+        if plt_mode:
+            full_img = full_img[:, :, ::-1]
+
+        return full_img
+
+    def generate_actions_image(self, width_action=100, height_action=30, plt_mode=False):
+
+        """
+        Function that draws all action values of the agent.
+
+        Args:
+            width_action:
+            height_action:
+            plt_mode:
+
+        Returns:
+
+        """
+        border = 3
+
+        number_parts_with_actions = len(self.parts)
+        count_all_actions = len(self.current_actions)
+
+        total_height_actions = number_parts_with_actions * (border + height_action) \
+                               + (border + height_action) * count_all_actions + border
+
+        current_height = border
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontColor = (0, 0, 0)
+        lineType = 1
+
+        img_actions = np.ones((total_height_actions, width_action, 4))
+
+        fontScale = 0.5  # height_slot - 2 * space_string
+        offset_string_name = int(height_action / 2.0 - fontScale * 10)
+
+        action_names_length = max([len(action.action.name) for action, value in self.current_actions.items()])
+        fontScaleAction = 0.95 * width_action / action_names_length * 0.5 / 10
+        offset_string_action = int(height_action / 2.0 - fontScaleAction * 10)
+
+        for part in self.parts:
+
+            current_height += height_action
+
+            start_box = int(width_action / 2.0 - 18 * fontScale * len(part.name) / 2)
+            bottom_left = (start_box, current_height - offset_string_name)
+
+            cv2.putText(img_actions, part.name.upper(),
+                        bottom_left,
+                        font,
+                        fontScale,
+                        fontColor,
+                        lineType)
+
+            cv2.rectangle(img_actions, (0, current_height),
+                          (width_action, current_height - height_action), (0, 0, 0), 3)
+
+            current_height += border
+
+            all_action_parts = [(action, value) for action, value in self.current_actions.items() if
+                                action.part_name == part.name]
+
+            for action, value in all_action_parts:
+
+                current_height += height_action
+
+                if action.action_type == ActionTypes.DISCRETE and value == action.max:
+
+                    cv2.rectangle(img_actions, (0, current_height),
+                                  (width_action, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+
+                elif action.action_type == ActionTypes.CONTINUOUS_CENTERED:
+
+                    if value < 0:
+                        left = int(width_action / 2. + value * width_action / 2.)
+                        right = int(width_action / 2.)
+                    else:
+                        right = int(width_action / 2. + value * width_action / 2.)
+                        left = int(width_action / 2.)
+
+                    cv2.rectangle(img_actions, (left, current_height),
+                                  (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+
+                start_box = int(width_action / 2.0 - 18 * fontScaleAction * len(action.action.name) / 2.)
+                bottom_left = (start_box, current_height - offset_string_action)
+
+                cv2.putText(img_actions, action.action.name.upper(),
+                            bottom_left,
+                            font,
+                            fontScaleAction,
+                            fontColor,
+                            lineType)
+
+                current_height += border
+
+        img_actions = cv2.cvtColor(img_actions.astype('float32'), cv2.COLOR_RGBA2BGR)
+
+        if plt_mode:
+            img_actions = img_actions[:, :, ::-1]
+
+        return img_actions

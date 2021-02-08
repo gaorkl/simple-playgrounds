@@ -98,7 +98,7 @@ def test_multiagents():
         assert len(pg.agents) == 100
 
         engine = Engine(pg, time_limit=100, replay=False, screen=False)
-        engine.run(with_screen = False)
+        engine.run(update_screen= False)
 
 
 # Run all test playgrounds with 10 agents
@@ -118,7 +118,7 @@ def test_multiagents_no_overlapping():
         assert len(pg.agents) == 2
 
         engine = Engine(pg, time_limit=100, replay=False, screen=False)
-        engine.run(with_screen = False)
+        engine.run(update_screen= False)
 
 
 # Run all test playgrounds with 10 agents

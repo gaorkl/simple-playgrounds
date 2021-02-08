@@ -148,12 +148,10 @@ class Playground(ABC):
             entity.reset()
 
         # reset agents
-        # self._remove_agents()
         for agent in self.agents.copy():
             agent.reset()
             self.remove_agent(agent)
             self.add_agent(agent)
-            #self.add_agent(agent)
 
         self.done = False
 
@@ -390,7 +388,6 @@ class Playground(ABC):
 
         return True
 
-
     def _fields_produce(self):
 
         for field in self.fields:
@@ -425,7 +422,7 @@ class Playground(ABC):
                     part.grasped = []
 
         for element_grasped, part in self._grasped_scene_elements.copy().items():
-            if part.grasped == []:
+            if not part.grasped:
                 self._grasped_scene_elements.pop(element_grasped)
 
     def get_scene_element_from_shape(self, pm_shape):
@@ -671,6 +668,7 @@ class Playground(ABC):
 
         h_teleport = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.TELEPORT)
         h_teleport.pre_solve = self._agent_teleports
+
 
 class PlaygroundRegister:
     """
