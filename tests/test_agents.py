@@ -30,15 +30,13 @@ def test_base_agent_on_all_test_playgrounds():
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=1000, replay=True)
+        engine = Engine(pg, time_limit=1000)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]
         assert 0 < agent.position[1] < pg.size[1]
 
         pg.remove_agent(agent)
-
-
 
 
 def test_baseinteractive_agent_on_all_test_playgrounds():
@@ -59,7 +57,7 @@ def test_baseinteractive_agent_on_all_test_playgrounds():
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=1000, replay=False)
+        engine = Engine(pg, time_limit=1000)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]
@@ -86,7 +84,7 @@ def test_turret_agent_on_all_test_playgrounds():
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=1000, replay=False)
+        engine = Engine(pg, time_limit=1000)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]
@@ -108,7 +106,7 @@ def test_agents_in_empty_playgrounds():
     agent.initial_position = pos_area_sampler
     pg.add_agent(agent)
 
-    engine = Engine(pg, time_limit=10000, replay=False)
+    engine = Engine(pg, time_limit=10000)
     engine.run()
 
     assert 0 < agent.position[0] < pg.size[0]
@@ -122,7 +120,7 @@ def test_agents_in_empty_playgrounds():
     agent.initial_position = pos_area_sampler
     pg.add_agent(agent)
 
-    engine = Engine(pg, time_limit=10000, replay=False)
+    engine = Engine(pg, time_limit=10000)
     engine.run()
 
     assert 0 < agent.position[0] < pg.size[0]
@@ -136,7 +134,7 @@ def test_agents_in_empty_playgrounds():
     agent.initial_position = pos_area_sampler
     pg.add_agent(agent)
 
-    engine = Engine(pg, time_limit=10000, replay=False)
+    engine = Engine(pg, time_limit=10000)
     engine.run()
 
     assert 0 < agent.position[0] < pg.size[0]
@@ -164,7 +162,7 @@ def test_headeye_agent_on_all_test_playgrounds():
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=1000, replay=False)
+        engine = Engine(pg, time_limit=1000)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]
@@ -193,7 +191,7 @@ def test_arm_agent_on_all_test_playgrounds():
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=1000, replay=False)
+        engine = Engine(pg, time_limit=1000)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]

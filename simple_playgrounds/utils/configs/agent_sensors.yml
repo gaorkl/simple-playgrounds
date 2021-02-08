@@ -38,6 +38,11 @@ topdown:
   max_range: 100
   fov: 180
 
+full_playground:
+  resolution: 64
+  max_range: 10
+  fov: 10
+
 #####################
 # Semantic Sensors
 

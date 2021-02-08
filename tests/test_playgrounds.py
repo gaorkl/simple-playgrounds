@@ -1,6 +1,3 @@
-
-from simple_playgrounds.playgrounds import SingleRoom, LinearRooms, ConnectedRooms2D
-
 from simple_playgrounds.agents.controllers import Random
 from simple_playgrounds.agents import BaseAgent, BaseInteractiveAgent
 from simple_playgrounds import Engine
@@ -8,7 +5,7 @@ from simple_playgrounds.agents.sensors import *
 
 
 from simple_playgrounds.playgrounds.collection.test import *
-from simple_playgrounds.playgrounds.collection.test.test_scene_elements import Doors
+
 
 # Add/remove agent from a playground
 def test_add_remove_agent():
@@ -19,6 +16,7 @@ def test_add_remove_agent():
     playground_1.remove_agent(agent)
     assert playground_1.agents == []
     playground_2.add_agent(agent)
+
 
 # Create an engine then add an agent
 def test_engine():
@@ -71,7 +69,7 @@ def test_all_test_playgrounds():
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=10000, replay=False)
+        engine = Engine(pg, time_limit=10000)
         engine.run()
 
         assert 0 < agent.position[0] < pg.size[0]
@@ -97,7 +95,7 @@ def test_multiagents():
 
         assert len(pg.agents) == 100
 
-        engine = Engine(pg, time_limit=100, replay=False, screen=False)
+        engine = Engine(pg, time_limit=100, screen=False)
         engine.run(update_screen= False)
 
 
@@ -117,7 +115,7 @@ def test_multiagents_no_overlapping():
 
         assert len(pg.agents) == 2
 
-        engine = Engine(pg, time_limit=100, replay=False, screen=False)
+        engine = Engine(pg, time_limit=100, screen=False)
         engine.run(update_screen= False)
 
 
@@ -134,22 +132,18 @@ def test_multisteps():
         print('Starting Multistep testing of ', pg_class.__name__)
         pg.add_agent(agent, 1000)
 
-        engine = Engine(pg, time_limit=10000, replay=False, screen=False)
+        engine = Engine(pg, time_limit=10000, screen=False)
 
-        done = False
-        while not done:
+        terminate = False
+        while not terminate:
 
             actions = {}
             for agent in engine.agents:
-                actions[agent.name] = agent.controller.generate_commands()
+                actions[agent] = agent.controller.generate_commands()
 
-            reset, terminate = engine.multiple_steps(actions, n_steps=3)
+            terminate = engine.multiple_steps(actions, n_steps=3)
             engine.update_observations()
 
-            done = reset or terminate
-
-
         pg.remove_agent(agent)
-        engine.terminate()
 
 
