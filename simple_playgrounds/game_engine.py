@@ -187,6 +187,13 @@ class Engine:
         self.elapsed_time = 0
         self.game_on = True
 
+        # Redraw everything
+        self.surface_background.fill(THECOLORS["black"])
+
+        for elem in self.playground.scene_elements:
+            if elem.background:
+                elem.draw(self.surface_background, )
+
     def _reached_time_limit(self):
         if self.elapsed_time >= self.time_limit-1:
             return True
@@ -444,7 +451,9 @@ class Engine:
             if terminate:
                 self.game_on = False
 
-    def __del__(self):
+    def terminate(self):
         pygame.quit()
+        for agent in self.agents:
+            self.playground.remove_agent(agent)
 
 

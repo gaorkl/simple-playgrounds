@@ -120,6 +120,7 @@ class Zones(SingleRoom):
 
         self.agent_starting_area = [100, 60, 0]
 
+
 @PlaygroundRegister.register('test_interactives')
 class Interactives(SingleRoom):
 

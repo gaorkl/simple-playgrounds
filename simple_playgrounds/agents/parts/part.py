@@ -5,6 +5,7 @@ Module that defines the Base Class for Body Parts of an Agent.
 
 import os
 from abc import ABC, abstractmethod
+import numbers
 
 import yaml
 
@@ -112,6 +113,7 @@ class Part(Entity, ABC):
             actuator (:obj: 'dict'): dictionary of actions. keys are ActionTypes, values are floats.
 
         """
+        value = self._check_value_actuator(actuator, value)
 
         if self.can_activate and actuator is self.activate_actuator:
             self.is_activating = value
@@ -124,6 +126,15 @@ class Part(Entity, ABC):
 
         if self.is_holding and not self.is_grasping:
             self.is_holding = False
+
+    @staticmethod
+    def _check_value_actuator(actuator, value):
+
+        if not isinstance(value, numbers.Real ):
+            raise ValueError('Action value for actuator ' + actuator.part_name + 'not a number')
+
+        value = min(max(value, actuator.min), actuator.max)
+        return value
 
     def reset(self):
 

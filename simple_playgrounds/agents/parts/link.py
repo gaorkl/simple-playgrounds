@@ -114,6 +114,7 @@ class Link(Part, ABC):
     def apply_action(self, actuator, value):
 
         super().apply_action(actuator, value)
+        value = self._check_value_actuator(actuator, value)
 
         if actuator is self.angular_velocity_actuator:
 
@@ -134,6 +135,8 @@ class Link(Part, ABC):
 
             elif angle_centered > self.rotation_range/2 - math.pi/20 and angular_velocity < 0:
                 self.motor.rate = 0
+
+        return value
 
 
 class Head(Link):
@@ -169,16 +172,6 @@ class Eye(Link):
         super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
 
         self.pm_visible_shape.sensor = True
-
-    # def _create_mask(self, is_interactive=False):
-    #
-    #     mask = super()._create_mask()
-    #
-    #     pos_y = self.radius + (self.radius - 2) * (math.cos(self.pm_body.angle))
-    #     pos_x = self.radius + (self.radius - 2) * (math.sin(self.pm_body.angle))
-    #     pygame.draw.line(mask, pygame.color.THECOLORS["brown"], (self.radius, self.radius), (pos_x, pos_y), 2)
-    #
-    #     return mask
 
 
 class Hand(Link):

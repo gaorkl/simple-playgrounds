@@ -2,7 +2,8 @@
 from simple_playgrounds.agents.sensors import *
 
 from simple_playgrounds.agents.controllers import Random
-from simple_playgrounds.agents import BaseInteractiveAgent
+from simple_playgrounds.agents import BaseAgent
+from simple_playgrounds.agents.parts import ForwardPlatform
 from simple_playgrounds import Engine
 
 
@@ -14,7 +15,7 @@ from simple_playgrounds.playgrounds.collection.test import *
 # Run all test playgrounds with basic non-interactive agent
 def test_camera_sensors():
 
-    agent = BaseInteractiveAgent(controller=Random())
+    agent = BaseAgent(controller=Random(), interactive=True, platform=ForwardPlatform)
 
     for resolution in [5, 16]:
 

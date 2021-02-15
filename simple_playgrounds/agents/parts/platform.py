@@ -46,6 +46,9 @@ class Platform(Part, ABC):
         self.max_angular_velocity = body_part_params['max_angular_velocity']
         # self.max_longitudinal_velocity = body_part_params['max_longitudinal_velocity']
 
+    def apply_action(self, actuator, value):
+        super().apply_action(actuator, value)
+
 
 class FixedPlatform(Platform):
     """
@@ -56,9 +59,6 @@ class FixedPlatform(Platform):
     """
 
     movable = False
-
-    def apply_action(self, actuator, value):
-        pass
 
 
 class ForwardPlatform(Platform):
@@ -81,12 +81,15 @@ class ForwardPlatform(Platform):
     def apply_action(self, actuator, value):
 
         super().apply_action(actuator, value)
+        value = self._check_value_actuator(actuator, value)
 
         if actuator is self.longitudinal_force_actuator:
             self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * self.max_linear_force * 100, (0, 0))
 
         if actuator is self.angular_velocity_actuator:
             self.pm_body.angular_velocity = - value * self.max_angular_velocity
+
+        return value
 
 
 class ForwardBackwardPlatform(ForwardPlatform):
@@ -100,10 +103,12 @@ class ForwardBackwardPlatform(ForwardPlatform):
 
         super().__init__(**kwargs)
         self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+        self.actuators.append(self.longitudinal_force_actuator)
 
     def apply_action(self, actuator, value):
 
         super().apply_action(actuator, value)
+        value = self._check_value_actuator(actuator, value)
 
         if actuator is self.longitudinal_force_actuator:
             self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * self.max_linear_force * 100, (0, 0))
@@ -111,9 +116,10 @@ class ForwardBackwardPlatform(ForwardPlatform):
         if actuator is self.angular_velocity_actuator:
             self.pm_body.angular_velocity = - value * self.max_angular_velocity
 
+        return value
 
 
-class HolonomicPlatform(ForwardPlatform):
+class HolonomicPlatform(ForwardBackwardPlatform):
     """
     Platform that can translate in all directions, and rotate.
     Refer to the base class Platform.
@@ -128,6 +134,9 @@ class HolonomicPlatform(ForwardPlatform):
     def apply_action(self, actuator, value):
 
         super().apply_action(actuator, value)
+        value = self._check_value_actuator(actuator, value)
 
         if actuator is self.lateral_force_actuator:
-            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * self.max_linear_force * 100, (0, 0))
+            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(0, -value) * self.max_linear_force * 100, (0, 0))
+
+        return value

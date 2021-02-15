@@ -16,7 +16,6 @@ from .utils.definitions import geometric_shapes, CollisionTypes
 #pylint: disable=line-too-long
 #pylint: disable=too-many-instance-attributes
 
-
 class Entity(ABC):
     """
     Entity creates a physical object, and deals with interactive properties and visual appearance
@@ -465,3 +464,5 @@ class Entity(ABC):
 
         self.velocity = [0, 0, 0]
         self.position = self.initial_position
+
+        self.drawn = False

@@ -89,10 +89,12 @@ class Agent:
 
         self._controller = contr
 
-        self.controller.controlled_actuators = self.get_all_actuators()
+        self._controller.controlled_actuators = self.get_all_actuators()
 
         if self._controller.require_key_mapping:
             self._controller.discover_key_mapping()
+
+        self.current_actions = contr.generate_empty_commands()
 
     def print_key_map(self):
         if self._controller:
@@ -335,7 +337,7 @@ class Agent:
 
         return shapes
 
-    def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode = False):
+    def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode=False):
         """
         Generate a full image containing all the sensor representations of an Agent.
         Args:
@@ -355,7 +357,7 @@ class Agent:
 
         full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images) * (border + 1)
 
-        full_img = np.ones((full_height, width_sensor, 3)) * 0.2
+        full_img = np.ones((full_height, width_sensor, 3))
 
         current_height = 0
         for im in list_sensor_images:
@@ -369,7 +371,6 @@ class Agent:
         return full_img
 
     def generate_actions_image(self, width_action=100, height_action=30, plt_mode=False):
-
         """
         Function that draws all action values of the agent.
 
@@ -435,7 +436,7 @@ class Agent:
                     cv2.rectangle(img_actions, (0, current_height),
                                   (width_action, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
 
-                elif action.action_type == ActionTypes.CONTINUOUS_CENTERED:
+                elif action.action_type == ActionTypes.CONTINUOUS_CENTERED and value != 0:
 
                     if value < 0:
                         left = int(width_action / 2. + value * width_action / 2.)
@@ -443,6 +444,14 @@ class Agent:
                     else:
                         right = int(width_action / 2. + value * width_action / 2.)
                         left = int(width_action / 2.)
+
+                    cv2.rectangle(img_actions, (left, current_height),
+                                  (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+
+                elif action.action_type == ActionTypes.CONTINUOUS_NOT_CENTERED and value != 0:
+
+                    left = int(width_action / 2.)
+                    right = int(width_action / 2. + value * width_action / 2.)
 
                     cv2.rectangle(img_actions, (left, current_height),
                                   (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
