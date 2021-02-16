@@ -55,6 +55,7 @@ class Playground(ABC):
         # Private attributes for managing interactions in playground
         self._disappeared_scene_elements = []
         self._grasped_scene_elements = {}
+        self._teleported = []
 
         # Add entities declared in the scene
         for scene_entity in self.scene_entities:
@@ -68,6 +69,8 @@ class Playground(ABC):
 
         self.time_limit = None
         self.time_limit_reached_reward = None
+
+        self.time_test = 0
 
     @staticmethod
     def parse_configuration(key):
@@ -128,6 +131,7 @@ class Playground(ABC):
         self._fields_produce()
         self._check_timers()
         self._release_grasps()
+        self._check_teleports()
 
     def reset(self):
         """ Reset the Playground to its initial state.
@@ -425,6 +429,23 @@ class Playground(ABC):
             if not part.grasped:
                 self._grasped_scene_elements.pop(element_grasped)
 
+    def _check_teleports(self):
+
+        for agent, teleport in self._teleported:
+
+            overlaps = False
+
+            for part in agent.parts:
+
+                if teleport.pm_visible_shape is not None:
+                    overlaps = overlaps or part.pm_visible_shape.shapes_collide( teleport.pm_visible_shape).points != []
+
+                if teleport.pm_interaction_shape is not None:
+                    overlaps = overlaps or part.pm_visible_shape.shapes_collide( teleport.pm_interaction_shape).points != []
+
+            if not overlaps:
+                self._teleported.remove((agent, teleport))
+
     def get_scene_element_from_shape(self, pm_shape):
         """
         Returns: Returns the Scene Element associated with the pymunk shape.
@@ -567,7 +588,6 @@ class Playground(ABC):
 
         if interacting_entity is None or gem is None: return True
 
-
         agent = self._get_closest_agent(gem)
         agent.reward += interacting_entity.reward
 
@@ -611,37 +631,39 @@ class Playground(ABC):
         agent = self.get_agent_from_shape(arbiter.shapes[0])
         teleport = self.get_scene_element_from_shape(arbiter.shapes[1])
 
-        if teleport is None or teleport.target is None:
+        if teleport is None or teleport.target is None or (agent, teleport) in self._teleported:
             return True
 
-        relative_speed = (teleport.position_np[:-1] - agent.position_np[:-1]) @ \
-            (agent.velocity_np[:-1] - teleport.velocity_np[:-1])
-        if relative_speed > 0:
-            if teleport.target.traversable:
-                agent.position = (teleport.target.position[0], teleport.target.position[1],
-                              agent.position[2])
+        if teleport.target.traversable:
+            agent.position = (teleport.target.position[0], teleport.target.position[1],
+                          agent.position[2])
+        else:
+            area_shape = teleport.target.physical_shape
+            if area_shape == 'rectangle':
+                width = teleport.target.width + agent.base_platform.radius * 2 + 1
+                length = teleport.target.length + agent.base_platform.radius * 2 + 1
+                angle = teleport.target.position[-1]
+                sampler = PositionAreaSampler(
+                    center=[teleport.target.position[0], teleport.target.position[1]],
+                    area_shape=area_shape,
+                    angle=angle,
+                    width_length=[width+2, length+2],
+                    excl_width_length=[width, length],
+                )
             else:
-                area_shape = teleport.target.physical_shape
-                if area_shape == 'rectangle':
-                    width = teleport.target.width + agent.base_platform.radius * 2 + 1
-                    length = teleport.target.length + agent.base_platform.radius * 2 + 1
-                    angle = teleport.target.position[-1]
-                    sampler = PositionAreaSampler(
-                        center=[teleport.target.position[0], teleport.target.position[1]],
-                        area_shape=area_shape,
-                        angle=angle,
-                        width_length=[width+2, length+2],
-                        excl_width_length=[width, length],
-                    )
-                else:
-                    radius = teleport.target.radius + agent.base_platform.radius + 1
-                    sampler = PositionAreaSampler(
-                        center=[teleport.target.position[0], teleport.target.position[1]],
-                        area_shape='circle',
-                        radius=radius,
-                        excl_radius=radius,
-                    )
-                agent.position = sampler.sample()
+                radius = teleport.target.radius + agent.base_platform.radius + 1
+                sampler = PositionAreaSampler(
+                    center=[teleport.target.position[0], teleport.target.position[1]],
+                    area_shape='circle',
+                    radius=radius,
+                    excl_radius=radius,
+                )
+
+            agent.position = sampler.sample()
+
+        if (agent, teleport) not in self._teleported:
+            self._teleported.append((agent, teleport.target))
+
         return True
 
     def _handle_interactions(self):

@@ -76,6 +76,7 @@ class Entity(ABC):
 
         self.pm_interaction_shape = None
         self.pm_visible_shape = None
+        self.pm_grasp_shape = None
 
         if self.visible:
             if not self.traversable:
