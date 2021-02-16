@@ -18,15 +18,23 @@ class SceneElementTypes(Enum):
 
 class CollisionTypes(IntEnum):
 
-    AGENT = 1
-    CONTACT = 2
-    INTERACTIVE = 3
-    PASSIVE = 4
-    GEM = 5
-    EDIBLE = 6
-    GRASPABLE = 7
-    ACTIVATED_BY_GEM = 8
-    TELEPORT = 9
+    AGENT = auto()
+    CONTACT = auto()
+    INTERACTIVE = auto()
+    PASSIVE = auto()
+    GEM = auto()
+    EDIBLE = auto()
+    GRASPABLE = auto()
+    ACTIVATED_BY_GEM = auto()
+    TELEPORT = auto()
+
+
+def add_custom_collision( collision_types, name ):
+
+    names = [m.name for m in collision_types] + [name]
+    extended_enum = IntEnum('CollisionTypes', names)
+
+    return extended_enum
 
 
 class ControllerTypes(Enum):

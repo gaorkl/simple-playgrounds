@@ -64,7 +64,7 @@ class Playground(ABC):
 
         self.agent_starting_area = None
 
-        self._handle_collisions()
+        self._handle_interactions()
 
         self.time_limit = None
         self.time_limit_reached_reward = None
@@ -644,30 +644,32 @@ class Playground(ABC):
                 agent.position = sampler.sample()
         return True
 
-    def _handle_collisions(self):
+    def _handle_interactions(self):
 
         # Order is important
 
-        h_grasp = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.GRASPABLE)
-        h_grasp.pre_solve = self._agent_grasps
+        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.GRASPABLE, self._agent_grasps)
+        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.CONTACT, self._agent_touches_entity)
+        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.EDIBLE, self._agent_eats)
+        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE, self._agent_interacts)
+        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.PASSIVE, self._agent_enters_zone)
+        self.add_interaction(CollisionTypes.GEM, CollisionTypes.ACTIVATED_BY_GEM, self._gem_interacts)
+        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.TELEPORT, self._agent_teleports)
 
-        h_touch = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.CONTACT)
-        h_touch.pre_solve = self._agent_touches_entity
+    def add_interaction(self, collision_type_1, collision_type_2, interaction_function):
+        """
 
-        h_eat = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.EDIBLE)
-        h_eat.pre_solve = self._agent_eats
+        Args:
+            collision_type_1: collision type of the first entity
+            collision_type_2: collision type of the second entity
+            interaction_function: function that handles the interaction
 
-        h_interact = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.INTERACTIVE)
-        h_interact.pre_solve = self._agent_interacts
+        Returns: None
 
-        h_zone = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.PASSIVE)
-        h_zone.pre_solve = self._agent_enters_zone
+        """
 
-        h_gem_interactive = self.space.add_collision_handler(CollisionTypes.GEM, CollisionTypes.ACTIVATED_BY_GEM)
-        h_gem_interactive.pre_solve = self._gem_interacts
-
-        h_teleport = self.space.add_collision_handler(CollisionTypes.AGENT, CollisionTypes.TELEPORT)
-        h_teleport.pre_solve = self._agent_teleports
+        handler = self.space.add_collision_handler(collision_type_1, collision_type_2)
+        handler.pre_solve = interaction_function
 
 
 class PlaygroundRegister:

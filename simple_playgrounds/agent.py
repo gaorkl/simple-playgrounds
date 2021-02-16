@@ -8,6 +8,7 @@ import cv2
 from .utils.definitions import SensorModality, ActionTypes
 from .utils.position_utils import PositionAreaSampler
 
+
 # pylint: disable=too-many-instance-attributes
 
 
@@ -36,18 +37,12 @@ class Agent:
             self.name = name
         Agent.index_agent += 1
 
-        # Dictionary for sensors
+        # List of sensors
         self.sensors = []
 
         # Body parts
         self.base_platform = base_platform
         self.parts = [self.base_platform]
-
-        # List of Actuators
-        self.actuators = {}
-
-        self.reward = 0
-        self.energy_spent = 0
 
         # Default starting position
         self.initial_position = initial_position
@@ -57,10 +52,10 @@ class Agent:
         self.has_visual_sensor = False
 
         # Replaced when agent is put in playground
-        self.size_playground = [0, 0]
+        self.size_playground = (0, 0)
 
         # Keep track of the actions for display
-        self.current_actions = self.get_all_actuators()
+        self.current_actions = None
 
         # Allows overlapping when placing the agent
         self.allow_overlapping = allow_overlapping
@@ -80,25 +75,28 @@ class Agent:
 
         self._controller = None
 
+        # Reward
+        self.reward = 0
+
+    # CONTROLLER
+
     @property
     def controller(self):
         return self._controller
 
     @controller.setter
-    def controller(self, contr):
+    def controller(self, controller):
 
-        self._controller = contr
+        self._controller = controller
 
         self._controller.controlled_actuators = self.get_all_actuators()
 
         if self._controller.require_key_mapping:
             self._controller.discover_key_mapping()
 
-        self.current_actions = contr.generate_empty_commands()
+        self.current_actions = controller.generate_empty_commands()
 
-    def print_key_map(self):
-        if self._controller:
-            print(self._controller.key_map)
+    # POSITION / VELOCITY
 
     @property
     def initial_position(self):
@@ -176,6 +174,8 @@ class Agent:
         for part in self.parts:
             part.size_playground = size_pg
 
+    # SENSORS
+
     def add_sensor(self, new_sensor):
         """
         Add a Sensor to an agent.
@@ -193,6 +193,41 @@ class Agent:
 
         self.sensors.append(new_sensor)
 
+    def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode=False):
+        """
+        Generate a full image containing all the sensor representations of an Agent.
+        Args:
+            width_sensor: width of the display for drawing.
+            height_sensor: when applicable (1D sensor), the height of the display.
+            plt_mode: if True, returns images compatible with pyplot.
+
+        Returns:
+
+        """
+
+        border = 5
+
+        list_sensor_images = []
+        for sensor in self.sensors:
+            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
+
+        full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images) * (border + 1)
+
+        full_img = np.ones((full_height, width_sensor, 3))
+
+        current_height = 0
+        for im in list_sensor_images:
+            current_height += border
+            full_img[current_height:im.shape[0] + current_height, :, :] = im[:, :, :]
+            current_height += im.shape[0]
+
+        if plt_mode:
+            full_img = full_img[:, :, ::-1]
+
+        return full_img
+
+    # BODY PARTS
+
     def add_body_part(self, part):
         """
         Add a Part to the agent
@@ -202,50 +237,6 @@ class Agent:
         """
         part.part_number = len(self.parts)
         self.parts.append(part)
-
-    def get_bodypart_from_shape(self, pm_shape):
-        return next(iter([part for part in self.parts if part.pm_visible_shape == pm_shape]), None)
-
-    def assign_controller(self, controller):
-        """
-        Assigns a Controller to the agent
-        """
-        self.controller = controller
-
-    def owns_shape(self, pm_shape):
-        """
-        Verifies if a pm_shape belongs to an agent.
-
-        Args:
-            pm_shape: pymunk_shape.
-
-        Returns: True if pm_shape belongs to the agent.
-
-        """
-        all_shapes = [part.pm_visible_shape for part in self.parts]
-        if pm_shape in all_shapes:
-            return True
-        return False
-
-    def _find_part_by_name(self, body_part_name):
-
-        body_part = next((x for x in self.parts if x.name == body_part_name), None)
-
-        if body_part is None:
-            raise ValueError('Body part '+str(body_part_name) +
-                             ' does not belong to Agent '+str(self.name))
-
-        return body_part
-
-    def pre_step(self):
-        """
-        Reset actuators and reward to 0 before a new step of the environment.
-        """
-
-        # for part in self.parts:
-        #     part.reset_actuators()
-
-        self.reward = 0
 
     def get_all_actuators(self):
         """
@@ -285,7 +276,6 @@ class Agent:
         if self._noise_type == 'gaussian':
 
             for actuator, value in actions_dict.items():
-
                 additive_noise = random.gauss(self._noise_mean, self._noise_scale)
                 new_value = additive_noise + value
                 new_value = new_value if new_value > actuator.min else actuator.min
@@ -298,14 +288,39 @@ class Agent:
 
         return noisy_actions
 
+    def owns_shape(self, pm_shape):
+        """
+        Verifies if a pm_shape belongs to an agent.
+
+        Args:
+            pm_shape: pymunk_shape.
+
+        Returns: True if pm_shape belongs to the agent.
+
+        """
+        all_shapes = [part.pm_visible_shape for part in self.parts]
+        if pm_shape in all_shapes:
+            return True
+        return False
+
+    def get_bodypart_from_shape(self, pm_shape):
+        return next(iter([part for part in self.parts if part.pm_visible_shape == pm_shape]), None)
+
+    # DYNAMICS
+
+    def pre_step(self):
+        """
+        Reset actuators and reward to 0 before a new step of the environment.
+        """
+
+        self.reward = 0
+
     def reset(self):
         """
         Resets all body parts
         """
         self.position = self.initial_position
         self.velocity = [0, 0, 0]
-        # for part in self.parts:
-        #     part.reset()
 
     def draw(self, surface, excluded=None):
         """
@@ -320,55 +335,6 @@ class Agent:
         for part in self.parts:
             if part not in list_excluded:
                 part.draw(surface, )
-
-    def get_visual_sensor_shapes(self):
-
-        shapes = []
-
-        for sensor in self.sensors:
-
-            if sensor.sensor_modality is SensorModality.VISUAL:
-                if isinstance(sensor.shape, int):
-                    shapes.append([1, sensor.shape, 1])
-                elif len(sensor.shape) == 2:
-                    shapes.append([1, sensor.shape[0], 3])
-                else:
-                    shapes.append(sensor.shape)
-
-        return shapes
-
-    def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode=False):
-        """
-        Generate a full image containing all the sensor representations of an Agent.
-        Args:
-            width_sensor: width of the display for drawing.
-            height_sensor: when applicable (1D sensor), the height of the display.
-            plt_mode: if True, returns images compatible with pyplot.
-
-        Returns:
-
-        """
-
-        border = 5
-
-        list_sensor_images = []
-        for sensor in self.sensors:
-            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
-
-        full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images) * (border + 1)
-
-        full_img = np.ones((full_height, width_sensor, 3))
-
-        current_height = 0
-        for im in list_sensor_images:
-            current_height += border
-            full_img[current_height:im.shape[0] + current_height, :, :] = im[:, :, :]
-            current_height += im.shape[0]
-
-        if plt_mode:
-            full_img = full_img[:, :, ::-1]
-
-        return full_img
 
     def generate_actions_image(self, width_action=100, height_action=30, plt_mode=False):
         """
@@ -388,36 +354,35 @@ class Agent:
         count_all_actions = len(self.current_actions)
 
         total_height_actions = number_parts_with_actions * (border + height_action) \
-                               + (border + height_action) * count_all_actions + border
+            + (border + height_action) * count_all_actions + border
 
         current_height = border
 
         font = cv2.FONT_HERSHEY_SIMPLEX
-        fontColor = (0, 0, 0)
-        lineType = 1
+        font_color = (0, 0, 0)
 
         img_actions = np.ones((total_height_actions, width_action, 4))
 
-        fontScale = 0.5  # height_slot - 2 * space_string
-        offset_string_name = int(height_action / 2.0 - fontScale * 10)
+        font_scale = 0.5  # height_slot - 2 * space_string
+        offset_string_name = int(height_action / 2.0 - font_scale * 10)
 
         action_names_length = max([len(action.action.name) for action, value in self.current_actions.items()])
-        fontScaleAction = 0.95 * width_action / action_names_length * 0.5 / 10
-        offset_string_action = int(height_action / 2.0 - fontScaleAction * 10)
+        font_scale_action = 0.95 * width_action / action_names_length * 0.5 / 10
+        offset_string_action = int(height_action / 2.0 - font_scale_action * 10)
 
         for part in self.parts:
 
             current_height += height_action
 
-            start_box = int(width_action / 2.0 - 18 * fontScale * len(part.name) / 2)
+            start_box = int(width_action / 2.0 - 18 * font_scale * len(part.name) / 2)
             bottom_left = (start_box, current_height - offset_string_name)
 
             cv2.putText(img_actions, part.name.upper(),
                         bottom_left,
                         font,
-                        fontScale,
-                        fontColor,
-                        lineType)
+                        font_scale,
+                        font_color,
+                        1)
 
             cv2.rectangle(img_actions, (0, current_height),
                           (width_action, current_height - height_action), (0, 0, 0), 3)
@@ -456,15 +421,15 @@ class Agent:
                     cv2.rectangle(img_actions, (left, current_height),
                                   (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
 
-                start_box = int(width_action / 2.0 - 18 * fontScaleAction * len(action.action.name) / 2.)
+                start_box = int(width_action / 2.0 - 18 * font_scale_action * len(action.action.name) / 2.)
                 bottom_left = (start_box, current_height - offset_string_action)
 
                 cv2.putText(img_actions, action.action.name.upper(),
                             bottom_left,
                             font,
-                            fontScaleAction,
-                            fontColor,
-                            lineType)
+                            font_scale_action,
+                            font_color,
+                            1)
 
                 current_height += border
 

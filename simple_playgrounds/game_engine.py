@@ -1,5 +1,5 @@
 """
-Game Engine manages the interacitons between agents and Playgrounds.
+Game Engine manages the interactions between agents and Playgrounds.
 """
 import numpy as np
 
@@ -79,10 +79,12 @@ class Engine:
         self.game_on = True
         self.elapsed_time = 0
 
+    # STEP
+
     def multiple_steps(self, actions, n_steps=1):
         """
         Runs multiple steps of the game, with the same actions for the agents.
-        Perforns Interactive (eat and activate) actions oly at the last timestep.
+        Performs Interactive (eat and activate) actions oly at the last timestep.
 
         Args:
             actions: Dictionary containing the actions for each agent.
@@ -142,7 +144,8 @@ class Engine:
         Runs a single steps of the game, with the same actions for the agents.
 
         Args:
-            actions: Dictionary containing the actions for each agent. keys are agents, values are dictionary of actions.
+            actions: Dictionary containing the actions for each agent. keys are agents,
+                     values are dictionary of actions.
 
         """
 
@@ -166,6 +169,8 @@ class Engine:
 
         self.elapsed_time += 1
 
+    # TERMINATION CONDITIONS
+
     def _has_terminated(self):
 
         playground_terminated = self.playground.done
@@ -177,22 +182,6 @@ class Engine:
             return True
 
         return False
-
-    def reset(self):
-        """
-        Resets the game to its initial state.
-
-        """
-        self.playground.reset()
-        self.elapsed_time = 0
-        self.game_on = True
-
-        # Redraw everything
-        self.surface_background.fill(THECOLORS["black"])
-
-        for elem in self.playground.scene_elements:
-            if elem.background:
-                elem.draw(self.surface_background, )
 
     def _reached_time_limit(self):
         if self.elapsed_time >= self.time_limit-1:
@@ -223,6 +212,8 @@ class Engine:
 
         return terminate_game
 
+    # PYGAME SURFACE UPDATE
+
     def _update_surface_background(self):
         # Check that some background elements maybe need to be drawn
         for element in self.playground.scene_elements:
@@ -240,34 +231,11 @@ class Engine:
 
         for entity in self.playground.scene_elements:
 
-            if not entity.background or entity.graspable or entity.interactive :
+            if not entity.background or entity.graspable or entity.interactive:
                 entity.draw(self.surface_environment, )
 
         for agent in self.agents:
             agent.draw(self.surface_environment, )
-
-    def update_observations(self):
-        """
-        Updates observations of each agent
-
-        """
-
-        for agent in self.agents:
-
-            for sensor in agent.sensors:
-
-                if sensor.sensor_modality is SensorModality.VISUAL:
-
-                    self._update_surface_background()
-                    self.surface_sensors.blit(self.surface_background, (0, 0))
-                    sensor.update(playground=self.playground, sensor_surface=self.surface_sensors)
-
-                elif sensor.sensor_modality is SensorModality.ROBOTIC \
-                        or sensor.sensor_modality is SensorModality.SEMANTIC:
-                    sensor.update(playground=self.playground)
-
-                else:
-                    raise ValueError
 
     def update_screen(self):
         """
@@ -307,12 +275,37 @@ class Engine:
         if max_size is not None:
 
             scaling_factor = max_size/max(np_image.shape[0], np_image.shape[1])
-            np_image = cv2.resize(np_image, None, fx = scaling_factor, fy = scaling_factor)
+            np_image = cv2.resize(np_image, None, fx=scaling_factor, fy=scaling_factor)
 
         if plt_mode:
             np_image = np_image[:, :, ::-1]
 
         return np_image
+
+    # AGENTS
+
+    def update_observations(self):
+        """
+        Updates observations of each agent
+
+        """
+
+        for agent in self.agents:
+
+            for sensor in agent.sensors:
+
+                if sensor.sensor_modality is SensorModality.VISUAL:
+
+                    self._update_surface_background()
+                    self.surface_sensors.blit(self.surface_background, (0, 0))
+                    sensor.update(playground=self.playground, sensor_surface=self.surface_sensors)
+
+                elif sensor.sensor_modality is SensorModality.ROBOTIC \
+                        or sensor.sensor_modality is SensorModality.SEMANTIC:
+                    sensor.update(playground=self.playground)
+
+                else:
+                    raise ValueError
 
     def generate_agent_image(self, agent,
                              with_pg=True, max_size_pg=200, rotate_pg=False,
@@ -326,7 +319,7 @@ class Engine:
             agent (Agent): Instance of agent.
             with_pg (bool): Display the playground.
             max_size_pg (int): Maximum size of the playground image ( either width or depth, depending on shape).
-            rotate_pg (bool): Rotate the playground. Useful when the playground is a rectange.
+            rotate_pg (bool): Rotate the playground. Useful when the playground is a rectangle.
             with_actions (bool): Display actions.
             width_action (int): Width of the action bars.
             height_action (int): Height of the action bars.
@@ -358,7 +351,7 @@ class Engine:
 
             if rotate_pg:
                 pg_image = np.rot90(pg_image)
-            images['playground']=pg_image
+            images['playground'] = pg_image
 
         if with_actions:
             action_image = agent.generate_actions_image(width_action=width_action, height_action=height_action)
@@ -378,8 +371,8 @@ class Engine:
                 full_height = max(full_height, images[column].shape[0] + 2*border)
 
             elif isinstance(column, tuple):
-                full_width += max( [ images[col].shape[1] for col in column]) + border
-                full_height = max( full_height, border + sum( images[col].shape[0] + border for col in column) )
+                full_width += max([images[col].shape[1] for col in column]) + border
+                full_height = max(full_height, border + sum(images[col].shape[0] + border for col in column))
 
         full_img = np.ones((full_height, full_width, 3))
 
@@ -401,27 +394,43 @@ class Engine:
                 for col in column:
 
                     # center
-                    delta_width = max( [ images[col].shape[1] for col in column]) - images[col].shape[1]
+                    delta_width = max([images[col].shape[1] for col in column]) - images[col].shape[1]
                     delta_width = int(delta_width/2)
 
                     full_img[current_height: current_height + images[col].shape[0],
-                    current_width+ delta_width:current_width +delta_width+ images[col].shape[1], :] \
+                             current_width + delta_width:current_width + delta_width + images[col].shape[1], :] \
                         = images[col][:, :, :]
 
                     current_height += images[col].shape[0] + border
 
-                current_width += max( [ images[col].shape[1] for col in column]) + border
+                current_width += max([images[col].shape[1] for col in column]) + border
 
         if plt_mode:
             full_img = full_img[:, :, ::-1]
 
         return full_img
 
+    def reset(self):
+        """
+        Resets the game to its initial state.
+
+        """
+        self.playground.reset()
+        self.elapsed_time = 0
+        self.game_on = True
+
+        # Redraw everything
+        self.surface_background.fill(THECOLORS["black"])
+
+        for elem in self.playground.scene_elements:
+            if elem.background:
+                elem.draw(self.surface_background, )
+
     def run(self, steps=None, update_screen=False, print_rewards=False):
         """ Run the engine for the full duration of the game or a certain number of steps"""
 
         if self.screen is False and update_screen:
-            raise ValueError("Can't update non-existing screen" )
+            raise ValueError("Can't update non-existing screen")
 
         continue_for_n_steps = True
 
@@ -455,5 +464,3 @@ class Engine:
         pygame.quit()
         for agent in self.agents:
             self.playground.remove_agent(agent)
-
-
