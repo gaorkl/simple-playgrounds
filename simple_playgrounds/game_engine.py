@@ -245,7 +245,7 @@ class Engine:
 
         if self.screen is not None:
 
-            self._update_surface_environment(with_interactions = True)
+            self._update_surface_environment(with_interactions=True)
 
             rot_surface = pygame.transform.rotate(self.surface_environment, 180)
             self.screen.blit(rot_surface, (0, 0), None)
@@ -266,7 +266,7 @@ class Engine:
 
         """
 
-        self._update_surface_environment()
+        self._update_surface_environment(with_interactions=True)
 
         np_image = pygame.surfarray.pixels3d(self.surface_environment.copy())/255.
         np_image = np.rot90(np_image, 1, (1, 0))
