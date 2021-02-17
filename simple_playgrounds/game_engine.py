@@ -220,7 +220,7 @@ class Engine:
             if element.background and not element.drawn:
                 element.draw(self.surface_background, )
 
-    def _update_surface_environment(self):
+    def _update_surface_environment(self, with_interactions = False):
         """
         Draw all agents and entities on the surface environment.
         Additionally, draws the interaction areas.
@@ -232,10 +232,10 @@ class Engine:
         for entity in self.playground.scene_elements:
 
             if not entity.background or entity.graspable or entity.interactive:
-                entity.draw(self.surface_environment, )
+                entity.draw(self.surface_environment, draw_interaction = with_interactions)
 
         for agent in self.agents:
-            agent.draw(self.surface_environment, )
+            agent.draw(self.surface_environment)
 
     def update_screen(self):
         """
@@ -245,7 +245,7 @@ class Engine:
 
         if self.screen is not None:
 
-            self._update_surface_environment()
+            self._update_surface_environment(with_interactions = True)
 
             rot_surface = pygame.transform.rotate(self.surface_environment, 180)
             self.screen.blit(rot_surface, (0, 0), None)

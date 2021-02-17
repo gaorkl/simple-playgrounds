@@ -72,17 +72,24 @@ class Entity(ABC):
         self.pm_body = self._create_pm_body()
         self.pm_elements = [self.pm_body]
 
+        # To be set when entity is added to playground. Used to calculate correct coordinates
+        self.size_playground = [0, 0]
+        self.velocity = [0, 0, 0]
+        self.position = [0, 0, 0]
+
         self.texture_surface = self._create_texture(entity_params['texture'])
 
+        self.pm_visible_shape = None
         self.pm_interaction_shape = None
         self.pm_visible_shape = None
         self.pm_grasp_shape = None
 
         if self.visible:
-            if not self.traversable:
-                self.pm_visible_shape = self._create_pm_shape()
-                self.pm_elements.append(self.pm_visible_shape)
+            self.pm_visible_shape = self._create_pm_shape()
+            self.pm_elements.append(self.pm_visible_shape)
             self.visible_mask = self._create_mask()
+            if self.traversable:
+                self.pm_visible_shape.sensor = True
 
         if self.interactive:
             self.pm_interaction_shape = self._create_pm_shape(is_interactive=True)
@@ -102,11 +109,6 @@ class Entity(ABC):
 
         # Used to check if mask should be computed again
         self.prev_angle = self.pm_body.angle
-
-        # To be set when entity is added to playground. Used to calculate correct coordinates
-        self.size_playground = [0, 0]
-        self.velocity = [0, 0, 0]
-        self.position = [0, 0, 0]
 
         # Used to set an element which is not supposed to overlap
         self.allow_overlapping = entity_params.get('allow_overlapping', True)

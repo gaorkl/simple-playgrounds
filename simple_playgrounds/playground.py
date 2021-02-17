@@ -433,18 +433,24 @@ class Playground(ABC):
 
         for agent, teleport in self._teleported:
 
-            overlaps = False
-
-            for part in agent.parts:
-
-                if teleport.pm_visible_shape is not None:
-                    overlaps = overlaps or part.pm_visible_shape.shapes_collide( teleport.pm_visible_shape).points != []
-
-                if teleport.pm_interaction_shape is not None:
-                    overlaps = overlaps or part.pm_visible_shape.shapes_collide( teleport.pm_interaction_shape).points != []
+            overlaps = self.agent_overlaps_with_element(agent, teleport)
 
             if not overlaps:
                 self._teleported.remove((agent, teleport))
+
+    def agent_overlaps_with_element(self, agent, element):
+
+        overlaps = False
+
+        for part in agent.parts:
+
+            if element.pm_visible_shape is not None:
+                overlaps = overlaps or part.pm_visible_shape.shapes_collide(element.pm_visible_shape).points != []
+
+            if element.pm_interaction_shape is not None:
+                overlaps = overlaps or part.pm_visible_shape.shapes_collide(element.pm_interaction_shape).points != []
+
+        return overlaps
 
     def get_scene_element_from_shape(self, pm_shape):
         """
