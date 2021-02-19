@@ -55,6 +55,9 @@ class ConnectedRooms2D(Playground):
 
         super(ConnectedRooms2D, self).__init__(size=size)
 
+        # By default, an agent starts in the middle of the first room
+        self.initial_agent_position = tuple( list(self.area_rooms[(0, 0)][0])+[0.0] )
+
     def _compute_area_rooms(self):
 
         areas = {}
@@ -306,6 +309,7 @@ class ConnectedRooms2D(Playground):
             size_x = area_size[0]
 
         return [center_x, center_y], [size_x, size_y]
+
 
 class SingleRoom(ConnectedRooms2D):
 

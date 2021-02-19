@@ -4,7 +4,7 @@ from simple_playgrounds.agents.sensors import *
 from simple_playgrounds.agents.controllers import Random
 from simple_playgrounds.agents.parts.platform import ForwardPlatform, FixedPlatform, HolonomicPlatform, ForwardBackwardPlatform
 from simple_playgrounds.agents.agents import BaseAgent, HeadAgent, HeadEyeAgent, TurretAgent, FullAgent
-
+from simple_playgrounds.playgrounds.empty import SingleRoom, LinearRooms, ConnectedRooms2D
 
 from simple_playgrounds import Engine
 
@@ -117,6 +117,44 @@ def test_turretagent():
 
             for pg_class in PlaygroundRegister.filter('test'):
                 run_engine(agent, pg_class)
+
+
+def test_agent_initial_position():
+
+    print('Testing of intital position agent')
+
+    agent = BaseAgent(controller=Random(), interactive=False, platform=ForwardPlatform)
+
+    # Default Case
+    pg = SingleRoom( (300, 300) )
+    pg.add_agent(agent)
+    assert(agent.position == (150, 150, 0))
+    pg.remove_agent(agent)
+
+    pg = ConnectedRooms2D((400, 400), (2, 2))
+    pg.add_agent(agent)
+    assert (agent.position == (100, 100, 0))
+    pg.remove_agent(agent)
+
+    # Modifying initial position in playground
+    pg = SingleRoom((300, 300))
+    pg.initial_agent_position = (50, 50, 0)
+    pg.add_agent(agent)
+    assert (agent.position == (50, 50, 0))
+    pg.remove_agent(agent)
+
+    # Setting initial position in playground as PositionAreaSampler
+    pg = SingleRoom((300, 300))
+    center, shape = pg.area_rooms[(0, 0)]
+    pg.initial_agent_position = PositionAreaSampler(center, area_shape='rectangle', width_length=shape)
+    pg.add_agent(agent)
+    pos_1 = agent.position
+    pg.remove_agent(agent)
+    pg.add_agent(agent)
+    assert (agent.position != pos_1)
+    pg.remove_agent(agent)
+
+
 
 
 # def test_fullagents_in_empty_playgrounds():

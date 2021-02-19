@@ -80,7 +80,7 @@ class PositionAreaSampler:
 
         if self.area_shape == 'rectangle':
             # split the rectangle to horizontal and vertical pieces,
-            # choose based on h_threshold and then sample uniformaly and shift
+            # choose based on h_threshold and then sample uniformly and shift
             if random.random() < self.h_threshold:
                 width = self.width
                 length = self.length - self.excl_length

@@ -22,6 +22,7 @@ class Engine:
     # pylint: disable=too-many-function-args
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-instance-attributes
+    # pylint: disable=line-too-long
 
     def __init__(self, playground, time_limit=None, screen=False):
 
@@ -42,9 +43,7 @@ class Engine:
 
         """
 
-        # Playground already exists
         self.playground = playground
-
         self.agents = self.playground.agents
 
         if time_limit is not None:
@@ -66,25 +65,25 @@ class Engine:
             self.quit_key_ready = True
 
         # Pygame Surfaces to display the environment
-        self.surface_background = pygame.Surface((self.playground.width, self.playground.length))
-        self.surface_environment = pygame.Surface((self.playground.width, self.playground.length))
-        self.surface_sensors = pygame.Surface((self.playground.width, self.playground.length))
+        self._surface_background = pygame.Surface((self.playground.width, self.playground.length))
+        self._surface_buffer = pygame.Surface((self.playground.width, self.playground.length))
 
-        self.surface_background.fill(THECOLORS["black"])
+        self._surface_background.fill(THECOLORS["black"])
 
         for elem in self.playground.scene_elements:
             if elem.background:
-                elem.draw(self.surface_background, )
+                elem.draw(self._surface_background, )
 
         self.game_on = True
-        self.elapsed_time = 0
+        self._elapsed_time = 0
 
     # STEP
 
     def multiple_steps(self, actions, n_steps=1):
         """
         Runs multiple steps of the game, with the same actions for the agents.
-        Performs Interactive (eat and activate) actions oly at the last timestep.
+        The physical actions are performed for n_steps.
+        The interactive action (eat and activate) are only performed at the last timestep.
 
         Args:
             actions: Dictionary containing the actions for each agent.
@@ -141,7 +140,7 @@ class Engine:
 
     def step(self, actions):
         """
-        Runs a single steps of the game, with the same actions for the agents.
+        Runs a single step of the game, with the same actions for the agents.
 
         Args:
             actions: Dictionary containing the actions for each agent. keys are agents,
@@ -167,7 +166,7 @@ class Engine:
 
         self.playground.update(SIMULATION_STEPS)
 
-        self.elapsed_time += 1
+        self._elapsed_time += 1
 
     # TERMINATION CONDITIONS
 
@@ -184,7 +183,7 @@ class Engine:
         return False
 
     def _reached_time_limit(self):
-        if self.elapsed_time >= self.time_limit-1:
+        if self._elapsed_time >= self.time_limit-1:
             return True
         return False
 
@@ -218,24 +217,24 @@ class Engine:
         # Check that some background elements maybe need to be drawn
         for element in self.playground.scene_elements:
             if element.background and not element.drawn:
-                element.draw(self.surface_background, )
+                element.draw(self._surface_background, )
 
-    def _update_surface_environment(self, with_interactions = False):
+    def _generate_surface_environment(self, with_interactions=False):
         """
         Draw all agents and entities on the surface environment.
         Additionally, draws the interaction areas.
 
         """
         self._update_surface_background()
-        self.surface_environment.blit(self.surface_background, (0, 0))
+        self._surface_buffer.blit(self._surface_background, (0, 0))
 
         for entity in self.playground.scene_elements:
 
             if not entity.background or entity.graspable or entity.interactive:
-                entity.draw(self.surface_environment, draw_interaction = with_interactions)
+                entity.draw(self._surface_buffer, draw_interaction=with_interactions)
 
         for agent in self.agents:
-            agent.draw(self.surface_environment)
+            agent.draw(self._surface_buffer)
 
     def update_screen(self):
         """
@@ -245,9 +244,9 @@ class Engine:
 
         if self.screen is not None:
 
-            self._update_surface_environment(with_interactions=True)
+            self._generate_surface_environment(with_interactions=True)
 
-            rot_surface = pygame.transform.rotate(self.surface_environment, 180)
+            rot_surface = pygame.transform.rotate(self._surface_buffer, 180)
             self.screen.blit(rot_surface, (0, 0), None)
 
             pygame.display.flip()
@@ -266,16 +265,16 @@ class Engine:
 
         """
 
-        self._update_surface_environment(with_interactions=True)
+        self._generate_surface_environment(with_interactions=True)
 
-        np_image = pygame.surfarray.pixels3d(self.surface_environment.copy())/255.
+        np_image = pygame.surfarray.pixels3d(self._surface_buffer.copy()) / 255.
         np_image = np.rot90(np_image, 1, (1, 0))
         np_image = np_image[::-1, :, ::-1]
 
         if max_size is not None:
 
             scaling_factor = max_size/max(np_image.shape[0], np_image.shape[1])
-            np_image = cv2.resize(np_image, None, fx=scaling_factor, fy=scaling_factor)
+            np_image = cv2.resize(np_image, None, fx=scaling_factor, fy=scaling_factor)  # pylint: disable=no-member
 
         if plt_mode:
             np_image = np_image[:, :, ::-1]
@@ -297,8 +296,8 @@ class Engine:
                 if sensor.sensor_modality is SensorModality.VISUAL:
 
                     self._update_surface_background()
-                    self.surface_sensors.blit(self.surface_background, (0, 0))
-                    sensor.update(playground=self.playground, sensor_surface=self.surface_sensors)
+                    self._surface_buffer.blit(self._surface_background, (0, 0))
+                    sensor.update(playground=self.playground, sensor_surface=self._surface_buffer)
 
                 elif sensor.sensor_modality is SensorModality.ROBOTIC \
                         or sensor.sensor_modality is SensorModality.SEMANTIC:
@@ -343,6 +342,9 @@ class Engine:
 
 
         """
+
+        # pylint: disable=too-many-locals
+
         border = 10
         images = {}
 
@@ -416,15 +418,15 @@ class Engine:
 
         """
         self.playground.reset()
-        self.elapsed_time = 0
+        self._elapsed_time = 0
         self.game_on = True
 
         # Redraw everything
-        self.surface_background.fill(THECOLORS["black"])
+        self._surface_background.fill(THECOLORS["black"])
 
         for elem in self.playground.scene_elements:
             if elem.background:
-                elem.draw(self.surface_background, )
+                elem.draw(self._surface_background, )
 
     def run(self, steps=None, update_screen=False, print_rewards=False):
         """ Run the engine for the full duration of the game or a certain number of steps"""
@@ -461,6 +463,10 @@ class Engine:
                 self.game_on = False
 
     def terminate(self):
-        pygame.quit()
+        """
+        Terminate the engine. Quits all pygame instances. Remove all agents from playgrounds.
+
+        """
+        pygame.quit()  # pylint: disable=no-member
         for agent in self.agents:
             self.playground.remove_agent(agent)

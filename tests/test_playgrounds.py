@@ -146,3 +146,63 @@ def test_multisteps():
 
         engine.terminate()
 
+
+def test_agent_in_different_environments():
+
+    print('Testing of agent moving to different environments')
+
+    agent = BaseAgent(controller=Random(), interactive=False, platform=ForwardPlatform)
+    pg_1 = SingleRoom((300, 300))
+    pg_2 = SingleRoom((100, 100))
+
+
+    # Play in pg 1
+    pg_1.add_agent(agent)
+    engine = Engine(pg_1, 100)
+    engine.run()
+    engine.terminate()
+
+    # Play in pg 2
+    pg_2.add_agent(agent)
+    engine = Engine(pg_2, 100)
+    engine.run()
+    engine.terminate()
+
+    # Alternate between playgrounds
+    pg_1.reset()
+    pg_2.reset()
+
+    engine_1 = Engine(pg_1, 100)
+    engine_2 = Engine(pg_2, 100)
+
+    print('going to playground 1')
+    pg_1.add_agent(agent)
+    engine_1.run(10)
+    pg_1.remove_agent(agent)
+
+    print('going to playground 2')
+    pg_2.add_agent(agent)
+    engine_2.run(10)
+    pg_2.remove_agent(agent)
+
+    print('running playground 1 without agent')
+    engine_1.run(10)
+    assert engine_1._elapsed_time == 20
+
+    print('agent returning to playground 1')
+    pg_1.add_agent(agent)
+    engine_1.run()
+    engine_1.terminate()
+
+
+    print('agent returning to playground 2')
+    pg_2.add_agent(agent)
+    engine_2.run()
+    engine_2.terminate()
+
+    print(' Fail when adding agent to 2 playgrounds ')
+    pg_1.reset()
+    pg_2.reset()
+    pg_1.add_agent(agent)
+
+

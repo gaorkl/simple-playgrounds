@@ -19,8 +19,7 @@ class Agent:
     """
     index_agent = 0
 
-    def __init__(self, initial_position, base_platform, name=None, allow_overlapping=True, noise_params=None,
-                 **agent_params):
+    def __init__(self, base_platform, initial_position=None, name=None, allow_overlapping=True, noise_params=None):
         """
         Base class for agents.
 
@@ -28,7 +27,9 @@ class Agent:
             initial_position: initial position of the base
             base_platform: Platform object, required to initialize an agent.
                 All agents have a Platform.
-            **agent_param: other parameters
+            name: Name of the agent. If not provide, a name will be added by default.
+            allow_overlapping: If True, agents could start in a playground while overlapping with other shapes.
+            noise_params: TODO
         """
 
         if name is None:

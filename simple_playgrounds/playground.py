@@ -28,7 +28,7 @@ class Playground(ABC):
         scene_elements: list of SceneElements present in the Playground.
         fields: list of fields producing SceneElements in the Playground.
         agents: list of Agents present in the Playground.
-        agent_starting_area: position or PositionAreaSampler,
+        initial_agent_position: position or PositionAreaSampler,
             Starting position of an agent (single agent).
         done: bool, True if the playground reached termination.
 
@@ -63,7 +63,7 @@ class Playground(ABC):
 
         self.done = False
 
-        self.agent_starting_area = None
+        self.initial_agent_position = None
 
         self._handle_interactions()
 
@@ -199,11 +199,12 @@ class Playground(ABC):
         if agent.initial_position is not None:
             pass
 
-        elif self.agent_starting_area is not None:
-            agent.initial_position = self.agent_starting_area
+        elif self.initial_agent_position is not None:
+            agent.initial_position = self.initial_agent_position
 
         else:
-            agent.initial_position = [self._width / 2, self._length / 2, 0]
+            raise ValueError("""Agent initial position should be defined in the playground or passed as an argument)
+                             to the class agent""")
 
         agent.position = agent.initial_position
 
@@ -361,6 +362,9 @@ class Playground(ABC):
             self.space.remove(*part.pm_elements)
             part.velocity = [0, 0, 0]
             part.grasped = []
+
+        agent.initial_position = None
+
         self.agents.remove(agent)
 
         return True
