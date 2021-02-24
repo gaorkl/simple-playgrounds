@@ -102,6 +102,9 @@ class ForwardBackwardPlatform(ForwardPlatform):
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
+
+        self.actuators.remove(self.longitudinal_force_actuator)
+
         self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
         self.actuators.append(self.longitudinal_force_actuator)
 
