@@ -252,9 +252,10 @@ class RayCollisionSensor(Sensor, ABC):
 
         # remove invisible entities
         collisions_visible = [col for col in collisions
-                      if col.shape not in self._invisible_shapes and col.shape.sensor is not True]
+                      if col.shape not in self._invisible_shapes and col.shape.sensor is not True
+                      if col.alpha != 0.0]
 
-        collisions_traversable = [col for col in collisions if col.alpha != 0
+        collisions_traversable = [col for col in collisions if col.alpha != 0.0
                                   and col.shape not in self._invisible_shapes
                                   and playground.get_entity_from_shape(col.shape).pm_visible_shape is not None
                                   and playground.get_entity_from_shape(col.shape).pm_visible_shape == col.shape
