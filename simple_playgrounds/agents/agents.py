@@ -49,7 +49,7 @@ class BaseAgent(Agent):
         base_agent = platform(name='base', radius = radius_platform,
                               can_eat=can_eat, can_grasp=can_grasp, can_activate=can_activate, can_absorb=can_absorb)
 
-        super().__init__(initial_position=initial_position, base_platform=base_agent, controller=controller, **kwargs)
+        super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
 
         if hasattr(self.base_platform, 'longitudinal_force_actuator'):
 

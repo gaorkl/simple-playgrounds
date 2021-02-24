@@ -4,8 +4,8 @@ Game Engine manages the interactions between agents and Playgrounds.
 import numpy as np
 
 import pygame
-from pygame.locals import K_q  # pylint: disable=no-name-in-module
-from pygame.color import THECOLORS  # pylint: disable=no-name-in-module
+import pygame.locals
+import pygame.color
 
 import cv2
 
@@ -29,7 +29,7 @@ class Engine:
         """
 
         Args:
-            playground (:obj: 'Playground): Playground where the agents will be placed
+            playground (:obj: 'Playground'): Playground where the agents will be placed
             time_limit (:obj: 'int'): Total number of timesteps. Can also be defined in playground
             screen: If True, a pygame screen is created for display.
                 Default: False
@@ -68,7 +68,7 @@ class Engine:
         self._surface_background = pygame.Surface((self.playground.width, self.playground.length))
         self._surface_buffer = pygame.Surface((self.playground.width, self.playground.length))
 
-        self._surface_background.fill(THECOLORS["black"])
+        self._surface_background.fill(pygame.Color(0, 0, 0, 0))
 
         for elem in self.playground.scene_elements:
             if elem.background:
@@ -150,7 +150,6 @@ class Engine:
 
         self._engine_step(actions)
 
-        # Termination
         terminate = self._has_terminated()
 
         if self._reached_time_limit() and self.playground.time_limit_reached_reward is not None:
@@ -202,10 +201,10 @@ class Engine:
             pygame.event.get()
 
             # Press Q to terminate
-            if not pygame.key.get_pressed()[K_q] and self.quit_key_ready is False:
+            if not pygame.key.get_pressed()[pygame.locals.K_q] and not self.quit_key_ready:
                 self.quit_key_ready = True
 
-            elif pygame.key.get_pressed()[K_q] and self.quit_key_ready is True:
+            elif pygame.key.get_pressed()[pygame.locals.K_q] and self.quit_key_ready:
                 self.quit_key_ready = False
                 terminate_game = True
 
@@ -239,13 +238,11 @@ class Engine:
     def update_screen(self):
         """
         If the screen is set, updates the screen and displays the environment.
-
         """
 
         if self.screen is not None:
 
             self._generate_surface_environment(with_interactions=True)
-
             rot_surface = pygame.transform.rotate(self._surface_buffer, 180)
             self.screen.blit(rot_surface, (0, 0), None)
 
@@ -304,12 +301,19 @@ class Engine:
                     sensor.update(playground=self.playground)
 
                 else:
-                    raise ValueError
+                    raise ValueError("Sensor Modality not recognized")
 
     def generate_agent_image(self, agent,
-                             with_pg=True, max_size_pg=200, rotate_pg=False,
-                             with_actions=True, width_action=200, height_action=20,
-                             with_sensors=True, width_sensors=150, height_sensor=20, plt_mode=False,
+                             with_pg=True,
+                             max_size_pg=200,
+                             rotate_pg=False,
+                             with_actions=True,
+                             width_action=200,
+                             height_action=20,
+                             with_sensors=True,
+                             width_sensors=150,
+                             height_sensor=20,
+                             plt_mode=False,
                              layout=('playground', ('sensors', 'actions'))):
         """
         Method to generate an image for displaying the playground, agent sensors and actions.
@@ -422,7 +426,7 @@ class Engine:
         self.game_on = True
 
         # Redraw everything
-        self._surface_background.fill(THECOLORS["black"])
+        self._surface_background.fill(pygame.Color(0, 0, 0, 0))
 
         for elem in self.playground.scene_elements:
             if elem.background:
