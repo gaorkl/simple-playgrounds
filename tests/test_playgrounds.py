@@ -203,6 +203,7 @@ def test_agent_in_different_environments():
     pg_2.add_agent(agent)
     engine_2.run()
     engine_2.terminate()
+    pg_2.remove_agent(agent)
 
     print(' Fail when adding agent to 2 playgrounds ')
     pg_1.reset()
