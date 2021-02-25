@@ -17,10 +17,6 @@ def run_engine(agent, pg_class):
 
     pg = pg_class()
 
-    center, shape = pg.area_rooms[(0, 0)]
-    pos_area_sampler = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
-    agent.initial_position = pos_area_sampler
-
     pg.add_agent(agent)
 
     print('Starting testing of ', pg_class.__name__)
@@ -128,12 +124,18 @@ def test_agent_initial_position():
     # Default Case
     pg = SingleRoom( (300, 300) )
     pg.add_agent(agent)
-    assert(agent.position == (150, 150, 0))
+
+    assert 0 < agent.position[0] < pg.size[0]
+    assert 0 < agent.position[1] < pg.size[1]
+
     pg.remove_agent(agent)
 
     pg = ConnectedRooms2D((400, 400), (2, 2))
     pg.add_agent(agent)
-    assert (agent.position == (100, 100, 0))
+
+    assert 0 < agent.position[0] < 200
+    assert 0 < agent.position[1] < 200
+
     pg.remove_agent(agent)
 
     # Modifying initial position in playground

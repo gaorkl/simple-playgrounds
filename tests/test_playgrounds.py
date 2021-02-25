@@ -37,7 +37,6 @@ def test_engine_run():
     engine = Engine(playground, time_limit=100)
 
     pos_start = agent.position
-    assert pos_start == (100., 100., 0.)
     engine.run()
     assert pos_start != agent.position
 
@@ -54,7 +53,6 @@ def test_engine_run():
     assert len(engine.agents) == 1
 
     engine.run()
-
 
 
 # Run all test playgrounds with basic non-interactive agent
@@ -76,6 +74,7 @@ def test_all_test_playgrounds():
         assert 0 < agent.position[1] < pg.size[1]
 
         engine.terminate()
+        pg.remove_agent(agent)
 
 
 # Run all test playgrounds with 100 agents
@@ -96,6 +95,8 @@ def test_multiagents():
 
         engine = Engine(pg, time_limit=100, screen=False)
         engine.run(update_screen= False)
+        engine.terminate()
+        pg.remove_agent(agent)
 
 
 # Run all test playgrounds with 10 agents
@@ -145,7 +146,7 @@ def test_multisteps():
             engine.update_observations()
 
         engine.terminate()
-
+        pg.remove_agent(agent)
 
 def test_agent_in_different_environments():
 
@@ -161,12 +162,14 @@ def test_agent_in_different_environments():
     engine = Engine(pg_1, 100)
     engine.run()
     engine.terminate()
+    pg_1.remove_agent(agent)
 
     # Play in pg 2
     pg_2.add_agent(agent)
     engine = Engine(pg_2, 100)
     engine.run()
     engine.terminate()
+    pg_2.remove_agent(agent)
 
     # Alternate between playgrounds
     pg_1.reset()
@@ -193,6 +196,7 @@ def test_agent_in_different_environments():
     pg_1.add_agent(agent)
     engine_1.run()
     engine_1.terminate()
+    pg_1.remove_agent(agent)
 
 
     print('agent returning to playground 2')

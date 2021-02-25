@@ -32,11 +32,16 @@ class Playground(ABC):
             Starting position of an agent (single agent).
         done: bool, True if the playground reached termination.
 
+    Notes:
+          In the case of multi-agent setting, individual initial positions can be defined when
+          instantiating the playground.
     """
 
     # pylint: disable=too-many-instance-attributes
 
-    scene_entities = []
+    time_limit = None
+    _scene_entities = []
+    time_limit_reached_reward = None
 
     def __init__(self, size):
 
@@ -58,19 +63,13 @@ class Playground(ABC):
         self._teleported = []
 
         # Add entities declared in the scene
-        for scene_entity in self.scene_entities:
+        for scene_entity in self._scene_entities:
             self.add_scene_element(scene_entity)
 
         self.done = False
-
         self.initial_agent_position = None
 
         self._handle_interactions()
-
-        self.time_limit = None
-        self.time_limit_reached_reward = None
-
-        self.time_test = 0
 
     @staticmethod
     def parse_configuration(key):
@@ -159,34 +158,70 @@ class Playground(ABC):
 
         self.done = False
 
-    def add_agent(self, new_agent, tries=100):
+    def add_agent(self, agent,
+                  allow_overlapping=True,
+                  max_attempts=100,
+                  error_if_fails=True,
+                  keep_position=False):
         """ Method to add an Agent to the Playground.
-        If the Agent has its attribute allow_overlapping set to False,
-        the playground will try to add it multiple times.
 
         Args:
-            new_agent: Agent to add to the Playground
-            tries: Number of times the Playground will try to place the agent
+            agent: Agent to add to the Playground
+            allow_overlapping: If True, allows new agent to overlap with other elements when added to the Playground.
+            max_attempts: If overlapping is not allowed, maximum number of attempts to place the agent.
+            error_if_fails: If True, an error will be raised if agent can't be placed in the Playground.
+            keep_position: if True, will not reinitialize position.
+
+        Notes:
+            keep_position is useful in the case where agent must disappear and reappear in the same position.
+            In this case, the position should not be re-initialized.
 
         """
 
         # If already there
-        if new_agent in self.scene_elements:
+        if agent in self.agents:
             raise ValueError('Agent already in Playground')
 
         # Inform agent of the playground size
-        new_agent.size_playground = self.size
+        agent.size_playground = self.size
 
-        if new_agent.allow_overlapping:
-            self._add_agent(new_agent)
+        # Set initial position
+        if agent.initial_position is not None:
+            pass
+        elif self.initial_agent_position is not None:
+            agent.initial_position = self.initial_agent_position
+        else:
+            raise ValueError("""Agent initial position should be defined in the playground or passed as an argument)
+                             to the class agent""")
+
+        # Place agent in environment
+        if allow_overlapping:
+            self._add_agent(agent, keep_position)
 
         else:
-            success = self._add_agent_without_ovelapping(new_agent, tries = tries)
+            attempt = 0
+            success = False
+
+            while not success or attempt < max_attempts:
+
+                self._add_agent(agent, keep_position)
+                if not self._agent_colliding(agent):
+                    success = True
+                else:
+                    self.remove_agent(agent)
+                attempt += 1
 
             if not success:
-                raise ValueError("Agent couldn't be placed without overlapping")
 
-    def _add_agent(self, agent):
+                msg = 'Agent could not be placed without overlapping'
+
+                if error_if_fails:
+                    raise ValueError(msg)
+
+                else:
+                    print(msg)
+
+    def _add_agent(self, agent, keep_position):
         """ Add an agent to the playground.
 
         Args:
@@ -196,131 +231,49 @@ class Playground(ABC):
 
         self.agents.append(agent)
 
-        if agent.initial_position is not None:
-            pass
-
-        elif self.initial_agent_position is not None:
-            agent.initial_position = self.initial_agent_position
-
-        else:
-            raise ValueError("""Agent initial position should be defined in the playground or passed as an argument)
-                             to the class agent""")
-
-        agent.position = agent.initial_position
+        if not keep_position:
+            agent.position = agent.initial_position
 
         for body_part in agent.parts:
             self.space.add(*body_part.pm_elements)
 
-    def _add_agent_without_ovelapping(self, agent, tries=100):
-        """ Method to add am Agent to the Playground without overlapping.
+    def _agent_colliding(self, agent):
 
-        Useful when an Agent has a random initial position, to avoid overlapping.
+        all_agents_collision_shapes = [part.pm_visible_shape for part in agent.parts
+                                       if part.pm_visible_shape is not None]
 
-        Args:
-            agent: Agent to add to the Playground
-            tries: Number of times the Playground will try to place the new_entity
+        all_colliding_shapes = [shape for shape in self.space.shapes.copy()
+                                if not shape.sensor
+                                and shape not in all_agents_collision_shapes]
 
-        """
+        collides = False
 
-        trial = 0
-        visible_collide_parts = True
-        interactive_collide_parts = True
+        for part in agent.parts:
 
-        all_shapes = self.space.shapes.copy()
+            if part.pm_visible_shape is not None:
 
-        while (interactive_collide_parts or visible_collide_parts) and trial < tries:
+                collisions = [part.pm_visible_shape.shapes_collide(shape) for shape in all_colliding_shapes]
+                collides = collides or any([len(collision.points) != 0 for collision in collisions])
 
-            self._add_agent(agent)
+        return collides
 
-            visible_collide_parts = False
-            interactive_collide_parts = False
-
-            for part in agent.parts:
-
-                visible_collide = False
-                interactive_collide = False
-
-                if part.pm_visible_shape is not None:
-                    collisions = [part.pm_visible_shape.shapes_collide(shape) for shape in all_shapes]
-                    visible_collide = any([len(collision.points) != 0 for collision in collisions])
-
-                if part.pm_interaction_shape is not None:
-                    collisions = [part.pm_interaction_shape.shapes_collide(shape) for shape in all_shapes]
-                    interactive_collide = any([len(collision.points) != 0 for collision in collisions])
-
-                visible_collide_parts = visible_collide or visible_collide_parts
-                interactive_collide_parts = interactive_collide or interactive_collide_parts
-
-            if visible_collide_parts or interactive_collide_parts:
-                self.remove_agent(agent)
-
-            trial += 1
-
-        if interactive_collide_parts or visible_collide_parts:
-            return False
-
-        return True
-
-    def _add_scene_element(self, new_scene_element, new_position):
+    def add_scene_element(self, scene_element,
+                          allow_overlapping=True,
+                          max_attempts=100,
+                          error_if_fails=True,
+                          keep_position=False):
         """ Method to add a SceneElement to the Playground.
-        """
-
-        if new_scene_element in self.scene_elements:
-            raise ValueError('Scene element already in Playground')
-
-        new_scene_element.size_playground = self.size
-
-        if new_position:
-            new_scene_element.position = new_scene_element.initial_position
-
-        self.space.add(*new_scene_element.pm_elements)
-        self.scene_elements.append(new_scene_element)
-        if new_scene_element in self._disappeared_scene_elements:
-            self._disappeared_scene_elements.remove(new_scene_element)
-
-    def _add_scene_element_without_ovelapping(self, scene_element, tries, new_position):
-
-        trial = 0
-        visible_collide = True
-        interactive_collide = True
-
-        all_shapes = self.space.shapes.copy()
-
-        while (visible_collide or interactive_collide) and trial < tries:
-
-            self._add_scene_element(scene_element, new_position)
-
-            visible_collide = False
-            interactive_collide = False
-
-            if scene_element.pm_visible_shape is not None:
-                collisions = [scene_element.pm_visible_shape.shapes_collide(shape) for shape in all_shapes]
-                visible_collide = any([len(collision.points) != 0 for collision in collisions])
-
-            if scene_element.pm_interaction_shape is not None:
-                collisions = [scene_element.pm_interaction_shape.shapes_collide(shape) for shape in all_shapes]
-                interactive_collide = any([len(collision.points) != 0 for collision in collisions])
-
-            if visible_collide or interactive_collide:
-                self.remove_scene_element(scene_element)
-
-            trial += 1
-
-        if visible_collide or interactive_collide:
-            return False
-
-        return True
-
-    def add_scene_element(self, scene_element, tries=100, new_position=True):
-        """ Method to add a SceneElement to the Playground.
-        If the Element has its attribute allow_overlapping set to False,
-        the playground will try to add it multiple times.
-
-        Useful when a SceneElement has a random initial position, to avoid overlapping.
 
         Args:
             scene_element: Scene Element to add to the Playground
-            tries: Number of times the Playground will try to place the new_entity
+            allow_overlapping: If True, allows new elements to overlap with other elements when added to the Playground.
+            max_attempts: If overlapping is not allowed, maximum number of attempts to place the element.
+            error_if_fails: If True, an error will be raised if an element can't be placed in the Playground.
+            keep_position: if True, will not reinitialize position
+
+        Notes:
+            keep_position is usefull in the case where scene elements must disappear and reappear in the same position.
+            In this case, the position should not be re-initialized.
 
         """
 
@@ -334,19 +287,64 @@ class Playground(ABC):
 
         else:
             if scene_element in self.scene_elements:
-                raise ValueError('Field already in Playground')
+                raise ValueError('Scene Element already in Playground')
 
             # Else
             scene_element.size_playground = self.size
 
-            if scene_element.allow_overlapping:
-                self._add_scene_element(scene_element, new_position)
+            if scene_element.background or allow_overlapping:
+                self._add_scene_element(scene_element, keep_position)
 
             else:
-                success = self._add_scene_element_without_ovelapping(scene_element, tries = tries, new_position=new_position)
+
+                attempt = 0
+                success = False
+
+                while not success or attempt < max_attempts:
+
+                    self._add_scene_element(scene_element, keep_position)
+                    if not self._entity_colliding(scene_element):
+                        success = True
+                    else:
+                        self.remove_scene_element(scene_element)
+                    attempt += 1
 
                 if not success:
-                    raise ValueError('Entity could not be placed without overlapping')
+
+                    msg = 'Scene Element could not be placed without overlapping'
+
+                    if error_if_fails:
+                        raise ValueError(msg)
+
+                    else:
+                        print(msg)
+
+    def _add_scene_element(self, new_scene_element, keep_position):
+
+        if new_scene_element in self.scene_elements:
+            raise ValueError('Scene element already in Playground')
+
+        if not keep_position:
+            new_scene_element.position = new_scene_element.initial_position
+
+        self.space.add(*new_scene_element.pm_elements)
+        self.scene_elements.append(new_scene_element)
+        if new_scene_element in self._disappeared_scene_elements:
+            self._disappeared_scene_elements.remove(new_scene_element)
+
+    def _entity_colliding(self, entity):
+
+        collides = False
+
+        all_colliding_shapes = [shape for shape in self.space.shapes.copy()
+                      if not shape.sensor
+                      and shape not in entity.pm_elements]
+
+        if entity.pm_visible_shape is not None:
+            collisions = [entity.pm_visible_shape.shapes_collide(shape) for shape in all_colliding_shapes]
+            collides = any([len(collision.points) != 0 for collision in collisions])
+
+        return collides
 
     def _remove_agents(self):
 
@@ -449,10 +447,10 @@ class Playground(ABC):
         for part in agent.parts:
 
             if element.pm_visible_shape is not None:
-                overlaps = overlaps or part.pm_visible_shape.shapes_collide(element.pm_visible_shape).points != []
+                overlaps = overlaps or part.pm_visible_shape.shapes_collide(element.pm_visible_shape).points
 
             if element.pm_interaction_shape is not None:
-                overlaps = overlaps or part.pm_visible_shape.shapes_collide(element.pm_interaction_shape).points != []
+                overlaps = overlaps or part.pm_visible_shape.shapes_collide(element.pm_interaction_shape).points
 
         return overlaps
 
@@ -630,7 +628,7 @@ class Playground(ABC):
             completely_eaten = edible_entity.eats()
 
             if not completely_eaten:
-                self.add_scene_element(edible_entity, new_position=False)
+                self.add_scene_element(edible_entity, keep_position=True)
 
             body_part.is_eating = False
 
@@ -642,11 +640,14 @@ class Playground(ABC):
         teleport = self.get_scene_element_from_shape(arbiter.shapes[1])
 
         if teleport is None or teleport.target is None or (agent, teleport) in self._teleported:
+
             return True
+
+        if agent.is_teleporting: return True
 
         if teleport.target.traversable:
             agent.position = (teleport.target.position[0], teleport.target.position[1],
-                          agent.position[2])
+                              agent.position[2])
         else:
             area_shape = teleport.target.physical_shape
             if area_shape == 'rectangle':
@@ -671,8 +672,10 @@ class Playground(ABC):
 
             agent.position = sampler.sample()
 
-        if (agent, teleport) not in self._teleported:
+        if (agent, teleport.target) not in self._teleported:
             self._teleported.append((agent, teleport.target))
+
+        agent.is_teleporting = True
 
         return True
 

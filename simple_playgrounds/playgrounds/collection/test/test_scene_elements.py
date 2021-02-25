@@ -29,8 +29,6 @@ class Basics(SingleRoom):
         hexagon_01 = Basic([100, 100, 0], default_config_key='hexagon', mass = 5)
         self.add_scene_element(hexagon_01)
 
-        self.agent_starting_area = [100, 60, 0]
-
 
 @PlaygroundRegister.register('test_grasp')
 class Graspables(SingleRoom):
@@ -54,8 +52,6 @@ class Graspables(SingleRoom):
 
         hexagon_01 = Basic([100, 100, 0], default_config_key='hexagon', graspable = True, mass = 10)
         self.add_scene_element(hexagon_01)
-
-        self.agent_starting_area = [100, 60, 0]
 
 
 @PlaygroundRegister.register('test_contacts')
@@ -90,8 +86,6 @@ class Contacts(SingleRoom):
             candy = Candy(outside_area)
             self.add_scene_element(candy)
 
-        self.agent_starting_area = [100, 60, 0]
-
 
 @PlaygroundRegister.register('test_zones')
 class Zones(SingleRoom):
@@ -117,8 +111,6 @@ class Zones(SingleRoom):
 
         toxic_1 = ToxicZone([150, 100, 0])
         self.add_scene_element(toxic_1)
-
-        self.agent_starting_area = [100, 60, 0]
 
 
 @PlaygroundRegister.register('test_interactives')
@@ -184,8 +176,6 @@ class Interactives(SingleRoom):
         self.add_scene_element(coin)
         vending.accepted_coins.append(coin)
 
-        self.agent_starting_area = [130, 60, 0]
-
 
 @PlaygroundRegister.register('test_conditioning')
 class Conditioning(SingleRoom):
@@ -200,8 +190,6 @@ class Conditioning(SingleRoom):
         light_01 = ConditionedColorChanging([150, 100, 0], conditioned_entity=lever, timers=[100, 100],
                                             textures=[[100, 200, 0], [200, 100, 200]])
         self.add_scene_element(light_01)
-
-        self.agent_starting_area = [100, 60, 0]
 
 
 @PlaygroundRegister.register('test_doors')
@@ -282,8 +270,6 @@ class Proximity(SingleRoom):
         goal_1 = GoalZone([20, 20, 0])
         self.add_scene_element(goal_1)
 
-        self.agent_starting_area = [100, 60, 0]
-
 
 @PlaygroundRegister.register('test_fields')
 class Fields(SingleRoom):
@@ -299,8 +285,6 @@ class Fields(SingleRoom):
         area_2 = PositionAreaSampler(area_shape='rectangle', center=[200, 70], width_length=[50, 50])
         field = Field(Candy, production_area=area_2)
         self.add_scene_element(field)
-
-        self.agent_starting_area = [100, 60, 0]
 
 
 @PlaygroundRegister.register('test_trajectories')
@@ -321,5 +305,3 @@ class Trajectories(SingleRoom):
         trajectory = Trajectory('shape', 100, 8, shape='pentagon', center = [50, 150, 0], radius= 30, counter_clockwise = True)
         fireball = Fireball(trajectory)
         self.add_scene_element(fireball)
-
-        self.agent_starting_area = [100, 60, 0]

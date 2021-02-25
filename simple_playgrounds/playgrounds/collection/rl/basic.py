@@ -121,15 +121,18 @@ class DispenserEnv(ConnectedRooms2D):
     def place_scene_elements(self):
 
 
-        dispenser = Dispenser(self.area_disp, production_area = self.area_prod, entity_produced=Candy, radius = 10, is_temporary_entity = True, allow_overlapping = False )
-        self.add_scene_element(dispenser)
+        self.dispenser = Dispenser(self.area_disp, production_area = self.area_prod, entity_produced=Candy, radius = 10, is_temporary_entity = True, allow_overlapping = False )
+        self.add_scene_element(self.dispenser)
 
 
     def reset(self):
+        self.remove_scene_element(self.dispenser)
+
         self.assign_areas()
         for agent in self.agents:
             agent.initial_position = self.agent_starting_area
         super().reset()
+
         self.place_scene_elements()
 
 

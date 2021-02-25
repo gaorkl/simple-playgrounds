@@ -19,7 +19,7 @@ class Agent:
     """
     index_agent = 0
 
-    def __init__(self, base_platform, initial_position=None, name=None, allow_overlapping=True, noise_params=None):
+    def __init__(self, base_platform, initial_position=None, name=None, noise_params=None):
         """
         Base class for agents.
 
@@ -28,7 +28,6 @@ class Agent:
             base_platform: Platform object, required to initialize an agent.
                 All agents have a Platform.
             name: Name of the agent. If not provide, a name will be added by default.
-            allow_overlapping: If True, agents could start in a playground while overlapping with other shapes.
             noise_params: TODO
         """
 
@@ -58,9 +57,6 @@ class Agent:
         # Keep track of the actions for display
         self.current_actions = None
 
-        # Allows overlapping when placing the agent
-        self.allow_overlapping = allow_overlapping
-
         # Motor noise
         self._noise = False
         if noise_params is not None:
@@ -78,6 +74,9 @@ class Agent:
 
         # Reward
         self.reward = 0
+
+        # Teleport
+        self.is_teleporting = False
 
     # CONTROLLER
 
@@ -315,6 +314,7 @@ class Agent:
         """
 
         self.reward = 0
+        self.is_teleporting = False
 
     def reset(self):
         """

@@ -15,8 +15,12 @@ from simple_playgrounds.utils.definitions import SensorModality, SIMULATION_STEP
 class Engine:
 
     """
-    Engine manages the interactions between agents and a playground.
+    An Engine manages the interactions between agents and a playground.
 
+    Attributes:
+        playground: Playground
+        agents: list of all agents in the Playground.
+        game_on: if True, the playground didn't reached termination.
     """
 
     # pylint: disable=too-many-function-args
@@ -25,21 +29,21 @@ class Engine:
     # pylint: disable=line-too-long
 
     def __init__(self, playground, time_limit=None, screen=False):
-
         """
-
         Args:
-            playground (:obj: 'Playground'): Playground where the agents will be placed
-            time_limit (:obj: 'int'): Total number of timesteps. Can also be defined in playground
+            playground (:obj: 'Playground'): Playground where the agents will be placed.
+            time_limit (:obj: 'int'): Number of time steps that the playground will be run.
+                                      Can also be defined in playground.
             screen: If True, a pygame screen is created for display.
                 Default: False
 
-        Note:
+        Notes:
             A pygame screen is created by default if one agent is controlled by Keyboard.
-            You can reset the game by using R key, and terminate it using Q key.
+            You can terminate an engine using the Q key.
             Screen is intended for debugging or playing by a human (using Keyboard).
 
             If time limit is defined in playground and engine, engine prevails.
+            If time limit is False, environment never terminates.
 
         """
 
@@ -47,21 +51,17 @@ class Engine:
         self.agents = self.playground.agents
 
         if time_limit is not None:
-            self.time_limit = time_limit
+            self._time_limit = time_limit
 
         elif self.playground.time_limit is not None:
-            self.time_limit = self.playground.time_limit
-
-        else:
-            raise ValueError('Time limit should be defined in the playground or game engine')
+            self._time_limit = self.playground.time_limit
 
         # Display screen
-
-        self.screen = None
+        self._screen = None
         if screen:
             # Screen for Pygame
-            self.screen = pygame.display.set_mode((self.playground.width, self.playground.length))
-            self.screen.set_alpha(None)
+            self._screen = pygame.display.set_mode((self.playground.width, self.playground.length))
+            self._screen.set_alpha(None)
             self.quit_key_ready = True
 
         # Pygame Surfaces to display the environment
@@ -182,8 +182,13 @@ class Engine:
         return False
 
     def _reached_time_limit(self):
-        if self._elapsed_time >= self.time_limit-1:
+
+        if not self._time_limit:
+            return False
+
+        if self._elapsed_time >= self._time_limit-1:
             return True
+
         return False
 
     def _check_keyboard(self):
@@ -196,7 +201,7 @@ class Engine:
         """
         terminate_game = False
 
-        if self.screen is not None:
+        if self._screen is not None:
 
             pygame.event.get()
 
@@ -240,11 +245,11 @@ class Engine:
         If the screen is set, updates the screen and displays the environment.
         """
 
-        if self.screen is not None:
+        if self._screen is not None:
 
             self._generate_surface_environment(with_interactions=True)
             rot_surface = pygame.transform.rotate(self._surface_buffer, 180)
-            self.screen.blit(rot_surface, (0, 0), None)
+            self._screen.blit(rot_surface, (0, 0), None)
 
             pygame.display.flip()
 
@@ -435,7 +440,7 @@ class Engine:
     def run(self, steps=None, update_screen=False, print_rewards=False):
         """ Run the engine for the full duration of the game or a certain number of steps"""
 
-        if self.screen is False and update_screen:
+        if self._screen is False and update_screen:
             raise ValueError("Can't update non-existing screen")
 
         continue_for_n_steps = True
@@ -466,11 +471,10 @@ class Engine:
             if terminate:
                 self.game_on = False
 
-    def terminate(self):
+    @staticmethod
+    def terminate():
         """
-        Terminate the engine. Quits all pygame instances. Remove all agents from playgrounds.
+        Terminate the engine. Quits all pygame instances.
 
         """
         pygame.quit()  # pylint: disable=no-member
-        for agent in self.agents:
-            self.playground.remove_agent(agent)

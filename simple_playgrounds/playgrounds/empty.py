@@ -7,9 +7,11 @@ import math
 import random
 
 from simple_playgrounds.playground import Playground
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
 from .scene_elements import Basic, Door
 
 #pylint: disable=line-too-long
+
 
 class ConnectedRooms2D(Playground):
 
@@ -26,8 +28,8 @@ class ConnectedRooms2D(Playground):
 
         self.wall_texture = kwargs.get('wall_texture', self.parse_configuration(wall_type))
 
-        self.wall_params = {**self.parse_configuration('wall'), **kwargs.get('wall_params', {})}
-        self.wall_params['texture'] = self.wall_texture
+        self.wall_params = {**self.parse_configuration('wall'), **kwargs.get('wall_params', {}),
+                            'texture': self.wall_texture}
         self.wall_depth = self.wall_params['depth']
 
         self.doorstep_type = playground_params['doorstep_type']
@@ -48,15 +50,15 @@ class ConnectedRooms2D(Playground):
         external_wall_entities = self._generate_external_wall_entities(wall_lengths_and_positions)
 
         all_walls = room_wall_entities + external_wall_entities
-        if hasattr(self, 'scene_entities'):
-            self.scene_entities = self.scene_entities + all_walls
-        else:
-            self.scene_entities = all_walls
+        self._scene_entities = self._scene_entities + all_walls
 
         super(ConnectedRooms2D, self).__init__(size=size)
 
-        # By default, an agent starts in the middle of the first room
-        self.initial_agent_position = tuple( list(self.area_rooms[(0, 0)][0])+[0.0] )
+        # By default, an agent starts in a random position of the first room
+
+        center, shape = self.area_rooms[(0, 0)]
+        shape = shape[0] - self.wall_depth, shape[1] - self.wall_depth,
+        self.initial_agent_position = PositionAreaSampler(center=center, area_shape='rectangle', width_length=shape)
 
     def _compute_area_rooms(self):
 
