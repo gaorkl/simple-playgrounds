@@ -1,7 +1,7 @@
 """
 Module for Basic SceneElements
 """
-from ..element import SceneElement
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 
 
 class Basic(SceneElement):
@@ -27,7 +27,7 @@ class Basic(SceneElement):
         default_config = self._parse_configuration('basic', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(Basic, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
 
 class Traversable(Basic):
@@ -51,7 +51,7 @@ class Door(SceneElement):
         default_config = self._parse_configuration('interactive', 'door')
         entity_params = {**default_config, **kwargs}
 
-        super(Door, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.opened = False
 

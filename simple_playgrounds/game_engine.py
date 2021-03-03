@@ -449,7 +449,7 @@ class Engine:
 
             actions = {}
             for agent in self.agents:
-                actions[agent] = agent.controller.generate_commands()
+                actions[agent] = agent.controller.generate_actions()
 
             terminate = self.step(actions)
             self.update_observations()

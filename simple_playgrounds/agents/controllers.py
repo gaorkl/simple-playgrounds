@@ -20,12 +20,16 @@ class Controller(ABC):
         self.controlled_actuators = []
 
     @abstractmethod
-    def generate_commands(self):
-        """ Generate actions for each part of an agent,
-        Returns a dictionary of parts and associated actions,
+    def generate_actions(self):
+        """ Generate actions for each actuator of an agent,
+        Returns a dictionary of actuators and associated action value.
         """
 
-    def generate_empty_commands(self):
+    def generate_null_actions(self):
+        """
+        Generate dictionary of actuators and null actions.
+        All actions are set to zero.
+        """
         commands = {}
         for actuator in self.controlled_actuators:
             commands[actuator] = 0
@@ -34,8 +38,11 @@ class Controller(ABC):
 
 
 class External(Controller):
-
-    def generate_commands(self):
+    """
+    This controller is used when actions are decided from outside of the simulator.
+    E.g. this class can be used with RL algorithms.
+    """
+    def generate_actions(self):
         pass
 
 
@@ -47,20 +54,20 @@ class Random(Controller):
     """
     controller_type = 'random'
 
-    def generate_commands(self):
+    def generate_actions(self):
 
         # actions = self.null_actions.copy()
         commands = {}
 
         for actuator in self.controlled_actuators:
 
-            if actuator.action_type == ActionTypes.CONTINUOUS_CENTERED:
+            if actuator.action_range == ActionTypes.CONTINUOUS_CENTERED:
                 act_value = random.uniform(actuator.min, actuator.max)
 
-            elif actuator.action_type == ActionTypes.CONTINUOUS_NOT_CENTERED:
+            elif actuator.action_range == ActionTypes.CONTINUOUS_NOT_CENTERED:
                 act_value = random.uniform(actuator.min, actuator.max)
 
-            elif actuator.action_type == ActionTypes.DISCRETE:
+            elif actuator.action_range == ActionTypes.DISCRETE:
                 act_value = random.choice([actuator.min, actuator.max])
 
             else:
@@ -106,7 +113,7 @@ class Keyboard(Controller):
 
                     self.key_map[key] = (actuator, behavior, value)
 
-    def generate_commands(self):
+    def generate_actions(self):
 
         # pylint: disable=undefined-variable
 
@@ -125,7 +132,7 @@ class Keyboard(Controller):
             if key_pressed not in pressed:
                 self.press_once.remove(key_pressed)
 
-        commands = self.generate_empty_commands()
+        commands = self.generate_null_actions()
 
         for key_pressed in pressed:
 

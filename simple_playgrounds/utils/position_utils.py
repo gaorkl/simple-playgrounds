@@ -8,7 +8,7 @@ from collections.abc import Generator
 
 import numpy as np
 
-from .definitions import geometric_shapes
+from simple_playgrounds.utils.definitions import geometric_shapes
 
 #pylint: disable=line-too-long
 #pylint: disable=too-many-instance-attributes

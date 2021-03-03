@@ -4,15 +4,16 @@ Module defining the Base Classes for Sensors.
 
 from abc import abstractmethod, ABC
 import os
-import yaml
 import math
+from operator import attrgetter
+
+import yaml
+
 import pymunk
 import numpy as np
 
-from operator import attrgetter
-
-from simple_playgrounds.utils.definitions import SensorModality
-from simple_playgrounds.entity import Entity
+from ...utils.definitions import SensorModality
+from ...entity import Entity
 
 
 class Sensor(ABC):
@@ -36,9 +37,9 @@ class Sensor(ABC):
     sensor_type = 'sensor'
 
     def __init__(self, anchor, fov, resolution, max_range,
-                 invisible_elements, normalize, noise_params, name=None, **kwargs):
+                 invisible_elements, normalize, noise_params, name=None, **sensor_params):
         """
-        Sensors are attached to an anchor. They detect every visible Entity (Parts or Scene Elements).
+        Sensors are attached to an anchor. They detect every visible Agent Part or Scene Element.
         If the entity is in invisible elements, it is not detected.
 
         Args:
@@ -48,7 +49,8 @@ class Sensor(ABC):
             max_range: maximum range of the sensor (in the same units as the playground distances).
             invisible_elements: list of elements invisible to the sensor.
             normalize: boolean. If True, sensor values are scaled between 0 and 1.
-            noise_params: Dictionary of noise parameters. Noise is applied to the raw sensor, before normalization.
+            noise_params: Dictionary of noise parameters.
+                Noise is applied to the raw sensor, before normalization.
             name: name of the sensor. If not provided, a name will be chosen by default.
 
         Noise Parameters:
@@ -167,17 +169,23 @@ class Sensor(ABC):
 
 
 class RayCollisionSensor(Sensor, ABC):
-
-    sensor_modality = SensorModality.ROBOTIC
-
     """
     Base class for Ray Collision sensors.
-    Ray collisions are computed using pymunk segment queries, that detect intersection with obstacles.
+    Ray collisions are computed using pymunk segment queries.
+    They detect intersection with obstacles.
     Robotic sensors and Semantic sensors inherit from this class.
 
     """
+    sensor_modality = SensorModality.ROBOTIC
 
     def __init__(self, remove_occluded, remove_duplicates, **sensor_params):
+        """
+        Args:
+            remove_occluded (bool): If True, only keeps the closest visible detection.
+            remove_duplicates: If True, removes detections of the same objects on multiple rays.
+                Keeps the closest detection.
+            **sensor_params: Additional sensor params.
+        """
 
         default_config = self._parse_configuration()
         sensor_params = {**default_config, **sensor_params}
@@ -195,9 +203,8 @@ class RayCollisionSensor(Sensor, ABC):
         if self._resolution == 1:
             self._ray_angles = [0]
         else:
-            self._ray_angles = [n * self._fov / (self._resolution - 1) - self._fov / 2 for n in range(self._resolution)]
-
-        #self._filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS() )#^ 0b1)
+            self._ray_angles = [n * self._fov / (self._resolution - 1) - self._fov / 2
+                                for n in range(self._resolution)]
 
         self._invisible_shapes = []
 
@@ -219,7 +226,9 @@ class RayCollisionSensor(Sensor, ABC):
     @staticmethod
     def _remove_duplicate_collisions(collisions_by_angle):
 
-        all_shapes = list(set(col[0].shape for angle, col in collisions_by_angle.items() if col != []))
+        all_shapes = list(set(col[0].shape
+                              for angle, col in collisions_by_angle.items()
+                              if col ))
 
         all_collisions = []
         for angle, cols in collisions_by_angle.items():
@@ -269,13 +278,13 @@ class RayCollisionSensor(Sensor, ABC):
 
         return collisions
 
-    def _compute_points(self, pg):
+    def _compute_points(self, playground):
 
         points = {}
 
         for sensor_angle in self._ray_angles:
 
-            collisions = self._compute_collisions(pg, sensor_angle)
+            collisions = self._compute_collisions(playground, sensor_angle)
             points[sensor_angle] = collisions
 
         if self._remove_duplicates:
@@ -291,9 +300,10 @@ class RayCollisionSensor(Sensor, ABC):
 
         elif self._noise_type == 'salt_pepper':
 
+            proba = [self._noise_probability/2, 1-self._noise_probability, self._noise_probability/2]
             additive_noise = np.random.choice([-self._sensor_max_value, 0, self._sensor_max_value],
-                                               p=[self._noise_probability/2, 1-self._noise_probability, self._noise_probability/2],
-                                               size= self.shape)
+                                              p=proba,
+                                              size= self.shape)
 
         else:
             raise ValueError

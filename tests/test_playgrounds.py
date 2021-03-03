@@ -140,7 +140,7 @@ def test_multisteps():
 
             actions = {}
             for agent in engine.agents:
-                actions[agent] = agent.controller.generate_commands()
+                actions[agent] = agent.controller.generate_actions()
 
             terminate = engine.multiple_steps(actions, n_steps=3)
             engine.update_observations()

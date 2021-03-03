@@ -9,9 +9,9 @@ import numpy
 import pymunk
 import pygame
 
-from .utils.position_utils import PositionAreaSampler, Trajectory
-from .utils.texture import TextureGenerator, Texture
-from .utils.definitions import geometric_shapes, CollisionTypes
+from simple_playgrounds.utils.position_utils import PositionAreaSampler, Trajectory
+from simple_playgrounds.utils.texture import TextureGenerator, Texture
+from simple_playgrounds.utils.definitions import geometric_shapes, CollisionTypes
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
@@ -348,12 +348,15 @@ class Entity(ABC):
 
     @property
     def position_np(self):
+        """
+        Position (x, y, orientation) of the Entity in numpy coordinates.
+        """
         return numpy.array(self.position)
 
     @property
     def position(self):
         """
-        Position (x, y, orientation) of the Entity
+        Position (x, y, orientation) of the Entity in Cartesian coordinates.
         """
 
         pm_x, pm_y = self.pm_body.position
@@ -386,12 +389,15 @@ class Entity(ABC):
 
     @property
     def velocity_np(self):
+        """
+        Velocity of the Entity in numpy coordinates
+        """
         return numpy.array(self.velocity)
 
     @property
     def velocity(self):
         """
-        Velocity of the Entity
+        Velocity of the Entity in Cartesian coordinates
         """
         v_x, v_y = self.pm_body.velocity
         v_phi = self.pm_body.angular_velocity
@@ -408,7 +414,9 @@ class Entity(ABC):
 
     @property
     def relative_velocity(self):
-
+        """
+        Relative velocity of the Entity in Cartesian coordinates
+        """
         abs_vel_x, abs_vel_y, abs_ang_vel = self.velocity
         _, _, angle = self.position
 
@@ -445,7 +453,12 @@ class Entity(ABC):
 
     def draw(self, surface, draw_interaction=False, force_recompute_mask=False):
         """
-        Draw the obstacle on the environment screen
+        Draw the entity on the surface.
+
+        Args:
+            surface: Pygame Surface.
+            draw_interaction: If True and Entity is interactive, draws the interactive area.
+            force_recompute_mask: If True, the visual appearance is re-calculated.
         """
 
         if self.prev_angle != self.pm_body.angle or force_recompute_mask:

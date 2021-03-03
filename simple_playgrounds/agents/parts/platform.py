@@ -44,7 +44,6 @@ class Platform(Part, ABC):
 
         self.max_linear_force = body_part_params['max_linear_force']
         self.max_angular_velocity = body_part_params['max_angular_velocity']
-        # self.max_longitudinal_velocity = body_part_params['max_longitudinal_velocity']
 
     def apply_action(self, actuator, value):
         super().apply_action(actuator, value)
@@ -72,10 +71,12 @@ class ForwardPlatform(Platform):
 
         super().__init__(**kwargs)
 
-        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS_NOT_CENTERED, 0, 1)
+        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
+                                                    ActionTypes.CONTINUOUS_NOT_CENTERED, 0, 1)
         self.actuators.append(self.longitudinal_force_actuator)
 
-        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
+                                                  ActionTypes.CONTINUOUS_CENTERED, -1, 1)
         self.actuators.append(self.angular_velocity_actuator)
 
     def apply_action(self, actuator, value):

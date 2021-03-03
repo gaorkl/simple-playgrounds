@@ -2,8 +2,8 @@
 Module for Gem SceneElements.
 Gem interacts with other SceneElements.
 """
-from ..element  import SceneElement
-from ....utils import CollisionTypes
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils import CollisionTypes
 
 
 class GemSceneElement(SceneElement):
@@ -30,7 +30,6 @@ class Coin(GemSceneElement):
     movable = True
     background = False
 
-
     def __init__(self, initial_position, **kwargs):
         """
         Default: Gold circle of radius 5 and mass 5, movable.
@@ -39,7 +38,7 @@ class Coin(GemSceneElement):
         default_config = self._parse_configuration('interactive', 'coin')
         entity_params = {**default_config, **kwargs}
 
-        super(Coin, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
 
 class Key(GemSceneElement):
@@ -51,7 +50,6 @@ class Key(GemSceneElement):
     movable = True
     background = False
 
-
     def __init__(self, initial_position, **kwargs):
         """
         Default: Grey hexagon of radius 8 and mass 5, movable.
@@ -60,4 +58,4 @@ class Key(GemSceneElement):
         default_config = self._parse_configuration('interactive', 'key')
         entity_params = {**default_config, **kwargs}
 
-        super(Key, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)

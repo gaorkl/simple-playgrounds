@@ -3,11 +3,11 @@ InteractiveSceneElements can be activated by an agent.
 """
 from abc import ABC, abstractmethod
 
-from ..element import SceneElement
-from ....utils.definitions import CollisionTypes
-from ....utils.position_utils import PositionAreaSampler
-from ....agents.parts import Part
-from ....playground import Playground
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
+from simple_playgrounds.agents.parts import Part
+from simple_playgrounds.playground import Playground
 
 #pylint: disable=line-too-long
 
@@ -64,7 +64,7 @@ class Lever(InteractiveSceneElement):
         default_config = self._parse_configuration('interactive', 'lever')
         entity_params = {**default_config, **kwargs}
 
-        super(Lever, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
 
@@ -101,7 +101,6 @@ class Dispenser(InteractiveSceneElement):
     entity_type = 'dispenser'
     interactive = True
 
-
     def __init__(self, initial_position, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
 
         """
@@ -123,7 +122,7 @@ class Dispenser(InteractiveSceneElement):
         default_config = self._parse_configuration('interactive', 'dispenser')
         entity_params = {**default_config, **kwargs}
 
-        super(Dispenser, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
 
@@ -189,7 +188,6 @@ class Chest(InteractiveSceneElement):
     interactive = True
     background = False
 
-
     def __init__(self, initial_position, key, treasure, **kwargs):
         """ Chest Entity.
         Default: Purple rectangle of size 20x30
@@ -205,7 +203,7 @@ class Chest(InteractiveSceneElement):
         default_config = self._parse_configuration('interactive', 'chest')
         entity_params = {**default_config, **kwargs}
 
-        super(Chest, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
         self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.key = key
@@ -248,7 +246,7 @@ class VendingMachine(InteractiveSceneElement):
         default_config = self._parse_configuration('interactive', 'vending_machine')
         entity_params = {**default_config, **kwargs}
 
-        super(VendingMachine, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
         self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.reward = entity_params.get('reward')
@@ -304,7 +302,7 @@ class OpenCloseSwitch(InteractiveSceneElement):
         default_config = self._parse_configuration('interactive', 'switch')
         entity_params = {**default_config, **kwargs}
 
-        super(OpenCloseSwitch, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.door = door
 
@@ -357,7 +355,7 @@ class TimerSwitch(InteractiveSceneElement):
         default_config = self._parse_configuration('interactive', 'switch')
         entity_params = {**default_config, **kwargs}
 
-        super(TimerSwitch, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.door = door
 
@@ -412,7 +410,6 @@ class Lock(InteractiveSceneElement):
     entity_type = 'lock'
     background = False
 
-
     def __init__(self, initial_position, door, key, **kwargs):
         """ Lock for a door, opens with a key.
 
@@ -429,7 +426,7 @@ class Lock(InteractiveSceneElement):
         default_config = self._parse_configuration('interactive', 'lock')
         entity_params = {**default_config, **kwargs}
 
-        super(Lock, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
         self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.door = door

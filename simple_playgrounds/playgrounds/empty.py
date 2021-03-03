@@ -8,7 +8,7 @@ import random
 
 from simple_playgrounds.playground import Playground
 from simple_playgrounds.utils.position_utils import PositionAreaSampler
-from .scene_elements import Basic, Door
+from simple_playgrounds.playgrounds.scene_elements import Basic, Door
 
 #pylint: disable=line-too-long
 

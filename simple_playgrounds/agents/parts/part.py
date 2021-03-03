@@ -91,26 +91,23 @@ class Part(Entity, ABC):
 
         """
 
-        fname = 'utils/configs/agent_parts.yml'
+        file_name = 'utils/configs/agent_parts.yml'
 
-        __location__ = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))))
-        with open(os.path.join(__location__, fname), 'r') as yaml_file:
+        __location__ = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(os.getcwd(),
+                                                                                     os.path.dirname(__file__)))))
+        with open(os.path.join(__location__, file_name), 'r') as yaml_file:
             default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
         return default_config[part_type]
 
-    def reset_actuators(self):
-
-        for actuator in self.actuators:
-            self.apply_action(actuator, value=0)
-
     @abstractmethod
     def apply_action(self, actuator, value):
         """
-        Apply the action to the physical body part
+        Apply the action to the physical body part.
 
         Args:
-            actuator (:obj: 'dict'): dictionary of actions. keys are ActionTypes, values are floats.
+            actuator (:obj: 'Actuator'): Actuator on which action is applied.
+            value (float): value of the Actuator
 
         """
         value = self._check_value_actuator(actuator, value)
@@ -130,7 +127,7 @@ class Part(Entity, ABC):
     @staticmethod
     def _check_value_actuator(actuator, value):
 
-        if not isinstance(value, numbers.Real ):
+        if not isinstance(value, numbers.Real):
             raise ValueError('Action value for actuator ' + actuator.part_name + 'not a number')
 
         value = min(max(value, actuator.min), actuator.max)
@@ -153,15 +150,26 @@ class Part(Entity, ABC):
 class Actuator:
 
     """
-    Actuator classes defines how one body part moves relative to its anchor.
+    Actuator classes defines how one body acts.
+    It is used to define physical movements as well as interactions (eat, grasp, ...)
+    of parts of an agent.
     """
 
-    def __init__(self, part_name, action, action_type, min_value, max_value):
+    def __init__(self, part_name, action_type, action_range, min_value, max_value):
+        """
+
+        Args:
+            part_name (str): name of the part that the Actuator is associated with.
+            action_type: Type of action (change of angular velocity, grasp, ...). Defined using ActionTypes.
+            action_range: Defines the range of actions (discrete, continuous centered). Defined using ActionTypes.
+            min_value: Min action value
+            max_value: Max action value
+        """
 
         self.part_name = part_name
 
-        self.action = action
-        self.action_type = action_type
+        self.action = action_type
+        self.action_range = action_range
 
         self.min = min_value
         self.max = max_value
@@ -170,6 +178,15 @@ class Actuator:
         self.key_map = {}
 
     def assign_key(self, key, key_behavior, value):
+        """
+        Assign keyboard key to a value.
 
-        self.has_key_mapping= True
+        Args:
+            key: PyGame keyboard key.
+            key_behavior: KeyTypes.PRESS_HOLD or KeyTypes.PRESS_ONCE
+            value: value of the actuator when key is pressed.
+
+        """
+
+        self.has_key_mapping = True
         self.key_map[key] = [key_behavior, value]

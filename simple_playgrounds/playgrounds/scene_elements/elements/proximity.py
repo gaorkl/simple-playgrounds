@@ -1,4 +1,4 @@
-from .passive import PassiveSceneElement
+from simple_playgrounds.playgrounds.scene_elements.elements.passive import PassiveSceneElement
 
 
 class VisibleRewardZone(PassiveSceneElement):
@@ -25,7 +25,7 @@ class VisibleRewardZone(PassiveSceneElement):
         default_config = self._parse_configuration('proximity', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(VisibleRewardZone, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.reward = entity_params['reward']
         self.initial_total_reward = entity_params['total_reward']
@@ -40,12 +40,10 @@ class VisibleRewardZone(PassiveSceneElement):
             if self._reward * self.total_reward < 0:
                 return 0
 
-            else:
-                self.total_reward -= self._reward
-                return self._reward
+            self.total_reward -= self._reward
+            return self._reward
 
-        else:
-            return 0
+        return 0
 
     @reward.setter
     def reward(self, rew):
@@ -68,7 +66,7 @@ class Fairy(VisibleRewardZone):
         Default: Turquoise-blue circle of radius 8, reward 2 and total_reward 200
 
         """
-        super(Fairy, self).__init__(initial_position=initial_position, default_config_key='fairy', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='fairy', **kwargs)
 
 
 class Fireball(VisibleRewardZone):
@@ -80,4 +78,4 @@ class Fireball(VisibleRewardZone):
         Default: Red circle of radius 8, reward -2 and total_reward -200
 
         """
-        super(Fireball, self).__init__(initial_position=initial_position, default_config_key='fireball', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='fireball', **kwargs)

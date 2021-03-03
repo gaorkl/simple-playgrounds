@@ -5,8 +5,8 @@ import random
 import numpy as np
 import cv2
 
-from .utils.definitions import SensorModality, ActionTypes
-from .utils.position_utils import PositionAreaSampler
+from simple_playgrounds.utils.definitions import ActionTypes
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
 
 
 # pylint: disable=too-many-instance-attributes
@@ -24,11 +24,18 @@ class Agent:
         Base class for agents.
 
         Args:
-            initial_position: initial position of the base
             base_platform: Platform object, required to initialize an agent.
                 All agents have a Platform.
+            initial_position: initial position of the base of the agent.
+                Can be tuple, or PositionAreaSampler.
             name: Name of the agent. If not provide, a name will be added by default.
-            noise_params: TODO
+            noise_params: Dictionary of noise parameters.
+                Noise is applied to the actuator, before action.
+
+        Noise Parameters:
+            type: 'gaussian'
+            mean: mean of gaussian noise (default 0)
+            scale: scale / std of gaussian noise (default 1)
         """
 
         if name is None:
@@ -82,6 +89,9 @@ class Agent:
 
     @property
     def controller(self):
+        """
+        The controller allows to select actions for each actuator of the agent.
+        """
         return self._controller
 
     @controller.setter
@@ -94,17 +104,17 @@ class Agent:
         if self._controller.require_key_mapping:
             self._controller.discover_key_mapping()
 
-        self.current_actions = controller.generate_empty_commands()
+        self.current_actions = controller.generate_null_actions()
 
     # POSITION / VELOCITY
 
     @property
     def initial_position(self):
         """
-        Initial position can be fixed (list, tuple) or a PositionAreaSampler.
+        Initial position can be fixed (tuple) or a PositionAreaSampler.
         """
 
-        if isinstance(self._initial_position, (list, tuple)):
+        if isinstance(self._initial_position, tuple):
             return self._initial_position
         if isinstance(self._initial_position, PositionAreaSampler):
             return self._initial_position.sample()
@@ -117,6 +127,9 @@ class Agent:
 
     @property
     def position_np(self):
+        """
+        Position of the agent in numpy coordinate system.
+        """
         return self.base_platform.position_np
 
     @property
@@ -186,11 +199,6 @@ class Agent:
         Returns:
 
         """
-        if new_sensor.sensor_modality == SensorModality.SEMANTIC:
-            self.has_geometric_sensor = True
-        elif new_sensor.sensor_modality == SensorModality.VISUAL:
-            self.has_visual_sensor = True
-
         self.sensors.append(new_sensor)
 
     def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode=False):
@@ -235,7 +243,6 @@ class Agent:
             part: Part to add to the agent.
 
         """
-        part.part_number = len(self.parts)
         self.parts.append(part)
 
     def get_all_actuators(self):
@@ -284,7 +291,7 @@ class Agent:
                 noisy_actions[actuator] = new_value
 
         else:
-            raise ValueError
+            raise ValueError('Noise type not implemented')
 
         return noisy_actions
 
@@ -325,7 +332,11 @@ class Agent:
 
     def draw(self, surface, excluded=None):
         """
-        Draw the agent on the environment screen
+        Draw the agent on a pygame surface.
+
+        Args:
+            surface: Pygame Surface to draw on.
+            excluded: parts that should not be drawn on the surface.
         """
 
         if excluded is None:
@@ -342,11 +353,12 @@ class Agent:
         Function that draws all action values of the agent.
 
         Args:
-            width_action:
-            height_action:
-            plt_mode:
+            width_action: width of the action image in pixels.
+            height_action: height of a single action image in pixels.
+            plt_mode: if True, returns a pyplot-compatible image.
 
         Returns:
+            Image of the agent's current actions.
 
         """
         border = 3
@@ -356,20 +368,18 @@ class Agent:
 
         total_height_actions = number_parts_with_actions * (border + height_action) \
             + (border + height_action) * count_all_actions + border
-
-        current_height = border
+        img_actions = np.ones((total_height_actions, width_action, 4))
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_color = (0, 0, 0)
-
-        img_actions = np.ones((total_height_actions, width_action, 4))
-
         font_scale = 0.5  # height_slot - 2 * space_string
         offset_string_name = int(height_action / 2.0 - font_scale * 10)
 
         action_names_length = max([len(action.action.name) for action, value in self.current_actions.items()])
         font_scale_action = 0.95 * width_action / action_names_length * 0.5 / 10
         offset_string_action = int(height_action / 2.0 - font_scale_action * 10)
+
+        current_height = border
 
         for part in self.parts:
 
@@ -397,12 +407,12 @@ class Agent:
 
                 current_height += height_action
 
-                if action.action_type == ActionTypes.DISCRETE and value == action.max:
+                if action.action_range == ActionTypes.DISCRETE and value == action.max:
 
                     cv2.rectangle(img_actions, (0, current_height),
                                   (width_action, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
 
-                elif action.action_type == ActionTypes.CONTINUOUS_CENTERED and value != 0:
+                elif action.action_range == ActionTypes.CONTINUOUS_CENTERED and value != 0:
 
                     if value < 0:
                         left = int(width_action / 2. + value * width_action / 2.)
@@ -414,7 +424,7 @@ class Agent:
                     cv2.rectangle(img_actions, (left, current_height),
                                   (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
 
-                elif action.action_type == ActionTypes.CONTINUOUS_NOT_CENTERED and value != 0:
+                elif action.action_range == ActionTypes.CONTINUOUS_NOT_CENTERED and value != 0:
 
                     left = int(width_action / 2.)
                     right = int(width_action / 2. + value * width_action / 2.)

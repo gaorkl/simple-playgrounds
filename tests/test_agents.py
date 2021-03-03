@@ -105,14 +105,10 @@ def test_turretagent():
         else:
             print('.... without interactions')
 
-        for platform in ForwardPlatform, FixedPlatform, HolonomicPlatform, ForwardBackwardPlatform:
+        agent = TurretAgent(controller=Random(), interactive=interactive)
 
-            print('......... on platform' + str(platform))
-
-            agent = TurretAgent(controller=Random(), interactive=interactive, platform=platform)
-
-            for pg_class in PlaygroundRegister.filter('test'):
-                run_engine(agent, pg_class)
+        for pg_class in PlaygroundRegister.filter('test'):
+            run_engine(agent, pg_class)
 
 
 def test_agent_initial_position():
@@ -155,25 +151,3 @@ def test_agent_initial_position():
     pg.add_agent(agent)
     assert (agent.position != pos_1)
     pg.remove_agent(agent)
-
-
-
-
-# def test_fullagents_in_empty_playgrounds():
-#
-#     for interactive in [True, False]:
-#
-#         if interactive:
-#             print('.... with interactions')
-#         else:
-#             print('.... without interactions')
-#
-#         for platform in ForwardPlatform, FixedPlatform, HolonomicPlatform, ForwardBackwardPlatform:
-#
-#             print('......... on platform' + str(platform))
-#
-#             agent = TurretAgent(controller=Random(), interactive=interactive, platform=platform)
-#
-#             for pg_class in PlaygroundRegister.filter('test'):
-#                 run_engine(agent, pg_class)
-#

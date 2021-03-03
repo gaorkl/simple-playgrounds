@@ -3,7 +3,7 @@ Contact entities interact upon touching an agent
 """
 from abc import ABC, abstractmethod
 
-from ..element import SceneElement
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 from simple_playgrounds.utils.definitions import CollisionTypes
 
 #pylint: disable=line-too-long
@@ -91,9 +91,9 @@ class VisibleEndGoal(TerminationContact):
 
     def __init__(self, initial_position, **kwargs):
 
-        super(VisibleEndGoal, self).__init__(initial_position=initial_position,
-                                             default_config_key='visible_endgoal',
-                                             **kwargs)
+        super().__init__(initial_position=initial_position,
+                         default_config_key='visible_endgoal',
+                         **kwargs)
 
 
 class VisibleDeathTrap(TerminationContact):
@@ -105,9 +105,9 @@ class VisibleDeathTrap(TerminationContact):
     """
     def __init__(self, initial_position, **kwargs):
 
-        super(VisibleDeathTrap, self).__init__(initial_position=initial_position,
-                                               default_config_key='visible_deathtrap',
-                                               **kwargs)
+        super().__init__(initial_position=initial_position,
+                         default_config_key='visible_deathtrap',
+                         **kwargs)
 
 
 class Absorbable(ContactSceneElement):
@@ -134,7 +134,7 @@ class Absorbable(ContactSceneElement):
         default_config = self._parse_configuration('contact', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super(Absorbable, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
         self.reward = entity_params['reward']
 
     def activate(self):
@@ -153,7 +153,7 @@ class Candy(Absorbable):
     """
     def __init__(self, initial_position, **kwargs):
 
-        super(Candy, self).__init__(initial_position=initial_position, default_config_key='candy', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='candy', **kwargs)
 
 
 class Poison(Absorbable):
@@ -165,7 +165,7 @@ class Poison(Absorbable):
 
     def __init__(self, initial_position, **kwargs):
 
-        super(Poison, self).__init__(initial_position=initial_position, default_config_key='poison', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='poison', **kwargs)
 
 
 class PushButton(ContactSceneElement):
@@ -188,7 +188,7 @@ class PushButton(ContactSceneElement):
         default_config = self._parse_configuration('interactive', 'switch')
         entity_params = {**default_config, **kwargs}
 
-        super(PushButton, self).__init__(initial_position=initial_position, **entity_params)
+        super().__init__(initial_position=initial_position, **entity_params)
 
         self.door = door
 

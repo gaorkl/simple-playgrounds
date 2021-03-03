@@ -59,11 +59,6 @@ class ActionTypes(IntEnum):
     ACTIVATE = auto()
 
 
-class SensorTypes(IntEnum):
-
-    RGB = 1
-
-
 class KeyTypes(IntEnum):
 
     PRESS_HOLD = 1
@@ -84,6 +79,7 @@ class Detection:
         self.entity = entity
         self.distance = distance
         self.angle = angle
+
 
 geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3,
                     'square': 4, 'pentagon': 5, 'hexagon': 6}

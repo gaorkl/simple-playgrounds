@@ -4,8 +4,8 @@ Module for Field
 import random
 from simple_playgrounds.utils import SceneElementTypes
 
-#pylint: disable=too-many-instance-attributes
-#pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
 
 class Field:
     """

@@ -1,8 +1,8 @@
 """
 Teleport can be used to teleport an agent.
 """
-from .basic import Traversable
-from ....utils.definitions import CollisionTypes
+from simple_playgrounds.playgrounds.scene_elements.elements.basic import Traversable
+from simple_playgrounds.utils.definitions import CollisionTypes
 
 #pylint: disable=line-too-long
 

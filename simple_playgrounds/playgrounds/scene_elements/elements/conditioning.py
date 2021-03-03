@@ -1,9 +1,9 @@
 """
 Scene Elements used for conditioning experiments
 """
-from .interactive import Lever
-from ..element import SceneElement
-from ....playground import Playground
+from simple_playgrounds.playgrounds.scene_elements.elements.interactive import Lever
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.playground import Playground
 
 
 class ColorChanging(SceneElement):

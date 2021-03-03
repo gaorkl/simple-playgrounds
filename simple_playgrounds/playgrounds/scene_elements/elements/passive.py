@@ -1,7 +1,7 @@
-from ..element import SceneElement
-from ....utils.definitions import CollisionTypes
-
 from abc import ABC
+
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes
 
 
 class PassiveSceneElement(SceneElement, ABC):
@@ -26,8 +26,7 @@ class PassiveSceneElement(SceneElement, ABC):
             self.reward_provided = True
             return self._reward
 
-        else:
-            return 0
+        return 0
 
     @reward.setter
     def reward(self, rew):
@@ -128,12 +127,10 @@ class RewardZone(PassiveSceneElement):
             if self._reward * self.total_reward < 0:
                 return 0
 
-            else:
-                self.total_reward -= self._reward
-                return self._reward
+            self.total_reward -= self._reward
+            return self._reward
 
-        else:
-            return 0
+        return 0
 
     @reward.setter
     def reward(self, rew):
@@ -154,7 +151,7 @@ class ToxicZone(RewardZone):
 
         """
 
-        super(ToxicZone, self).__init__(initial_position=initial_position, default_config_key='toxic_zone', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='toxic_zone', **kwargs)
 
 
 class HealingZone(RewardZone):
@@ -166,5 +163,5 @@ class HealingZone(RewardZone):
         Default: Blue square of radius 15, reward 1 and total_reward  100000
 
         """
-        super(HealingZone, self).__init__(initial_position=initial_position, default_config_key='healing_zone',
+        super().__init__(initial_position=initial_position, default_config_key='healing_zone',
                                           **kwargs)

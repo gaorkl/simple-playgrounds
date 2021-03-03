@@ -11,8 +11,8 @@ import yaml
 import pymunk
 
 
-from .utils import PositionAreaSampler
-from .utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils import PositionAreaSampler
+from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -83,10 +83,10 @@ class Playground(ABC):
 
         """
 
-        fname = 'utils/configs/playground.yml'
+        file_name = 'utils/configs/playground.yml'
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(__location__, fname), 'r') as yaml_file:
+        with open(os.path.join(__location__, file_name), 'r') as yaml_file:
             default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
         return default_config[key]
@@ -102,7 +102,7 @@ class Playground(ABC):
         space = pymunk.Space()
         space.gravity = pymunk.Vec2d(0., 0.)
         space.damping = SPACE_DAMPING
-        
+
         return space
 
     def update(self, steps):
@@ -218,8 +218,7 @@ class Playground(ABC):
                 if error_if_fails:
                     raise ValueError(msg)
 
-                else:
-                    print(msg)
+                print(msg)
 
     def _add_agent(self, agent, keep_position):
         """ Add an agent to the playground.
@@ -272,7 +271,7 @@ class Playground(ABC):
             keep_position: if True, will not reinitialize position
 
         Notes:
-            keep_position is usefull in the case where scene elements must disappear and reappear in the same position.
+            keep_position is useful in the case where scene elements must disappear and reappear in the same position.
             In this case, the position should not be re-initialized.
 
         """
@@ -316,8 +315,7 @@ class Playground(ABC):
                     if error_if_fails:
                         raise ValueError(msg)
 
-                    else:
-                        print(msg)
+                    print(msg)
 
     def _add_scene_element(self, new_scene_element, keep_position):
 
@@ -337,8 +335,8 @@ class Playground(ABC):
         collides = False
 
         all_colliding_shapes = [shape for shape in self.space.shapes.copy()
-                      if not shape.sensor
-                      and shape not in entity.pm_elements]
+                                if not shape.sensor
+                                and shape not in entity.pm_elements]
 
         if entity.pm_visible_shape is not None:
             collisions = [entity.pm_visible_shape.shapes_collide(shape) for shape in all_colliding_shapes]
@@ -352,6 +350,13 @@ class Playground(ABC):
             self.remove_agent(agent)
 
     def remove_agent(self, agent):
+        """
+        Removes an agent from a playground.
+
+        Args:
+            agent: Agent to remove.
+
+        """
 
         if agent not in self.agents:
             return False
@@ -368,6 +373,13 @@ class Playground(ABC):
         return True
 
     def remove_scene_element(self, scene_element):
+        """
+        Removes scene element from the playground.
+
+        Args:
+            scene_element: Scene Element to remove.
+
+        """
 
         if scene_element not in self.scene_elements:
             return False
@@ -390,7 +402,6 @@ class Playground(ABC):
             body_part = self._grasped_scene_elements[scene_element]
             self.space.remove(*body_part.grasped)
             body_part.grasped = []
-            # self._grasped_scene_elements.pop(scene_element)
 
         return True
 
@@ -435,12 +446,13 @@ class Playground(ABC):
 
         for agent, teleport in self._teleported:
 
-            overlaps = self.agent_overlaps_with_element(agent, teleport)
+            overlaps = self._agent_overlaps_with_element(agent, teleport)
 
             if not overlaps:
                 self._teleported.remove((agent, teleport))
 
-    def agent_overlaps_with_element(self, agent, element):
+    @staticmethod
+    def _agent_overlaps_with_element(agent, element):
 
         overlaps = False
 
@@ -454,7 +466,7 @@ class Playground(ABC):
 
         return overlaps
 
-    def get_scene_element_from_shape(self, pm_shape):
+    def _get_scene_element_from_shape(self, pm_shape):
         """
         Returns: Returns the Scene Element associated with the pymunk shape.
 
@@ -462,7 +474,7 @@ class Playground(ABC):
         entity = next(iter([e for e in self.scene_elements if pm_shape in e.pm_elements]), None)
         return entity
 
-    def get_agent_from_shape(self, pm_shape):
+    def _get_agent_from_shape(self, pm_shape):
         """
         Returns: Returns the Agent associated with the pymunk shape.
 
@@ -478,20 +490,22 @@ class Playground(ABC):
         Returns the element associated with the pymunk shape
 
         Args:
-            pm_shape: Pymunk shaape
+            pm_shape: Pymunk shape
 
         Returns:
-            Single entitiy or None
+            Single entity or None
 
         """
 
-        scene_element = self.get_scene_element_from_shape(pm_shape)
-        if scene_element is not None: return scene_element
+        scene_element = self._get_scene_element_from_shape(pm_shape)
+        if scene_element is not None:
+            return scene_element
 
         for agent in self.agents:
 
             part = agent.get_bodypart_from_shape(pm_shape)
-            if part is not None: return part
+            if part is not None:
+                return part
 
         return None
 
@@ -505,10 +519,11 @@ class Playground(ABC):
 
     def _agent_touches_entity(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
-        touched_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        touched_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if touched_entity is None: return True
+        if touched_entity is None:
+            return True
 
         agent.reward += touched_entity.reward
 
@@ -527,11 +542,12 @@ class Playground(ABC):
 
     def _agent_interacts(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
+        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if interacting_entity is None: return True
+        if interacting_entity is None:
+            return True
 
         if body_part.is_activating:
 
@@ -554,11 +570,12 @@ class Playground(ABC):
 
     def _agent_grasps(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
+        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if interacting_entity is None: return True
+        if interacting_entity is None:
+            return True
 
         if body_part.is_grasping and not body_part.is_holding:
 
@@ -568,8 +585,8 @@ class Playground(ABC):
             j_2 = pymunk.PinJoint(body_part.pm_body, interacting_entity.pm_body, (0, -5), (0, 0))
             motor = pymunk.SimpleMotor(body_part.pm_body, interacting_entity.pm_body, 0)
 
-            self.space.add(j_1, j_2, motor)  # , j_3, j_4, j_5, j_6, j_7, j_8)
-            body_part.grasped = [j_1, j_2, motor]  # , j_3, j_4, j_5, j_6, j_7, j_8]
+            self.space.add(j_1, j_2, motor)
+            body_part.grasped = [j_1, j_2, motor]
 
             self._grasped_scene_elements[interacting_entity] = body_part
 
@@ -577,10 +594,11 @@ class Playground(ABC):
 
     def _agent_enters_zone(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
-        zone_reached = self.get_scene_element_from_shape(arbiter.shapes[1])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        zone_reached = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if zone_reached is None: return True
+        if zone_reached is None:
+            return True
 
         agent.reward += zone_reached.reward
 
@@ -591,10 +609,11 @@ class Playground(ABC):
 
     def _gem_interacts(self, arbiter, space, data):
 
-        gem = self.get_scene_element_from_shape(arbiter.shapes[0])
-        interacting_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
+        gem = self._get_scene_element_from_shape(arbiter.shapes[0])
+        interacting_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if interacting_entity is None or gem is None: return True
+        if interacting_entity is None or gem is None:
+            return True
 
         agent = self._get_closest_agent(gem)
         agent.reward += interacting_entity.reward
@@ -614,11 +633,12 @@ class Playground(ABC):
 
     def _agent_eats(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
         body_part = agent.get_bodypart_from_shape(arbiter.shapes[0])
-        edible_entity = self.get_scene_element_from_shape(arbiter.shapes[1])
+        edible_entity = self._get_scene_element_from_shape(arbiter.shapes[1])
 
-        if edible_entity is None: return True
+        if edible_entity is None:
+            return True
 
         if body_part.is_eating:
 
@@ -636,14 +656,15 @@ class Playground(ABC):
 
     def _agent_teleports(self, arbiter, space, data):
 
-        agent = self.get_agent_from_shape(arbiter.shapes[0])
-        teleport = self.get_scene_element_from_shape(arbiter.shapes[1])
+        agent = self._get_agent_from_shape(arbiter.shapes[0])
+        teleport = self._get_scene_element_from_shape(arbiter.shapes[1])
 
         if teleport is None or teleport.target is None or (agent, teleport) in self._teleported:
 
             return True
 
-        if agent.is_teleporting: return True
+        if agent.is_teleporting:
+            return True
 
         if teleport.target.traversable:
             agent.position = (teleport.target.position[0], teleport.target.position[1],
@@ -731,6 +752,14 @@ class PlaygroundRegister:
 
     @classmethod
     def filter(cls, name):
+        """
+        Filter the registered playground by name.
+
+        Args:
+            name: str
+
+        Returns: list of playgrounds.
+
+        """
 
         return [pg for name_pg, pg in cls.playgrounds.items() if name in name_pg]
-

@@ -26,7 +26,7 @@ def test_camera_sensors():
                 for sens in [RgbCamera, GreyCamera, Lidar, Touch, SemanticRay, SemanticCones, TopdownSensor]:
 
                     agent.add_sensor(sens(anchor=agent.base_platform, invisible_elements=agent.parts,
-                                     resolution=resolution, range=range_sensor, fov=fov))
+                                     resolution=resolution, max_range=range_sensor, fov=fov))
 
     for pg_class in PlaygroundRegister.filter('test'):
         pg = pg_class()

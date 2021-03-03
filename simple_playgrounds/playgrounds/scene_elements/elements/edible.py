@@ -1,10 +1,10 @@
 """
 Module for Edible SceneElement
 """
-from ..element  import SceneElement
-from ....utils.definitions import CollisionTypes
+from simple_playgrounds.playgrounds.scene_elements.element  import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes
 
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
 
 
 class Edible(SceneElement):
@@ -140,7 +140,7 @@ class Apple(Edible):
 
     def __init__(self, initial_position, **kwargs):
 
-        super(Apple, self).__init__(initial_position=initial_position, default_config_key='apple', **kwargs)
+        super().__init__(initial_position=initial_position, default_config_key='apple', **kwargs)
 
 
 class RottenApple(Edible):
@@ -153,5 +153,5 @@ class RottenApple(Edible):
     """
     def __init__(self, initial_position, **kwargs):
 
-        super(RottenApple, self).__init__(initial_position=initial_position, default_config_key='rotten_apple',
+        super().__init__(initial_position=initial_position, default_config_key='rotten_apple',
                                           **kwargs)

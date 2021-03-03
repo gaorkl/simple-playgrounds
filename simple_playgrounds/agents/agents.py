@@ -5,9 +5,9 @@ import math
 
 from pygame.locals import *
 
-from simple_playgrounds.agent import Agent
+from ..agent import Agent
 from .parts import Head, Hand, Eye, Arm, FixedPlatform
-from simple_playgrounds.utils.definitions import KeyTypes, ActionTypes
+from ..utils.definitions import KeyTypes, ActionTypes
 
 # pylint: disable=too-few-public-methods
 # pylint: disable=line-too-long
@@ -16,14 +16,11 @@ from simple_playgrounds.utils.definitions import KeyTypes, ActionTypes
 
 
 class BaseAgent(Agent):
-    """
-    Base Agent with a single ForwardPlatform as a Base.
-    No interactive actions.
-    """
-    def __init__(self, initial_position=None, controller=None, platform=None, interactive=False,
-                 radius_platform = 15, **kwargs):
 
+    def __init__(self, initial_position=None, controller=None, platform=None, interactive=False,
+                 radius_platform=15, **kwargs):
         """
+        Base Agent, with a single platform as a body.
 
         Args:
             initial_position: initial position of the agent (Position, or PositionAreaSampler)
@@ -46,7 +43,7 @@ class BaseAgent(Agent):
             can_activate = True
             can_absorb = True
 
-        base_agent = platform(name='base', radius = radius_platform,
+        base_agent = platform(name='base', radius=radius_platform,
                               can_eat=can_eat, can_grasp=can_grasp, can_activate=can_activate, can_absorb=can_absorb)
 
         super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
@@ -55,7 +52,7 @@ class BaseAgent(Agent):
 
             self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
 
-            if self.base_platform.longitudinal_force_actuator.action_type is ActionTypes.CONTINUOUS_CENTERED:
+            if self.base_platform.longitudinal_force_actuator.action_range is ActionTypes.CONTINUOUS_CENTERED:
                 self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN, KeyTypes.PRESS_HOLD, -1)
 
         if hasattr(self.base_platform, 'lateral_force_actuator'):
@@ -90,7 +87,8 @@ class HeadAgent(BaseAgent):
         super().__init__(initial_position=initial_position, controller=controller,
                          platform=platform, interactive=interactive, **kwargs)
 
-        self.head = Head(self.base_platform, [0, 0], radius=self.base_platform.radius - 4, angle_offset=0, rotation_range=math.pi, name='head')
+        self.head = Head(self.base_platform, [0, 0], radius=self.base_platform.radius - 4, angle_offset=0,
+                         rotation_range=math.pi, name='head')
         self.add_body_part(self.head)
 
         # Key maps
@@ -116,10 +114,12 @@ class HeadEyeAgent(HeadAgent):
         super().__init__(initial_position=initial_position, controller=controller,
                          platform=platform, interactive=interactive, **kwargs)
 
-        self.eye_l = Eye(self.head, [-self.head.radius/2, self.head.radius/2], angle_offset=math.pi / 4, rotation_range=math.pi, name='left_eye')
+        self.eye_l = Eye(self.head, [-self.head.radius/2, self.head.radius/2],
+                         angle_offset=math.pi / 4, rotation_range=math.pi, name='left_eye')
         self.add_body_part(self.eye_l)
 
-        self.eye_r = Eye(self.head, [self.head.radius/2, self.head.radius/2], angle_offset=-math.pi / 4, rotation_range=math.pi, name='rigth_eye')
+        self.eye_r = Eye(self.head, [self.head.radius/2, self.head.radius/2],
+                         angle_offset=-math.pi / 4, rotation_range=math.pi, name='right_eye')
         self.add_body_part(self.eye_r)
 
         # New Key maps
@@ -143,7 +143,7 @@ class TurretAgent(HeadAgent):
         head: Head of the agent
     """
 
-    def __init__(self, initial_position=None, controller=None, interactive=False, platform=None, **kwargs):
+    def __init__(self, initial_position=None, controller=None, interactive=False, **kwargs):
 
         super().__init__(initial_position=initial_position, platform=FixedPlatform, controller=controller,
                          interactive=interactive, **kwargs)
@@ -191,7 +191,7 @@ class FullAgent(HeadEyeAgent):
 
             self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
 
-            if self.base_platform.longitudinal_force_actuator.action_type is ActionTypes.CONTINUOUS_CENTERED:
+            if self.base_platform.longitudinal_force_actuator.action_range is ActionTypes.CONTINUOUS_CENTERED:
                 self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN, KeyTypes.PRESS_HOLD, -1)
 
         if hasattr(self.base_platform, 'lateral_force_actuator'):
@@ -236,4 +236,3 @@ class FullAgent(HeadEyeAgent):
 
         # Assign controller once all body parts are declared
         self.controller = controller
-

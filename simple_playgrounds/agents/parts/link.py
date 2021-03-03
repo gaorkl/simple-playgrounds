@@ -24,7 +24,7 @@ class Link(Part, ABC):
 
     """
 
-    #pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, anchor, coord_anchor=(0, 0), coord_part=(0, 0), angle_offset=0, **kwargs):
 
@@ -50,10 +50,10 @@ class Link(Part, ABC):
 
         super().__init__(**kwargs)
 
-        self.max_angular_velocity = kwargs['max_angular_velocity']
-        self.rotation_range = kwargs['rotation_range']
+        self._max_angular_velocity = kwargs['max_angular_velocity']
+        self._rotation_range = kwargs['rotation_range']
 
-        self.angle_offset = angle_offset
+        self._angle_offset = angle_offset
 
         self.relative_position_of_anchor_on_anchor = coord_anchor
         self.relative_position_of_anchor_on_part = coord_part
@@ -66,15 +66,15 @@ class Link(Part, ABC):
         self.joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body, (y_0, -x_0), (y_1, -x_1))
         self.joint.collide_bodies = False
         self.limit = pymunk.RotaryLimitJoint(anchor.pm_body, self.pm_body,
-                                             self.angle_offset - self.rotation_range/2,
-                                             self.angle_offset + self.rotation_range/2)
+                                             self._angle_offset - self._rotation_range / 2,
+                                             self._angle_offset + self._rotation_range / 2)
 
         self.motor = pymunk.SimpleMotor(anchor.pm_body, self.pm_body, 0)
 
         self.pm_elements += [self.joint, self.motor, self.limit]
 
         self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
-                                                    ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+                                                  ActionTypes.CONTINUOUS_CENTERED, -1, 1)
         self.actuators.append(self.angular_velocity_actuator)
 
     def set_relative_position(self):
@@ -95,7 +95,7 @@ class Link(Part, ABC):
                                        + y_anchor_relative_of_anchor*math.cos(theta_anchor - math.pi/2))
 
         # Get position of the anchor point on part
-        theta_part = (self.anchor.pm_body.angle + self.angle_offset + math.pi / 2) % (2 * math.pi)
+        theta_part = (self.anchor.pm_body.angle + self._angle_offset + math.pi / 2) % (2 * math.pi)
 
         x_anchor_relative_of_part, y_anchor_relative_of_part = self.relative_position_of_anchor_on_part
 
@@ -109,7 +109,7 @@ class Link(Part, ABC):
         pos_x = y_anchor_coordinates_anchor - y_anchor_coordinates_part
         self.pm_body.position = (pos_x, pos_y)
 
-        self.pm_body.angle = self.anchor.pm_body.angle + self.angle_offset
+        self.pm_body.angle = self.anchor.pm_body.angle + self._angle_offset
 
     def apply_action(self, actuator, value):
 
@@ -120,20 +120,20 @@ class Link(Part, ABC):
 
             angular_velocity = value
 
-            self.motor.rate = angular_velocity * self.max_angular_velocity
+            self.motor.rate = angular_velocity * self._max_angular_velocity
 
             # Case when theta close to limit -> speed to zero
             theta_part = self.position[2]
             theta_anchor = self.anchor.position[2]
 
-            angle_centered = (theta_part - (theta_anchor+self.angle_offset)) % (2*math.pi)
+            angle_centered = (theta_part - (theta_anchor + self._angle_offset)) % (2 * math.pi)
             angle_centered = angle_centered - 2 * math.pi if angle_centered > math.pi else angle_centered
 
             # Do not set the motor if the limb is close to limit
-            if angle_centered < - self.rotation_range/2 + math.pi/20 and angular_velocity > 0:
+            if angle_centered < - self._rotation_range/2 + math.pi/20 and angular_velocity > 0:
                 self.motor.rate = 0
 
-            elif angle_centered > self.rotation_range/2 - math.pi/20 and angular_velocity < 0:
+            elif angle_centered > self._rotation_range/2 - math.pi/20 and angular_velocity < 0:
                 self.motor.rate = 0
 
         return value
@@ -205,7 +205,7 @@ class Arm(Link):
         default_config = self._parse_configuration('arm')
         body_part_params = {**default_config, **kwargs}
 
-        # arm attached at one extremity, and other anchr point defined at other extremity
+        # arm attached at one extremity, and other anchor point defined at other extremity
         width, length = body_part_params['width_length']
         position_part = [0, -length/2.0 + width/2.0]
 
