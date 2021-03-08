@@ -107,11 +107,11 @@ class PositionAreaSampler:
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'circle':
-            r = math.sqrt(random.uniform(self.excl_radius**2, self.radius**2))
+            radius = math.sqrt(random.uniform(self.excl_radius**2, self.radius**2))
             alpha = random.random() * 2 * math.pi
 
-            pos_x = self.center[0] + r * math.cos(alpha)
-            pos_y = self.center[1] + r * math.sin(alpha)
+            pos_x = self.center[0] + radius * math.cos(alpha)
+            pos_y = self.center[1] + radius * math.sin(alpha)
             theta = random.uniform(self.theta_min, self.theta_max)
 
         elif self.area_shape == 'gaussian':
@@ -282,14 +282,26 @@ class Trajectory(Generator):
         self.current_index = self._index_start
 
 
-def get_relative_postion_of_entities(entity_1, entity_2):
+def get_relative_position_of_entities(entity_1, entity_2):
+    """
+    Calculates the relative position of entity_2 wrt entity_1.
+
+    Args:
+        entity_1 (:obj: Entity): reference Entity.
+        entity_2 (:obj: Entity):
+
+    Returns:
+
+    """
 
     entity_1_x, entity_1_y, entity_1_angle = entity_1.position
     entity_2_x, entity_2_y, entity_2_angle = entity_2.position
 
     relative_angle = (entity_2_angle - entity_1_angle)%(2*math.pi)
 
-    relative_x = (entity_2_x - entity_1_x)*math.cos(-entity_1_angle) - (entity_2_y - entity_1_y)*math.sin(-entity_1_angle)
-    relative_y = (entity_2_x - entity_1_x)*math.sin(-entity_1_angle) + (entity_2_y - entity_1_y)*math.cos(-entity_1_angle)
+    relative_x = (entity_2_x - entity_1_x)*math.cos(-entity_1_angle) \
+                 - (entity_2_y - entity_1_y)*math.sin(-entity_1_angle)
+    relative_y = (entity_2_x - entity_1_x)*math.sin(-entity_1_angle) \
+                 + (entity_2_y - entity_1_y)*math.cos(-entity_1_angle)
 
     return relative_x, relative_y, relative_angle

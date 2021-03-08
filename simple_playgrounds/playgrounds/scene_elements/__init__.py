@@ -19,4 +19,4 @@ from simple_playgrounds.playgrounds.scene_elements.elements.passive \
     import GoalZone, HealingZone, RewardZone, DeathZone, \
     ToxicZone, TerminationZone
 
-from simple_playgrounds.playgrounds.scene_elements.field import Field
+from simple_playgrounds.playgrounds.scene_elements.production_field import Field

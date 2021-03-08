@@ -133,8 +133,8 @@ class Playground(ABC):
         self._check_teleports()
 
     def reset(self):
-        """ Reset the Playground to its initial state.
-
+        """
+        Reset the Playground to its initial state.
         """
 
         # remove entities and filter out entities which are temporary

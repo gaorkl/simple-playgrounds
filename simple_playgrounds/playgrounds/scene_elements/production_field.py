@@ -7,6 +7,7 @@ from simple_playgrounds.utils import SceneElementTypes
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
 
+
 class Field:
     """
     A Field produces entities in a random location of the playground.
@@ -48,7 +49,6 @@ class Field:
         # Internal counter to assign identity number to each entity
         self.name = 'field_' + str(Field.id_number)
         Field.id_number += 1
-
 
     def can_produce(self):
         """

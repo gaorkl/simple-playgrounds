@@ -1,3 +1,3 @@
-from .robotic_sensors import *
-from .topdown_sensors import *
-from .semantic_sensors import *
+from simple_playgrounds.agents.sensors.robotic_sensors import *
+from simple_playgrounds.agents.sensors.topdown_sensors import *
+from simple_playgrounds.agents.sensors.semantic_sensors import *

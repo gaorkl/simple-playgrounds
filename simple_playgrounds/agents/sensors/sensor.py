@@ -37,7 +37,7 @@ class Sensor(ABC):
     sensor_type = 'sensor'
 
     def __init__(self, anchor, fov, resolution, max_range,
-                 invisible_elements, normalize, noise_params, name=None, **sensor_params):
+                 invisible_elements, normalize, noise_params, name=None, **kwargs):
         """
         Sensors are attached to an anchor. They detect every visible Agent Part or Scene Element.
         If the entity is in invisible elements, it is not detected.
@@ -104,7 +104,7 @@ class Sensor(ABC):
         assert self._resolution > 0
 
         # Sensor max value is used for noise and normalization calculation
-        self._sensor_max_value = None
+        self._sensor_max_value = 0
 
     def update(self, **kwargs):
         """
@@ -258,17 +258,16 @@ class RayCollisionSensor(Sensor, ABC):
 
         collisions = playground.space.segment_query(position, position_end, 1, pymunk.ShapeFilter())
 
-
         # remove invisible entities
         collisions_visible = [col for col in collisions
                       if col.shape not in self._invisible_shapes and col.shape.sensor is not True
                       if col.alpha != 0.0]
 
         collisions_traversable = [col for col in collisions if col.alpha != 0.0
-                                  and col.shape not in self._invisible_shapes
-                                  and playground.get_entity_from_shape(col.shape).pm_visible_shape is not None
-                                  and playground.get_entity_from_shape(col.shape).pm_visible_shape == col.shape
-                                  ]
+                  and col.shape not in self._invisible_shapes
+                  and playground.get_entity_from_shape(col.shape).pm_visible_shape is not None
+                  and playground.get_entity_from_shape(col.shape).pm_visible_shape == col.shape
+                  ]
 
         collisions = collisions_visible + collisions_traversable
 
@@ -296,14 +295,14 @@ class RayCollisionSensor(Sensor, ABC):
 
         if self._noise_type == 'gaussian':
 
-            additive_noise = np.random.normal(self._noise_mean, self._noise_scale, size = self.shape)
+            additive_noise = np.random.normal(self._noise_mean, self._noise_scale, size=self.shape)
 
         elif self._noise_type == 'salt_pepper':
 
-            proba = [self._noise_probability/2, 1-self._noise_probability, self._noise_probability/2]
+            prob = [self._noise_probability/2, 1-self._noise_probability, self._noise_probability/2]
             additive_noise = np.random.choice([-self._sensor_max_value, 0, self._sensor_max_value],
-                                              p=proba,
-                                              size= self.shape)
+                                              p=prob,
+                                              size=self.shape)
 
         else:
             raise ValueError

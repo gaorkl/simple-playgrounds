@@ -1,29 +1,37 @@
 """
-This Module provides semantic sensors. These artificial sensors return semantic information about the detected entities.
+This Module provides semantic sensors.
+These artificial sensors return semantic information about the detected entities.
 They return the actual instance of the entity detected, which allow to access their attributes.
 E.g. position, velocity, mass, shape can be accessed.
 """
 
 import math
+from operator import attrgetter
+
 import numpy as np
 import cv2
 
-from operator import attrgetter
-
-from .sensor import RayCollisionSensor
+from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
 from simple_playgrounds.utils.definitions import Detection, SensorModality
 
 
 class SemanticRay(RayCollisionSensor):
-
+    """
+    Semantic Ray detect Entities by projecting rays.
+    This sensor returns the actual :Entity: object.
+    All the attributes (position, physical properties, ...) of the returned
+    entity can be accessed.
+    """
     sensor_type = 'semantic-ray'
     sensor_modality = SensorModality.SEMANTIC
 
     def __init__(self, anchor, invisible_elements=None, normalize=True, noise_params=None,
                  remove_duplicates=True, remove_occluded=True, **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
-                         noise_params=noise_params, remove_duplicates=remove_duplicates, remove_occluded=remove_occluded, **sensor_params)
+        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
+                         normalize=normalize, noise_params=noise_params,
+                         remove_duplicates=remove_duplicates, remove_occluded=remove_occluded,
+                         **sensor_params)
 
         self._sensor_max_value = self._range
 
@@ -38,31 +46,34 @@ class SemanticRay(RayCollisionSensor):
 
     def _collisions_to_detections(self, playground, collision_points):
 
-            """
-            Transforms pymunk collisions into simpler data structures.
+        """
+        Transforms pymunk collisions into simpler data structures.
 
-            Args:
-                collisions: list of collision points
+        Args:
+            playground (:obj: :Playground:): playground where the sensor is.
+            collision_points: dictionary of collision points
 
-            Returns:
-                list of detections
+        Returns:
+            list of detections
 
-            """
+        """
 
-            detections = []
+        detections = []
 
-            for sensor_angle, collisions in collision_points.items():
+        for sensor_angle, collisions in collision_points.items():
 
-                for collision in collisions:
+            for collision in collisions:
 
-                    element_colliding = playground.get_entity_from_shape(pm_shape=collision.shape)
-                    distance = collision.alpha * self._range
+                element_colliding = playground.get_entity_from_shape(pm_shape=collision.shape)
+                distance = collision.alpha * self._range
 
-                    detection = Detection(entity=element_colliding, distance=distance, angle=sensor_angle)
+                detection = Detection(entity=element_colliding,
+                                      distance=distance,
+                                      angle=sensor_angle)
 
-                    detections.append(detection)
+                detections.append(detection)
 
-            return detections
+        return detections
 
     def _apply_normalization(self):
 
@@ -89,7 +100,9 @@ class SemanticRay(RayCollisionSensor):
             pos_y = int(size_display / 2 - distance * math.sin(detection.angle))
 
             # pylint: disable=no-member
-            cv2.line(img, (int(size_display / 2), int(size_display / 2)), (pos_y, pos_x), color=(0.5, 0.1, 0.3))
+            cv2.line(img, (int(size_display / 2), int(size_display / 2)),
+                     (pos_y, pos_x),
+                     color=(0.5, 0.1, 0.3))
             cv2.circle(img, (pos_y, pos_x), 2, [25, 130, 255], thickness=-1)
 
         return img
@@ -132,15 +145,17 @@ class SemanticCones(SemanticRay):
         sensor_params['resolution'] = n_rays
         sensor_params['n_rays'] = n_rays
 
-        super().__init__(anchor, invisible_elements=invisible_elements, number_rays=n_rays,
-                         remove_occluded=remove_occluded, remove_duplicates=remove_duplicates, ** sensor_params)
+        super().__init__(anchor, invisible_elements=invisible_elements,
+                         number_rays=n_rays,
+                         remove_occluded=remove_occluded, remove_duplicates=remove_duplicates,
+                         ** sensor_params)
 
         if self.number_cones == 1:
             self.angles_cone_center = [0]
         else:
             angle = self._fov - self._fov / self.number_cones
-            self.angles_cone_center = [n * angle / (self.number_cones - 1) - angle / 2 for n in
-                                       range(self.number_cones)]
+            self.angles_cone_center = [n * angle / (self.number_cones - 1) - angle / 2
+                                       for n in range(self.number_cones)]
 
     def _compute_raw_sensor(self, playground):
 
@@ -191,16 +206,22 @@ class SemanticCones(SemanticRay):
 
             distance *= size_display / (2 * self._range)
 
-            pos_x_1 = int(size_display / 2 - distance * math.cos(detection.angle - self._fov / self.number_cones / 2))
-            pos_y_1 = int(size_display / 2 - distance * math.sin(detection.angle - self._fov / self.number_cones / 2))
+            pos_x_1 = int(size_display / 2
+                          - distance * math.cos(detection.angle - self._fov/self.number_cones/2))
+            pos_y_1 = int(size_display / 2
+                          - distance * math.sin(detection.angle - self._fov/self.number_cones/2))
 
-            pos_x_2 = int(size_display / 2 - distance * math.cos(detection.angle + self._fov / self.number_cones / 2))
-            pos_y_2 = int(size_display / 2 - distance * math.sin(detection.angle + self._fov / self.number_cones / 2))
+            pos_x_2 = int(size_display / 2
+                          - distance * math.cos(detection.angle + self._fov/self.number_cones/2))
+            pos_y_2 = int(size_display / 2
+                          - distance * math.sin(detection.angle + self._fov/self.number_cones/2))
 
             # pylint: disable=no-member
-            cv2.line(img, (int(size_display / 2), int(size_display / 2)), (pos_y_1, pos_x_1), color=(0.5, 0.1, 0.3))
-            cv2.line(img, (pos_y_1, pos_x_1), (pos_y_2, pos_x_2), color=(0.5, 0.1, 0.3))
-            cv2.line(img, (pos_y_2, pos_x_2), (int(size_display / 2), int(size_display / 2)), color=(0.5, 0.1, 0.3))
-            # cv2.circle(img, (pos_y, pos_x), 2, [25, 130, 255], thickness=-1)
+            cv2.line(img, (int(size_display / 2), int(size_display / 2)),
+                     (pos_y_1, pos_x_1), color=(0.5, 0.1, 0.3))
+            cv2.line(img, (pos_y_1, pos_x_1),
+                     (pos_y_2, pos_x_2), color=(0.5, 0.1, 0.3))
+            cv2.line(img, (pos_y_2, pos_x_2),
+                     (int(size_display / 2), int(size_display / 2)), color=(0.5, 0.1, 0.3))
 
         return img

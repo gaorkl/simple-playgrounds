@@ -29,7 +29,21 @@ class CollisionTypes(IntEnum):
     TELEPORT = auto()
 
 
-def add_custom_collision( collision_types, name ):
+def add_custom_collision(collision_types, name):
+    """
+    Function that allows to add new collisions to CollisionTypes.
+    This is used when an user wants to create a new type of Entity,
+    that requires particular collision handler and behavior.
+
+    Args:
+        collision_types: CollisionTypes enum.
+            Either the default one or a custom one.
+        name: name of the new collision type (UPPERCASE)
+
+    Returns:
+        New CollisionTypes Enum.
+
+    """
 
     names = [m.name for m in collision_types] + [name]
     extended_enum = IntEnum('CollisionTypes', names)

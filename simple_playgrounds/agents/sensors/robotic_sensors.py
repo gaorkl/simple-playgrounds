@@ -2,9 +2,10 @@
 Module collecting all robotic sensors: Cameras, Lidar, touch sensing.
 """
 import math
+from operator import attrgetter
+
 import numpy as np
 import cv2
-from operator import attrgetter
 
 from .sensor import RayCollisionSensor
 
@@ -16,10 +17,16 @@ class RgbCamera(RayCollisionSensor):
 
     sensor_type = 'rgb'
 
-    def __init__(self, anchor, invisible_elements=None, normalize=True, noise_params=None, **sensor_params):
+    def __init__(self, anchor,
+                 invisible_elements=None,
+                 normalize=True,
+                 noise_params=None,
+                 **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
-                         noise_params=noise_params, remove_duplicates=False, remove_occluded=False, **sensor_params)
+        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
+                         normalize=normalize, noise_params=noise_params,
+                         remove_duplicates=False, remove_occluded=False,
+                         **sensor_params)
 
         self._sensor_max_value = 255
 
@@ -37,22 +44,22 @@ class RgbCamera(RayCollisionSensor):
 
                 col = min(collisions, key=attrgetter('alpha'))
 
-                element_colliding = playground.get_entity_from_shape(pm_shape=col.shape)
+                elem_colliding = playground.get_entity_from_shape(pm_shape=col.shape)
 
-                angle_element = element_colliding.position[2]
-                pos_element = element_colliding.position[0:2]
+                angle_element = elem_colliding.position[2]
+                pos_element = elem_colliding.position[0:2]
 
                 col_x, col_y = playground.size[0] - col.point.y, col.point.x
-                rel_col_x, rel_col_y = col_x - pos_element[0], col_y - pos_element[1]
+                rel_x, rel_y = col_x - pos_element[0], col_y - pos_element[1]
 
-                rel_pos_point = (rel_col_x*math.cos(angle_element) + rel_col_y*math.sin(angle_element),
-                                 - rel_col_x*math.sin(angle_element) + rel_col_y*math.cos(angle_element))
+                rel_pos_point = (rel_x*math.cos(angle_element) + rel_y*math.sin(angle_element),
+                                 - rel_x*math.sin(angle_element) + rel_y*math.cos(angle_element))
 
-                coord = (int(rel_pos_point[1] + (element_colliding.texture_surface.get_size()[1] - 1) / 2),
-                         int(rel_pos_point[0] + (element_colliding.texture_surface.get_size()[0] - 1) / 2)
+                coord = (int(rel_pos_point[1]+(elem_colliding.texture_surface.get_size()[1]-1)/2),
+                         int(rel_pos_point[0]+(elem_colliding.texture_surface.get_size()[0]-1)/2)
                          )
 
-                rgb = element_colliding.texture_surface.get_at(coord)[:3]
+                rgb = elem_colliding.texture_surface.get_at(coord)[:3]
 
                 pixels[angle_index] = rgb
 
@@ -124,10 +131,17 @@ class Lidar(RayCollisionSensor):
 
     sensor_type = 'lidar'
 
-    def __init__(self, anchor, invisible_elements=None, normalize=True, noise_params=None, **sensor_params):
+    def __init__(self,
+                 anchor,
+                 invisible_elements=None,
+                 normalize=True,
+                 noise_params=None,
+                 **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
-                         noise_params=noise_params, remove_duplicates=False, remove_occluded=False, **sensor_params)
+        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
+                         normalize=normalize, noise_params=noise_params,
+                         remove_duplicates=False, remove_occluded=False,
+                         **sensor_params)
 
         self._sensor_max_value = self._range
 
@@ -179,10 +193,16 @@ class Touch(Lidar):
 
     sensor_type = 'touch'
 
-    def __init__(self, anchor, invisible_elements=None, normalize=True, noise_params=None, **sensor_params):
+    def __init__(self,
+                 anchor,
+                 invisible_elements=None,
+                 normalize=True,
+                 noise_params=None,
+                 **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
-                         noise_params=noise_params, **sensor_params)
+        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
+                         normalize=normalize, noise_params=noise_params,
+                         **sensor_params)
 
         self._sensor_max_value = self._range
         self._range = self.anchor.radius + self._range

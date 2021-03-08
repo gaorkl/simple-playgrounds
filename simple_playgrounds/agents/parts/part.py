@@ -100,7 +100,6 @@ class Part(Entity, ABC):
 
         return default_config[part_type]
 
-    @abstractmethod
     def apply_action(self, actuator, value):
         """
         Apply the action to the physical body part.

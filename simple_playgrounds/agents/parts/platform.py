@@ -45,9 +45,6 @@ class Platform(Part, ABC):
         self.max_linear_force = body_part_params['max_linear_force']
         self.max_angular_velocity = body_part_params['max_angular_velocity']
 
-    def apply_action(self, actuator, value):
-        super().apply_action(actuator, value)
-
 
 class FixedPlatform(Platform):
     """

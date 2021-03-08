@@ -8,8 +8,13 @@ import cv2
 from simple_playgrounds.utils.definitions import ActionTypes
 from simple_playgrounds.utils.position_utils import PositionAreaSampler
 
-
 # pylint: disable=too-many-instance-attributes
+# pylint: disable=no-member
+
+BORDER_IMAGE = 3
+FONT_TEXT = cv2.FONT_HERSHEY_SIMPLEX
+FONT_COLOR = (0, 0, 0)
+FONT_SCALE = 0.5
 
 
 class Agent:
@@ -151,6 +156,9 @@ class Agent:
 
     @property
     def velocity_np(self):
+        """
+        Velocity of the agent in numpy coordinate system.
+        """
         return self.base_platform.velocity_np
 
     @property
@@ -219,15 +227,17 @@ class Agent:
         for sensor in self.sensors:
             list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
 
-        full_height = sum([im.shape[0] for im in list_sensor_images]) + len(list_sensor_images) * (border + 1)
+        full_height = sum([im.shape[0] for im in list_sensor_images])\
+                      + len(list_sensor_images) * (border + 1)
 
         full_img = np.ones((full_height, width_sensor, 3))
 
         current_height = 0
-        for im in list_sensor_images:
+        for sensor_image in list_sensor_images:
             current_height += border
-            full_img[current_height:im.shape[0] + current_height, :, :] = im[:, :, :]
-            current_height += im.shape[0]
+            full_img[current_height:sensor_image.shape[0] + current_height, :, :] \
+                = sensor_image[:, :, :]
+            current_height += sensor_image.shape[0]
 
         if plt_mode:
             full_img = full_img[:, :, ::-1]
@@ -311,6 +321,15 @@ class Agent:
         return False
 
     def get_bodypart_from_shape(self, pm_shape):
+        """
+        Returns the body part that correspond to particular Pymunk shape.
+
+        Args:
+            pm_shape: pymunk shape.
+
+        Returns: Body part.
+
+        """
         return next(iter([part for part in self.parts if part.pm_visible_shape == pm_shape]), None)
 
     # DYNAMICS
@@ -361,44 +380,42 @@ class Agent:
             Image of the agent's current actions.
 
         """
-        border = 3
+        # pylint: disable=too-many-locals
 
         number_parts_with_actions = len(self.parts)
         count_all_actions = len(self.current_actions)
 
-        total_height_actions = number_parts_with_actions * (border + height_action) \
-            + (border + height_action) * count_all_actions + border
+        total_height_actions = number_parts_with_actions * (BORDER_IMAGE + height_action) \
+                               + (BORDER_IMAGE + height_action) * count_all_actions + BORDER_IMAGE
         img_actions = np.ones((total_height_actions, width_action, 4))
 
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_color = (0, 0, 0)
-        font_scale = 0.5  # height_slot - 2 * space_string
-        offset_string_name = int(height_action / 2.0 - font_scale * 10)
+        offset_string_name = int(height_action / 2.0 - FONT_SCALE * 10)
 
-        action_names_length = max([len(action.action.name) for action, value in self.current_actions.items()])
+        action_names_length = max([len(action.action.name)
+                                   for action, value in self.current_actions.items()])
         font_scale_action = 0.95 * width_action / action_names_length * 0.5 / 10
         offset_string_action = int(height_action / 2.0 - font_scale_action * 10)
 
-        current_height = border
+        current_height = BORDER_IMAGE
 
         for part in self.parts:
 
             current_height += height_action
 
-            start_box = int(width_action / 2.0 - 18 * font_scale * len(part.name) / 2)
+            start_box = int(width_action / 2.0 - 18 * FONT_SCALE * len(part.name) / 2)
             bottom_left = (start_box, current_height - offset_string_name)
 
             cv2.putText(img_actions, part.name.upper(),
                         bottom_left,
-                        font,
-                        font_scale,
-                        font_color,
+                        FONT_TEXT,
+                        FONT_SCALE,
+                        FONT_COLOR,
                         1)
 
             cv2.rectangle(img_actions, (0, current_height),
                           (width_action, current_height - height_action), (0, 0, 0), 3)
 
-            current_height += border
+            current_height += BORDER_IMAGE
 
             all_action_parts = [(action, value) for action, value in self.current_actions.items() if
                                 action.part_name == part.name]
@@ -409,8 +426,11 @@ class Agent:
 
                 if action.action_range == ActionTypes.DISCRETE and value == action.max:
 
-                    cv2.rectangle(img_actions, (0, current_height),
-                                  (width_action, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+                    cv2.rectangle(img_actions,
+                                  (0, current_height),
+                                  (width_action, current_height - height_action),
+                                  (0.2, 0.6, 0.2, 0.1),
+                                  -1)
 
                 elif action.action_range == ActionTypes.CONTINUOUS_CENTERED and value != 0:
 
@@ -421,8 +441,11 @@ class Agent:
                         right = int(width_action / 2. + value * width_action / 2.)
                         left = int(width_action / 2.)
 
-                    cv2.rectangle(img_actions, (left, current_height),
-                                  (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+                    cv2.rectangle(img_actions,
+                                  (left, current_height),
+                                  (right, current_height - height_action),
+                                  (0.2, 0.6, 0.2, 0.1),
+                                  -1)
 
                 elif action.action_range == ActionTypes.CONTINUOUS_NOT_CENTERED and value != 0:
 
@@ -432,17 +455,18 @@ class Agent:
                     cv2.rectangle(img_actions, (left, current_height),
                                   (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
 
-                start_box = int(width_action / 2.0 - 18 * font_scale_action * len(action.action.name) / 2.)
+                start_box = int(width_action / 2.0
+                                - 18 * font_scale_action * len(action.action.name) / 2.)
                 bottom_left = (start_box, current_height - offset_string_action)
 
                 cv2.putText(img_actions, action.action.name.upper(),
                             bottom_left,
-                            font,
+                            FONT_TEXT,
                             font_scale_action,
-                            font_color,
+                            FONT_COLOR,
                             1)
 
-                current_height += border
+                current_height += BORDER_IMAGE
 
         img_actions = cv2.cvtColor(img_actions.astype('float32'), cv2.COLOR_RGBA2BGR)
 

@@ -2,19 +2,21 @@ from simple_playgrounds.playgrounds.scene_elements.elements.passive import Passi
 
 
 class VisibleRewardZone(PassiveSceneElement):
-
+    """
+    Base class for entities that provide reward to an agent in its proximity.
+    """
     interactive = True
     entity_type = 'reward_zone'
 
     def __init__(self, initial_position, default_config_key=None, **kwargs):
-        """ Base class for entities that provide reward to an agent in its proximity
-
+        """
         VisibleRewardZone entities provide a reward to the agent
         in close proximity with the entity.
 
         Args:
-            initial_position: initial position of the entity. can be list [x,y,theta], AreaPositionSampler or Trajectory
-            default_config_key: default configurations, can be 'fairy' or 'fireball
+            initial_position: initial position of the entity.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory
+            default_config_key (str): default configurations. Can be 'fairy' or 'fireball'
             **kwargs: other params to configure entity. Refer to Entity class
 
         Keyword Args:
@@ -58,24 +60,27 @@ class VisibleRewardZone(PassiveSceneElement):
 
 
 class Fairy(VisibleRewardZone):
+    """
+    Fairy entities provide a reward to an agent which is in proximity.
 
+    Provides a positive reward of 2 for each timestep when an agent is in proximity.
+    Default: Turquoise-blue circle of radius 8, reward 2 and total_reward 200.
+
+    """
     def __init__(self, initial_position, **kwargs):
-        """ Fairy entities provide a reward to an agent which is in proximity
 
-        Provides a positive reward of 2 for each timestep when an agent is in proximity
-        Default: Turquoise-blue circle of radius 8, reward 2 and total_reward 200
-
-        """
         super().__init__(initial_position=initial_position, default_config_key='fairy', **kwargs)
 
 
 class Fireball(VisibleRewardZone):
+    """
+    Fireball entities provide a negative reward to an agent which is in proximity.
+
+    Provides a negative reward of 2 for each timestep when an agent is in proximity.
+    Default: Red circle of radius 8, reward -2 and total_reward -200.
+
+    """
 
     def __init__(self, initial_position, **kwargs):
-        """ Fireball entities provide a negative reward to an agent which is in proximity
 
-        Provides a negative reward of 2 for each timestep when an agent is in proximity
-        Default: Red circle of radius 8, reward -2 and total_reward -200
-
-        """
         super().__init__(initial_position=initial_position, default_config_key='fireball', **kwargs)
