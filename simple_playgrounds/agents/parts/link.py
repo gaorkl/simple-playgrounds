@@ -7,8 +7,8 @@ from abc import ABC
 
 import pymunk
 
-from .part import Part, Actuator
-from ...utils import ActionTypes
+from simple_playgrounds.agents.parts.part import Part, Actuator
+from simple_playgrounds.utils.definitions import ActionTypes
 
 # pylint: disable=line-too-long
 

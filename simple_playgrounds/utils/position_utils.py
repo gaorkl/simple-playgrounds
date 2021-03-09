@@ -264,6 +264,8 @@ class Trajectory(Generator):
 
         return returned_value
 
+    # pylint: disable=redefined-builtin
+    # pylint: disable=arguments-differ
     def throw(self, type=None, value=None, traceback=None):
         raise StopIteration
 

@@ -3,7 +3,7 @@ Module for Gem SceneElements.
 Gem interacts with other SceneElements.
 """
 from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils import CollisionTypes
+from simple_playgrounds.utils.definitions import CollisionTypes
 
 
 class GemSceneElement(SceneElement):

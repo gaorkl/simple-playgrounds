@@ -1,10 +1,13 @@
 from simple_playgrounds.agents.controllers import Random
 from simple_playgrounds.agents import BaseAgent
 from simple_playgrounds import Engine
-from simple_playgrounds.agents.sensors import *
+from simple_playgrounds.agents.sensors import Touch
 from simple_playgrounds.agents.parts import ForwardPlatform
 
-from simple_playgrounds.playgrounds.collection.test import *
+from simple_playgrounds.playground import PlaygroundRegister
+
+from simple_playgrounds.playgrounds.empty import SingleRoom
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
 
 
 # Add/remove agent from a playground
@@ -16,6 +19,40 @@ def test_add_remove_agent():
     playground_1.remove_agent(agent)
     assert playground_1.agents == []
     playground_2.add_agent(agent)
+
+
+def test_add_remove_agent_in_area():
+    playground_1 = SingleRoom((400, 400))
+    agent = BaseAgent(controller=Random(), interactive=False, platform=ForwardPlatform)
+
+    areas = {'up': [0, 400, 200, 400],
+             'down': [0, 400, 0, 200],
+             'right': [200, 400, 0, 400],
+             'left': [0, 200, 0, 400],
+             'up-right': [200, 400, 200, 400],
+             'up-left': [0, 200, 200, 400],
+             'down-right': [200, 400, 0, 200],
+             'down-left': [0, 200, 0, 200],
+            }
+
+    for area_name, coord in areas.items():
+
+        location, size = playground_1.get_area((0, 0), area_name)
+
+        pos_area_sampler = PositionAreaSampler(location,
+                                               area_shape='rectangle',
+                                               width_length=size)
+
+        agent.initial_position = pos_area_sampler
+        playground_1.add_agent(agent)
+
+        min_x, max_x, min_y, max_y = coord
+
+        assert min_x < agent.position[0] < max_x
+        assert min_y < agent.position[1] < max_y
+
+        playground_1.remove_agent(agent)
+
 
 
 # Create an engine then add an agent
@@ -61,20 +98,20 @@ def test_all_test_playgrounds():
     agent = BaseAgent(controller=Random(), interactive=False, platform=ForwardPlatform)
 
     for pg_class in PlaygroundRegister.filter('test'):
-        pg = pg_class()
+        playground = pg_class()
 
-        pg.add_agent(agent)
+        playground.add_agent(agent)
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=10000)
+        engine = Engine(playground, time_limit=10000)
         engine.run()
 
-        assert 0 < agent.position[0] < pg.size[0]
-        assert 0 < agent.position[1] < pg.size[1]
+        assert 0 < agent.position[0] < playground.size[0]
+        assert 0 < agent.position[1] < playground.size[1]
 
         engine.terminate()
-        pg.remove_agent(agent)
+        playground.remove_agent(agent)
 
 
 # Run all test playgrounds with 100 agents
@@ -82,21 +119,25 @@ def test_multiagents():
 
     for pg_class in PlaygroundRegister.filter('test'):
 
-        pg = pg_class()
+        playground = pg_class()
         print('Starting Multiagent testing of ', pg_class.__name__)
-        center, shape = pg.area_rooms[(0,0)]
-        pos_area_sampler = PositionAreaSampler(center = center, area_shape='rectangle', width_length=shape)
+        center, shape = playground.area_rooms[(0, 0)]
+        pos_area_sampler = PositionAreaSampler(center=center,
+                                               area_shape='rectangle',
+                                               width_length=shape)
 
-        for i in range(100):
-            agent = BaseAgent(pos_area_sampler, controller=Random(), interactive=True, platform=ForwardPlatform)
-            pg.add_agent(agent)
+        for _ in range(100):
+            agent = BaseAgent(pos_area_sampler,
+                              controller=Random(),
+                              interactive=True,
+                              platform=ForwardPlatform)
+            playground.add_agent(agent)
 
-        assert len(pg.agents) == 100
+        assert len(playground.agents) == 100
 
-        engine = Engine(pg, time_limit=100, screen=False)
-        engine.run(update_screen= False)
+        engine = Engine(playground, time_limit=100, screen=False)
+        engine.run(update_screen=False)
         engine.terminate()
-        pg.remove_agent(agent)
 
 
 # Run all test playgrounds with 10 agents
@@ -104,36 +145,43 @@ def test_multiagents_no_overlapping():
 
     for pg_class in PlaygroundRegister.filter('test'):
 
-        pg = pg_class()
+        playground = pg_class()
         print('Starting Multiagent testing of ', pg_class.__name__)
-        center, shape = pg.area_rooms[(0,0)]
-        pos_area_sampler = PositionAreaSampler(center = center, area_shape='rectangle', width_length=shape)
+        center, shape = playground.area_rooms[(0, 0)]
+        pos_area_sampler = PositionAreaSampler(center=center,
+                                               area_shape='rectangle',
+                                               width_length=shape)
 
-        for i in range(2):
-            agent = BaseAgent(pos_area_sampler, controller=Random(), interactive=True, platform=ForwardPlatform)
-            pg.add_agent(agent, 1000)
+        for _ in range(2):
+            agent = BaseAgent(pos_area_sampler,
+                              controller=Random(),
+                              interactive=True,
+                              platform=ForwardPlatform)
+            playground.add_agent(agent, 1000)
 
-        assert len(pg.agents) == 2
+        assert len(playground.agents) == 2
 
-        engine = Engine(pg, time_limit=100, screen=False)
-        engine.run(update_screen= False)
+        engine = Engine(playground, time_limit=100, screen=False)
+        engine.run(update_screen=False)
 
 
 # Run all test playgrounds with 10 agents
 def test_multisteps():
 
-    agent = BaseAgent(controller=Random(), interactive=False, platform=ForwardPlatform)
+    agent = BaseAgent(controller=Random(),
+                      interactive=False,
+                      platform=ForwardPlatform)
 
     sensor = Touch(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(sensor)
 
     for pg_class in PlaygroundRegister.filter('test'):
 
-        pg = pg_class()
+        playground = pg_class()
         print('Starting Multistep testing of ', pg_class.__name__)
-        pg.add_agent(agent, 1000)
+        playground.add_agent(agent, 1000)
 
-        engine = Engine(pg, time_limit=10000, screen=False)
+        engine = Engine(playground, time_limit=10000, screen=False)
 
         terminate = False
         while not terminate:
@@ -146,7 +194,8 @@ def test_multisteps():
             engine.update_observations()
 
         engine.terminate()
-        pg.remove_agent(agent)
+        playground.remove_agent(agent)
+
 
 def test_agent_in_different_environments():
 
@@ -155,7 +204,6 @@ def test_agent_in_different_environments():
     agent = BaseAgent(controller=Random(), interactive=False, platform=ForwardPlatform)
     pg_1 = SingleRoom((300, 300))
     pg_2 = SingleRoom((100, 100))
-
 
     # Play in pg 1
     pg_1.add_agent(agent)
@@ -190,14 +238,13 @@ def test_agent_in_different_environments():
 
     print('running playground 1 without agent')
     engine_1.run(10)
-    assert engine_1._elapsed_time == 20
+    assert engine_1.elapsed_time == 20
 
     print('agent returning to playground 1')
     pg_1.add_agent(agent)
     engine_1.run()
     engine_1.terminate()
     pg_1.remove_agent(agent)
-
 
     print('agent returning to playground 2')
     pg_2.add_agent(agent)
@@ -209,5 +256,3 @@ def test_agent_in_different_environments():
     pg_1.reset()
     pg_2.reset()
     pg_1.add_agent(agent)
-
-

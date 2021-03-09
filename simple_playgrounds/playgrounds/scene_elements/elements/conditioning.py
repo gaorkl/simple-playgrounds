@@ -34,7 +34,8 @@ class ColorChanging(SceneElement):
         if isinstance(timers, int):
             self.timers = [timers]
         else:
-            assert isinstance(timers, (list, tuple))
+            if not isinstance(timers, (list, tuple)):
+                raise ValueError("timers should be int, list or tuple")
             self.timers = timers
 
         if isinstance(textures, (list, tuple)):
@@ -119,7 +120,9 @@ class ConditionedColorChanging(ColorChanging):
             The length of timers and textures should be 2.
         """
 
-        assert isinstance(conditioned_entity, Lever)
+        if not isinstance(conditioned_entity, Lever):
+            raise ValueError('conditioned_entity must be of class Lever')
+
         assert len(timers) == len(textures) == 2
 
         super().__init__(initial_position, timers, textures, **kwargs)

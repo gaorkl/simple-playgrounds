@@ -4,7 +4,7 @@ Module that defines the Base Class for Body Parts of an Agent.
 """
 
 import os
-from abc import ABC, abstractmethod
+from abc import ABC
 import numbers
 
 import yaml

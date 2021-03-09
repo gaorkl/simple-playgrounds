@@ -12,8 +12,8 @@ import yaml
 import pymunk
 import numpy as np
 
-from ...utils.definitions import SensorModality
-from ...entity import Entity
+from simple_playgrounds.utils.definitions import SensorModality
+from simple_playgrounds.entity import Entity
 
 
 class Sensor(ABC):
@@ -37,7 +37,7 @@ class Sensor(ABC):
     sensor_type = 'sensor'
 
     def __init__(self, anchor, fov, resolution, max_range,
-                 invisible_elements, normalize, noise_params, name=None, **kwargs):
+                 invisible_elements, normalize, noise_params, name=None, **_kwargs):
         """
         Sensors are attached to an anchor. They detect every visible Agent Part or Scene Element.
         If the entity is in invisible elements, it is not detected.
@@ -99,9 +99,12 @@ class Sensor(ABC):
         self._fov = fov * math.pi / 180
         self._resolution = resolution
 
-        assert self._range > 0
-        assert self._fov > 0
-        assert self._resolution > 0
+        if not self._resolution > 0:
+            raise ValueError('resolution must be more than 1')
+        if not self._fov > 0:
+            raise ValueError('field of view must be more than 1')
+        if not self._range > 0:
+            raise ValueError('range must be more than 1')
 
         # Sensor max value is used for noise and normalization calculation
         self._sensor_max_value = 0
@@ -136,7 +139,7 @@ class Sensor(ABC):
         return default_config[self.sensor_type]
 
     @abstractmethod
-    def _compute_raw_sensor(self, **kwargs):
+    def _compute_raw_sensor(self, playground, sensor_surface):
         pass
 
     @abstractmethod
@@ -153,7 +156,7 @@ class Sensor(ABC):
         return None
 
     @abstractmethod
-    def draw(self, **kwargs):
+    def draw(self, width, height):
         """
         Function that creates an image for visualizing a sensor.
 

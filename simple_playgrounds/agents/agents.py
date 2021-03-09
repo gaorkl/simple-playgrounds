@@ -3,7 +3,8 @@ Module defining standard agents
 """
 import math
 
-from pygame.locals import *
+# pylint: disable=unused-wildcard-import
+from pygame.locals import *  # pylint: disable=wildcard-import
 
 from simple_playgrounds.agent import Agent
 from simple_playgrounds.agents.parts import Head, Hand, Eye, Arm, FixedPlatform
@@ -70,7 +71,7 @@ class BaseAgent(Agent):
                                                                     KeyTypes.PRESS_HOLD, -1)
 
         if interactive:
-            self.base_platform.eat_actuator.assign_key(K_e,KeyTypes.PRESS_ONCE, 1)
+            self.base_platform.eat_actuator.assign_key(K_e, KeyTypes.PRESS_ONCE, 1)
             self.base_platform.activate_actuator.assign_key(K_a, KeyTypes.PRESS_ONCE, 1)
             self.base_platform.grasp_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, 1)
 

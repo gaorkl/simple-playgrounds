@@ -7,7 +7,9 @@ from operator import attrgetter
 import numpy as np
 import cv2
 
-from .sensor import RayCollisionSensor
+from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
+
+# pylint: disable=no-member
 
 
 class RgbCamera(RayCollisionSensor):
@@ -30,7 +32,7 @@ class RgbCamera(RayCollisionSensor):
 
         self._sensor_max_value = 255
 
-    def _compute_raw_sensor(self, playground):
+    def _compute_raw_sensor(self, playground, *_):
 
         collision_points = self._compute_points(playground)
 
@@ -101,7 +103,7 @@ class GreyCamera(RgbCamera):
 
     sensor_type = 'grey'
 
-    def _compute_raw_sensor(self, playground):
+    def _compute_raw_sensor(self, playground, *_):
         super()._compute_raw_sensor(playground)
         self.sensor_values = np.dot(self.sensor_values[..., :3], [0.114, 0.299, 0.587])
 
@@ -145,7 +147,7 @@ class Lidar(RayCollisionSensor):
 
         self._sensor_max_value = self._range
 
-    def _compute_raw_sensor(self, playground):
+    def _compute_raw_sensor(self, playground, *_):
 
         collision_points = self._compute_points(playground)
 
@@ -205,9 +207,9 @@ class Touch(Lidar):
                          **sensor_params)
 
         self._sensor_max_value = self._range
-        self._range = self.anchor.radius + self._range
+        self._range = self.anchor.radius + self._range  # pylint: disable=access-member-before-definition
 
-    def _compute_raw_sensor(self, playground):
+    def _compute_raw_sensor(self, playground, *_):
 
         super()._compute_raw_sensor(playground)
 

@@ -11,10 +11,10 @@ from simple_playgrounds.utils.position_utils import PositionAreaSampler
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
 
-BORDER_IMAGE = 3
-FONT_TEXT = cv2.FONT_HERSHEY_SIMPLEX
-FONT_COLOR = (0, 0, 0)
-FONT_SCALE = 0.5
+_BORDER_IMAGE = 3
+_FONT_TEXT = cv2.FONT_HERSHEY_SIMPLEX
+_FONT_COLOR = (0, 0, 0)
+_FONT_SCALE = 0.5
 
 
 class Agent:
@@ -221,20 +221,18 @@ class Agent:
 
         """
 
-        border = 5
-
         list_sensor_images = []
         for sensor in self.sensors:
             list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
 
         full_height = sum([im.shape[0] for im in list_sensor_images])\
-                      + len(list_sensor_images) * (border + 1)
+                      + len(list_sensor_images) * (_BORDER_IMAGE + 1)
 
         full_img = np.ones((full_height, width_sensor, 3))
 
         current_height = 0
         for sensor_image in list_sensor_images:
-            current_height += border
+            current_height += _BORDER_IMAGE
             full_img[current_height:sensor_image.shape[0] + current_height, :, :] \
                 = sensor_image[:, :, :]
             current_height += sensor_image.shape[0]
@@ -385,37 +383,37 @@ class Agent:
         number_parts_with_actions = len(self.parts)
         count_all_actions = len(self.current_actions)
 
-        total_height_actions = number_parts_with_actions * (BORDER_IMAGE + height_action) \
-                               + (BORDER_IMAGE + height_action) * count_all_actions + BORDER_IMAGE
+        total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \
+                               + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
         img_actions = np.ones((total_height_actions, width_action, 4))
 
-        offset_string_name = int(height_action / 2.0 - FONT_SCALE * 10)
+        offset_string_name = int(height_action / 2.0 - _FONT_SCALE * 10)
 
         action_names_length = max([len(action.action.name)
                                    for action, value in self.current_actions.items()])
         font_scale_action = 0.95 * width_action / action_names_length * 0.5 / 10
         offset_string_action = int(height_action / 2.0 - font_scale_action * 10)
 
-        current_height = BORDER_IMAGE
+        current_height = _BORDER_IMAGE
 
         for part in self.parts:
 
             current_height += height_action
 
-            start_box = int(width_action / 2.0 - 18 * FONT_SCALE * len(part.name) / 2)
+            start_box = int(width_action / 2.0 - 18 * _FONT_SCALE * len(part.name) / 2)
             bottom_left = (start_box, current_height - offset_string_name)
 
             cv2.putText(img_actions, part.name.upper(),
                         bottom_left,
-                        FONT_TEXT,
-                        FONT_SCALE,
-                        FONT_COLOR,
+                        _FONT_TEXT,
+                        _FONT_SCALE,
+                        _FONT_COLOR,
                         1)
 
             cv2.rectangle(img_actions, (0, current_height),
                           (width_action, current_height - height_action), (0, 0, 0), 3)
 
-            current_height += BORDER_IMAGE
+            current_height += _BORDER_IMAGE
 
             all_action_parts = [(action, value) for action, value in self.current_actions.items() if
                                 action.part_name == part.name]
@@ -461,12 +459,12 @@ class Agent:
 
                 cv2.putText(img_actions, action.action.name.upper(),
                             bottom_left,
-                            FONT_TEXT,
+                            _FONT_TEXT,
                             font_scale_action,
-                            FONT_COLOR,
+                            _FONT_COLOR,
                             1)
 
-                current_height += BORDER_IMAGE
+                current_height += _BORDER_IMAGE
 
         img_actions = cv2.cvtColor(img_actions.astype('float32'), cv2.COLOR_RGBA2BGR)
 

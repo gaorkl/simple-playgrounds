@@ -11,7 +11,7 @@ import yaml
 import pymunk
 
 
-from simple_playgrounds.utils import PositionAreaSampler
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
 from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
 
 # pylint: disable=unused-argument
@@ -448,7 +448,7 @@ class Playground(ABC):
 
             overlaps = self._agent_overlaps_with_element(agent, teleport)
 
-            if not overlaps:
+            if not overlaps and not agent.is_teleporting:
                 self._teleported.remove((agent, teleport))
 
     @staticmethod
@@ -660,13 +660,13 @@ class Playground(ABC):
         teleport = self._get_scene_element_from_shape(arbiter.shapes[1])
 
         if teleport is None or teleport.target is None or (agent, teleport) in self._teleported:
-
             return True
 
         if agent.is_teleporting:
             return True
 
         if teleport.target.traversable:
+
             agent.position = (teleport.target.position[0], teleport.target.position[1],
                               agent.position[2])
         else:

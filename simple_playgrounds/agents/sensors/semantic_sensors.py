@@ -35,7 +35,7 @@ class SemanticRay(RayCollisionSensor):
 
         self._sensor_max_value = self._range
 
-    def _compute_raw_sensor(self, playground):
+    def _compute_raw_sensor(self, playground, *_):
 
         collision_points = self._compute_points(playground)
 
@@ -77,16 +77,20 @@ class SemanticRay(RayCollisionSensor):
 
     def _apply_normalization(self):
 
-        for detection in self.sensor_values:
-            detection.distance /= self._sensor_max_value
+        for index, detection in enumerate(self.sensor_values):
+
+            new_detection = Detection(entity=detection.entity,
+                                      distance=detection.distance/self._sensor_max_value,
+                                      angle=detection.angle)
+            self.sensor_values[index] = new_detection
 
     def _apply_noise(self):
 
         raise ValueError('Noise not implemented for Semantic sensors')
 
-    def draw(self, size_display, *args, **kwargs):
+    def draw(self, width, *_):
 
-        img = np.zeros((size_display, size_display, 3))
+        img = np.zeros((width, width, 3))
 
         for detection in self.sensor_values:
 
@@ -94,13 +98,13 @@ class SemanticRay(RayCollisionSensor):
             if self._normalize:
                 distance *= self._range
 
-            distance *= size_display / (2 * self._range)
+            distance *= width / (2 * self._range)
 
-            pos_x = int(size_display / 2 - distance * math.cos(detection.angle))
-            pos_y = int(size_display / 2 - distance * math.sin(detection.angle))
+            pos_x = int(width / 2 - distance * math.cos(detection.angle))
+            pos_y = int(width / 2 - distance * math.sin(detection.angle))
 
             # pylint: disable=no-member
-            cv2.line(img, (int(size_display / 2), int(size_display / 2)),
+            cv2.line(img, (int(width / 2), int(width / 2)),
                      (pos_y, pos_x),
                      color=(0.5, 0.1, 0.3))
             cv2.circle(img, (pos_y, pos_x), 2, [25, 130, 255], thickness=-1)
@@ -138,7 +142,8 @@ class SemanticCones(SemanticRay):
         self.number_cones = sensor_params['n_cones']
         rays_per_cone = sensor_params.get('rays_per_cone')
 
-        assert rays_per_cone > 0
+        if not rays_per_cone > 0:
+            raise ValueError('rays_per_cone should be at least 1')
 
         n_rays = rays_per_cone*self.number_cones
 
@@ -157,7 +162,7 @@ class SemanticCones(SemanticRay):
             self.angles_cone_center = [n * angle / (self.number_cones - 1) - angle / 2
                                        for n in range(self.number_cones)]
 
-    def _compute_raw_sensor(self, playground):
+    def _compute_raw_sensor(self, playground, *_):
 
         super()._compute_raw_sensor(playground)
 
@@ -166,6 +171,7 @@ class SemanticCones(SemanticRay):
             detections_per_cone[cone_angle] = []
 
         for detection in self.sensor_values:
+            # pylint: disable=all
             cone_angle = min(self.angles_cone_center, key=lambda x: (x - detection.angle) ** 2)
             detections_per_cone[cone_angle].append(detection)
 
@@ -181,9 +187,13 @@ class SemanticCones(SemanticRay):
 
         for cone_angle, detections in detections_per_cone.items():
 
-            for detection in detections:
-                detection.angle = cone_angle
-                self.sensor_values.append(detection)
+            for index, detection in enumerate(detections):
+
+                new_detection = Detection(entity=detection.entity,
+                                          distance=detection.distance,
+                                          angle=cone_angle)
+
+                detections[index] = new_detection
 
     @staticmethod
     def _remove_cone_occlusions(detections):
@@ -194,9 +204,9 @@ class SemanticCones(SemanticRay):
         min_distance_detection = min(detections, key=attrgetter('distance'))
         return [min_distance_detection]
 
-    def draw(self, size_display, *args, **kwargs):
+    def draw(self, width, *_):
 
-        img = np.zeros((size_display, size_display, 3))
+        img = np.zeros((width, width, 3))
 
         for detection in self.sensor_values:
 
@@ -204,24 +214,24 @@ class SemanticCones(SemanticRay):
             if self._normalize:
                 distance *= self._range
 
-            distance *= size_display / (2 * self._range)
+            distance *= width / (2 * self._range)
 
-            pos_x_1 = int(size_display / 2
+            pos_x_1 = int(width / 2
                           - distance * math.cos(detection.angle - self._fov/self.number_cones/2))
-            pos_y_1 = int(size_display / 2
+            pos_y_1 = int(width / 2
                           - distance * math.sin(detection.angle - self._fov/self.number_cones/2))
 
-            pos_x_2 = int(size_display / 2
+            pos_x_2 = int(width / 2
                           - distance * math.cos(detection.angle + self._fov/self.number_cones/2))
-            pos_y_2 = int(size_display / 2
+            pos_y_2 = int(width / 2
                           - distance * math.sin(detection.angle + self._fov/self.number_cones/2))
 
             # pylint: disable=no-member
-            cv2.line(img, (int(size_display / 2), int(size_display / 2)),
+            cv2.line(img, (int(width / 2), int(width / 2)),
                      (pos_y_1, pos_x_1), color=(0.5, 0.1, 0.3))
             cv2.line(img, (pos_y_1, pos_x_1),
                      (pos_y_2, pos_x_2), color=(0.5, 0.1, 0.3))
             cv2.line(img, (pos_y_2, pos_x_2),
-                     (int(size_display / 2), int(size_display / 2)), color=(0.5, 0.1, 0.3))
+                     (int(width / 2), int(width / 2)), color=(0.5, 0.1, 0.3))
 
         return img

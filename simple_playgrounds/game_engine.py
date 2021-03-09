@@ -11,6 +11,9 @@ import cv2
 
 from simple_playgrounds.utils.definitions import SensorModality, SIMULATION_STEPS, ActionTypes
 
+_BORDER_IMAGE = 5
+_PYGAME_WAIT_DISPLAY = 25
+
 
 class Engine:
 
@@ -75,7 +78,7 @@ class Engine:
                 elem.draw(self._surface_background, )
 
         self.game_on = True
-        self._elapsed_time = 0
+        self.elapsed_time = 0
 
     # STEP
 
@@ -165,7 +168,7 @@ class Engine:
 
         self.playground.update(SIMULATION_STEPS)
 
-        self._elapsed_time += 1
+        self.elapsed_time += 1
 
     # TERMINATION CONDITIONS
 
@@ -186,7 +189,7 @@ class Engine:
         if not self._time_limit:
             return False
 
-        if self._elapsed_time >= self._time_limit-1:
+        if self.elapsed_time >= self._time_limit-1:
             return True
 
         return False
@@ -204,6 +207,8 @@ class Engine:
         if self._screen is not None:
 
             pygame.event.get()
+
+            # pylint: disable=no-member
 
             # Press Q to terminate
             if not pygame.key.get_pressed()[pygame.locals.K_q] and not self.quit_key_ready:
@@ -354,7 +359,6 @@ class Engine:
 
         # pylint: disable=too-many-locals
 
-        border = 10
         images = {}
 
         if with_pg:
@@ -372,35 +376,36 @@ class Engine:
             sensor_image = agent.generate_sensor_image(width_sensor=width_sensors, height_sensor=height_sensor)
             images['sensors'] = sensor_image
 
-        full_width = border
+        full_width = _BORDER_IMAGE
         full_height = 0
 
         for column in layout:
 
             if isinstance(column, str):
-                full_width += images[column].shape[1] + border
-                full_height = max(full_height, images[column].shape[0] + 2*border)
+                full_width += images[column].shape[1] + _BORDER_IMAGE
+                full_height = max(full_height, images[column].shape[0] + 2*_BORDER_IMAGE)
 
             elif isinstance(column, tuple):
-                full_width += max([images[col].shape[1] for col in column]) + border
-                full_height = max(full_height, border + sum(images[col].shape[0] + border for col in column))
+                full_width += max([images[col].shape[1] for col in column]) + _BORDER_IMAGE
+                full_height = max(full_height, _BORDER_IMAGE
+                                  + sum(images[col].shape[0] + _BORDER_IMAGE for col in column))
 
         full_img = np.ones((full_height, full_width, 3))
 
-        current_width = border
+        current_width = _BORDER_IMAGE
 
         for column in layout:
 
             if isinstance(column, str):
-                full_img[border: border + images[column].shape[0],
+                full_img[_BORDER_IMAGE: _BORDER_IMAGE + images[column].shape[0],
                          current_width:current_width + images[column].shape[1], :] \
                          = images[column][:, :, :]
 
-                current_width += images[column].shape[1] + border
+                current_width += images[column].shape[1] + _BORDER_IMAGE
 
             elif isinstance(column, tuple):
 
-                current_height = border
+                current_height = _BORDER_IMAGE
 
                 for col in column:
 
@@ -412,9 +417,9 @@ class Engine:
                              current_width + delta_width:current_width + delta_width + images[col].shape[1], :] \
                         = images[col][:, :, :]
 
-                    current_height += images[col].shape[0] + border
+                    current_height += images[col].shape[0] + _BORDER_IMAGE
 
-                current_width += max([images[col].shape[1] for col in column]) + border
+                current_width += max([images[col].shape[1] for col in column]) + _BORDER_IMAGE
 
         if plt_mode:
             full_img = full_img[:, :, ::-1]
@@ -427,7 +432,7 @@ class Engine:
 
         """
         self.playground.reset()
-        self._elapsed_time = 0
+        self.elapsed_time = 0
         self.game_on = True
 
         # Redraw everything
@@ -456,7 +461,7 @@ class Engine:
 
             if update_screen and self.game_on:
                 self.update_screen()
-                pygame.time.wait(30)
+                pygame.time.wait(_PYGAME_WAIT_DISPLAY)
 
             if print_rewards:
                 for agent in self.agents:

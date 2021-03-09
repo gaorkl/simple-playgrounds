@@ -6,7 +6,7 @@ import random
 from simple_playgrounds.playgrounds.empty import SingleRoom, ConnectedRooms2D
 from simple_playgrounds.playgrounds.scene_elements \
     import Basic, GoalZone, Candy, Dispenser, Coin, DeathZone, Field, VendingMachine
-from simple_playgrounds.utils import PositionAreaSampler
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
 from simple_playgrounds.playground import PlaygroundRegister
 
 
@@ -93,7 +93,7 @@ class Endgoal9Rooms(ConnectedRooms2D):
     """
     def __init__(self):
 
-        super().__init__(size=(600, 600), n_rooms=(3, 3), wall_type='colorful')
+        super().__init__(size=(600, 600), room_layout=(3, 3), wall_type='colorful')
 
         # Starting area of the agent
         area_start = PositionAreaSampler(center=(300, 300),
@@ -117,7 +117,7 @@ class DispenserEnv(ConnectedRooms2D):
 
     def __init__(self):
 
-        super().__init__(size=(300, 200), n_rooms=(3, 2))
+        super().__init__(size=(300, 200), room_layout=(3, 2))
 
         self.agent_starting_area, self.area_prod, self.area_dispenser = self._assign_areas()
 

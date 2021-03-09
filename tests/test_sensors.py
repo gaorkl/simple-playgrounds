@@ -1,13 +1,13 @@
 
-from simple_playgrounds.agents.sensors import *
+from simple_playgrounds.agents.sensors import RgbCamera, GreyCamera, Lidar,\
+    Touch, SemanticRay, SemanticCones, TopdownSensor
 
 from simple_playgrounds.agents.controllers import Random
 from simple_playgrounds.agents import BaseAgent
 from simple_playgrounds.agents.parts import ForwardPlatform
 from simple_playgrounds import Engine
 
-
-from simple_playgrounds.playgrounds.collection.test import *
+from simple_playgrounds.playground import PlaygroundRegister
 
 # Add/remove agent from a playground
 
@@ -23,22 +23,29 @@ def test_camera_sensors():
 
             for fov in [2, 30, 90, 180, 360, 380]:
 
-                for sens in [RgbCamera, GreyCamera, Lidar, Touch, SemanticRay, SemanticCones, TopdownSensor]:
+                for sens in [RgbCamera,
+                             GreyCamera,
+                             Lidar,
+                             Touch,
+                             SemanticRay,
+                             SemanticCones,
+                             TopdownSensor]:
 
-                    agent.add_sensor(sens(anchor=agent.base_platform, invisible_elements=agent.parts,
-                                     resolution=resolution, max_range=range_sensor, fov=fov))
+                    agent.add_sensor(sens(anchor=agent.base_platform,
+                                          invisible_elements=agent.parts,
+                                          resolution=resolution, max_range=range_sensor, fov=fov))
 
     for pg_class in PlaygroundRegister.filter('test'):
-        pg = pg_class()
-        pg.add_agent(agent)
+        playground = pg_class()
+        playground.add_agent(agent)
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(pg, time_limit=100)
+        engine = Engine(playground, time_limit=100)
         engine.run()
 
-        assert 0 < agent.position[0] < pg.size[0]
-        assert 0 < agent.position[1] < pg.size[1]
+        assert 0 < agent.position[0] < playground.size[0]
+        assert 0 < agent.position[1] < playground.size[1]
 
-        pg.remove_agent(agent)
-        pg.reset()
+        playground.remove_agent(agent)
+        playground.reset()

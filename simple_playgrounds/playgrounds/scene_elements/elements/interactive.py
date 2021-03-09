@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 from simple_playgrounds.utils.definitions import CollisionTypes
 from simple_playgrounds.utils.position_utils import PositionAreaSampler
-from simple_playgrounds.agents.parts import Part
+from simple_playgrounds.agents.parts.part import Part
 from simple_playgrounds.playground import Playground
 
 #pylint: disable=line-too-long
