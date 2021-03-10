@@ -3,13 +3,15 @@ InteractiveSceneElements can be activated by an agent.
 """
 from abc import ABC, abstractmethod
 
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes
-from simple_playgrounds.utils.position_utils import PositionAreaSampler
 from simple_playgrounds.agents.parts.part import Part
 from simple_playgrounds.playground import Playground
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.position_utils import PositionAreaSampler
+from simple_playgrounds.utils.parser import parse_configuration
 
-#pylint: disable=line-too-long
+
+# pylint: disable=line-too-long
 
 
 class InteractiveSceneElement(SceneElement, ABC):
@@ -57,11 +59,11 @@ class InteractiveSceneElement(SceneElement, ABC):
 class Lever(InteractiveSceneElement):
     """Lever Entities provide a reward when activated."""
 
-    entity_type = 'lever'
+    entity_type = SceneElementTypes.LEVER
 
     def __init__(self, initial_position, **kwargs):
 
-        default_config = self._parse_configuration('interactive', 'lever')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -90,7 +92,7 @@ class Lever(InteractiveSceneElement):
         self._reward = rew
 
     def activate(self, activating_entity):
-        #pylint: disable=useless-super-delegation
+        # pylint: disable=useless-super-delegation
         return super().activate(activating_entity)
 
 
@@ -98,7 +100,7 @@ class Dispenser(InteractiveSceneElement):
     """Dispenser produces a new entity in an area of the playground when activated.
     """
 
-    entity_type = 'dispenser'
+    entity_type = SceneElementTypes.DISPENSER
     interactive = True
 
     def __init__(self, initial_position, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
@@ -119,7 +121,7 @@ class Dispenser(InteractiveSceneElement):
             production_limit: maximum number of entities produced. Default: 15.
         """
 
-        default_config = self._parse_configuration('interactive', 'dispenser')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -184,7 +186,7 @@ class Chest(InteractiveSceneElement):
     When opened, Chest and key disappear, treasure appears.
     """
 
-    entity_type = 'chest'
+    entity_type = SceneElementTypes.CHEST
     interactive = True
     background = False
 
@@ -200,7 +202,7 @@ class Chest(InteractiveSceneElement):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self._parse_configuration('interactive', 'chest')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -235,7 +237,7 @@ class VendingMachine(InteractiveSceneElement):
     When in contact with a coin, provide a reward to the agent closest to the coin.
     """
 
-    entity_type = 'vending_machine'
+    entity_type = SceneElementTypes.VENDING_MACHINE
     interactive = True
 
     def __init__(self, initial_position, **kwargs):
@@ -243,7 +245,7 @@ class VendingMachine(InteractiveSceneElement):
         Default: Orange square of size 20, provides a reward of 10.
         """
 
-        default_config = self._parse_configuration('interactive', 'vending_machine')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -280,7 +282,7 @@ class OpenCloseSwitch(InteractiveSceneElement):
     Opens or close a door when activated by an agent.
     """
 
-    entity_type = 'switch'
+    entity_type = SceneElementTypes.SWITCH
     interactive = True
 
     def __init__(self, initial_position, door, **kwargs):
@@ -299,7 +301,7 @@ class OpenCloseSwitch(InteractiveSceneElement):
             However the behavior is unstable in multiagent setting.
         """
 
-        default_config = self._parse_configuration('interactive', 'switch')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -336,7 +338,7 @@ class TimerSwitch(InteractiveSceneElement):
     If activated when door is still open, resets the timer.
     """
 
-    entity_type = 'switch'
+    entity_type = SceneElementTypes.SWITCH
     timed = True
 
     def __init__(self, initial_position, door, time_open, **kwargs):
@@ -352,7 +354,7 @@ class TimerSwitch(InteractiveSceneElement):
             **kwargs: other params to configure entity. Refer to Entity class.
         """
 
-        default_config = self._parse_configuration('interactive', 'switch')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -407,7 +409,7 @@ class Lock(InteractiveSceneElement):
     """
     Opens a door when in contact with the associated key.
     """
-    entity_type = 'lock'
+    entity_type = SceneElementTypes.LOCK
     background = False
 
     def __init__(self, initial_position, door, key, **kwargs):
@@ -423,7 +425,7 @@ class Lock(InteractiveSceneElement):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        default_config = self._parse_configuration('interactive', 'lock')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)

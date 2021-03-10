@@ -33,7 +33,7 @@ def test_add_remove_agent_in_area():
              'up-left': [0, 200, 200, 400],
              'down-right': [200, 400, 0, 200],
              'down-left': [0, 200, 0, 200],
-            }
+             }
 
     for area_name, coord in areas.items():
 
@@ -52,7 +52,6 @@ def test_add_remove_agent_in_area():
         assert min_y < agent.position[1] < max_y
 
         playground_1.remove_agent(agent)
-
 
 
 # Create an engine then add an agent
@@ -97,7 +96,7 @@ def test_all_test_playgrounds():
 
     agent = BaseAgent(controller=Random(), interactive=False, platform=ForwardPlatform)
 
-    for pg_class in PlaygroundRegister.filter('test'):
+    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
         playground = pg_class()
 
         playground.add_agent(agent)
@@ -117,7 +116,7 @@ def test_all_test_playgrounds():
 # Run all test playgrounds with 100 agents
 def test_multiagents():
 
-    for pg_class in PlaygroundRegister.filter('test'):
+    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
 
         playground = pg_class()
         print('Starting Multiagent testing of ', pg_class.__name__)
@@ -143,7 +142,7 @@ def test_multiagents():
 # Run all test playgrounds with 10 agents
 def test_multiagents_no_overlapping():
 
-    for pg_class in PlaygroundRegister.filter('test'):
+    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
 
         playground = pg_class()
         print('Starting Multiagent testing of ', pg_class.__name__)
@@ -175,7 +174,7 @@ def test_multisteps():
     sensor = Touch(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(sensor)
 
-    for pg_class in PlaygroundRegister.filter('test'):
+    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
 
         playground = pg_class()
         print('Starting Multistep testing of ', pg_class.__name__)

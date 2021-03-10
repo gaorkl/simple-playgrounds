@@ -4,10 +4,11 @@ Contact entities interact upon touching an agent
 from abc import ABC, abstractmethod
 
 from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes
+from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.parser import parse_configuration
 
-#pylint: disable=line-too-long
-#pylint: disable=useless-super-delegation
+# pylint: disable=line-too-long
+# pylint: disable=useless-super-delegation
 
 
 class ContactSceneElement(SceneElement, ABC):
@@ -49,15 +50,14 @@ class ContactSceneElement(SceneElement, ABC):
         self._reward = rew
 
 
-class TerminationContact(ContactSceneElement):
+class TerminationContact(ContactSceneElement, ABC):
 
     """Base class for entities that terminate upon contact"""
 
-    entity_type = 'contact_termination'
     visible = True
     terminate_upon_contact = True
 
-    def __init__(self, initial_position, default_config_key=None, **kwargs):
+    def __init__(self, initial_position, **kwargs):
         """
         TerminationContact terminate the Episode upon contact with an Agent.
         Provides a reward to the agent.
@@ -72,7 +72,7 @@ class TerminationContact(ContactSceneElement):
             reward: Reward provided.
         """
 
-        default_config = self._parse_configuration('contact', default_config_key)
+        default_config = parse_configuration('element_contact', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -88,12 +88,7 @@ class VisibleEndGoal(TerminationContact):
     Default: Green square of radius 20, reward of 200.
 
     """
-
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position,
-                         default_config_key='visible_endgoal',
-                         **kwargs)
+    entity_type = SceneElementTypes.VISIBLE_ENDGOAL
 
 
 class VisibleDeathTrap(TerminationContact):
@@ -103,23 +98,17 @@ class VisibleDeathTrap(TerminationContact):
     Default: Red square of radius 20, reward of -200.
 
     """
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position,
-                         default_config_key='visible_deathtrap',
-                         **kwargs)
+    entity_type = SceneElementTypes.VISIBLE_DEATHTRAP
 
 
-class Absorbable(ContactSceneElement):
+class Absorbable(ContactSceneElement, ABC):
 
     """Base class for entities that are absorbed upon contact."""
 
-    entity_type = 'absorbable'
     absorbable = True
     background = False
 
-
-    def __init__(self, initial_position, default_config_key=None, **kwargs):
+    def __init__(self, initial_position, **kwargs):
         """
         Absorbable entities provide a reward to the agent upon contact,
         then disappears from the playground.
@@ -131,7 +120,7 @@ class Absorbable(ContactSceneElement):
             **kwargs: other params to configure SceneElement. Refer to Entity class.
         """
 
-        default_config = self._parse_configuration('contact', default_config_key)
+        default_config = parse_configuration('element_contact', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -151,9 +140,7 @@ class Candy(Absorbable):
     Default: Violet triangle of radius 4, which provides a reward of 5 when in contact with an agent.
 
     """
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position, default_config_key='candy', **kwargs)
+    entity_type = SceneElementTypes.CANDY
 
 
 class Poison(Absorbable):
@@ -163,14 +150,13 @@ class Poison(Absorbable):
 
     """
 
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position, default_config_key='poison', **kwargs)
+    entity_type = SceneElementTypes.POISON
 
 
 class PushButton(ContactSceneElement):
     """Push button used to open a door."""
-    entity_type = 'pushbutton'
+
+    entity_type = SceneElementTypes.SWITCH
     background = False
 
     def __init__(self, initial_position, door, **kwargs):
@@ -185,7 +171,7 @@ class PushButton(ContactSceneElement):
             **kwargs: other params to configure SceneElement. Refer to Entity class.
         """
 
-        default_config = self._parse_configuration('interactive', 'switch')
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)

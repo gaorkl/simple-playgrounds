@@ -1,13 +1,15 @@
 """
 Module for Edible SceneElement
 """
-from simple_playgrounds.playgrounds.scene_elements.element  import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes
+from abc import ABC
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
 
 
-class Edible(SceneElement):
+class Edible(SceneElement, ABC):
 
     """
     Base class for edible Scene Elements.
@@ -16,7 +18,6 @@ class Edible(SceneElement):
 
     # pylint: disable=too-many-instance-attributes
 
-    entity_type = 'edible'
     interactive = True
     background = False
 
@@ -38,7 +39,7 @@ class Edible(SceneElement):
 
         """
 
-        default_config = self._parse_configuration('interactive', default_config_key)
+        default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -138,9 +139,7 @@ class Apple(Edible):
     a min reward of 5, and a shrink_ratio of 0.9.
     """
 
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position, default_config_key='apple', **kwargs)
+    entity_type = SceneElementTypes.APPLE
 
 
 class RottenApple(Edible):
@@ -151,7 +150,4 @@ class RottenApple(Edible):
     a min reward of -5, and a shrink_ratio of 0.9.
 
     """
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position, default_config_key='rotten_apple',
-                                          **kwargs)
+    entity_type = SceneElementTypes.ROTTEN_APPLE

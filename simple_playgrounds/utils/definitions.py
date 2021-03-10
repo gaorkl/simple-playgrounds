@@ -11,10 +11,77 @@ SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9
 
 
-class SceneElementTypes(Enum):
+class AgentPartTypes(IntEnum):
 
-    FIELD = 'field'
-    DISPENSER = 'dispenser'
+    PART = auto()
+    HEAD = auto()
+    EYE = auto()
+    ARM = auto()
+    HAND = auto()
+    PLATFORM = auto()
+
+
+class SceneElementTypes(IntEnum):
+
+    # Basic Entities
+    BASIC = auto()
+    DOOR = auto()
+    COLOR_CHANGING = auto()
+
+    # Contact entities
+    VISIBLE_ENDGOAL = auto()
+    VISIBLE_DEATHTRAP = auto()
+    CANDY = auto()
+    POISON = auto()
+    SWITCH = ()
+
+    # Edibles
+    APPLE = auto()
+    ROTTEN_APPLE = auto()
+
+    # Gems
+    COIN = auto()
+    KEY = auto()
+
+    # Interactive
+    LEVER = auto()
+    DISPENSER = auto()
+    CHEST = auto()
+    VENDING_MACHINE = auto()
+    LOCK = auto()
+
+    # Zone
+    GOAL_ZONE = auto()
+    DEATH_ZONE = auto()
+    TOXIC_ZONE = auto()
+    HEALING_ZONE = auto()
+
+    # Proximity
+    FAIRY = auto()
+    FIREBALL = auto()
+
+    # Teleport
+    TELEPORT = auto()
+
+    FIELD = auto()
+
+
+class SensorTypes(IntEnum):
+
+    SENSOR = auto()
+    VISUAL = auto()
+    SEMANTIC = auto()
+    ROBOTIC = auto()
+
+    RGB = auto()
+    GREY = auto()
+    LIDAR = auto()
+    TOUCH = auto()
+
+    SEMANTIC_CONE = auto()
+    SEMANTIC_RAY = auto()
+    TOP_DOWN = auto()
+    FULL_PLAYGROUND = auto()
 
 
 class CollisionTypes(IntEnum):
@@ -80,11 +147,7 @@ class KeyTypes(IntEnum):
     PRESS_ONCE = 2
 
 
-class SensorModality(Enum):
-    VISUAL = auto()
-    SEMANTIC = auto()
-    ROBOTIC = auto()
-    UNDEFINED = auto()
+
 
 
 Detection = namedtuple('Detection', 'entity, distance, angle')

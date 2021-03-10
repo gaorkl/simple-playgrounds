@@ -1,14 +1,16 @@
+from abc import ABC
 from simple_playgrounds.playgrounds.scene_elements.elements.passive import PassiveSceneElement
+from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.utils.definitions import SceneElementTypes
 
 
-class VisibleRewardZone(PassiveSceneElement):
+class VisibleRewardZone(PassiveSceneElement, ABC):
     """
     Base class for entities that provide reward to an agent in its proximity.
     """
     interactive = True
-    entity_type = 'reward_zone'
 
-    def __init__(self, initial_position, default_config_key=None, **kwargs):
+    def __init__(self, initial_position, **kwargs):
         """
         VisibleRewardZone entities provide a reward to the agent
         in close proximity with the entity.
@@ -24,7 +26,7 @@ class VisibleRewardZone(PassiveSceneElement):
             total_reward: Total reward that the entity can provide during an Episode
         """
 
-        default_config = self._parse_configuration('proximity', default_config_key)
+        default_config = parse_configuration('element_proximity', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -67,9 +69,7 @@ class Fairy(VisibleRewardZone):
     Default: Turquoise-blue circle of radius 8, reward 2 and total_reward 200.
 
     """
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position, default_config_key='fairy', **kwargs)
+    entity_type = SceneElementTypes.FAIRY
 
 
 class Fireball(VisibleRewardZone):
@@ -81,6 +81,4 @@ class Fireball(VisibleRewardZone):
 
     """
 
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position, default_config_key='fireball', **kwargs)
+    entity_type = SceneElementTypes.FIREBALL

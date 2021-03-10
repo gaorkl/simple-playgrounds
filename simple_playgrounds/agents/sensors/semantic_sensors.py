@@ -12,7 +12,8 @@ import numpy as np
 import cv2
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
-from simple_playgrounds.utils.definitions import Detection, SensorModality
+from simple_playgrounds.utils.definitions import Detection, SensorTypes
+from simple_playgrounds.utils.parser import parse_configuration
 
 
 class SemanticRay(RayCollisionSensor):
@@ -22,8 +23,8 @@ class SemanticRay(RayCollisionSensor):
     All the attributes (position, physical properties, ...) of the returned
     entity can be accessed.
     """
-    sensor_type = 'semantic-ray'
-    sensor_modality = SensorModality.SEMANTIC
+    sensor_type = SensorTypes.SEMANTIC_RAY
+    sensor_modality = SensorTypes.SEMANTIC
 
     def __init__(self, anchor, invisible_elements=None, normalize=True, noise_params=None,
                  remove_duplicates=True, remove_occluded=True, **sensor_params):
@@ -117,7 +118,7 @@ class SemanticCones(SemanticRay):
     maximum angle of cones should be
     """
 
-    sensor_type = 'semantic-cone'
+    sensor_type = SensorTypes.SEMANTIC_CONE
 
     def __init__(self, anchor, invisible_elements=None,
                  remove_occluded=True, remove_duplicates=False, **sensor_params):
@@ -131,16 +132,17 @@ class SemanticCones(SemanticRay):
             **sensor_params: Additional Parameters.
 
         Keyword Args:
-            number_cones: number of cones evenly spaced across the field of view.
+            n_cones: number of cones evenly spaced across the field of view.
+            rays_per_cone: number of ray per cone.
             resolution: minimum size of detected objects.
             fov: field of view
             range: range of the rays.
         """
-        default_config = self._parse_configuration()
+        default_config = parse_configuration('agent_sensors', self.sensor_type)
         sensor_params = {**default_config, **sensor_params}
 
         self.number_cones = sensor_params['n_cones']
-        rays_per_cone = sensor_params.get('rays_per_cone')
+        rays_per_cone = sensor_params['rays_per_cone']
 
         if not rays_per_cone > 0:
             raise ValueError('rays_per_cone should be at least 1')

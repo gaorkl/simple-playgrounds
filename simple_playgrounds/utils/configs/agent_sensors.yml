@@ -46,12 +46,12 @@ full_playground:
 #####################
 # Semantic Sensors
 
-semantic-ray:
+semantic_ray:
   resolution: 128
   max_range: 200
   fov: 360
 
-semantic-cone:
+semantic_cone:
   n_cones: 36
   rays_per_cone: 4
   max_range: 200

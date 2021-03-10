@@ -11,7 +11,7 @@ import pygame
 
 from simple_playgrounds.utils.position_utils import PositionAreaSampler, Trajectory
 from simple_playgrounds.utils.texture import TextureGenerator, Texture
-from simple_playgrounds.utils.definitions import geometric_shapes, CollisionTypes
+from simple_playgrounds.utils.definitions import geometric_shapes, CollisionTypes, SceneElementTypes
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
@@ -59,7 +59,7 @@ class Entity(ABC):
         """
 
         # Internal counter to assign identity number and name to each entity
-        self.name = entity_params.get('name', self.entity_type + '_' + str(Entity.index_entity))
+        self.name = entity_params.get('name', self.entity_type.name.lower() + '_' + str(Entity.index_entity))
         Entity.index_entity += 1
 
         self.interaction_range = entity_params.get('interaction_range', 5)

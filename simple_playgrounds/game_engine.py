@@ -9,7 +9,7 @@ import pygame.color
 
 import cv2
 
-from simple_playgrounds.utils.definitions import SensorModality, SIMULATION_STEPS, ActionTypes
+from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS, ActionTypes
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 25
@@ -300,14 +300,14 @@ class Engine:
 
             for sensor in agent.sensors:
 
-                if sensor.sensor_modality is SensorModality.VISUAL:
+                if sensor.sensor_modality is SensorTypes.VISUAL:
 
                     self._update_surface_background()
                     self._surface_buffer.blit(self._surface_background, (0, 0))
                     sensor.update(playground=self.playground, sensor_surface=self._surface_buffer)
 
-                elif sensor.sensor_modality is SensorModality.ROBOTIC \
-                        or sensor.sensor_modality is SensorModality.SEMANTIC:
+                elif sensor.sensor_modality is SensorTypes.ROBOTIC \
+                        or sensor.sensor_modality is SensorTypes.SEMANTIC:
                     sensor.update(playground=self.playground)
 
                 else:

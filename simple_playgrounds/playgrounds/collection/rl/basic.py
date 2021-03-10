@@ -3,14 +3,14 @@ Module containing classical RL environments.
 """
 import random
 
+from simple_playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.empty import SingleRoom, ConnectedRooms2D
 from simple_playgrounds.playgrounds.scene_elements \
     import Basic, GoalZone, Candy, Dispenser, Coin, DeathZone, Field, VendingMachine
 from simple_playgrounds.utils.position_utils import PositionAreaSampler
-from simple_playgrounds.playground import PlaygroundRegister
 
 
-@PlaygroundRegister.register('spg_endgoal_cue')
+@PlaygroundRegister.register('basic_rl', 'endgoal_cue')
 class EndgoalRoomCue(SingleRoom):
     """
     Squared environment with obstacles.
@@ -84,7 +84,7 @@ class EndgoalRoomCue(SingleRoom):
         self._set_goal()
 
 
-@PlaygroundRegister.register('spg_endgoal_9rooms')
+@PlaygroundRegister.register('basic_rl', 'endgoal_9rooms')
 class Endgoal9Rooms(ConnectedRooms2D):
     """
     Squared environment composed of 9 rooms (3x3).
@@ -107,7 +107,7 @@ class Endgoal9Rooms(ConnectedRooms2D):
         self.time_limit = 3000
 
 
-@PlaygroundRegister.register('spg_dispenser_6rooms')
+@PlaygroundRegister.register('basic_rl', 'dispenser_6rooms')
 class DispenserEnv(ConnectedRooms2D):
     """
         Environment composed of 3 rooms (3x1).
@@ -166,7 +166,7 @@ class DispenserEnv(ConnectedRooms2D):
         self._place_scene_elements()
 
 
-@PlaygroundRegister.register('spg_coinmaster_singleroom')
+@PlaygroundRegister.register('basic_rl', 'coinmaster_singleroom')
 class CoinMaster(SingleRoom):
     """
     The agent should collect the coins, grasp them,
@@ -187,8 +187,7 @@ class CoinMaster(SingleRoom):
 
         self.time_limit = 2000
 
-    @staticmethod
-    def _assign_areas():
+    def _assign_areas(self):
 
         list_coord = [(50, 50), (50, 150), (150, 150), (150, 50)]
         random.shuffle(list_coord)

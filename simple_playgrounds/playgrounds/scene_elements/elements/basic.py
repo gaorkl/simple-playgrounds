@@ -2,12 +2,14 @@
 Module for Basic SceneElements
 """
 from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.utils.definitions import SceneElementTypes
 
 
 class Basic(SceneElement):
     """ Basic Scene elements are non-interactive obstacles."""
     visible = True
-    entity_type = 'basic'
+    entity_type = SceneElementTypes.BASIC
 
     def __init__(self, initial_position, default_config_key=None, **kwargs):
         """ Base class for Basic entities.
@@ -24,7 +26,7 @@ class Basic(SceneElement):
 
         """
 
-        default_config = self._parse_configuration('basic', default_config_key)
+        default_config = parse_configuration('element_basic', default_config_key)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -43,12 +45,12 @@ class Door(SceneElement):
         opened: True if the door is opened.
     """
 
-    entity_type = 'door'
+    entity_type = SceneElementTypes.DOOR
     background = False
 
     def __init__(self, initial_position, **kwargs):
 
-        default_config = self._parse_configuration('interactive', 'door')
+        default_config = parse_configuration('element_basic', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)

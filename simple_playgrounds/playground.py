@@ -391,7 +391,7 @@ class Playground(ABC):
             self._disappeared_scene_elements.append(scene_element)
 
         for elem in self.scene_elements:
-            if elem.entity_type == 'dispenser' and scene_element in elem.produced_entities:
+            if elem.entity_type == SceneElementTypes.DISPENSER and scene_element in elem.produced_entities:
                 elem.produced_entities.remove(scene_element)
 
         for field in self.fields:
@@ -736,30 +736,19 @@ class PlaygroundRegister:
     playgrounds = {}
 
     @classmethod
-    def register(cls, playground_name):
+    def register(cls, playground_group, playground_name):
         """
         Registers a playground
         """
         def decorator(subclass):
 
-            if playground_name in cls.playgrounds:
+            if playground_group not in cls.playgrounds:
+                cls.playgrounds[playground_group] = {}
+
+            if playground_name in cls.playgrounds[playground_group]:
                 raise ValueError(playground_name+' already registered')
 
-            cls.playgrounds[playground_name] = subclass
+            cls.playgrounds[playground_group][playground_name] = subclass
             return subclass
 
         return decorator
-
-    @classmethod
-    def filter(cls, name):
-        """
-        Filter the registered playground by name.
-
-        Args:
-            name: str
-
-        Returns: list of playgrounds.
-
-        """
-
-        return [pg for name_pg, pg in cls.playgrounds.items() if name in name_pg]

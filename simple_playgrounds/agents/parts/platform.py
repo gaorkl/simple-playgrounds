@@ -8,7 +8,8 @@ from abc import ABC
 import pymunk
 
 from simple_playgrounds.agents.parts.part import Part, Actuator
-from simple_playgrounds.utils.definitions import ActionTypes
+from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes
+from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
 # pylint: disable=too-few-public-methods
@@ -21,6 +22,8 @@ class Platform(Part, ABC):
     An agent requires a Platform to build its body.
 
     """
+
+    entity_type = AgentPartTypes.PLATFORM
 
     def __init__(self, **kwargs):
         """
@@ -37,7 +40,7 @@ class Platform(Part, ABC):
             max_angular_velocity: Maximum angular velocity (radian per timestep). Default: 0.25.
         """
 
-        default_config = self._parse_configuration('platform')
+        default_config = parse_configuration('agent_parts', self.entity_type)
         body_part_params = {**default_config, **kwargs}
 
         Part.__init__(self, **body_part_params)

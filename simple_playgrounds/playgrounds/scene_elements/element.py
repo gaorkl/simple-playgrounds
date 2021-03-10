@@ -3,8 +3,6 @@ Module that defines Base Class SceneElement
 """
 
 from abc import ABC
-import os
-import yaml
 
 from simple_playgrounds.entity import Entity
 
@@ -46,18 +44,3 @@ class SceneElement(Entity, ABC):
             self.background = False
 
         Entity.__init__(self, initial_position=initial_position, **kwargs)
-
-    @staticmethod
-    def _parse_configuration(entity_type, key):
-
-        if key is None:
-            return {}
-
-        fname = 'utils/configs/element_' + entity_type + '.yml'
-
-        __location__ = os.path.dirname(os.path.dirname(
-            os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))))
-        with open(os.path.join(__location__, fname), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
-
-        return default_config[key]

@@ -8,7 +8,8 @@ from abc import ABC
 import pymunk
 
 from simple_playgrounds.agents.parts.part import Part, Actuator
-from simple_playgrounds.utils.definitions import ActionTypes
+from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes
+from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
 
@@ -48,10 +49,13 @@ class Link(Part, ABC):
 
         self.anchor = anchor
 
-        super().__init__(**kwargs)
+        default_config = parse_configuration('agent_parts', self.entity_type)
+        body_part_params = {**default_config, **kwargs}
 
-        self._max_angular_velocity = kwargs['max_angular_velocity']
-        self._rotation_range = kwargs['rotation_range']
+        super().__init__(**body_part_params)
+
+        self._max_angular_velocity = body_part_params['max_angular_velocity']
+        self._rotation_range = body_part_params['rotation_range']
 
         self._angle_offset = angle_offset
 
@@ -145,13 +149,11 @@ class Head(Link):
     Not colliding with any Entity or Part.
 
     """
+    entity_type = AgentPartTypes.HEAD
 
     def __init__(self, anchor, position_anchor=(0, 0), angle_offset=0, **kwargs):
 
-        default_config = self._parse_configuration('head')
-        body_part_params = {**default_config, **kwargs}
-
-        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
+        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **kwargs)
 
         self.pm_visible_shape.sensor = True
 
@@ -163,13 +165,11 @@ class Eye(Link):
     Not colliding with any Entity or Part
 
     """
+    entity_type = AgentPartTypes.EYE
 
     def __init__(self, anchor, position_anchor, angle_offset=0, **kwargs):
 
-        default_config = self._parse_configuration('eye')
-        body_part_params = {**default_config, **kwargs}
-
-        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
+        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **kwargs)
 
         self.pm_visible_shape.sensor = True
 
@@ -181,13 +181,7 @@ class Hand(Link):
     Is colliding with other Entity or Part, except from anchor and other Parts attached to it.
 
     """
-
-    def __init__(self, anchor, position_anchor, angle_offset=0, **kwargs):
-
-        default_config = self._parse_configuration('hand')
-        body_part_params = {**default_config, **kwargs}
-
-        super().__init__(anchor, coord_anchor=position_anchor, angle_offset=angle_offset, **body_part_params)
+    entity_type = AgentPartTypes.HAND
 
 
 class Arm(Link):
@@ -199,10 +193,11 @@ class Arm(Link):
         extremity_anchor_point: coordinates of the free extremity, used to attach other Parts.
 
     """
+    entity_type = AgentPartTypes.ARM
 
     def __init__(self, anchor, position_anchor, angle_offset=0, **kwargs):
 
-        default_config = self._parse_configuration('arm')
+        default_config = parse_configuration('agent_parts', self.entity_type)
         body_part_params = {**default_config, **kwargs}
 
         # arm attached at one extremity, and other anchor point defined at other extremity

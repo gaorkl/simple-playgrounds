@@ -118,19 +118,7 @@ vending_machine:
   interaction_range : 10
   reward: 10
 
-# Doors
-
-door_texture : &door-texture
-  texture_type: random_tiles
-  color_min: [150, 170, 220]
-  color_max: [180, 190, 240]
-  size_tiles : 6
-
-door : &door
-  physical_shape: rectangle
-  width_length: [10, 80]
-  texture: *door-texture
-
+# Switches
 
 switch_texture : &switch-texture
   texture_type: random_tiles

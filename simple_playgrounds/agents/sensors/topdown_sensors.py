@@ -9,7 +9,8 @@ import cv2
 import pygame
 
 from simple_playgrounds.agents.sensors.sensor import Sensor
-from simple_playgrounds.utils.definitions import SensorModality
+from simple_playgrounds.utils.definitions import SensorTypes
+from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=no-member
 
@@ -19,8 +20,8 @@ class TopdownSensor(Sensor):
     TopdownSensor provides an image from bird's eye view, centered and oriented on the anchor.
     The anchor is, by default, visible to the agent.
     """
-    sensor_type = 'topdown'
-    sensor_modality = SensorModality.VISUAL
+    sensor_type = SensorTypes.TOP_DOWN
+    sensor_modality = SensorTypes.VISUAL
 
     def __init__(self, anchor, invisible_elements=None,
                  normalize=True, noise_params=None, only_front=False,
@@ -39,7 +40,7 @@ class TopdownSensor(Sensor):
                 Remove what is behind the sensor. Default: False.
         """
 
-        default_config = self._parse_configuration()
+        default_config = parse_configuration('agent_sensors', self.sensor_type)
         sensor_params = {**default_config, **sensor_params}
 
         super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
@@ -171,8 +172,8 @@ class FullPlaygroundSensor(Sensor):
     FullPlaygroundSensor provides an image from bird's eye view of the full playground.
     There is no anchor.
     """
-    sensor_type = 'full_playground'
-    sensor_modality = SensorModality.VISUAL
+    sensor_type = SensorTypes.FULL_PLAYGROUND
+    sensor_modality = SensorTypes.VISUAL
 
     def __init__(self, size_playground, invisible_elements=None, normalize=True, noise_params=None,
                  **sensor_params):
@@ -189,7 +190,7 @@ class FullPlaygroundSensor(Sensor):
                 Remove what is behind the sensor. Default: False.
         """
 
-        default_config = self._parse_configuration()
+        default_config = parse_configuration('agent_sensors', self.sensor_type)
         sensor_params = {**default_config, **sensor_params}
 
         super().__init__(anchor=None, invisible_elements=invisible_elements, normalize=normalize,

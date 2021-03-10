@@ -1,16 +1,18 @@
 """
 Scene Elements used for conditioning experiments
 """
-from simple_playgrounds.playgrounds.scene_elements.elements.interactive import Lever
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 from simple_playgrounds.playground import Playground
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.playgrounds.scene_elements.elements.interactive import Lever
+from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.utils.definitions import SceneElementTypes
 
 
 class ColorChanging(SceneElement):
 
     """ SceneElement that changes its texture based on a timer."""
 
-    entity_type = 'color_changing'
+    entity_type = SceneElementTypes.COLOR_CHANGING
     timed = True
     background = False
 
@@ -28,7 +30,7 @@ class ColorChanging(SceneElement):
             **kwargs: other params to configure entity. Refer to Entity class.
         """
 
-        default_config = self._parse_configuration('basic', 'color_changing')
+        default_config = parse_configuration('element_basic', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         if isinstance(timers, int):

@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
+from simple_playgrounds.utils.definitions import SensorTypes
 
 # pylint: disable=no-member
 
@@ -17,7 +18,7 @@ class RgbCamera(RayCollisionSensor):
     Provides a 1D image (line of RGB pixels) from the point of view of the anchor.
     """
 
-    sensor_type = 'rgb'
+    sensor_type = SensorTypes.RGB
 
     def __init__(self, anchor,
                  invisible_elements=None,
@@ -101,7 +102,7 @@ class GreyCamera(RgbCamera):
     Provides a 1D image (line of Grey-level pixels) from the point of view of the anchor.
     """
 
-    sensor_type = 'grey'
+    sensor_type = SensorTypes.GREY
 
     def _compute_raw_sensor(self, playground, *_):
         super()._compute_raw_sensor(playground)
@@ -131,7 +132,7 @@ class Lidar(RayCollisionSensor):
     Lidar are Sensors that measure distances by projecting rays.
     """
 
-    sensor_type = 'lidar'
+    sensor_type = SensorTypes.LIDAR
 
     def __init__(self,
                  anchor,
@@ -193,7 +194,7 @@ class Touch(Lidar):
     The range parameter is used to describe the thickness of the artificial skin.
     """
 
-    sensor_type = 'touch'
+    sensor_type = SensorTypes.TOUCH
 
     def __init__(self,
                  anchor,
@@ -216,5 +217,3 @@ class Touch(Lidar):
         distance_to_anchor = self.sensor_values - self.anchor.radius
         distance_to_anchor[distance_to_anchor < 0] = 0
         self.sensor_values = self._sensor_max_value - distance_to_anchor
-
-

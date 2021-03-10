@@ -1,14 +1,14 @@
 import math
 
+from simple_playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.empty import SingleRoom
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 from simple_playgrounds.playgrounds.scene_elements import *
 from simple_playgrounds.utils.position_utils import PositionAreaSampler, Trajectory
-from simple_playgrounds.playground import PlaygroundRegister
 
 
-@PlaygroundRegister.register('test_basic')
+@PlaygroundRegister.register('test', 'basic')
 class Basics(SingleRoom):
 
     def __init__(self, size=(200, 200), **playground_params):
@@ -32,7 +32,7 @@ class Basics(SingleRoom):
         self.add_scene_element(hexagon_01)
 
 
-@PlaygroundRegister.register('test_grasp')
+@PlaygroundRegister.register('test', 'grasp')
 class Graspables(SingleRoom):
 
     def __init__(self, size=(200, 200), **playground_params):
@@ -60,7 +60,7 @@ class Graspables(SingleRoom):
         self.add_scene_element(hexagon_01)
 
 
-@PlaygroundRegister.register('test_contacts')
+@PlaygroundRegister.register('test', 'contacts')
 class Contacts(SingleRoom):
 
     def __init__(self, size=(200, 200), **playground_params):
@@ -96,7 +96,7 @@ class Contacts(SingleRoom):
             self.add_scene_element(candy)
 
 
-@PlaygroundRegister.register('test_zones')
+@PlaygroundRegister.register('test', 'zones')
 class Zones(SingleRoom):
 
     def __init__(self, size=(200, 200), **playground_params):
@@ -122,7 +122,7 @@ class Zones(SingleRoom):
         self.add_scene_element(toxic_1)
 
 
-@PlaygroundRegister.register('test_interactives')
+@PlaygroundRegister.register('test', 'interactives')
 class Interactives(SingleRoom):
 
     def __init__(self, size=(300, 300), **playground_params):
@@ -189,7 +189,7 @@ class Interactives(SingleRoom):
         vending.accepted_coins.append(coin)
 
 
-@PlaygroundRegister.register('test_conditioning')
+@PlaygroundRegister.register('test', 'conditioning')
 class Conditioning(SingleRoom):
 
     def __init__(self, size=(300, 300), **playground_params):
@@ -206,7 +206,7 @@ class Conditioning(SingleRoom):
         self.add_scene_element(light_01)
 
 
-@PlaygroundRegister.register('test_doors')
+@PlaygroundRegister.register('test', 'doors')
 class Doors(SingleRoom):
 
     def __init__(self, size=(300, 300), **playground_params):
@@ -241,7 +241,7 @@ class Doors(SingleRoom):
         self.agent_starting_area = [40, 40, 0]
 
 
-@PlaygroundRegister.register('test_teleports')
+@PlaygroundRegister.register('test', 'teleports')
 class Teleports(SingleRoom):
 
     def __init__(self, size=(300, 300), **playground_params):
@@ -268,7 +268,7 @@ class Teleports(SingleRoom):
         self.add_scene_element(teleport_4)
 
 
-@PlaygroundRegister.register('test_proximity')
+@PlaygroundRegister.register('test', 'proximity')
 class Proximity(SingleRoom):
 
     def __init__(self, size=(200, 200), **playground_params):
@@ -285,7 +285,7 @@ class Proximity(SingleRoom):
         self.add_scene_element(goal_1)
 
 
-@PlaygroundRegister.register('test_fields')
+@PlaygroundRegister.register('test', 'fields')
 class Fields(SingleRoom):
 
     def __init__(self, size=(200, 200), **playground_params):
@@ -303,7 +303,7 @@ class Fields(SingleRoom):
         self.add_scene_element(field)
 
 
-@PlaygroundRegister.register('test_trajectories')
+@PlaygroundRegister.register('test', 'trajectories')
 class Trajectories(SingleRoom):
 
     def __init__(self, size=(200, 200), **playground_params):

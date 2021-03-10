@@ -3,14 +3,11 @@ Module that defines the Base Class for Body Parts of an Agent.
 
 """
 
-import os
 from abc import ABC
 import numbers
 
-import yaml
-
 from simple_playgrounds.entity import Entity
-from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes
+from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes, AgentPartTypes
 
 # pylint: disable=line-too-long
 
@@ -24,7 +21,7 @@ class Part(Entity, ABC):
 
     # pylint: disable=too-many-instance-attributes
 
-    entity_type = 'part'
+    entity_type = AgentPartTypes.PART
     part_type = None
     movable = True
     background = False
@@ -77,28 +74,6 @@ class Part(Entity, ABC):
         if self.can_eat:
             self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionTypes.DISCRETE, 0, 1)
             self.actuators.append(self.eat_actuator)
-
-    @staticmethod
-    def _parse_configuration(part_type):
-        """
-        Method to parse yaml configuration file.
-
-        Args:
-            part_type (str): Can be 'platform', 'eye', 'head', 'arm', 'hand'
-
-        Returns:
-            Dictionary containing the default configuration of the body part.
-
-        """
-
-        file_name = 'utils/configs/agent_parts.yml'
-
-        __location__ = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(os.getcwd(),
-                                                                                     os.path.dirname(__file__)))))
-        with open(os.path.join(__location__, file_name), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
-
-        return default_config[part_type]
 
     def apply_action(self, actuator, value):
         """

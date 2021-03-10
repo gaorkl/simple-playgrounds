@@ -5,7 +5,8 @@ Passive Scene Elements do not require action from an agent.
 from abc import ABC
 
 from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes
+from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.parser import parse_configuration
 
 
 class PassiveSceneElement(SceneElement, ABC):
@@ -40,16 +41,15 @@ class PassiveSceneElement(SceneElement, ABC):
         self._reward = rew
 
 
-class TerminationZone(PassiveSceneElement):
+class TerminationZone(PassiveSceneElement, ABC):
     """
     Termination Zones terminate the episode when activated.
     """
 
-    entity_type = 'termination_zone'
     terminate_upon_contact = True
     visible = False
 
-    def __init__(self, initial_position, default_config_key, **kwargs):
+    def __init__(self, initial_position, **kwargs):
         """
         Base class for Invisible zones that terminate upon contact.
 
@@ -66,7 +66,7 @@ class TerminationZone(PassiveSceneElement):
             reward: Reward provided.
         """
 
-        default_config = self._parse_configuration('zone', default_config_key)
+        default_config = parse_configuration('element_zone', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -80,18 +80,7 @@ class GoalZone(TerminationZone):
     Termination Zone that provides positive reward when activated.
     """
 
-    def __init__(self, initial_position, **kwargs):
-        """
-        Invisible entity that terminates the episode.
-        Provides a positive reward to the agent entering the zone.
-
-        Default: Invisible Green square of radius 20, reward of 200.
-
-        """
-
-        super().__init__(initial_position=initial_position,
-                         default_config_key='goal_zone',
-                         **kwargs)
+    entity_type = SceneElementTypes.GOAL_ZONE
 
 
 class DeathZone(TerminationZone):
@@ -99,28 +88,16 @@ class DeathZone(TerminationZone):
     Termination Zone that provides negative reward when activated.
     """
 
-    def __init__(self, initial_position, **kwargs):
-        """
-        Invisible entity that terminates the episode.
-        Provides a negative reward to the agent entering the zone.
-
-        Default: Invisible Red square of radius 20, reward of -200.
-
-        """
-
-        super().__init__(initial_position=initial_position,
-                         default_config_key='death_zone',
-                         **kwargs)
+    entity_type = SceneElementTypes.DEATH_ZONE
 
 
-class RewardZone(PassiveSceneElement):
+class RewardZone(PassiveSceneElement, ABC):
     """
     Reward Zones provide a reward to an agent in the zone.
     """
-    entity_type = 'reward_zone'
     visible = False
 
-    def __init__(self, initial_position, default_config_key, **kwargs):
+    def __init__(self, initial_position, **kwargs):
         """
         RewardZone entities are invisible zones.
         Provide a reward to the agent which is inside the zone.
@@ -136,7 +113,7 @@ class RewardZone(PassiveSceneElement):
             total_reward: Total reward that the entity can provide during an Episode
         """
 
-        default_config = self._parse_configuration('zone', default_config_key)
+        default_config = parse_configuration('element_zone', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(initial_position=initial_position, **entity_params)
@@ -178,23 +155,18 @@ class ToxicZone(RewardZone):
     Default: Yellow square of radius 15, reward -1 and total_reward -1000000
     """
 
-    def __init__(self, initial_position, **kwargs):
-
-        super().__init__(initial_position=initial_position,
-                         default_config_key='toxic_zone',
-                         **kwargs)
+    entity_type = SceneElementTypes.TOXIC_ZONE
 
 
 class HealingZone(RewardZone):
 
-    def __init__(self, initial_position, **kwargs):
-        """
-        HealingZone is an invisible entity.
-        Provides a reward to an agent which is in the zone.
+    """
+    HealingZone is an invisible entity.
+    Provides a reward to an agent which is in the zone.
 
-        Provides a positive reward for each timestep when an agent is in the zone.
-        Default: Blue square of radius 15, reward 1 and total_reward  100000
+    Provides a positive reward for each timestep when an agent is in the zone.
+    Default: Blue square of radius 15, reward 1 and total_reward  100000
 
-        """
-        super().__init__(initial_position=initial_position, default_config_key='healing_zone',
-                         **kwargs)
+    """
+
+    entity_type = SceneElementTypes.HEALING_ZONE

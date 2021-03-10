@@ -35,7 +35,7 @@ def test_camera_sensors():
                                           invisible_elements=agent.parts,
                                           resolution=resolution, max_range=range_sensor, fov=fov))
 
-    for pg_class in PlaygroundRegister.filter('test'):
+    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
         playground = pg_class()
         playground.add_agent(agent)
 

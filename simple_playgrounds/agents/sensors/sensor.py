@@ -3,17 +3,15 @@ Module defining the Base Classes for Sensors.
 """
 
 from abc import abstractmethod, ABC
-import os
 import math
 from operator import attrgetter
-
-import yaml
 
 import pymunk
 import numpy as np
 
-from simple_playgrounds.utils.definitions import SensorModality
+from simple_playgrounds.utils.definitions import SensorTypes
 from simple_playgrounds.entity import Entity
+from simple_playgrounds.utils.parser import parse_configuration
 
 
 class Sensor(ABC):
@@ -34,7 +32,8 @@ class Sensor(ABC):
     """
 
     _index_sensor = 0
-    sensor_type = 'sensor'
+    sensor_type = SensorTypes.SENSOR
+    sensor_modality = SensorTypes.SENSOR
 
     def __init__(self, anchor, fov, resolution, max_range,
                  invisible_elements, normalize, noise_params, name=None, **_kwargs):
@@ -66,7 +65,7 @@ class Sensor(ABC):
         if name is not None:
             self.name = name
         else:
-            self.name = self.sensor_type + '_' + str(Sensor._index_sensor)
+            self.name = self.sensor_type.name.lower() + '_' + str(Sensor._index_sensor)
             Sensor._index_sensor += 1
 
         self.anchor = anchor
@@ -128,16 +127,6 @@ class Sensor(ABC):
         if self._normalize:
             self._apply_normalization()
 
-    def _parse_configuration(self):
-
-        file_name = '../../utils/configs/agent_sensors.yml'
-
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(__location__, file_name), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
-
-        return default_config[self.sensor_type]
-
     @abstractmethod
     def _compute_raw_sensor(self, playground, sensor_surface):
         pass
@@ -179,7 +168,7 @@ class RayCollisionSensor(Sensor, ABC):
     Robotic sensors and Semantic sensors inherit from this class.
 
     """
-    sensor_modality = SensorModality.ROBOTIC
+    sensor_modality = SensorTypes.ROBOTIC
 
     def __init__(self, remove_occluded, remove_duplicates, **sensor_params):
         """
@@ -190,7 +179,7 @@ class RayCollisionSensor(Sensor, ABC):
             **sensor_params: Additional sensor params.
         """
 
-        default_config = self._parse_configuration()
+        default_config = parse_configuration('agent_sensors', self.sensor_type)
         sensor_params = {**default_config, **sensor_params}
 
         super().__init__(**sensor_params)
@@ -231,7 +220,7 @@ class RayCollisionSensor(Sensor, ABC):
 
         all_shapes = list(set(col[0].shape
                               for angle, col in collisions_by_angle.items()
-                              if col ))
+                              if col))
 
         all_collisions = []
         for angle, cols in collisions_by_angle.items():
