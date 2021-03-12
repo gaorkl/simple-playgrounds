@@ -1,5 +1,12 @@
-"""
-Module defining the Base Classes for Sensors.
+""" Module defining the Base Classes for Sensors.
+
+This module implements the base class Sensor, that all sensors inherit from.
+It also implements a base class RayCollisionSensor.
+RayCollisionSensor use pymunk collisions with lines to create different
+families of sensors and allow very fast computation.
+
+Apart if specified, all sensors are attached to an anchor.
+They compute sensor-values from the point of view of this anchor.
 """
 
 from abc import abstractmethod, ABC

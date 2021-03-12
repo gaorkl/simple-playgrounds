@@ -1,5 +1,4 @@
-"""
-Module defining Controllers.
+""" Module implementing Controllers.
 Controllers are used to generate commands to control the actuators of an agent.
 """
 from abc import ABC, abstractmethod
@@ -52,7 +51,6 @@ class Random(Controller):
     If the actuator is continuous, it picks the action using a uniform distribution.
     If the actuator is discrete (binary), it picks a random action.
     """
-    controller_type = 'random'
 
     def generate_actions(self):
 
@@ -83,7 +81,6 @@ class Keyboard(Controller):
     Keyboard controller require that a keymapping is defined in the agent.
     The keymapping should be assigned to the controller.
     """
-    controller_type = 'keyboard'
 
     def __init__(self):
 

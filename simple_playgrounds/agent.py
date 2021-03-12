@@ -1,6 +1,13 @@
+""" Contains the base class for agents.
+
+Agent class should be inherited to create agents.
+It is possible to define custom Agent with
+body parts, sensors and corresponding Keyboard commands.
+
+Examples can be found in simple_playgrounds/agents/agents.py
 """
-Module for Agent Class.
-"""
+from abc import ABC
+
 import random
 import numpy as np
 import cv2
@@ -17,7 +24,7 @@ _FONT_COLOR = (0, 0, 0)
 _FONT_SCALE = 0.5
 
 
-class Agent:
+class Agent(ABC):
     """
     Base class for agents
 

@@ -1,5 +1,8 @@
-"""
-Body Parts of an Agent.
+""" Module implementing Link.
+
+A Link is a Part which can be attached to any other Part.
+Links are controlled by angle.
+Links do not collide with the Part (anchor) they are attached to.
 """
 
 import math

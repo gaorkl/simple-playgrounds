@@ -1,6 +1,12 @@
-"""
-Module that defines the Base Class for Body Parts of an Agent.
+""" Module that defines the base class Part.
 
+Part inherits from Entity, and is used to create different body parts
+of an agent. Parts are visible and movable by default.
+Two different kind of body parts inherit from Part: Link and Platform.
+Platform is the base of an Agent while Link is an additional part which
+can be attached to Link or Platform.
+
+Examples can be found in simple_playgrounds/agents/agents.py
 """
 
 from abc import ABC

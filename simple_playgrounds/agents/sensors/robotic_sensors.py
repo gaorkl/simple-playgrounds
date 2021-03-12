@@ -1,6 +1,10 @@
+""" Module implementing robotic sensors: Cameras, Lidar, touch sensing.
+
+These sensors are very close to physical sensors that could be used on real robots.
+These sensors can be noisy.
+Importantly, as Simple-Playgrounds is a 2D environments, these sensors are 1D.
 """
-Module collecting all robotic sensors: Cameras, Lidar, touch sensing.
-"""
+
 import math
 from operator import attrgetter
 

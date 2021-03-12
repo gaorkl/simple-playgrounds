@@ -1,5 +1,17 @@
-"""
-Module defining standard agents
+""" Module implementing standard agents.
+
+These standard agents have body parts and associated Keyboard mappings.
+They can be used as is, and sensors can be added to any body part.
+
+Typical Usage:
+
+    my_agent = HeadAgent(controller=Keyboard(), platform=ForwardBackwardPlatform, interactive=True)
+
+    rgb = RgbCamera(my_agent.head, invisible_elements=my_agent.parts, resolution=64, max_range=600)
+    my_agent.add_sensor(rgb)
+
+    my_playground.add_agent(my_agent)
+
 """
 import math
 

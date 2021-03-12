@@ -1,7 +1,14 @@
-"""
-Module that defines Base Class Entity
-"""
+""" Contains the base class for entities.
 
+Entity class should be used to create body parts of
+an agent, or scene entities.
+Entity is the generic building block of physical and interactive
+objects in simple-playgrounds.
+
+Examples can be found in :
+    - simple_playgrounds/agents/parts
+    - simple_playgrounds/playgrounds/scene_elements
+"""
 import math
 from abc import ABC
 import numpy

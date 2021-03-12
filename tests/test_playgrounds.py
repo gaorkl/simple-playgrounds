@@ -182,14 +182,13 @@ def test_multisteps():
 
         engine = Engine(playground, time_limit=10000, screen=False)
 
-        terminate = False
-        while not terminate:
+        while engine.game_on:
 
             actions = {}
             for agent in engine.agents:
                 actions[agent] = agent.controller.generate_actions()
 
-            terminate = engine.multiple_steps(actions, n_steps=3)
+            engine.multiple_steps(actions, n_steps=3)
             engine.update_observations()
 
         engine.terminate()

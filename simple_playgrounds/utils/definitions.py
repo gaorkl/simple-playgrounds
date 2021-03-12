@@ -1,5 +1,4 @@
-"""
-Default definitions
+""" This module lists all the definitions.
 """
 
 from enum import IntEnum, Enum, auto
@@ -103,6 +102,9 @@ def add_custom_collision(collision_types, name):
     This is used when an user wants to create a new type of Entity,
     that requires particular collision handler and behavior.
 
+    Examples:
+        CustomCollisionTypes = add_custom_collision(CollisionTypes, JELLY)
+
     Args:
         collision_types: CollisionTypes enum.
             Either the default one or a custom one.
@@ -145,9 +147,6 @@ class KeyTypes(IntEnum):
 
     PRESS_HOLD = 1
     PRESS_ONCE = 2
-
-
-
 
 
 Detection = namedtuple('Detection', 'entity, distance, angle')

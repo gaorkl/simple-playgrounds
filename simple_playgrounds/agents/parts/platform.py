@@ -1,6 +1,7 @@
-"""
-Module that defines Platforms for agents.
-All agents need a platform to attach other links and parts.
+""" Module implementing Platform.
+
+A Platform is a Part which serves as the base to attach other Links.
+Platform is controlled by longitudinal or lateral force, and angular velocity.
 """
 
 from abc import ABC

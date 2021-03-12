@@ -1,8 +1,13 @@
-# -*- coding: utf-8 -*-
-""" Playground documentation.
+""" Contains the base class for Playgrounds.
 
-Module defining Playground Base Class
+Playground class should be inherited to create environments
+where agents can play.
+Playground defines the physics and mechanics of the game, and manages
+how entities interact with each other.
 
+Examples can be found in :
+    - simple_playgrounds/playgrounds/empty.py
+    - simple_playgrounds/playgrounds/collection
 """
 
 import os

@@ -1,6 +1,20 @@
+""" Contains Engine class.
+
+Engine class manages the interactions between agents and playground during an episode.
+Engine can be inherited in order to create wrappers.
+Engine allows to visualize the playground, as well as the agent sensors.
+
+Typical Usage:
+    engine = Engine(time_limit=10000, playground=my_playground, screen=True)
+
+    while engine.game_on:
+        actions = engine.get_actions()
+        engine.step(actions)
+        engine.update_observations()
+
+    engine.terminate()
 """
-Game Engine manages the interactions between agents and Playgrounds.
-"""
+
 import numpy as np
 
 import pygame
@@ -139,8 +153,6 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
-        return terminate
-
     def step(self, actions):
         """
         Runs a single step of the game, with the same actions for the agents.
@@ -152,14 +164,11 @@ class Engine:
         """
 
         self._engine_step(actions)
-
-        terminate = self._has_terminated()
+        self._has_terminated()
 
         if self._reached_time_limit() and self.playground.time_limit_reached_reward is not None:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
-
-        return terminate
 
     def _engine_step(self, actions):
 
@@ -289,6 +298,12 @@ class Engine:
         return np_image
 
     # AGENTS
+
+    def get_actions(self):
+        actions = {}
+        for agent in self.agents:
+            actions[agent] = agent.controller.generate_actions()
+        return actions
 
     def update_observations(self):
         """
@@ -456,7 +471,7 @@ class Engine:
             for agent in self.agents:
                 actions[agent] = agent.controller.generate_actions()
 
-            terminate = self.step(actions)
+            self.step(actions)
             self.update_observations()
 
             if update_screen and self.game_on:
@@ -472,9 +487,6 @@ class Engine:
                 steps -= 1
                 if steps == 0:
                     continue_for_n_steps = False
-
-            if terminate:
-                self.game_on = False
 
     @staticmethod
     def terminate():
