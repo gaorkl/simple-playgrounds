@@ -4,3 +4,4 @@ pymunk
 numpy
 scikit-image
 pillow
+gym
