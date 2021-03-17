@@ -21,7 +21,7 @@ import pygame
 import pygame.locals
 import pygame.color
 
-import cv2
+from skimage.transform import rescale
 
 from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS, ActionTypes
 
@@ -290,7 +290,7 @@ class Engine:
         if max_size is not None:
 
             scaling_factor = max_size/max(np_image.shape[0], np_image.shape[1])
-            np_image = cv2.resize(np_image, None, fx=scaling_factor, fy=scaling_factor)  # pylint: disable=no-member
+            np_image = rescale(np_image, scaling_factor, multichannel=True)
 
         if plt_mode:
             np_image = np_image[:, :, ::-1]

@@ -6,7 +6,7 @@ import random
 
 import pygame
 
-from simple_playgrounds.utils.definitions import ActionTypes, KeyTypes
+from simple_playgrounds.utils.definitions import ActionSpaces, KeyTypes
 
 
 class Controller(ABC):
@@ -59,13 +59,13 @@ class Random(Controller):
 
         for actuator in self.controlled_actuators:
 
-            if actuator.action_range == ActionTypes.CONTINUOUS_CENTERED:
+            if actuator.action_range == ActionSpaces.CONTINUOUS_CENTERED:
                 act_value = random.uniform(actuator.min, actuator.max)
 
-            elif actuator.action_range == ActionTypes.CONTINUOUS_NOT_CENTERED:
+            elif actuator.action_range == ActionSpaces.CONTINUOUS_NOT_CENTERED:
                 act_value = random.uniform(actuator.min, actuator.max)
 
-            elif actuator.action_range == ActionTypes.DISCRETE:
+            elif actuator.action_range == ActionSpaces.BOOL:
                 act_value = random.choice([actuator.min, actuator.max])
 
             else:

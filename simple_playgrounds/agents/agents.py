@@ -20,7 +20,7 @@ from pygame.locals import *  # pylint: disable=wildcard-import
 
 from simple_playgrounds.agent import Agent
 from simple_playgrounds.agents.parts import Head, Hand, Eye, Arm, FixedPlatform
-from simple_playgrounds.utils.definitions import KeyTypes, ActionTypes
+from simple_playgrounds.utils.definitions import KeyTypes, ActionTypes, ActionSpaces
 
 # pylint: disable=undefined-variable
 
@@ -63,7 +63,7 @@ class BaseAgent(Agent):
             self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
 
             if self.base_platform.longitudinal_force_actuator.action_range \
-                    is ActionTypes.CONTINUOUS_CENTERED:
+                    is ActionSpaces.CONTINUOUS_CENTERED:
                 self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN,
                                                                           KeyTypes.PRESS_HOLD,
                                                                           -1)
@@ -227,7 +227,7 @@ class FullAgent(HeadEyeAgent):
             self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
 
             if self.base_platform.longitudinal_force_actuator.action_range\
-                    is ActionTypes.CONTINUOUS_CENTERED:
+                    is ActionSpaces.CONTINUOUS_CENTERED:
                 self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN,
                                                                           KeyTypes.PRESS_HOLD, -1)
 

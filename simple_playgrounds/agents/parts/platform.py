@@ -9,7 +9,7 @@ from abc import ABC
 import pymunk
 
 from simple_playgrounds.agents.parts.part import Part, Actuator
-from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes
+from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes, ActionSpaces
 from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
@@ -73,11 +73,11 @@ class ForwardPlatform(Platform):
         super().__init__(**kwargs)
 
         self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
-                                                    ActionTypes.CONTINUOUS_NOT_CENTERED, 0, 1)
+                                                    ActionSpaces.CONTINUOUS_NOT_CENTERED, 0, 1)
         self.actuators.append(self.longitudinal_force_actuator)
 
         self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
-                                                  ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+                                                  ActionSpaces.CONTINUOUS_CENTERED, -1, 1)
         self.actuators.append(self.angular_velocity_actuator)
 
     def apply_action(self, actuator, value):
@@ -107,7 +107,7 @@ class ForwardBackwardPlatform(ForwardPlatform):
 
         self.actuators.remove(self.longitudinal_force_actuator)
 
-        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED, -1, 1)
         self.actuators.append(self.longitudinal_force_actuator)
 
     def apply_action(self, actuator, value):
@@ -133,7 +133,7 @@ class HolonomicPlatform(ForwardBackwardPlatform):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.lateral_force_actuator = Actuator(self.name, ActionTypes.LATERAL_FORCE, ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+        self.lateral_force_actuator = Actuator(self.name, ActionTypes.LATERAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED, -1, 1)
         self.actuators.append(self.lateral_force_actuator)
 
     def apply_action(self, actuator, value):

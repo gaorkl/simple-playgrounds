@@ -4,7 +4,7 @@
 from enum import IntEnum, Enum, auto
 from collections import namedtuple
 
-#pylint: disable=missing-class-docstring
+# pylint: disable=missing-class-docstring
 
 SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9
@@ -128,11 +128,14 @@ class ControllerTypes(Enum):
     EXTERNAL = 3
 
 
-class ActionTypes(IntEnum):
+class ActionSpaces(IntEnum):
 
-    DISCRETE = auto()
+    BOOL = auto()
     CONTINUOUS_CENTERED = auto()
     CONTINUOUS_NOT_CENTERED = auto()
+
+
+class ActionTypes(IntEnum):
 
     LONGITUDINAL_FORCE = auto()
     LATERAL_FORCE = auto()

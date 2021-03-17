@@ -10,18 +10,15 @@ from abc import ABC
 
 import random
 import numpy as np
-import cv2
+from PIL import Image, ImageDraw, ImageFont
 
-from simple_playgrounds.utils.definitions import ActionTypes
+from simple_playgrounds.utils.definitions import ActionSpaces
 from simple_playgrounds.utils.position_utils import PositionAreaSampler
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
 
 _BORDER_IMAGE = 3
-_FONT_TEXT = cv2.FONT_HERSHEY_SIMPLEX
-_FONT_COLOR = (0, 0, 0)
-_FONT_SCALE = 0.5
 
 
 class Agent(ABC):
@@ -392,14 +389,11 @@ class Agent(ABC):
 
         total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \
                                + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
-        img_actions = np.ones((total_height_actions, width_action, 4))
 
-        offset_string_name = int(height_action / 2.0 - _FONT_SCALE * 10)
+        img_actions = Image.new("RGB", (width_action, total_height_actions), (255, 255, 255))
+        d = ImageDraw.Draw(img_actions)
 
-        action_names_length = max([len(action.action.name)
-                                   for action, value in self.current_actions.items()])
-        font_scale_action = 0.95 * width_action / action_names_length * 0.5 / 10
-        offset_string_action = int(height_action / 2.0 - font_scale_action * 10)
+        fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height_action*2/3))
 
         current_height = _BORDER_IMAGE
 
@@ -407,18 +401,12 @@ class Agent(ABC):
 
             current_height += height_action
 
-            start_box = int(width_action / 2.0 - 18 * _FONT_SCALE * len(part.name) / 2)
-            bottom_left = (start_box, current_height - offset_string_name)
+            d.text((width_action / 2.0, current_height - height_action/2.0), part.name.upper(),
+                   font=fnt, fill=(0, 0, 0), anchor='mm')
 
-            cv2.putText(img_actions, part.name.upper(),
-                        bottom_left,
-                        _FONT_TEXT,
-                        _FONT_SCALE,
-                        _FONT_COLOR,
-                        1)
-
-            cv2.rectangle(img_actions, (0, current_height),
-                          (width_action, current_height - height_action), (0, 0, 0), 3)
+            start = (0, current_height - height_action)
+            end = (width_action-1, current_height)
+            d.rectangle([start, end], outline=(0, 0, 0), width=2)
 
             current_height += _BORDER_IMAGE
 
@@ -429,15 +417,13 @@ class Agent(ABC):
 
                 current_height += height_action
 
-                if action.action_range == ActionTypes.DISCRETE and value == action.max:
+                if action.action_range == ActionSpaces.BOOL and value == action.max:
 
-                    cv2.rectangle(img_actions,
-                                  (0, current_height),
-                                  (width_action, current_height - height_action),
-                                  (0.2, 0.6, 0.2, 0.1),
-                                  -1)
+                    start = (0, current_height - height_action)
+                    end = (width_action - 1, current_height)
+                    d.rectangle([start, end], fill=(20, 200, 20))
 
-                elif action.action_range == ActionTypes.CONTINUOUS_CENTERED and value != 0:
+                elif action.action_range == ActionSpaces.CONTINUOUS_CENTERED and value != 0:
 
                     if value < 0:
                         left = int(width_action / 2. + value * width_action / 2.)
@@ -446,34 +432,27 @@ class Agent(ABC):
                         right = int(width_action / 2. + value * width_action / 2.)
                         left = int(width_action / 2.)
 
-                    cv2.rectangle(img_actions,
-                                  (left, current_height),
-                                  (right, current_height - height_action),
-                                  (0.2, 0.6, 0.2, 0.1),
-                                  -1)
+                    start = (left, current_height - height_action)
+                    end = (right, current_height)
 
-                elif action.action_range == ActionTypes.CONTINUOUS_NOT_CENTERED and value != 0:
+                    d.rectangle([start, end], fill=(20, 200, 20))
+
+                elif action.action_range == ActionSpaces.CONTINUOUS_NOT_CENTERED and value != 0:
 
                     left = int(width_action / 2.)
                     right = int(width_action / 2. + value * width_action / 2.)
 
-                    cv2.rectangle(img_actions, (left, current_height),
-                                  (right, current_height - height_action), (0.2, 0.6, 0.2, 0.1), -1)
+                    start = (left, current_height - height_action)
+                    end = (right, current_height)
 
-                start_box = int(width_action / 2.0
-                                - 18 * font_scale_action * len(action.action.name) / 2.)
-                bottom_left = (start_box, current_height - offset_string_action)
+                    d.rectangle([start, end], fill=(20, 200, 20))
 
-                cv2.putText(img_actions, action.action.name.upper(),
-                            bottom_left,
-                            _FONT_TEXT,
-                            font_scale_action,
-                            _FONT_COLOR,
-                            1)
+                d.text((width_action / 2.0, current_height - height_action / 2.0), action.action.name.upper(),
+                       font=fnt, fill=(0, 0, 0), anchor='mm')
 
                 current_height += _BORDER_IMAGE
 
-        img_actions = cv2.cvtColor(img_actions.astype('float32'), cv2.COLOR_RGBA2BGR)
+        img_actions = np.asarray(img_actions)/255.
 
         if plt_mode:
             img_actions = img_actions[:, :, ::-1]

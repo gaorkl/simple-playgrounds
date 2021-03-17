@@ -21,7 +21,7 @@ class Edible(SceneElement, ABC):
     interactive = True
     background = False
 
-    def __init__(self, initial_position, default_config_key=None, **kwargs):
+    def __init__(self, initial_position, **kwargs):
         """
         Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
 

@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from pygame import Surface
 from pygame import surfarray
-import cv2
+from skimage.transform import resize
 
 #pylint: disable=all
 
@@ -106,7 +106,7 @@ class RandomTilesTexture(Texture):
 
         size_shrink = (int(self.size*1.0/self.size_tiles), int(self.size*1.0/self.size_tiles), 3)
         random_image = np.random.uniform(self.min, self.max, size_shrink).astype('int')
-        random_image = cv2.resize(random_image, ( self.size, self.size ), interpolation=cv2.INTER_NEAREST)
+        random_image = resize(random_image, (self.size, self.size), order=0, preserve_range=True)
         surf = surfarray.make_surface(random_image)
         return surf
 
@@ -154,7 +154,7 @@ class UniqueRandomTilesTexture(Texture):
         max_color = [ min(255, x + self.delta_uniform) for x in color]
 
         random_image = np.random.uniform(min_color, max_color, (int(self.size*1.0/self.size_tiles), int(self.size*1.0/self.size_tiles), 3)).astype('int')
-        random_image = cv2.resize(random_image, ( self.size, self.size ), interpolation=cv2.INTER_NEAREST)
+        random_image = resize(random_image, (self.size, self.size), order=0, preserve_range=True)
         surf = surfarray.make_surface(random_image)
         return surf
 
