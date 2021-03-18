@@ -14,17 +14,23 @@ from simple_playgrounds.utils.position_utils import PositionAreaSampler
 class CandyCollectEnv(SingleRoom):
 
     def __init__(self):
-
-        super().__init__(size = (200, 200))
+        super().__init__(size=(200, 200))
 
         # Starting area of the agent
-        area_center, _ = self.area_rooms[(0,0)]
-        area_start = PositionAreaSampler(center=area_center, area_shape='rectangle', width_length=(100,100))
+        area_center, _ = self.area_rooms[(0, 0)]
+        area_start = PositionAreaSampler(center=area_center,
+                                         area_shape='rectangle',
+                                         width_length=(100, 100))
         self.agent_starting_area = area_start
 
-        area = PositionAreaSampler(center = area_center, area_shape='rectangle', width_length=(180, 180))
-        field = Field(probability=0.1, limit=10, entity_produced=Candy, production_area=area)
-        self.add_scene_element(field)
+        for loc in ["down-left", "up-right"]:
+            area_center, size_area = self.get_area((0, 0), loc)
+            area = PositionAreaSampler(center=area_center,
+                                       area_shape='rectangle',
+                                       width_length=size_area)
+            field = Field(probability=0.1, limit=10,
+                          entity_produced=Candy, production_area=area)
+            self.add_scene_element(field)
 
         self.time_limit = 2000
         self.time_limit_reached_reward = -1
