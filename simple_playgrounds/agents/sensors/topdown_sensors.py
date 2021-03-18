@@ -5,7 +5,8 @@ Topdown sensors are based computed using the image provided by the environment.
 import math
 import numpy as np
 
-import cv2
+from skimage.transform import resize, rotate
+from skimage import draw
 import pygame
 
 from simple_playgrounds.agents.sensors.sensor import Sensor
@@ -52,12 +53,32 @@ class TopdownSensor(Sensor):
 
         self._center = (int(self._resolution / 2) - 1, int(self._resolution / 2) - 1)
 
-        mask_total_fov = np.zeros((self._resolution, self._resolution, 3))
+        # Calculate range with circle
 
-        self.mask_total_fov = cv2.ellipse(mask_total_fov, self._center, axes=self._center, angle=0,
-                                          startAngle=(-math.pi/2 - self._fov/2) * 180 / math.pi,
-                                          endAngle=(-math.pi/2 + self._fov/2) * 180 / math.pi,
-                                          color=(1, 1, 1), thickness=-1)
+        mask_circle = np.zeros((self._resolution, self._resolution), dtype=bool)
+        rr, cc = draw.disk((self._center[0], self._center[1]), (int(self._resolution / 2) - 1), shape=mask_circle.shape)
+        mask_circle[rr, cc] = 1
+
+        # Calculate fov with poly
+
+        points = [[(int(self._resolution / 2) - 1), 0],
+                  [0, 0],
+                  [0, self._resolution],
+                  [(int(self._resolution / 2) - 1), self._resolution]]
+
+        if self._fov > math.pi:
+            points = [[self._resolution, 0]] + points + [[self._resolution, self._resolution]]
+
+        r1 = self._center[0] - (int(self._resolution/2) - 1) * np.sin(math.pi/2 + self._fov/2)
+        c1 = self._center[1] + (int(self._resolution/2) - 1) * np.cos(math.pi/2 + self._fov/2)
+
+        r2 = self._center[0] - (int(self._resolution/2) - 1) * np.sin(math.pi/2 - self._fov/2)
+        c2 = self._center[1] + (int(self._resolution/2) - 1) * np.cos(math.pi/2 - self._fov/2)
+
+        points = points + [[r2, c2], self._center, [r1, c1]]
+        mask_poly = draw.polygon2mask((self._resolution, self._resolution), np.array(points))
+
+        self.mask_total_fov = mask_circle & mask_poly
 
         self._sensor_max_value = 255
 
@@ -104,17 +125,13 @@ class TopdownSensor(Sensor):
 
         cropped_img = self.get_local_sensor_image(playground, sensor_surface)
 
-        small_img = cv2.resize(cropped_img,
-                               (self._resolution, self._resolution),
-                               interpolation=cv2.INTER_NEAREST)
+        small_img = resize(cropped_img, (self._resolution, self._resolution),
+                           order=0, preserve_range=True)
 
-        rot_mat = cv2.getRotationMatrix2D(self._center,
-                                          self.anchor.pm_body.angle * 180 / math.pi + 90, 1.0)
-        rotated_img = cv2.warpAffine(small_img,
-                                     rot_mat, small_img.shape[1::-1],
-                                     flags=cv2.INTER_NEAREST)
+        rotated_img = rotate(small_img, self.anchor.pm_body.angle * 180 / math.pi + 90)
 
-        masked_img = self.mask_total_fov * rotated_img
+        masked_img = rotated_img
+        masked_img[self.mask_total_fov == 0] = 0
 
         if self.only_front:
             masked_img = masked_img[:int(self._resolution / 2), ...]
@@ -158,8 +175,7 @@ class TopdownSensor(Sensor):
 
         height_display = int(width * self.shape[0] / self.shape[1])
 
-        image = cv2.resize(self.sensor_values, (width, height_display),
-                        interpolation=cv2.INTER_NEAREST)
+        image = resize(self.sensor_values, (height_display, width), order=0, preserve_range=True)
 
         if not self._apply_normalization:
             image /= 255.
@@ -228,7 +244,7 @@ class FullPlaygroundSensor(Sensor):
 
         full_image = self.get_sensor_image(playground, sensor_surface)
 
-        self.sensor_values = cv2.resize(full_image, (self._scale[0], self._scale[1]), interpolation=cv2.INTER_NEAREST)
+        self.sensor_values = resize(full_image, (self._scale[0], self._scale[1]), order=0, preserve_range=True)
 
     def _apply_normalization(self):
         self.sensor_values /= self._sensor_max_value
@@ -263,8 +279,7 @@ class FullPlaygroundSensor(Sensor):
 
         height_display = int(width * self.shape[0] / self.shape[1])
 
-        image = cv2.resize(self.sensor_values, (width, height_display),
-                           interpolation=cv2.INTER_NEAREST)
+        image = resize(self.sensor_values, (width, height_display), order=0, preserve_range=True)
 
         if not self._apply_normalization:
             image /= 255.

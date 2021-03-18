@@ -17,6 +17,17 @@ def test_camera_sensors():
 
     agent = BaseAgent(controller=Random(), interactive=True, platform=ForwardPlatform)
 
+    for sens in [RgbCamera,
+                 GreyCamera,
+                 Lidar,
+                 Touch,
+                 SemanticRay,
+                 SemanticCones,
+                 TopdownSensor]:
+        agent.add_sensor(sens(anchor=agent.base_platform,
+                              invisible_elements=agent.parts
+                              ))
+
     for resolution in [5, 16]:
 
         for range_sensor in [5, 16]:

@@ -13,7 +13,7 @@ from abc import ABC
 import numbers
 
 from simple_playgrounds.entity import Entity
-from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes, AgentPartTypes
+from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes, AgentPartTypes, ActionSpaces
 
 # pylint: disable=line-too-long
 
@@ -70,15 +70,15 @@ class Part(Entity, ABC):
         self.actuators = []
 
         if self.can_grasp:
-            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP, ActionTypes.DISCRETE, 0, 1)
+            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP, ActionSpaces.BOOL, 0, 1)
             self.actuators.append(self.grasp_actuator)
 
         if self.can_activate:
-            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE, ActionTypes.DISCRETE, 0, 1)
+            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE, ActionSpaces.BOOL, 0, 1)
             self.actuators.append(self.activate_actuator)
 
         if self.can_eat:
-            self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionTypes.DISCRETE, 0, 1)
+            self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionSpaces.BOOL, 0, 1)
             self.actuators.append(self.eat_actuator)
 
     def apply_action(self, actuator, value):

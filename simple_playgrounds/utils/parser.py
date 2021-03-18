@@ -1,8 +1,6 @@
 import os
 import yaml
 
-from simple_playgrounds.utils.definitions import SceneElementTypes
-
 
 def parse_configuration(file_name, config_key):
     """
@@ -24,7 +22,6 @@ def parse_configuration(file_name, config_key):
 
     if hasattr(config_key, 'name'):
         config_key = config_key.name.lower()
-
 
     if config_key not in default_config:
         return {}

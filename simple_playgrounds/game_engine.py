@@ -21,7 +21,9 @@ import pygame
 import pygame.locals
 import pygame.color
 
-import cv2
+# import gym
+
+from skimage.transform import rescale
 
 from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS, ActionTypes
 
@@ -290,7 +292,7 @@ class Engine:
         if max_size is not None:
 
             scaling_factor = max_size/max(np_image.shape[0], np_image.shape[1])
-            np_image = cv2.resize(np_image, None, fx=scaling_factor, fy=scaling_factor)  # pylint: disable=no-member
+            np_image = rescale(np_image, scaling_factor, multichannel=True)
 
         if plt_mode:
             np_image = np_image[:, :, ::-1]
@@ -495,3 +497,33 @@ class Engine:
 
         """
         pygame.quit()  # pylint: disable=no-member
+
+
+# class RLibSingleAgentWrapper(gym.Env):
+#
+#     def __init__(self, playground, time_limit, **kwargs):
+#
+#         if len(playground.agents) != 1:
+#             raise ValueError('Only single agent')
+#
+#         self.agent = playground.agents[0]
+#         self.multisteps = kwargs.get('multisteps', 1)
+#         self.engine = Engine(playground, time_limit=time_limit)
+#
+#         self._set_action_space()
+#         self._set_observation_space()
+#
+#     def _set_action_space(self):
+#
+#         pass
+#
+#     def _set_observation_space(self):
+#
+#         self.observation_space = gym.spaces.Dict({"position": gym.spaces.Discrete(2), "velocity": gym.spaces.Discrete(3)})
+#
+#
+#     def reset(self):
+#         self.engine.reset()
+#
+#     def step(self, action):
+

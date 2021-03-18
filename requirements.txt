@@ -1,7 +1,7 @@
 pyyaml
-markdown
 pygame
 pymunk
 numpy
-opencv-python
 scikit-image
+pillow
+gym

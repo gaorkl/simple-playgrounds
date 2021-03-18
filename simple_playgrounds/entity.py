@@ -18,7 +18,7 @@ import pygame
 
 from simple_playgrounds.utils.position_utils import PositionAreaSampler, Trajectory
 from simple_playgrounds.utils.texture import TextureGenerator, Texture
-from simple_playgrounds.utils.definitions import geometric_shapes, CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.definitions import geometric_shapes, CollisionTypes
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes

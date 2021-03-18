@@ -33,7 +33,7 @@ touch:
 #####################
 # TopDown Sensors
 
-topdown:
+top_down:
   resolution: 200
   max_range: 100
   fov: 180

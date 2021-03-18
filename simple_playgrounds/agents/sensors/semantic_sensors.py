@@ -9,7 +9,7 @@ import math
 from operator import attrgetter
 
 import numpy as np
-import cv2
+from skimage.draw import line, circle_perimeter
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
 from simple_playgrounds.utils.definitions import Detection, SensorTypes
@@ -104,11 +104,11 @@ class SemanticRay(RayCollisionSensor):
             pos_x = int(width / 2 - distance * math.cos(detection.angle))
             pos_y = int(width / 2 - distance * math.sin(detection.angle))
 
-            # pylint: disable=no-member
-            cv2.line(img, (int(width / 2), int(width / 2)),
-                     (pos_y, pos_x),
-                     color=(0.5, 0.1, 0.3))
-            cv2.circle(img, (pos_y, pos_x), 2, [25, 130, 255], thickness=-1)
+            rr, cc = line(int(width / 2), int(width / 2), pos_x, pos_y)
+            img[rr, cc] = (0.5, 0.1, 0.3)
+
+            rr, cc = circle_perimeter(pos_x, pos_y, 3)
+            img[rr, cc] = (0.5, 0.1, 0.3)
 
         return img
 
@@ -195,7 +195,7 @@ class SemanticCones(SemanticRay):
                                           distance=detection.distance,
                                           angle=cone_angle)
 
-                detections[index] = new_detection
+                self.sensor_values.append(new_detection)
 
     @staticmethod
     def _remove_cone_occlusions(detections):
@@ -229,11 +229,14 @@ class SemanticCones(SemanticRay):
                           - distance * math.sin(detection.angle + self._fov/self.number_cones/2))
 
             # pylint: disable=no-member
-            cv2.line(img, (int(width / 2), int(width / 2)),
-                     (pos_y_1, pos_x_1), color=(0.5, 0.1, 0.3))
-            cv2.line(img, (pos_y_1, pos_x_1),
-                     (pos_y_2, pos_x_2), color=(0.5, 0.1, 0.3))
-            cv2.line(img, (pos_y_2, pos_x_2),
-                     (int(width / 2), int(width / 2)), color=(0.5, 0.1, 0.3))
+
+            rr, cc = line(int(width / 2), int(width / 2), pos_x_1, pos_y_1)
+            img[rr, cc] = (0.5, 0.1, 0.3)
+
+            rr, cc = line(pos_x_1, pos_y_1, pos_x_2, pos_y_2)
+            img[rr, cc] = (0.5, 0.1, 0.3)
+
+            rr, cc = line(pos_x_2, pos_y_2, int(width / 2), int(width / 2))
+            img[rr, cc] = (0.5, 0.1, 0.3)
 
         return img

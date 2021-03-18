@@ -11,7 +11,7 @@ from abc import ABC
 import pymunk
 
 from simple_playgrounds.agents.parts.part import Part, Actuator
-from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes
+from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes, ActionSpaces
 from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
@@ -81,7 +81,7 @@ class Link(Part, ABC):
         self.pm_elements += [self.joint, self.motor, self.limit]
 
         self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
-                                                  ActionTypes.CONTINUOUS_CENTERED, -1, 1)
+                                                  ActionSpaces.CONTINUOUS_CENTERED, -1, 1)
         self.actuators.append(self.angular_velocity_actuator)
 
     def set_relative_position(self):

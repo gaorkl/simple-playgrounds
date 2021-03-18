@@ -9,7 +9,7 @@ import math
 from operator import attrgetter
 
 import numpy as np
-import cv2
+from skimage.transform import resize
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
 from simple_playgrounds.utils.definitions import SensorTypes
@@ -62,8 +62,8 @@ class RgbCamera(RayCollisionSensor):
                 rel_pos_point = (rel_x*math.cos(angle_element) + rel_y*math.sin(angle_element),
                                  - rel_x*math.sin(angle_element) + rel_y*math.cos(angle_element))
 
-                coord = (int(rel_pos_point[1]+(elem_colliding.texture_surface.get_size()[1]-1)/2),
-                         int(rel_pos_point[0]+(elem_colliding.texture_surface.get_size()[0]-1)/2)
+                coord = (int(rel_pos_point[1]+(elem_colliding.texture_surface.get_size()[1])/2),
+                         int(rel_pos_point[0]+(elem_colliding.texture_surface.get_size()[0])/2)
                          )
 
                 rgb = elem_colliding.texture_surface.get_at(coord)[:3]
@@ -94,7 +94,7 @@ class RgbCamera(RayCollisionSensor):
         """
 
         img = np.expand_dims(self.sensor_values, 0)
-        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_NEAREST)
+        img = resize(img, (height, width), order=0, preserve_range=True)
         if not self._normalize:
             img /= 255.
 
@@ -123,7 +123,7 @@ class GreyCamera(RgbCamera):
         for i in range(3):
             expanded[:, i] = self.sensor_values[:]
         img = np.expand_dims(expanded, 0)
-        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_NEAREST)
+        img = resize(img, (height, width), order=0, preserve_range=True)
 
         if not self._normalize:
             img /= 255.
@@ -182,7 +182,7 @@ class Lidar(RayCollisionSensor):
         for i in range(3):
             expanded[:, i] = self.sensor_values[:]
         img = np.expand_dims(expanded, 0)
-        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_NEAREST)
+        img = resize(img, (height, width), order=0, preserve_range=True)
 
         if not self._normalize:
             img /= self._sensor_max_value
