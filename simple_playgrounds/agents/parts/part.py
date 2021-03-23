@@ -53,7 +53,7 @@ class Part(Entity, ABC):
 
         """
 
-        Entity.__init__(self, initial_position=[0, 0, 0], visible=True, movable=True, **kwargs)
+        Entity.__init__(self, visible=True, movable=True, **kwargs)
         self.pm_visible_shape.collision_type = CollisionTypes.AGENT
 
         self.can_absorb = kwargs.get('can_absorb', False)
@@ -70,15 +70,15 @@ class Part(Entity, ABC):
         self.actuators = []
 
         if self.can_grasp:
-            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP, ActionSpaces.BOOL, 0, 1)
+            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP, ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.grasp_actuator)
 
         if self.can_activate:
-            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE, ActionSpaces.BOOL, 0, 1)
+            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE, ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.activate_actuator)
 
         if self.can_eat:
-            self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionSpaces.BOOL, 0, 1)
+            self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.eat_actuator)
 
     def apply_action(self, actuator, value):
@@ -90,7 +90,7 @@ class Part(Entity, ABC):
             value (float): value of the Actuator
 
         """
-        value = self._check_value_actuator(actuator, value)
+        self._check_value_actuator(actuator, value)
 
         if self.can_activate and actuator is self.activate_actuator:
             self.is_activating = value
@@ -110,8 +110,20 @@ class Part(Entity, ABC):
         if not isinstance(value, numbers.Real):
             raise ValueError('Action value for actuator ' + actuator.part_name + 'not a number')
 
-        value = min(max(value, actuator.min), actuator.max)
-        return value
+        if actuator.action_space == ActionSpaces.CONTINUOUS_CENTERED:
+            assert -actuator.action_range <= value <= actuator.action_range
+
+        elif actuator.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
+            assert 0. <= value <= actuator.action_range
+
+        elif actuator.action_space == ActionSpaces.DISCRETE_BINARY:
+            assert value in [0, 1]
+
+        elif actuator.action_space == ActionSpaces.DISCRETE_CENTERED:
+            assert value in [-1, 0, 1]
+
+        elif actuator.action_space == ActionSpaces.DISCRETE_POSITIVE:
+            assert value in [0, 1]
 
     def reset(self):
 
@@ -135,24 +147,22 @@ class Actuator:
     of parts of an agent.
     """
 
-    def __init__(self, part_name, action_type, action_range, min_value, max_value):
+    def __init__(self, part_name, action_type, action_space, action_range=1):
         """
 
         Args:
             part_name (str): name of the part that the Actuator is associated with.
             action_type: Type of action (change of angular velocity, grasp, ...). Defined using ActionTypes.
-            action_range: Defines the range of actions (discrete, continuous centered). Defined using ActionTypes.
-            min_value: Min action value
-            max_value: Max action value
+            action_space: Defines the range of actions (discrete, continuous centered). Defined using ActionTypes.
+            action_range: For continuous actions, multiplies action values by this factor.
         """
 
         self.part_name = part_name
 
-        self.action = action_type
-        self.action_range = action_range
+        self.action_type = action_type
+        self.action_space = action_space
 
-        self.min = min_value
-        self.max = max_value
+        self.action_range = action_range
 
         self.has_key_mapping = False
         self.key_map = {}

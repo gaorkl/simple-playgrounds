@@ -9,7 +9,8 @@ from abc import ABC
 import pymunk
 
 from simple_playgrounds.agents.parts.part import Part, Actuator
-from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes, ActionSpaces
+from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes, ActionSpaces,\
+    LINEAR_FORCE, ANGULAR_VELOCITY
 from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
@@ -37,17 +38,12 @@ class Platform(Part, ABC):
             texture (:obj: 'dict': dictionary of texture parameters.
             radius: radius of the platform. Default: 20.
             mass: mass of the platform. Default: 15.
-            max_linear_force: Maximum longitudinal and lateral force. Default: 0.3.
-            max_angular_velocity: Maximum angular velocity (radian per timestep). Default: 0.25.
         """
 
         default_config = parse_configuration('agent_parts', self.entity_type)
         body_part_params = {**default_config, **kwargs}
 
         Part.__init__(self, **body_part_params)
-
-        self.max_linear_force = body_part_params['max_linear_force']
-        self.max_angular_velocity = body_part_params['max_angular_velocity']
 
 
 class FixedPlatform(Platform):
@@ -73,25 +69,36 @@ class ForwardPlatform(Platform):
         super().__init__(**kwargs)
 
         self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
-                                                    ActionSpaces.CONTINUOUS_NOT_CENTERED, 0, 1)
+                                                    ActionSpaces.CONTINUOUS_POSITIVE)
         self.actuators.append(self.longitudinal_force_actuator)
 
         self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
-                                                  ActionSpaces.CONTINUOUS_CENTERED, -1, 1)
+                                                  ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.angular_velocity_actuator)
 
     def apply_action(self, actuator, value):
 
         super().apply_action(actuator, value)
-        value = self._check_value_actuator(actuator, value)
+        self._check_value_actuator(actuator, value)
 
         if actuator is self.longitudinal_force_actuator:
-            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * self.max_linear_force * 100, (0, 0))
+            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * LINEAR_FORCE, (0, 0))
 
         if actuator is self.angular_velocity_actuator:
-            self.pm_body.angular_velocity = - value * self.max_angular_velocity
+            self.pm_body.angular_velocity = value * ANGULAR_VELOCITY
 
         return value
+
+
+class ForwardPlatformDiscrete(ForwardPlatform):
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
+                                                    ActionSpaces.DISCRETE_POSITIVE)
+        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
+                                                  ActionSpaces.DISCRETE_CENTERED)
 
 
 class ForwardBackwardPlatform(ForwardPlatform):
@@ -107,19 +114,20 @@ class ForwardBackwardPlatform(ForwardPlatform):
 
         self.actuators.remove(self.longitudinal_force_actuator)
 
-        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED, -1, 1)
+        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
+                                                    ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.longitudinal_force_actuator)
 
     def apply_action(self, actuator, value):
 
         super().apply_action(actuator, value)
-        value = self._check_value_actuator(actuator, value)
+        self._check_value_actuator(actuator, value)
 
         if actuator is self.longitudinal_force_actuator:
-            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * self.max_linear_force * 100, (0, 0))
+            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * LINEAR_FORCE, (0, 0))
 
         if actuator is self.angular_velocity_actuator:
-            self.pm_body.angular_velocity = - value * self.max_angular_velocity
+            self.pm_body.angular_velocity = value * ANGULAR_VELOCITY
 
         return value
 
@@ -133,15 +141,15 @@ class HolonomicPlatform(ForwardBackwardPlatform):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.lateral_force_actuator = Actuator(self.name, ActionTypes.LATERAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED, -1, 1)
+        self.lateral_force_actuator = Actuator(self.name, ActionTypes.LATERAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.lateral_force_actuator)
 
     def apply_action(self, actuator, value):
 
         super().apply_action(actuator, value)
-        value = self._check_value_actuator(actuator, value)
+        self._check_value_actuator(actuator, value)
 
         if actuator is self.lateral_force_actuator:
-            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(0, -value) * self.max_linear_force * 100, (0, 0))
+            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(0, -value) * LINEAR_FORCE, (0, 0))
 
         return value

@@ -21,6 +21,7 @@ import pygame
 import pygame.locals
 import pygame.color
 
+from pymunk import pygame_util
 # import gym
 
 from skimage.transform import rescale
@@ -28,7 +29,7 @@ from skimage.transform import rescale
 from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS, ActionTypes
 
 _BORDER_IMAGE = 5
-_PYGAME_WAIT_DISPLAY = 25
+_PYGAME_WAIT_DISPLAY = 30
 
 
 class Engine:
@@ -47,7 +48,7 @@ class Engine:
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=line-too-long
 
-    def __init__(self, playground, time_limit=None, screen=False):
+    def __init__(self, playground, time_limit=None, screen=False, debug=False):
         """
         Args:
             playground (:obj: 'Playground'): Playground where the agents will be placed.
@@ -55,6 +56,7 @@ class Engine:
                                       Can also be defined in playground.
             screen: If True, a pygame screen is created for display.
                 Default: False
+            debug: If True, scene is displayed using debug colors instead of textures.
 
         Notes:
             A pygame screen is created by default if one agent is controlled by Keyboard.
@@ -75,23 +77,21 @@ class Engine:
         elif self.playground.time_limit is not None:
             self._time_limit = self.playground.time_limit
 
+        self._debug = debug
+
         # Display screen
         self._screen = None
         if screen:
             # Screen for Pygame
             self._screen = pygame.display.set_mode((self.playground.width, self.playground.length))
             self._screen.set_alpha(None)
-            self.quit_key_ready = True
+            self._quit_key_ready = True
 
         # Pygame Surfaces to display the environment
         self._surface_background = pygame.Surface((self.playground.width, self.playground.length))
-        self._surface_buffer = pygame.Surface((self.playground.width, self.playground.length))
-
         self._surface_background.fill(pygame.Color(0, 0, 0, 0))
 
-        for elem in self.playground.scene_elements:
-            if elem.background:
-                elem.draw(self._surface_background, )
+        self._surface_buffer = pygame.Surface((self.playground.width, self.playground.length))
 
         self.game_on = True
         self.elapsed_time = 0
@@ -123,7 +123,7 @@ class Engine:
                 last_action[agent_name][actuator] = value
                 hold_actions[agent_name][actuator] = value
 
-                if actuator.action in [ActionTypes.ACTIVATE, ActionTypes.EAT]:
+                if actuator.action_type in [ActionTypes.ACTIVATE, ActionTypes.EAT]:
                     hold_actions[agent_name][actuator] = 0
 
         cumulated_rewards = {}
@@ -222,11 +222,11 @@ class Engine:
             # pylint: disable=no-member
 
             # Press Q to terminate
-            if not pygame.key.get_pressed()[pygame.locals.K_q] and not self.quit_key_ready:
-                self.quit_key_ready = True
+            if not pygame.key.get_pressed()[pygame.locals.K_q] and not self._quit_key_ready:
+                self._quit_key_ready = True
 
-            elif pygame.key.get_pressed()[pygame.locals.K_q] and self.quit_key_ready:
-                self.quit_key_ready = False
+            elif pygame.key.get_pressed()[pygame.locals.K_q] and self._quit_key_ready:
+                self._quit_key_ready = False
                 terminate_game = True
 
         return terminate_game
@@ -248,13 +248,18 @@ class Engine:
         self._update_surface_background()
         self._surface_buffer.blit(self._surface_background, (0, 0))
 
+        for agent in self.agents:
+            agent.draw(self._surface_buffer)
+
         for entity in self.playground.scene_elements:
+
+            if entity.background and not entity.drawn:
+                entity.draw(self._surface_buffer, draw_interaction=with_interactions)
 
             if not entity.background or entity.graspable or entity.interactive:
                 entity.draw(self._surface_buffer, draw_interaction=with_interactions)
 
-        for agent in self.agents:
-            agent.draw(self._surface_buffer)
+
 
     def update_screen(self):
         """
@@ -263,9 +268,14 @@ class Engine:
 
         if self._screen is not None:
 
-            self._generate_surface_environment(with_interactions=True)
-            rot_surface = pygame.transform.rotate(self._surface_buffer, 180)
-            self._screen.blit(rot_surface, (0, 0), None)
+            if self._debug:
+                self._screen.fill((0, 0, 0))
+                options = pygame_util.DrawOptions(self._screen)
+                self.playground.space.debug_draw(options)
+
+            else:
+                self._generate_surface_environment(with_interactions=True)
+                self._screen.blit(self._surface_buffer, (0, 0), None)
 
             pygame.display.flip()
 
@@ -286,7 +296,7 @@ class Engine:
         self._generate_surface_environment(with_interactions=True)
 
         np_image = pygame.surfarray.pixels3d(self._surface_buffer.copy()) / 255.
-        np_image = np.rot90(np_image, 1, (1, 0))
+        np_image = np.rot90(np_image, -1, (1, 0))
         np_image = np_image[::-1, :, ::-1]
 
         if max_size is not None:
@@ -457,7 +467,7 @@ class Engine:
 
         for elem in self.playground.scene_elements:
             if elem.background:
-                elem.draw(self._surface_background, )
+                elem.draw(self._surface_background)
 
     def run(self, steps=None, update_screen=False, print_rewards=False):
         """ Run the engine for the full duration of the game or a certain number of steps"""

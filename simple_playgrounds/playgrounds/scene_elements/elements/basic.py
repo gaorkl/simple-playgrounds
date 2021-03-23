@@ -11,7 +11,7 @@ class Basic(SceneElement):
     visible = True
     entity_type = SceneElementTypes.BASIC
 
-    def __init__(self, initial_position, default_config_key=None, **kwargs):
+    def __init__(self, default_config_key=None, **kwargs):
         """ Base class for Basic entities.
 
         Basic entities are non-interactive entities.
@@ -29,7 +29,7 @@ class Basic(SceneElement):
         default_config = parse_configuration('element_basic', default_config_key)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
 
 class Traversable(Basic):
@@ -48,12 +48,12 @@ class Door(SceneElement):
     entity_type = SceneElementTypes.DOOR
     background = False
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
 
         default_config = parse_configuration('element_basic', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.opened = False
 

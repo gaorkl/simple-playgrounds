@@ -8,6 +8,9 @@ from collections import namedtuple
 
 SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9
+LINEAR_FORCE = 100
+ANGULAR_VELOCITY = 0.5
+ARM_MAX_FORCE = 500
 
 
 class AgentPartTypes(IntEnum):
@@ -76,6 +79,7 @@ class SensorTypes(IntEnum):
     GREY = auto()
     LIDAR = auto()
     TOUCH = auto()
+    DEPTH = auto()
 
     SEMANTIC_CONE = auto()
     SEMANTIC_RAY = auto()
@@ -130,9 +134,13 @@ class ControllerTypes(Enum):
 
 class ActionSpaces(IntEnum):
 
-    BOOL = auto()
+    DISCRETE_BINARY = auto()
+
+    DISCRETE_POSITIVE = auto()
+    DISCRETE_CENTERED = auto()
+
+    CONTINUOUS_POSITIVE = auto()
     CONTINUOUS_CENTERED = auto()
-    CONTINUOUS_NOT_CENTERED = auto()
 
 
 class ActionTypes(IntEnum):

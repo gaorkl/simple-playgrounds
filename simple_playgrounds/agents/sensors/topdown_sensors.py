@@ -47,7 +47,10 @@ class TopdownSensor(Sensor):
         super().__init__(anchor=anchor, invisible_elements=invisible_elements, normalize=normalize,
                          noise_params=noise_params, **sensor_params)
 
-        self._invisible_elements.remove(anchor)
+        if invisible_elements:
+            self._invisible_elements = invisible_elements
+        else:
+            self._invisible_elements = []
 
         self.only_front = only_front
 
@@ -84,42 +87,24 @@ class TopdownSensor(Sensor):
 
     def get_local_sensor_image(self, playground, sensor_surface):
 
-        all_agent_parts = []
         for agent in playground.agents:
-            all_agent_parts += agent.parts
+            for part in agent.parts:
+                if part not in self._invisible_elements:
+                    part.draw(sensor_surface)
 
-        # take all elems and body parts which are close to sensor
-        sc_elems = [elem for elem in playground.scene_elements if
-                    self._check_elem(elem)]
-        sc_elems += [elem for elem in all_agent_parts if
-                     self._check_elem(elem)]
-
-        # filter invisible
-        visible_sc_elems = [elem for elem in sc_elems if elem not in self._invisible_elements]
-
-        # Draw elements that are not invisible to this agent
-        for element in visible_sc_elems:
-            element.draw(sensor_surface)
+        for elem in playground.scene_elements:
+            if not elem.background and elem not in self._invisible_elements:
+                elem.draw(sensor_surface)
 
         cropped = pygame.Surface((2 * self._range + 1, 2 * self._range + 1))
 
-        pos_x = self.anchor.position[0] + self._range - playground.width
-        pos_y = - self.anchor.position[1] + self._range
+        pos_x = playground.length - (self.anchor.position[0] + self._range)
+        pos_y = playground.length - (self.anchor.position[1] + self._range)
         cropped.blit(sensor_surface, (pos_x, pos_y))
 
         img_cropped = pygame.surfarray.pixels3d(cropped).astype(float)
 
         return img_cropped
-
-    def _check_elem(self, elem):
-
-        vis_shape = elem.pm_visible_shape
-
-        if vis_shape is not None:
-            contact_points = vis_shape.shapes_collide(self.anchor.pm_visible_shape).points
-            return (not elem.background) and len(contact_points) == 0
-
-        return not elem.background
 
     def _compute_raw_sensor(self, playground, sensor_surface):
 
@@ -128,7 +113,7 @@ class TopdownSensor(Sensor):
         small_img = resize(cropped_img, (self._resolution, self._resolution),
                            order=0, preserve_range=True)
 
-        rotated_img = rotate(small_img, self.anchor.pm_body.angle * 180 / math.pi + 90)
+        rotated_img = rotate(small_img,  -self.anchor.pm_body.angle * 180 / math.pi + 180)
 
         masked_img = rotated_img
         masked_img[self.mask_total_fov == 0] = 0
@@ -212,6 +197,11 @@ class FullPlaygroundSensor(Sensor):
         super().__init__(anchor=None, invisible_elements=invisible_elements, normalize=normalize,
                          noise_params=noise_params, **sensor_params)
 
+        if invisible_elements:
+            self._invisible_elements = invisible_elements
+        else:
+            self._invisible_elements = []
+
         max_size_playground = max(size_playground)
         self._scale = (int(self._resolution * size_playground[1] / max_size_playground),
                        int(self._resolution * size_playground[0] / max_size_playground))
@@ -220,19 +210,14 @@ class FullPlaygroundSensor(Sensor):
 
     def get_sensor_image(self, playground, sensor_surface):
 
-        all_agent_parts = []
         for agent in playground.agents:
-            all_agent_parts += agent.parts
+            for part in agent.parts:
+                if part not in self._invisible_elements:
+                    part.draw(sensor_surface)
 
-        # take all elems and body parts which are close to sensor
-        sc_elems = playground.scene_elements + all_agent_parts
-
-        # filter invisible
-        visible_sc_elems = [elem for elem in sc_elems if elem not in self._invisible_elements]
-
-        # Draw elements that are not invisible to this agent
-        for element in visible_sc_elems:
-            element.draw(sensor_surface)
+        for elem in playground.scene_elements:
+            if not elem.background and elem not in self._invisible_elements:
+                elem.draw(sensor_surface)
 
         img = pygame.surfarray.pixels3d(sensor_surface).astype(float)
         np_image = np.rot90(img, 1, (1, 0))
@@ -279,7 +264,7 @@ class FullPlaygroundSensor(Sensor):
 
         height_display = int(width * self.shape[0] / self.shape[1])
 
-        image = resize(self.sensor_values, (width, height_display), order=0, preserve_range=True)
+        image = resize(self.sensor_values, (height_display, width), order=0, preserve_range=True)
 
         if not self._apply_normalization:
             image /= 255.

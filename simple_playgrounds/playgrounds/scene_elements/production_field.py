@@ -73,14 +73,15 @@ class Field:
 
         """
 
-        obj = self.entity_produced(initial_position=self.location_sampler,
-                                   **self.entity_produced_params)
+        obj = self.entity_produced(**self.entity_produced_params)
         obj.is_temporary_entity = True
 
         self.total_produced += 1
         self.produced_entities.append(obj)
 
-        return obj
+        initial_position = self.location_sampler.sample()
+
+        return obj, initial_position
 
     def reset(self):
         """

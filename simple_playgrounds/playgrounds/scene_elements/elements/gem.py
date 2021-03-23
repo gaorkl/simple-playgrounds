@@ -17,12 +17,12 @@ class GemSceneElement(SceneElement, ABC):
     movable = True
     background = False
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
 
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        SceneElement.__init__(self, initial_position=initial_position, **entity_params)
+        SceneElement.__init__(self, **entity_params)
         self.pm_visible_shape.collision_type = CollisionTypes.GEM
 
 

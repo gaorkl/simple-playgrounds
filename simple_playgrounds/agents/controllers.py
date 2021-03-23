@@ -45,6 +45,15 @@ class External(Controller):
         pass
 
 
+class Dummy(Controller):
+    """
+    This controller is used when actions are decided from outside of the simulator.
+    E.g. this class can be used with RL algorithms.
+    """
+    def generate_actions(self):
+        return self.generate_null_actions()
+
+
 class Random(Controller):
     """
     A random controller generate random commands.
@@ -54,19 +63,24 @@ class Random(Controller):
 
     def generate_actions(self):
 
-        # actions = self.null_actions.copy()
         commands = {}
 
         for actuator in self.controlled_actuators:
 
-            if actuator.action_range == ActionSpaces.CONTINUOUS_CENTERED:
-                act_value = random.uniform(actuator.min, actuator.max)
+            if actuator.action_space == ActionSpaces.CONTINUOUS_CENTERED:
+                act_value = random.uniform(-1, 1)*actuator.action_range
 
-            elif actuator.action_range == ActionSpaces.CONTINUOUS_NOT_CENTERED:
-                act_value = random.uniform(actuator.min, actuator.max)
+            elif actuator.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
+                act_value = random.uniform(0, 1)*actuator.action_range
 
-            elif actuator.action_range == ActionSpaces.BOOL:
-                act_value = random.choice([actuator.min, actuator.max])
+            elif actuator.action_space == ActionSpaces.DISCRETE_BINARY:
+                act_value = random.choice([0, 1])
+
+            elif actuator.action_space == ActionSpaces.DISCRETE_CENTERED:
+                act_value = random.choice([-1, 0, 1]) * actuator.action_range
+
+            elif actuator.action_space == ActionSpaces.DISCRETE_POSITIVE:
+                act_value = random.choice([0, 1])*actuator.action_range
 
             else:
                 raise ValueError

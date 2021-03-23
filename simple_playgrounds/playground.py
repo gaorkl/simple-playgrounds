@@ -10,14 +10,12 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 
-import os
 from abc import ABC
-import yaml
 import pymunk
 
-
-from simple_playgrounds.utils.position_utils import PositionAreaSampler
-from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.position_utils import CoordinateSampler
+from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes, SensorTypes
+from simple_playgrounds.entity import Entity
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -33,7 +31,7 @@ class Playground(ABC):
         scene_elements: list of SceneElements present in the Playground.
         fields: list of fields producing SceneElements in the Playground.
         agents: list of Agents present in the Playground.
-        initial_agent_position: position or PositionAreaSampler,
+        initial_agent_coordinates: position or PositionAreaSampler,
             Starting position of an agent (single agent).
         done: bool, True if the playground reached termination.
 
@@ -45,7 +43,6 @@ class Playground(ABC):
     # pylint: disable=too-many-instance-attributes
 
     time_limit = None
-    _scene_entities = []
     time_limit_reached_reward = None
 
     def __init__(self, size):
@@ -67,34 +64,11 @@ class Playground(ABC):
         self._grasped_scene_elements = {}
         self._teleported = []
 
-        # Add entities declared in the scene
-        for scene_entity in self._scene_entities:
-            self.add_scene_element(scene_entity)
-
         self.done = False
-        self.initial_agent_position = None
+        self.initial_agent_coordinates = None
 
         self._handle_interactions()
-
-    @staticmethod
-    def parse_configuration(key):
-        """ Private method that parses yaml configuration files.
-
-        Args:
-            key: (str) name of the playground configuration.
-
-        Returns:
-            Dictionary of attributes and default values.
-
-        """
-
-        file_name = 'utils/configs/playground.yml'
-
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(__location__, file_name), 'r') as yaml_file:
-            default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
-
-        return default_config[key]
+        self.sensor_collision_index = 2
 
     @staticmethod
     def _initialize_space():
@@ -158,24 +132,25 @@ class Playground(ABC):
         # reset agents
         for agent in self.agents.copy():
             agent.reset()
-            self.remove_agent(agent)
-            self.add_agent(agent)
+            agent.coordinates = agent.initial_coordinates
 
         self.done = False
 
     def add_agent(self, agent,
+                  initial_coordinates=None,
+                  keep_coordinates=False,
                   allow_overlapping=True,
                   max_attempts=100,
-                  error_if_fails=True,
-                  keep_position=False):
+                  error_if_fails=True):
         """ Method to add an Agent to the Playground.
 
         Args:
             agent: Agent to add to the Playground
+            initial_coordinates: tuple or CoordinateSampler
+            keep_coordinates: if True, will not reinitialize position.
             allow_overlapping: If True, allows new agent to overlap with other elements when added to the Playground.
             max_attempts: If overlapping is not allowed, maximum number of attempts to place the agent.
             error_if_fails: If True, an error will be raised if agent can't be placed in the Playground.
-            keep_position: if True, will not reinitialize position.
 
         Notes:
             keep_position is useful in the case where agent must disappear and reappear in the same position.
@@ -187,29 +162,36 @@ class Playground(ABC):
         if agent in self.agents:
             raise ValueError('Agent already in Playground')
 
-        # Inform agent of the playground size
-        agent.size_playground = self.size
+        # If agent already has a positioning strategy, use it
+        if agent.overlapping is None:
+            agent.overlapping = {'allow_overlapping': allow_overlapping,
+                                 'max_attempts': max_attempts,
+                                 'error_if_fails': error_if_fails
+                                 }
 
         # Set initial position
-        if agent.initial_position is not None:
-            pass
-        elif self.initial_agent_position is not None:
-            agent.initial_position = self.initial_agent_position
+        if initial_coordinates is not None:
+            agent.initial_coordinates = initial_coordinates
+
+        # If no initial coordinates, ask playground:
+        elif self.initial_agent_coordinates is not None:
+            agent.initial_coordinates = self.initial_agent_coordinates
+
         else:
             raise ValueError("""Agent initial position should be defined in the playground or passed as an argument)
                              to the class agent""")
 
         # Place agent in environment
-        if allow_overlapping:
-            self._add_agent(agent, keep_position)
+        if agent.overlapping['allow_overlapping']:
+            self._add_agent(agent, keep_coordinates)
+            self._set_sensor_filters(agent)
 
         else:
             attempt = 0
             success = False
 
-            while not success or attempt < max_attempts:
-
-                self._add_agent(agent, keep_position)
+            while (not success) or (attempt > agent.overlapping['max_attempts']):
+                self._add_agent(agent, keep_coordinates)
                 if not self._agent_colliding(agent):
                     success = True
                 else:
@@ -220,10 +202,25 @@ class Playground(ABC):
 
                 msg = 'Agent could not be placed without overlapping'
 
-                if error_if_fails:
+                if agent.overlapping['error_if_fails']:
                     raise ValueError(msg)
 
                 print(msg)
+
+            else:
+                self._set_sensor_filters(agent)
+
+    def _set_sensor_filters(self, agent):
+
+        # Set the invisible element filters
+        for sensor in agent.sensors:
+            if sensor.sensor_modality in [SensorTypes.ROBOTIC, SensorTypes.SEMANTIC]\
+                    and sensor.invisible_elements is not None:
+
+                sensor.apply_shape_filter(self.sensor_collision_index)
+                self.sensor_collision_index += 1
+                if self.sensor_collision_index == 32:
+                    raise ValueError('Too many sensors using invisible shapes. Pymunk limits them to 32.')
 
     def _add_agent(self, agent, keep_position):
         """ Add an agent to the playground.
@@ -234,9 +231,10 @@ class Playground(ABC):
         """
 
         self.agents.append(agent)
+        agent.in_a_playground = True
 
         if not keep_position:
-            agent.position = agent.initial_position
+            agent.coordinates = agent.initial_coordinates
 
         for body_part in agent.parts:
             self.space.add(*body_part.pm_elements)
@@ -262,6 +260,7 @@ class Playground(ABC):
         return collides
 
     def add_scene_element(self, scene_element,
+                          initial_coordinates=None,
                           allow_overlapping=True,
                           max_attempts=100,
                           error_if_fails=True,
@@ -270,6 +269,8 @@ class Playground(ABC):
 
         Args:
             scene_element: Scene Element to add to the Playground
+            initial_coordinates: initial position and angle of the SceneElement.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             allow_overlapping: If True, allows new elements to overlap with other elements when added to the Playground.
             max_attempts: If overlapping is not allowed, maximum number of attempts to place the element.
             error_if_fails: If True, an error will be raised if an element can't be placed in the Playground.
@@ -293,10 +294,16 @@ class Playground(ABC):
             if scene_element in self.scene_elements:
                 raise ValueError('Scene Element already in Playground')
 
-            # Else
-            scene_element.size_playground = self.size
+            if initial_coordinates is not None:
+                scene_element.initial_coordinates = initial_coordinates
 
-            if scene_element.background or allow_overlapping:
+            if scene_element.overlapping is None:
+                scene_element.overlapping = {'allow_overlapping': allow_overlapping,
+                                     'max_attempts': max_attempts,
+                                     'error_if_fails': error_if_fails
+                                     }
+
+            if scene_element.background or scene_element.overlapping['allow_overlapping']:
                 self._add_scene_element(scene_element, keep_position)
 
             else:
@@ -304,7 +311,7 @@ class Playground(ABC):
                 attempt = 0
                 success = False
 
-                while not success or attempt < max_attempts:
+                while (not success) or (attempt > scene_element.overlapping['max_attempts']):
 
                     self._add_scene_element(scene_element, keep_position)
                     if not self._entity_colliding(scene_element):
@@ -317,7 +324,7 @@ class Playground(ABC):
 
                     msg = 'Scene Element could not be placed without overlapping'
 
-                    if error_if_fails:
+                    if scene_element.overlapping['error_if_fails']:
                         raise ValueError(msg)
 
                     print(msg)
@@ -328,7 +335,7 @@ class Playground(ABC):
             raise ValueError('Scene element already in Playground')
 
         if not keep_position:
-            new_scene_element.position = new_scene_element.initial_position
+            new_scene_element.position, new_scene_element.angle = new_scene_element.initial_coordinates
 
         self.space.add(*new_scene_element.pm_elements)
         self.scene_elements.append(new_scene_element)
@@ -368,12 +375,15 @@ class Playground(ABC):
 
         for part in agent.parts:
             self.space.remove(*part.pm_elements)
-            part.velocity = [0, 0, 0]
+            part.velocity = [0, 0]
             part.grasped = []
 
-        agent.initial_position = None
+        if agent.initial_coordinates is self.initial_agent_coordinates:
+            agent.initial_coordinates = None
 
         self.agents.remove(agent)
+
+        agent.in_a_playground = False
 
         return True
 
@@ -410,13 +420,43 @@ class Playground(ABC):
 
         return True
 
+    def _dynamic_add_remove_elements(self, list_remove, elem_add):
+
+        if list_remove is None:
+            pass
+
+        elif isinstance(list_remove, Entity):
+            self.remove_scene_element(list_remove)
+
+        elif isinstance(list_remove, (list, tuple)):
+            for elem in list_remove:
+
+                if isinstance(elem, Entity):
+                    self.remove_scene_element(elem)
+
+                else:
+                    raise ValueError('not an entity to remove')
+
+        else:
+            raise ValueError('not an entity to remove')
+
+        if elem_add is None:
+            pass
+
+        elif isinstance(elem_add, Entity):
+            self.add_scene_element(elem_add, keep_position=True)
+
+        elif isinstance(elem_add, tuple):
+            elem, pos = elem_add
+            self.add_scene_element(elem, pos)
+
     def _fields_produce(self):
 
         for field in self.fields:
 
             if field.can_produce():
-                new_entity = field.produce()
-                self.add_scene_element(new_entity)
+                new_entity, position = field.produce()
+                self.add_scene_element(new_entity, position)
 
     def _check_timers(self):
 
@@ -424,13 +464,8 @@ class Playground(ABC):
 
             if entity.timed and entity.timer == 0:
 
-                list_remove, list_add = entity.activate(self)
-
-                for entity_removed in list_remove:
-                    self.remove_scene_element(entity_removed)
-
-                for entity_added in list_add:
-                    self.add_scene_element(entity_added)
+                list_remove, elem_add = entity.activate(self)
+                self._dynamic_add_remove_elements(list_remove, elem_add)
 
     def _release_grasps(self):
 
@@ -558,13 +593,9 @@ class Playground(ABC):
 
             agent.reward += interacting_entity.reward
 
-            list_remove, list_add = interacting_entity.activate(body_part)
+            list_remove, elem_add = interacting_entity.activate(body_part)
 
-            for entity_removed in list_remove:
-                self.remove_scene_element(entity_removed)
-
-            for entity_added in list_add:
-                self.add_scene_element(entity_added)
+            self._dynamic_add_remove_elements(list_remove, elem_add)
 
             if interacting_entity.terminate_upon_contact:
                 self.done = True
@@ -625,11 +656,7 @@ class Playground(ABC):
 
         list_remove, list_add = interacting_entity.activate(gem)
 
-        for entity_removed in list_remove:
-            self.remove_scene_element(entity_removed)
-
-        for entity_added in list_add:
-            self.add_scene_element(entity_added)
+        self._dynamic_add_remove_elements(list_remove, list_add)
 
         if interacting_entity.terminate_upon_contact:
             self.done = True
@@ -672,16 +699,16 @@ class Playground(ABC):
 
         if teleport.target.traversable:
 
-            agent.position = (teleport.target.position[0], teleport.target.position[1],
-                              agent.position[2])
+            agent.position = teleport.target.position
+
         else:
             area_shape = teleport.target.physical_shape
             if area_shape == 'rectangle':
                 width = teleport.target.width + agent.base_platform.radius * 2 + 1
                 length = teleport.target.length + agent.base_platform.radius * 2 + 1
-                angle = teleport.target.position[-1]
-                sampler = PositionAreaSampler(
-                    center=[teleport.target.position[0], teleport.target.position[1]],
+                angle = teleport.target.angle
+                sampler = CoordinateSampler(
+                    center=teleport.target.position,
                     area_shape=area_shape,
                     angle=angle,
                     width_length=[width+2, length+2],
@@ -689,14 +716,14 @@ class Playground(ABC):
                 )
             else:
                 radius = teleport.target.radius + agent.base_platform.radius + 1
-                sampler = PositionAreaSampler(
-                    center=[teleport.target.position[0], teleport.target.position[1]],
+                sampler = CoordinateSampler(
+                    center=teleport.target.position,
                     area_shape='circle',
                     radius=radius,
                     excl_radius=radius,
                 )
 
-            agent.position = sampler.sample()
+            agent.coordinates = sampler.sample()
 
         if (agent, teleport.target) not in self._teleported:
             self._teleported.append((agent, teleport.target))

@@ -11,17 +11,19 @@ Examples can be found in :
 """
 import math
 from abc import ABC
-import numpy
 
 import pymunk
 import pygame
 
-from simple_playgrounds.utils.position_utils import PositionAreaSampler, Trajectory
+from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
 from simple_playgrounds.utils.texture import TextureGenerator, Texture
 from simple_playgrounds.utils.definitions import geometric_shapes, CollisionTypes
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
+
+FRICTION_ENTITY = 0.8
+ELASTICITY_ENTITY = 0.5
 
 
 class Entity(ABC):
@@ -37,11 +39,14 @@ class Entity(ABC):
 
     index_entity = 0
     entity_type = None
+    entity_number = None
 
     background = True
     drawn = False
 
-    def __init__(self, initial_position=None, **entity_params):
+    follows_waypoints = False
+
+    def __init__(self, **entity_params):
         """ Base class for entities.
 
         Args:
@@ -80,11 +85,11 @@ class Entity(ABC):
         self.pm_elements = [self.pm_body]
 
         # To be set when entity is added to playground. Used to calculate correct coordinates
-        self.size_playground = [0, 0]
-        self.velocity = [0, 0, 0]
-        self.position = [0, 0, 0]
 
+        self._initial_coordinates = None
         self.texture_surface = self._create_texture(entity_params['texture'])
+
+        self.trajectory = None
 
         self.pm_visible_shape = None
         self.pm_interaction_shape = None
@@ -94,22 +99,22 @@ class Entity(ABC):
         if self.visible:
             self.pm_visible_shape = self._create_pm_shape()
             self.pm_elements.append(self.pm_visible_shape)
-            self.visible_mask = self._create_mask()
-            if self.traversable:
-                self.pm_visible_shape.sensor = True
+
+            # traversable don't collide with other scene elements.
+            self.reset_mask_shape_filter()
 
         if self.interactive:
             self.pm_interaction_shape = self._create_pm_shape(is_interactive=True)
-            self.interaction_mask = self._create_mask(is_interactive=True)
             self.pm_elements.append(self.pm_interaction_shape)
 
         if self.graspable:
             self.pm_grasp_shape = self._create_pm_shape(is_interactive=True)
             self.pm_grasp_shape.collision_type = CollisionTypes.GRASPABLE
-            self.grasp_mask = self._create_mask(is_interactive=True)
             self.pm_elements.append(self.pm_grasp_shape)
 
-        self.initial_position = initial_position
+        self.grasp_mask = None
+        self.interaction_mask = None
+        self.visible_mask = None
 
         # To remove temporary entities when reset
         self.is_temporary_entity = entity_params.get('is_temporary_entity', False)
@@ -155,6 +160,25 @@ class Entity(ABC):
         for pm_elem in self.pm_elements:
             setattr(pm_elem, prop, value)
 
+    def update_mask_shape_filter(self, category_index):
+        """
+        Used to define collisions between entities.
+        Used for sensors.
+
+        Returns:
+
+        """
+        if self.pm_visible_shape is not None:
+            mask_filter = self.pm_visible_shape.filter.mask ^ 2**category_index
+            self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=self.pm_visible_shape.filter.categories,
+                                                              mask=mask_filter)
+
+    def reset_mask_shape_filter(self):
+        if self.traversable:
+            self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=1)
+        else:
+            self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=2, mask=pymunk.ShapeFilter.ALL_MASKS() ^ 1)
+
     # BODY AND SHAPE
 
     def _create_pm_body(self):
@@ -174,7 +198,7 @@ class Entity(ABC):
             moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-            vertices = self._compute_vertices(angle=0)
+            vertices = self._compute_vertices()
             moment = pymunk.moment_for_poly(self.mass, vertices)
 
         elif self.physical_shape == 'rectangle':
@@ -185,38 +209,38 @@ class Entity(ABC):
 
         return moment
 
-    def _compute_vertices(self, angle, is_interactive=False, border=0):
+    def _compute_vertices(self, offset_angle=0., is_interactive=False):
 
         vertices = []
 
         if self.physical_shape == 'rectangle':
 
             if is_interactive:
-                width = self.interaction_width + border
-                length = self.interaction_length + border
+                width = self.interaction_width
+                length = self.interaction_length
             else:
-                width = self.width + border
-                length = self.length + border
+                width = self.width
+                length = self.length
 
-            coord_pts_in_entity_base = [[width / 2., length / 2.], [-width / 2. - 1, length / 2.],
-                                        [-width / 2. - 1, -length / 2. - 1], [width / 2., -length / 2. - 1]]
+            coord_pts_in_entity_base = [(width / 2., length / 2.), (width / 2., -length / 2.),
+                                        (-width / 2., -length / 2.), (-width / 2., length / 2.)]
 
             for coord in coord_pts_in_entity_base:
-                pos_x = coord[0] * math.cos(angle) - coord[1] * math.sin(angle)
-                pos_y = coord[0] * math.sin(angle) + coord[1] * math.cos(angle)
+                pos_x = coord[0] * math.cos(offset_angle) - coord[1] * math.sin(offset_angle)
+                pos_y = coord[0] * math.sin(offset_angle) + coord[1] * math.cos(offset_angle)
 
                 vertices.append((pos_x, pos_y))
         else:
             if is_interactive:
-                radius = self.interaction_radius + border
+                radius = self.interaction_radius
             else:
-                radius = self.radius + border
+                radius = self.radius
 
             number_sides = geometric_shapes[self.physical_shape]
 
             for n_sides in range(number_sides):
-                vertices.append((radius * math.cos(n_sides * 2 * math.pi / number_sides + angle),
-                                 radius * math.sin(n_sides * 2 * math.pi / number_sides + angle)))
+                vertices.append((radius * math.cos(n_sides * 2 * math.pi / number_sides + offset_angle),
+                                 radius * math.sin(n_sides * 2 * math.pi / number_sides + offset_angle)))
 
         return vertices
 
@@ -235,7 +259,7 @@ class Entity(ABC):
             pm_shape = pymunk.Circle(self.pm_body, radius)
 
         elif self.physical_shape in ['triangle', 'square', 'pentagon', 'hexagon']:
-            vertices = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive)
+            vertices = self._compute_vertices(is_interactive=is_interactive)
             pm_shape = pymunk.Poly(self.pm_body, vertices)
 
         elif self.physical_shape == 'rectangle':
@@ -247,8 +271,8 @@ class Entity(ABC):
         if is_interactive:
             pm_shape.sensor = True
         else:
-            pm_shape.friction = 0.8
-            pm_shape.elasticity = 0.5
+            pm_shape.friction = FRICTION_ENTITY
+            pm_shape.elasticity = ELASTICITY_ENTITY
 
         return pm_shape
 
@@ -281,156 +305,99 @@ class Entity(ABC):
             radius = self.radius
             alpha = 255
 
-        if self.physical_shape == 'circle':
+        mask = pygame.Surface((int(2 * radius) + 1, int(2 * radius) + 1), pygame.SRCALPHA)
+        mask.fill((0, 0, 0, 0))
 
-            mask = pygame.Surface((int(2*radius), int(2*radius)), pygame.SRCALPHA)
-            mask.fill((0, 0, 0, 0))
+        if self.physical_shape == 'circle':
             pygame.draw.circle(mask, (255, 255, 255, alpha), (int(radius), int(radius)), int(radius))
 
-        elif self.physical_shape == 'rectangle':
-
-            vert = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border=0)
-            vertices = [[x[1] + radius, x[0] + radius] for x in vert]
-
-            mask = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA)
-            mask.fill((0, 0, 0, 0))
-            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
-
         else:
-
-            vert = self._compute_vertices(angle=self.pm_body.angle, is_interactive=is_interactive, border=0)
-            vertices = [[x[1] + radius, x[0] + radius] for x in vert]
-
-            mask = pygame.Surface((2 * radius+2, 2 * radius+2), pygame.SRCALPHA)
-            mask.fill((0, 0, 0, 0))
+            vert = self._compute_vertices(offset_angle=self.angle, is_interactive=is_interactive)
+            vertices = [[x[0] + radius, x[1] + radius] for x in vert]
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
         if is_interactive:
-            texture_surface = pygame.transform.scale(self.texture_surface, (2 * int(self.interaction_radius),
-                                                                            2 * int(self.interaction_radius)))
-
-            texture_surface = pygame.transform.rotate(texture_surface, self.pm_body.angle * 180 / math.pi)
-            mask_rect = texture_surface.get_rect()
-            mask_rect.center = self.interaction_radius, self.interaction_radius
-            mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
+            texture_surface = pygame.transform.scale(self.texture_surface,
+                                                     (2 * int(self.interaction_radius) + 1,
+                                                      2 * int(self.interaction_radius) + 1))
         else:
             texture_surface = self.texture_surface.copy()
-            texture_surface = pygame.transform.rotate(texture_surface, self.pm_body.angle * 180 / math.pi)
-            mask_rect = texture_surface.get_rect()
-            mask_rect.center = self.radius, self.radius
-            mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
+
+        # Pygame / numpy conversion
+        mask_angle = math.pi/2 - self.angle
+        texture_surface = pygame.transform.rotate(texture_surface, mask_angle * 180 / math.pi)
+        mask_rect = texture_surface.get_rect()
+        mask_rect.center = radius, radius
+        mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
 
         return mask
 
     # POSITION AND VELOCITY
 
     @property
-    def initial_position(self):
+    def initial_coordinates(self):
         """
-        Initial position of the Entity. Can be list, tuple, or PositionAreaSampler object
+        Initial coordinates of the Entity.
+        Can be tuple of (x,y), angle, or PositionAreaSampler object
         """
 
-        if isinstance(self._initial_position, (list, tuple)):
-            return self._initial_position
+        if isinstance(self._initial_coordinates, (tuple, list)):
+            return self._initial_coordinates
 
-        if isinstance(self._initial_position, PositionAreaSampler):
-            return self._initial_position.sample()
+        elif isinstance(self._initial_coordinates, CoordinateSampler):
+            return self._initial_coordinates.sample()
 
         raise ValueError
 
-    @initial_position.setter
-    def initial_position(self, init_pos):
+    @initial_coordinates.setter
+    def initial_coordinates(self, init_coordinates):
 
-        if isinstance(init_pos, Trajectory):
-            self.trajectory = init_pos
-            self._initial_position = next(self.trajectory)
+        if isinstance(init_coordinates, Trajectory):
+            self.trajectory = init_coordinates
+            self._initial_coordinates = next(self.trajectory)
             self.follows_waypoints = True
 
-        elif isinstance(init_pos, (list, tuple, PositionAreaSampler)):
-            self._initial_position = init_pos
-            self.follows_waypoints = False
+        elif isinstance(init_coordinates, (tuple, list, CoordinateSampler)):
+            self._initial_coordinates = init_coordinates
 
         else:
             raise ValueError('Initial position not valid')
 
     @property
-    def position_np(self):
-        """
-        Position (x, y, orientation) of the Entity in numpy coordinates.
-        """
-        return numpy.array(self.position)
+    def coordinates(self):
+        return self.position, self.angle
 
     @property
     def position(self):
-        """
-        Position (x, y, orientation) of the Entity in Cartesian coordinates.
-        """
-
-        pm_x, pm_y = self.pm_body.position
-        phi = self.pm_body.angle
-
-        coord_x = self.size_playground[0] - pm_y
-        coord_y = pm_x
-        coord_phi = (phi + math.pi / 2) % (2 * math.pi)
-
-        return coord_x, coord_y, coord_phi
+        return self.pm_body.position
 
     @position.setter
     def position(self, pos):
+        self.pm_body.position = pos
 
-        coord_x, coord_y, coord_phi = pos
+    @property
+    def angle(self):
+        return self.pm_body.angle
 
-        # make sure that coordinates are within playground
-        coord_x = max(min(self.size_playground[0], coord_x), 0)
-        coord_y = max(min(self.size_playground[1], coord_y), 0)
-
-        pos_y = self.size_playground[0] - coord_x
-        pos_x = coord_y
-        phi = coord_phi - math.pi / 2
-
-        if self.physical_shape not in ['rectangle', 'circle']:
-            phi = phi + math.pi / geometric_shapes[self.physical_shape]
-
-        self.pm_body.position = pos_x, pos_y
+    @angle.setter
+    def angle(self, phi):
         self.pm_body.angle = phi
 
     @property
-    def velocity_np(self):
-        """
-        Velocity of the Entity in numpy coordinates
-        """
-        return numpy.array(self.velocity)
-
-    @property
     def velocity(self):
-        """
-        Velocity of the Entity in Cartesian coordinates
-        """
-        v_x, v_y = self.pm_body.velocity
-        v_phi = self.pm_body.angular_velocity
-
-        v_x, v_y = -v_y, v_x
-        return v_x, v_y, v_phi
+        return self.pm_body.velocity
 
     @velocity.setter
     def velocity(self, vel):
-        v_x, v_y, v_phi = vel
-
-        self.pm_body.velocity = (-v_y, v_x)
-        self.pm_body.angular_velocity = v_phi
+        self.pm_body.velocity = vel
 
     @property
-    def relative_velocity(self):
-        """
-        Relative velocity of the Entity in Cartesian coordinates
-        """
-        abs_vel_x, abs_vel_y, abs_ang_vel = self.velocity
-        _, _, angle = self.position
+    def angular_velocity(self):
+        return self.pm_body.angular_velocity
 
-        rel_vel_x = abs_vel_x * math.cos(angle) + abs_vel_y * math.cos(angle - math.pi / 2)
-        rel_vel_y = abs_vel_x * math.sin(angle) + abs_vel_y * math.sin(angle - math.pi / 2)
-
-        return rel_vel_x, rel_vel_y, abs_ang_vel
+    @angular_velocity.setter
+    def angular_velocity(self, v_phi):
+        self.pm_body.angular_velocity = v_phi
 
     # INTERFACE
 
@@ -440,7 +407,7 @@ class Entity(ABC):
         """
 
         if self.follows_waypoints:
-            self.position = next(self.trajectory)
+            self.position, self.angle = next(self.trajectory)
 
         if not self.background:
             self.drawn = False
@@ -453,8 +420,10 @@ class Entity(ABC):
         if self.follows_waypoints:
             self.trajectory.reset()
 
-        self.velocity = [0, 0, 0]
-        self.position = self.initial_position
+        self.velocity = (0, 0)
+        self.angular_velocity = 0
+        
+        self.position, self.angle = self.initial_coordinates
 
         self.drawn = False
 
@@ -468,7 +437,18 @@ class Entity(ABC):
             force_recompute_mask: If True, the visual appearance is re-calculated.
         """
 
+        draw_mask = False
+
+        if draw_interaction and self.interaction_mask is None:
+            draw_mask = True
+
+        if self.visible_mask is None:
+            draw_mask = True
+
         if self.prev_angle != self.pm_body.angle or force_recompute_mask:
+            draw_mask = True
+
+        if draw_mask:
 
             self.visible_mask = self._create_mask()
 
@@ -483,13 +463,13 @@ class Entity(ABC):
         if draw_interaction and self.interactive:
 
             mask_rect = self.interaction_mask.get_rect()
-            mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
+            mask_rect.center = self.pm_body.position[0], self.pm_body.position[1]
             surface.blit(self.interaction_mask, mask_rect, None)
 
         if self.visible:
 
             mask_rect = self.visible_mask.get_rect()
-            mask_rect.center = self.pm_body.position[1], self.pm_body.position[0]
+            mask_rect.center = self.pm_body.position[0], self.pm_body.position[1]
             surface.blit(self.visible_mask, mask_rect, None)
 
         self.drawn = True

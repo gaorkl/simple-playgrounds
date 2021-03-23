@@ -20,7 +20,7 @@ from pygame.locals import *  # pylint: disable=wildcard-import
 
 from simple_playgrounds.agent import Agent
 from simple_playgrounds.agents.parts import Head, Hand, Eye, Arm, FixedPlatform
-from simple_playgrounds.utils.definitions import KeyTypes, ActionTypes, ActionSpaces
+from simple_playgrounds.utils.definitions import KeyTypes, ActionSpaces
 
 # pylint: disable=undefined-variable
 
@@ -30,7 +30,7 @@ class BaseAgent(Agent):
     Class for Base Agents: single platform without extra body parts.
     """
 
-    def __init__(self, initial_position=None, controller=None, platform=None, interactive=False,
+    def __init__(self, controller=None, platform=None, interactive=False,
                  **kwargs):
         """
         Base Agent, with a single platform as a body.
@@ -56,13 +56,13 @@ class BaseAgent(Agent):
                               can_activate=interactive,
                               can_absorb=interactive)
 
-        super().__init__(initial_position=initial_position, base_platform=base_agent, **kwargs)
+        super().__init__(base_platform=base_agent, **kwargs)
 
         if hasattr(self.base_platform, 'longitudinal_force_actuator'):
 
             self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
 
-            if self.base_platform.longitudinal_force_actuator.action_range \
+            if self.base_platform.longitudinal_force_actuator.action_space \
                     is ActionSpaces.CONTINUOUS_CENTERED:
                 self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN,
                                                                           KeyTypes.PRESS_HOLD,
@@ -70,9 +70,9 @@ class BaseAgent(Agent):
 
         if hasattr(self.base_platform, 'lateral_force_actuator'):
 
-            self.base_platform.lateral_force_actuator.assign_key(K_k,
+            self.base_platform.lateral_force_actuator.assign_key(K_b,
                                                                  KeyTypes.PRESS_HOLD, 1)
-            self.base_platform.lateral_force_actuator.assign_key(K_l,
+            self.base_platform.lateral_force_actuator.assign_key(K_v,
                                                                  KeyTypes.PRESS_HOLD, -1)
 
         if hasattr(self.base_platform, 'angular_velocity_actuator'):
@@ -100,13 +100,12 @@ class HeadAgent(BaseAgent):
     """
 
     def __init__(self,
-                 initial_position=None,
                  controller=None,
                  platform=None,
                  interactive=False,
                  **kwargs):
 
-        super().__init__(initial_position=initial_position, controller=controller,
+        super().__init__(controller=controller,
                          platform=platform, interactive=interactive, **kwargs)
 
         self.head = Head(self.base_platform,
@@ -119,8 +118,8 @@ class HeadAgent(BaseAgent):
         self.add_body_part(self.head)
 
         # Key maps
-        self.head.angular_velocity_actuator.assign_key(K_n, KeyTypes.PRESS_HOLD, -1)
-        self.head.angular_velocity_actuator.assign_key(K_m, KeyTypes.PRESS_HOLD, 1)
+        self.head.angular_velocity_actuator.assign_key(K_n, KeyTypes.PRESS_HOLD, 1)
+        self.head.angular_velocity_actuator.assign_key(K_m, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -137,25 +136,24 @@ class HeadEyeAgent(HeadAgent):
     """
 
     def __init__(self,
-                 initial_position=None,
                  controller=None,
                  platform=None,
                  interactive=False,
                  **kwargs):
 
-        super().__init__(initial_position=initial_position, controller=controller,
+        super().__init__(controller=controller,
                          platform=platform, interactive=interactive, **kwargs)
 
         self.eye_l = Eye(self.head,
-                         position_anchor=[-self.head.radius/2, self.head.radius/2],
-                         angle_offset=math.pi / 4,
-                         rotation_range=math.pi,
+                         position_anchor=[self.head.radius/2, -self.head.radius/2],
+                         angle_offset=-math.pi / 5,
+                         rotation_range=2*math.pi/3,
                          name='left_eye')
         self.add_body_part(self.eye_l)
 
         self.eye_r = Eye(self.head, position_anchor=[self.head.radius/2, self.head.radius/2],
-                         angle_offset=-math.pi / 4,
-                         rotation_range=math.pi,
+                         angle_offset=math.pi / 5,
+                         rotation_range=2*math.pi/3,
                          name='right_eye')
         self.add_body_part(self.eye_r)
 
@@ -180,9 +178,9 @@ class TurretAgent(HeadAgent):
         head: Head of the agent
     """
 
-    def __init__(self, initial_position=None, controller=None, interactive=False, **kwargs):
+    def __init__(self, controller=None, interactive=False, platform=None, **kwargs):
 
-        super().__init__(initial_position=initial_position, platform=FixedPlatform,
+        super().__init__(platform=FixedPlatform,
                          controller=controller, interactive=interactive, **kwargs)
 
         # Assign controller once all body parts are declared
@@ -191,7 +189,7 @@ class TurretAgent(HeadAgent):
 
 class FullAgent(HeadEyeAgent):
     """
-        Agent with two Arms.
+        Agent with two Arms. Experimental, not fully operational.
 
         Attributes:
             head: Head of the agent
@@ -207,51 +205,27 @@ class FullAgent(HeadEyeAgent):
 
         """
     def __init__(self,
-                 initial_position=None,
                  controller=None,
                  platform=None,
                  interactive=False,
                  **kwargs):
 
-        base_agent = platform(name='base',
-                              can_eat=interactive,
-                              can_grasp=False,
-                              can_activate=False,
-                              can_absorb=interactive)
+        super().__init__(platform=platform, controller=controller, interactive=interactive,
+                         **kwargs)
 
-        super().__init__(initial_position=initial_position,
-                         base_platform=base_agent, controller=controller, **kwargs)
-
-        if hasattr(self.base_platform, 'longitudinal_force_actuator'):
-
-            self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
-
-            if self.base_platform.longitudinal_force_actuator.action_range\
-                    is ActionSpaces.CONTINUOUS_CENTERED:
-                self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN,
-                                                                          KeyTypes.PRESS_HOLD, -1)
-
-        if hasattr(self.base_platform, 'lateral_force_actuator'):
-            self.base_platform.lateral_force_actuator.assign_key(K_k,
-                                                                 KeyTypes.PRESS_HOLD, 1)
-            self.base_platform.lateral_force_actuator.assign_key(K_l,
-                                                                 KeyTypes.PRESS_HOLD, -1)
-
-        if hasattr(self.base_platform, 'angular_velocity_actuator'):
-            self.base_platform.angular_velocity_actuator.assign_key(K_RIGHT,
-                                                                    KeyTypes.PRESS_HOLD, 1)
-            self.base_platform.angular_velocity_actuator.assign_key(K_LEFT,
-                                                                    KeyTypes.PRESS_HOLD, -1)
+        self.base_platform.can_grasp = False
+        self.base_platform.can_activate = False
 
         self.arm_r = Arm(self.base_platform,
-                         position_anchor=[15, 0],
-                         angle_offset=-math.pi / 2,
+                         position_anchor=[0, self.base_platform.radius],
+                         angle_offset=math.pi/4,
                          rotation_range=math.pi)
         self.add_body_part(self.arm_r)
 
         self.arm_r_2 = Arm(self.arm_r,
                            position_anchor=self.arm_r.extremity_anchor_point,
-                           rotation_range=9 * math.pi / 5)
+                           angle_offset=-math.pi / 4,
+                           rotation_range=math.pi)
         self.add_body_part(self.arm_r_2)
 
         self.hand_r = Hand(self.arm_r_2,
@@ -263,14 +237,15 @@ class FullAgent(HeadEyeAgent):
         self.add_body_part(self.hand_r)
 
         self.arm_l = Arm(self.base_platform,
-                         position_anchor=[-15, 0],
-                         angle_offset=math.pi / 2,
+                         position_anchor=[0, -self.base_platform.radius],
+                         angle_offset=-math.pi / 4,
                          rotation_range=math.pi)
         self.add_body_part(self.arm_l)
 
         self.arm_l_2 = Arm(self.arm_l,
                            position_anchor=self.arm_l.extremity_anchor_point,
-                           rotation_range=9 * math.pi / 5)
+                           angle_offset=math.pi/4,
+                           rotation_range=math.pi)
         self.add_body_part(self.arm_l_2)
 
         self.hand_l = Hand(self.arm_l_2,
@@ -281,17 +256,17 @@ class FullAgent(HeadEyeAgent):
                            can_activate=interactive)
         self.add_body_part(self.hand_l)
 
-        self.arm_r.angular_velocity_actuator.assign_key(K_e, KeyTypes.PRESS_HOLD, 1)
-        self.arm_r.angular_velocity_actuator.assign_key(K_r, KeyTypes.PRESS_HOLD, -1)
+        self.arm_r.angular_velocity_actuator.assign_key(K_r, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r.angular_velocity_actuator.assign_key(K_t, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_t, KeyTypes.PRESS_HOLD, 1)
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_y, KeyTypes.PRESS_HOLD, -1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_y, KeyTypes.PRESS_HOLD, 1)
+        self.arm_r_2.angular_velocity_actuator.assign_key(K_u, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_l.angular_velocity_actuator.assign_key(K_u, KeyTypes.PRESS_HOLD, 1)
-        self.arm_l.angular_velocity_actuator.assign_key(K_i, KeyTypes.PRESS_HOLD, -1)
+        self.arm_l.angular_velocity_actuator.assign_key(K_i, KeyTypes.PRESS_HOLD, 1)
+        self.arm_l.angular_velocity_actuator.assign_key(K_o, KeyTypes.PRESS_HOLD, -1)
 
-        self.arm_l_2.angular_velocity_actuator.assign_key(K_o, KeyTypes.PRESS_HOLD, 1)
-        self.arm_l_2.angular_velocity_actuator.assign_key(K_p, KeyTypes.PRESS_HOLD, -1)
+        self.arm_l_2.angular_velocity_actuator.assign_key(K_k, KeyTypes.PRESS_HOLD, 1)
+        self.arm_l_2.angular_velocity_actuator.assign_key(K_l, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller
