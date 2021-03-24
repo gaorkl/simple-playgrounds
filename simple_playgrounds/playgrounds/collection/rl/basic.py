@@ -10,6 +10,32 @@ from simple_playgrounds.playgrounds.scene_elements \
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 
+@PlaygroundRegister.register('basic_rl', 'candy_collect')
+class CandyCollectEnv(SingleRoom):
+
+    def __init__(self):
+        super().__init__(size=(200, 200))
+
+        # Starting area of the agent
+        area_center, _ = self.area_rooms[(0, 0)]
+        area_start = CoordinateSampler(center=area_center,
+                                       area_shape='rectangle',
+                                       width_length=(100, 100))
+        self.agent_starting_area = area_start
+
+        for loc in ["down-left", "up-right"]:
+            area_center, size_area = self.get_area((0, 0), loc)
+            area = CoordinateSampler(center=area_center,
+                                     area_shape='rectangle',
+                                     width_length=size_area)
+            field = Field(entity_produced=Candy, production_area=area,
+                          probability=0.1, limit=10)
+            self.add_scene_element(field)
+
+        self.time_limit = 2000
+        self.time_limit_reached_reward = -1
+
+
 @PlaygroundRegister.register('basic_rl', 'endgoal_cue')
 class EndgoalRoomCue(SingleRoom):
     """
