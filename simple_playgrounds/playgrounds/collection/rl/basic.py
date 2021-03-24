@@ -18,18 +18,18 @@ class CandyCollectEnv(SingleRoom):
 
         # Starting area of the agent
         area_center, _ = self.area_rooms[(0, 0)]
-        area_start = PositionAreaSampler(center=area_center,
-                                         area_shape='rectangle',
-                                         width_length=(100, 100))
+        area_start = CoordinateSampler(center=area_center,
+                                       area_shape='rectangle',
+                                       width_length=(100, 100))
         self.agent_starting_area = area_start
 
         for loc in ["down-left", "up-right"]:
             area_center, size_area = self.get_area((0, 0), loc)
-            area = PositionAreaSampler(center=area_center,
-                                       area_shape='rectangle',
-                                       width_length=size_area)
-            field = Field(probability=0.1, limit=10,
-                          entity_produced=Candy, production_area=area)
+            area = CoordinateSampler(center=area_center,
+                                     area_shape='rectangle',
+                                     width_length=size_area)
+            field = Field(entity_produced=Candy, production_area=area,
+                          probability=0.1, limit=10)
             self.add_scene_element(field)
 
         self.time_limit = 2000
