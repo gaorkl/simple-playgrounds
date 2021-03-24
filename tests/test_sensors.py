@@ -1,13 +1,11 @@
 from simple_playgrounds.agents.sensors import RgbCamera, GreyCamera, Lidar,\
     Touch, SemanticRay, SemanticCones, TopdownSensor
-from simple_playgrounds.agents.sensors.sensor import Sensor
+from simple_playgrounds.playgrounds.collection.test.test_scene_elements import Basics, Teleports, Interactives
 
 from simple_playgrounds.agents.controllers import Random
 from simple_playgrounds.agents import BaseAgent
 from simple_playgrounds.agents.parts import ForwardPlatform
 from simple_playgrounds import Engine
-
-from simple_playgrounds.playground import PlaygroundRegister
 
 
 def run_experiment_on_sensor(**sensor_config):
@@ -28,7 +26,7 @@ def run_experiment_on_sensor(**sensor_config):
 
     print('Testing of sensor params ', sensor_config)
 
-    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
+    for pg_class in [Basics, Teleports, Interactives, ]:
         playground = pg_class()
         playground.add_agent(agent)
 
@@ -52,13 +50,14 @@ def test_default_sensors():
 
 def test_parameter_sensors():
 
-    for resolution in [2, 16, 32]:
+    for resolution in [2, 16]:
 
-        for range_sensor in [2, 100, 500]:
+        for range_sensor in [2, 100]:
 
-            for fov in [2, 30, 90, 180, 360, 380]:
+            for fov in [2, 180, 360, 380]:
 
                 run_experiment_on_sensor(resolution=resolution, max_range=range_sensor, fov=fov)
+
 
 def test_rgb_on_teleports():
 
@@ -68,7 +67,6 @@ def test_rgb_on_teleports():
                               invisible_elements=agent.parts,
                               ))
 
-    from simple_playgrounds.playgrounds.collection import Teleports
     playground = Teleports()
     playground.add_agent(agent)
 
