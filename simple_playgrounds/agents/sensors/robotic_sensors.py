@@ -6,7 +6,6 @@ Importantly, as Simple-Playgrounds is a 2D environments, these sensors are 1D.
 """
 
 import math
-from operator import attrgetter
 
 import numpy as np
 from skimage.transform import resize
@@ -32,7 +31,7 @@ class RgbCamera(RayCollisionSensor):
 
         super().__init__(anchor=anchor, invisible_elements=invisible_elements,
                          normalize=normalize, noise_params=noise_params,
-                         remove_duplicates=False, remove_occluded=False,
+                         remove_duplicates=False,
                          **sensor_params)
 
         self._sensor_max_value = 255
@@ -45,32 +44,33 @@ class RgbCamera(RayCollisionSensor):
 
         for angle_index, ray_angle in enumerate(self._ray_angles):
 
-            collisions = collision_points[ray_angle]
+            collision = collision_points[ray_angle]
 
-            if collisions:
+            if collision:
 
-                col = min(collisions, key=attrgetter('alpha'))
+                elem_colliding = playground.get_entity_from_shape(pm_shape=collision.shape)
 
-                elem_colliding = playground.get_entity_from_shape(pm_shape=col.shape)
+                if collision.alpha == 0.0:
+                    collision_pt = self.anchor.position
 
-                angle_element = elem_colliding.position[2]
-                pos_element = elem_colliding.position[0:2]
 
-                col_x, col_y = playground.size[0] - col.point.y, col.point.x
-                rel_x, rel_y = col_x - pos_element[0], col_y - pos_element[1]
+                else:
+                    collision_pt = collision.point
 
-                rel_pos_point = (rel_x*math.cos(angle_element) + rel_y*math.sin(angle_element),
-                                 - rel_x*math.sin(angle_element) + rel_y*math.cos(angle_element))
 
-                coord = (int(rel_pos_point[1]+(elem_colliding.texture_surface.get_size()[1])/2),
-                         int(rel_pos_point[0]+(elem_colliding.texture_surface.get_size()[0])/2)
-                         )
+                rel_pos_point = self._range / (self._range + 1) \
+                                * (collision_pt - elem_colliding.position).rotated(math.pi/2 - elem_colliding.angle)
 
-                rgb = elem_colliding.texture_surface.get_at(coord)[:3]
+                rel_pos_point = [math.floor(x+elem_colliding.radius) for x in rel_pos_point]
+
+                rel_pos_point[0] = max(0, rel_pos_point[0])
+                rel_pos_point[1] = max(0, rel_pos_point[1])
+
+                rgb = elem_colliding.texture_surface.get_at(rel_pos_point)[:3]
 
                 pixels[angle_index] = rgb
 
-        pixels = pixels[::-1, ::-1]
+        pixels = pixels[:, ::-1]
 
         self.sensor_values = pixels
 
@@ -160,11 +160,10 @@ class Lidar(RayCollisionSensor):
 
         for angle_index, ray_angle in enumerate(self._ray_angles):
 
-            collisions = collision_points[ray_angle]
+            collision = collision_points[ray_angle]
 
-            if collisions:
-                col = collisions[0]
-                pixels[angle_index] = col.alpha*self._range
+            if collision:
+                pixels[angle_index] = collision.alpha*self._range
 
         self.sensor_values = pixels[::-1].astype(float)
 
@@ -188,6 +187,19 @@ class Lidar(RayCollisionSensor):
             img /= self._sensor_max_value
 
         return img
+
+
+class Depth(Lidar):
+    """
+    Depth Sensors are opposite of Lidar sensor. Close objects have high value.
+    """
+    sensor_type = SensorTypes.DEPTH
+
+    def _compute_raw_sensor(self, playground, *_):
+
+        super()._compute_raw_sensor(playground)
+
+        self.sensor_values = self._sensor_max_value - self.sensor_values
 
 
 class Touch(Lidar):

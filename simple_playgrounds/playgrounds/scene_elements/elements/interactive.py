@@ -7,7 +7,7 @@ from simple_playgrounds.agents.parts.part import Part
 from simple_playgrounds.playground import Playground
 from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
-from simple_playgrounds.utils.position_utils import PositionAreaSampler
+from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.parser import parse_configuration
 
 
@@ -33,13 +33,18 @@ class InteractiveSceneElement(SceneElement, ABC):
             activating_entity: Entity that activated the SceneElement.
 
         Returns:
-            A list of entities to be removed, and a list of entities to be added.
+            A tuple (entity_removed, entity_added).
+             entity_added can be:
+              - an entity, in which case playground will assume that it was already placed before and has a position.
+              - a tuple (entity, position).
+              - None
+             entity_removed can be:
+              - an entity
+              - a list of entities
+              - None
 
         """
-        list_remove = []
-        list_add = []
-
-        return list_remove, list_add
+        return None, None
 
     @property
     @abstractmethod
@@ -61,12 +66,12 @@ class Lever(InteractiveSceneElement):
 
     entity_type = SceneElementTypes.LEVER
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
 
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
 
@@ -103,14 +108,12 @@ class Dispenser(InteractiveSceneElement):
     entity_type = SceneElementTypes.DISPENSER
     interactive = True
 
-    def __init__(self, initial_position, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
+    def __init__(self, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
 
         """
         Default: pink circle of radius 15.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory
             entity_produced: Class of the entity produced by the dispenser.
             entity_produced_params: Dictionary of additional parameters for the entity_produced.
             production_area: PositionAreaSampler.
@@ -124,7 +127,7 @@ class Dispenser(InteractiveSceneElement):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
 
@@ -137,9 +140,9 @@ class Dispenser(InteractiveSceneElement):
 
         if production_area is None:
             self.local_dispenser = True
-            self.location_sampler = PositionAreaSampler(area_shape='circle',
-                                                        center=[0, 0],
-                                                        radius=self.radius + 10)
+            self.location_sampler = CoordinateSampler(area_shape='circle',
+                                                      center=[0, 0],
+                                                      radius=self.radius + 10)
         else:
             self.local_dispenser = False
             self.location_sampler = production_area
@@ -153,25 +156,24 @@ class Dispenser(InteractiveSceneElement):
 
     def activate(self, _):
 
-        list_remove = []
-        list_add = []
+        elem_add = None
 
         if len(self.produced_entities) < self.production_limit and self.activated is False:
 
             if self.local_dispenser:
-                initial_position = self.location_sampler.sample([self.position[0], self.position[1]])
+                initial_coordinate = self.location_sampler.sample(self.position)
             else:
-                initial_position = self.location_sampler.sample()
+                initial_coordinate = self.location_sampler.sample()
 
-            obj = self.entity_produced(initial_position=initial_position, is_temporary_entity=True,
+            obj = self.entity_produced(is_temporary_entity=True,
                                        **self.entity_produced_params)
 
             self.produced_entities.append(obj)
-            list_add = [obj]
+            elem_add = (obj, initial_coordinate)
 
             self.activated = True
 
-        return list_remove, list_add
+        return None, elem_add
 
     def reset(self):
 
@@ -190,13 +192,11 @@ class Chest(InteractiveSceneElement):
     interactive = True
     background = False
 
-    def __init__(self, initial_position, key, treasure, **kwargs):
+    def __init__(self, key, treasure, **kwargs):
         """ Chest Entity.
         Default: Purple rectangle of size 20x30
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             key: Key object.
             treasure: SceneElement that is delivered when chest is opened.
             **kwargs: other params to configure entity. Refer to Entity class
@@ -205,7 +205,7 @@ class Chest(InteractiveSceneElement):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
         self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.key = key
@@ -218,17 +218,15 @@ class Chest(InteractiveSceneElement):
 
     def activate(self, activating_entity):
 
-        list_remove = []
-        list_add = []
+        list_remove = None
+        elem_add = None
 
         if activating_entity is self.key:
 
-            self.treasure.initial_position = self.position
-
             list_remove = [self.key, self]
-            list_add = [self.treasure]
+            elem_add = (self.treasure, self.coordinates)
 
-        return list_remove, list_add
+        return list_remove, elem_add
 
 
 class VendingMachine(InteractiveSceneElement):
@@ -240,7 +238,7 @@ class VendingMachine(InteractiveSceneElement):
     entity_type = SceneElementTypes.VENDING_MACHINE
     interactive = True
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
         """ Vending machine Entity.
         Default: Orange square of size 20, provides a reward of 10.
         """
@@ -248,7 +246,7 @@ class VendingMachine(InteractiveSceneElement):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
         self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.reward = entity_params.get('reward')
@@ -265,15 +263,14 @@ class VendingMachine(InteractiveSceneElement):
 
     def activate(self, activating_entity):
 
-        list_add = []
-        list_remove = []
+        list_remove = None
 
         if activating_entity in self.accepted_coins.copy() and self.activated is False:
             list_remove = [activating_entity]
             self.accepted_coins.remove(activating_entity)
             self.activated = True
 
-        return list_remove, list_add
+        return list_remove, None
 
 
 class OpenCloseSwitch(InteractiveSceneElement):
@@ -285,14 +282,12 @@ class OpenCloseSwitch(InteractiveSceneElement):
     entity_type = SceneElementTypes.SWITCH
     interactive = True
 
-    def __init__(self, initial_position, door, **kwargs):
+    def __init__(self, door, **kwargs):
         """ Switch used to open and close a door
 
         Default: Pale brown square of size 10.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             door: Door opened by the switch.
             **kwargs: other params to configure entity. Refer to Entity class.
 
@@ -304,7 +299,7 @@ class OpenCloseSwitch(InteractiveSceneElement):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.door = door
 
@@ -314,21 +309,21 @@ class OpenCloseSwitch(InteractiveSceneElement):
 
     def activate(self, _):
 
-        list_add = []
-        list_remove = []
+        elem_add = None
+        elem_remove = None
 
         if self.activated is False:
             if self.door.opened:
                 self.door.opened = False
-                list_add = [self.door]
+                elem_add = self.door
 
             else:
                 self.door.opened = True
-                list_remove = [self.door]
+                elem_remove = self.door
 
             self.activated = True
 
-        return list_remove, list_add
+        return elem_remove, elem_add
 
 
 class TimerSwitch(InteractiveSceneElement):
@@ -341,14 +336,12 @@ class TimerSwitch(InteractiveSceneElement):
     entity_type = SceneElementTypes.SWITCH
     timed = True
 
-    def __init__(self, initial_position, door, time_open, **kwargs):
+    def __init__(self, door, time_open, **kwargs):
         """ Switch used to open a door for a certain duration.
 
         Default: Pale brown square of size 10.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             door: Door opened by the switch.
             time_open: Timesteps during which door will stay open.
             **kwargs: other params to configure entity. Refer to Entity class.
@@ -357,7 +350,7 @@ class TimerSwitch(InteractiveSceneElement):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.door = door
 
@@ -370,23 +363,23 @@ class TimerSwitch(InteractiveSceneElement):
 
     def activate(self, activating_entity):
 
-        list_remove = []
-        list_add = []
+        elem_remove = None
+        elem_add = None
 
         if isinstance(activating_entity, Part) and self.activated is False:
             if not self.door.opened:
                 self.door.opened = True
-                list_remove = [self.door]
+                elem_remove = self.door
 
             self._reset_timer()
             self.activated = True
 
         if isinstance(activating_entity, Playground):
             self.door.opened = False
-            list_add = [self.door]
+            elem_add = self.door
             self._reset_timer()
 
-        return list_remove, list_add
+        return elem_remove, elem_add
 
     def _reset_timer(self):
 
@@ -412,14 +405,12 @@ class Lock(InteractiveSceneElement):
     entity_type = SceneElementTypes.LOCK
     background = False
 
-    def __init__(self, initial_position, door, key, **kwargs):
+    def __init__(self, door, key, **kwargs):
         """ Lock for a door, opens with a key.
 
         Default: pale green 10x10 square.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             door: Door opened by the lock
             key: Key object associated with the lock
             **kwargs: other params to configure entity. Refer to Entity class
@@ -428,7 +419,7 @@ class Lock(InteractiveSceneElement):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__( **entity_params)
         self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVATED_BY_GEM
 
         self.door = door
@@ -440,12 +431,11 @@ class Lock(InteractiveSceneElement):
 
     def activate(self, activating_entity):
 
-        list_add = []
-        list_remove = []
+        list_remove = None
 
         if activating_entity is self.key:
             self.door.opened = True
 
             list_remove = [self.door, self.key, self]
 
-        return list_remove, list_add
+        return list_remove, None

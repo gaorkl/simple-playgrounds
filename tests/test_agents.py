@@ -1,6 +1,6 @@
 from simple_playgrounds.agents.controllers import Random
 from simple_playgrounds.agents.parts.platform import ForwardPlatform, FixedPlatform, \
-    HolonomicPlatform, ForwardBackwardPlatform
+    HolonomicPlatform, ForwardBackwardPlatform, ForwardPlatformDiscrete
 from simple_playgrounds.agents.agents import BaseAgent, HeadAgent, HeadEyeAgent, TurretAgent
 from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
 
@@ -8,7 +8,7 @@ from simple_playgrounds import Engine
 
 from simple_playgrounds.playground import PlaygroundRegister
 
-from simple_playgrounds.utils.position_utils import PositionAreaSampler
+from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 
 def run_engine(agent, pg_class):
@@ -40,7 +40,8 @@ def test_base_agent():
         else:
             print('.... without interactions')
 
-        for platform in ForwardPlatform, FixedPlatform, HolonomicPlatform, ForwardBackwardPlatform:
+        for platform in ForwardPlatform, FixedPlatform, HolonomicPlatform,\
+                        ForwardBackwardPlatform, ForwardPlatformDiscrete:
 
             print('......... on platform' + str(platform))
 
@@ -134,17 +135,17 @@ def test_agent_initial_position():
 
     # Modifying initial position in playground
     playground = SingleRoom((300, 300))
-    playground.initial_agent_position = (50, 50, 0)
+    playground.initial_agent_coordinates = ((50, 50), 0)
     playground.add_agent(agent)
-    assert agent.position == (50, 50, 0)
+    assert agent.position == (50, 50)
     playground.remove_agent(agent)
 
     # Setting initial position in playground as PositionAreaSampler
     playground = SingleRoom((300, 300))
     center, shape = playground.area_rooms[(0, 0)]
-    playground.initial_agent_position = PositionAreaSampler(center,
-                                                            area_shape='rectangle',
-                                                            width_length=shape)
+    playground.initial_agent_coordinates = CoordinateSampler(center,
+                                                             area_shape='rectangle',
+                                                             width_length=shape)
     playground.add_agent(agent)
     pos_1 = agent.position
     playground.remove_agent(agent)

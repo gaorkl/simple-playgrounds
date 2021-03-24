@@ -25,6 +25,11 @@ lidar:
   fov: 180
   resolution: 64
 
+depth:
+  max_range: 300
+  fov: 180
+  resolution: 64
+
 touch:
   max_range: 5
   fov: 360
@@ -47,7 +52,7 @@ full_playground:
 # Semantic Sensors
 
 semantic_ray:
-  resolution: 128
+  resolution: 32
   max_range: 200
   fov: 360
 

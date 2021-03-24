@@ -10,15 +10,12 @@ class VisibleRewardZone(PassiveSceneElement, ABC):
     """
     interactive = True
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
         """
         VisibleRewardZone entities provide a reward to the agent
         in close proximity with the entity.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory
-            default_config_key (str): default configurations. Can be 'fairy' or 'fireball'
             **kwargs: other params to configure entity. Refer to Entity class
 
         Keyword Args:
@@ -29,7 +26,7 @@ class VisibleRewardZone(PassiveSceneElement, ABC):
         default_config = parse_configuration('element_proximity', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.reward = entity_params['reward']
         self.initial_total_reward = entity_params['total_reward']

@@ -29,6 +29,8 @@ class SceneElement(Entity, ABC):
 
     timed = False
 
+    overlapping=None
+
     terminate_upon_contact = False
 
     def __init__(self, initial_position=None, **kwargs):

@@ -65,6 +65,9 @@ class Sensor(ABC):
             scale: scale / std of gaussian noise (default 1)
             salt_pepper_probability: probability for a pixel to be turned off or max
 
+        Notes:
+             As only 32 invisible groups can be set in pymunk, this limits the number of sensors
+             with invisible_elements to around 30.
         """
 
         # Sensor name
@@ -79,10 +82,14 @@ class Sensor(ABC):
         self.sensor_values = None
 
         if invisible_elements is None:
-            invisible_elements = []
-        elif isinstance(invisible_elements, Entity):
-            invisible_elements = [invisible_elements]
-        self._invisible_elements = [anchor] + invisible_elements
+            self.invisible_elements = None
+        else:
+            if isinstance(invisible_elements, Entity):
+                invisible_elements = [invisible_elements]
+
+            self.invisible_elements = invisible_elements
+
+        self.invisible_filter = pymunk.ShapeFilter()
 
         self._normalize = normalize
 
@@ -114,6 +121,13 @@ class Sensor(ABC):
 
         # Sensor max value is used for noise and normalization calculation
         self._sensor_max_value = 0
+
+    def apply_shape_filter(self, sensor_collision_index):
+
+        for elem in self.invisible_elements:
+            elem.update_mask_shape_filter(sensor_collision_index)
+
+        self.invisible_filter = pymunk.ShapeFilter(categories=2 ** sensor_collision_index)
 
     def update(self, **kwargs):
         """
@@ -177,10 +191,9 @@ class RayCollisionSensor(Sensor, ABC):
     """
     sensor_modality = SensorTypes.ROBOTIC
 
-    def __init__(self, remove_occluded, remove_duplicates, **sensor_params):
+    def __init__(self, remove_duplicates, **sensor_params):
         """
         Args:
-            remove_occluded (bool): If True, only keeps the closest visible detection.
             remove_duplicates: If True, removes detections of the same objects on multiple rays.
                 Keeps the closest detection.
             **sensor_params: Additional sensor params.
@@ -191,12 +204,7 @@ class RayCollisionSensor(Sensor, ABC):
 
         super().__init__(**sensor_params)
 
-        self._remove_occluded = remove_occluded
         self._remove_duplicates = remove_duplicates
-
-        # Need to remove occluded before removing duplicates
-        if remove_duplicates:
-            self._remove_occluded = True
 
         # Field of View of the Sensor
         if self._resolution == 1:
@@ -205,33 +213,16 @@ class RayCollisionSensor(Sensor, ABC):
             self._ray_angles = [n * self._fov / (self._resolution - 1) - self._fov / 2
                                 for n in range(self._resolution)]
 
-        self._invisible_shapes = []
-
-        for entity in self._invisible_elements:
-            self._invisible_shapes += [entity.pm_visible_shape, entity.pm_interaction_shape]
-        self._invisible_shapes = list(set(self._invisible_shapes))
-        if None in self._invisible_shapes:
-            self._invisible_shapes.remove(None)
-
-    @staticmethod
-    def _remove_occlusions(collisions):
-
-        if not collisions:
-            return collisions
-
-        min_distance_point = min(collisions, key=attrgetter('alpha'))
-        return [min_distance_point]
-
     @staticmethod
     def _remove_duplicate_collisions(collisions_by_angle):
 
-        all_shapes = list(set(col[0].shape
+        all_shapes = list(set(col.shape
                               for angle, col in collisions_by_angle.items()
                               if col))
 
         all_collisions = []
-        for angle, cols in collisions_by_angle.items():
-            all_collisions += cols
+        for angle, col in collisions_by_angle.items():
+            if col: all_collisions.append(col)
 
         all_min_collisions = []
         for shape in all_shapes:
@@ -241,40 +232,21 @@ class RayCollisionSensor(Sensor, ABC):
 
         # Filter out noon-min collisions
         for angle, col in collisions_by_angle.items():
-            if col != [] and col[0] not in all_min_collisions:
-                collisions_by_angle[angle] = []
+            if col and col not in all_min_collisions:
+                collisions_by_angle[angle] = None
 
         return collisions_by_angle
 
-    def _compute_collisions(self, playground, sensor_angle):
+    def _compute_collision(self, playground, sensor_angle):
 
         position = self.anchor.pm_body.position
         angle = self.anchor.pm_body.angle + sensor_angle
 
-        position_end = (position[0] + self._range * math.cos(angle),
-                        position[1] + self._range * math.sin(angle)
-                        )
+        position_end = position + pymunk.Vec2d(self._range, 0).rotated(angle)
 
-        collisions = playground.space.segment_query(position, position_end, 1, pymunk.ShapeFilter())
+        collision = playground.space.segment_query_first(position, position_end, 1, self.invisible_filter)
 
-        # remove invisible entities
-        collisions_visible = [col for col in collisions
-                      if col.shape not in self._invisible_shapes and col.shape.sensor is not True
-                      if col.alpha != 0.0]
-
-        collisions_traversable = [col for col in collisions if col.alpha != 0.0
-                  and col.shape not in self._invisible_shapes
-                  and playground.get_entity_from_shape(col.shape).pm_visible_shape is not None
-                  and playground.get_entity_from_shape(col.shape).pm_visible_shape == col.shape
-                  ]
-
-        collisions = collisions_visible + collisions_traversable
-
-        # filter occlusions
-        if self._remove_occluded:
-            collisions = self._remove_occlusions(collisions)
-
-        return collisions
+        return collision
 
     def _compute_points(self, playground):
 
@@ -282,8 +254,8 @@ class RayCollisionSensor(Sensor, ABC):
 
         for sensor_angle in self._ray_angles:
 
-            collisions = self._compute_collisions(playground, sensor_angle)
-            points[sensor_angle] = collisions
+            collision = self._compute_collision(playground, sensor_angle)
+            points[sensor_angle] = collision
 
         if self._remove_duplicates:
             points = self._remove_duplicate_collisions(points)

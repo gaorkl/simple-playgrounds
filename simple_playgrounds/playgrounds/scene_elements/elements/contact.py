@@ -57,15 +57,12 @@ class TerminationContact(ContactSceneElement, ABC):
     visible = True
     terminate_upon_contact = True
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
         """
         TerminationContact terminate the Episode upon contact with an Agent.
         Provides a reward to the agent.
 
         Args:
-            initial_position: initial position of the SceneElement.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
-            default_config_key: default configurations, can be visible_endgoal or visible_deathtrap
             **kwargs: other params to configure SceneElement. Refer to Entity class.
 
         Keyword Args:
@@ -75,7 +72,7 @@ class TerminationContact(ContactSceneElement, ABC):
         default_config = parse_configuration('element_contact', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
         self.reward = entity_params['reward']
 
     def activate(self):
@@ -108,22 +105,19 @@ class Absorbable(ContactSceneElement, ABC):
     absorbable = True
     background = False
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
         """
         Absorbable entities provide a reward to the agent upon contact,
         then disappears from the playground.
 
         Args:
-            initial_position: initial position of the SceneElement.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
-            default_config_key: default configurations, can be 'candy' or 'poison'.
             **kwargs: other params to configure SceneElement. Refer to Entity class.
         """
 
         default_config = parse_configuration('element_contact', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
         self.reward = entity_params['reward']
 
     def activate(self):
@@ -159,14 +153,12 @@ class PushButton(ContactSceneElement):
     entity_type = SceneElementTypes.SWITCH
     background = False
 
-    def __init__(self, initial_position, door, **kwargs):
+    def __init__(self, door, **kwargs):
         """
         Opens a door when in contact with an agent.
         Default: Pale brown square of size 10.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             door: Door opened by the switch.
             **kwargs: other params to configure SceneElement. Refer to Entity class.
         """
@@ -174,7 +166,7 @@ class PushButton(ContactSceneElement):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.door = door
 

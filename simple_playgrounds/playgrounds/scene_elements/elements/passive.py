@@ -49,7 +49,7 @@ class TerminationZone(PassiveSceneElement, ABC):
     terminate_upon_contact = True
     visible = False
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
         """
         Base class for Invisible zones that terminate upon contact.
 
@@ -57,9 +57,6 @@ class TerminationZone(PassiveSceneElement, ABC):
         and provide a reward to the agent in contact with the entity.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
-            default_config_key: default configurations, can be goal_zone or death_zone.
             **kwargs: other params to configure entity. Refer to Entity class.
 
         Keyword Args:
@@ -69,7 +66,7 @@ class TerminationZone(PassiveSceneElement, ABC):
         default_config = parse_configuration('element_zone', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.reward = entity_params.get('reward', 0)
         self.reward_provided = False
@@ -97,15 +94,12 @@ class RewardZone(PassiveSceneElement, ABC):
     """
     visible = False
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self, **kwargs):
         """
         RewardZone entities are invisible zones.
         Provide a reward to the agent which is inside the zone.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
-            default_config_key: default configurations, can be 'fairy' or 'fireball
             **kwargs: other params to configure entity. Refer to Entity class
 
         Keyword Args:
@@ -116,7 +110,7 @@ class RewardZone(PassiveSceneElement, ABC):
         default_config = parse_configuration('element_zone', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.reward = entity_params['reward']
 

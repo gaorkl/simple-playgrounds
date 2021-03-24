@@ -21,14 +21,11 @@ class Edible(SceneElement, ABC):
     interactive = True
     background = False
 
-    def __init__(self, initial_position, **kwargs):
+    def __init__(self,  **kwargs):
         """
         Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
 
         Args:
-            initial_position: initial position of the entity.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
-            default_config_key: can be 'apple' or 'rotten_apple'.
             **kwargs: other params to configure SceneElement. Refer to Entity class.
 
         Keyword Args:
@@ -42,7 +39,7 @@ class Edible(SceneElement, ABC):
         default_config = parse_configuration('element_interactive', self.entity_type)
         entity_params = {**default_config, **kwargs}
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.shrink_ratio_when_eaten = entity_params['shrink_ratio_when_eaten']
         self.min_reward = entity_params['min_reward']

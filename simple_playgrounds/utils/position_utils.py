@@ -14,7 +14,7 @@ from simple_playgrounds.utils.definitions import geometric_shapes
 #pylint: disable=too-many-instance-attributes
 
 
-class PositionAreaSampler:
+class CoordinateSampler:
     """ Sampler for a random position within a particular area
 
     Example:
@@ -109,7 +109,6 @@ class PositionAreaSampler:
         elif self.area_shape == 'circle':
             radius = math.sqrt(random.uniform(self.excl_radius**2, self.radius**2))
             alpha = random.random() * 2 * math.pi
-
             pos_x = self.center[0] + radius * math.cos(alpha)
             pos_y = self.center[1] + radius * math.sin(alpha)
             theta = random.uniform(self.theta_min, self.theta_max)
@@ -124,7 +123,7 @@ class PositionAreaSampler:
 
                 pos_x, pos_y = np.random.multivariate_normal(self.center, [[self.variance, 0], [0, self.variance]])
 
-        return pos_x, pos_y, theta
+        return (pos_x, pos_y), theta
 
 
 class Trajectory(Generator):
@@ -230,13 +229,13 @@ class Trajectory(Generator):
             pts_y = [pt_1[1] + x * (pt_2[1] - pt_1[1]) / n_points for x in range(n_points)]
 
             for i in range(n_points):
-                trajectory_points.append([pts_x[i], pts_y[i], 0])
+                trajectory_points.append([ (pts_x[i], pts_y[i]), 0])
 
         for pt_index, trajectory_point in enumerate(trajectory_points):
 
             angle = (pt_index * self.n_rotations) * (2*math.pi) / len(trajectory_points) % (2*math.pi)
 
-            trajectory_point[2] = angle
+            trajectory_point[1] = angle
 
         return trajectory_points
 
@@ -283,27 +282,27 @@ class Trajectory(Generator):
 
         self.current_index = self._index_start
 
-
-def get_relative_position_of_entities(entity_1, entity_2):
-    """
-    Calculates the relative position of entity_2 wrt entity_1.
-
-    Args:
-        entity_1 (:obj: Entity): reference Entity.
-        entity_2 (:obj: Entity):
-
-    Returns:
-
-    """
-
-    entity_1_x, entity_1_y, entity_1_angle = entity_1.position
-    entity_2_x, entity_2_y, entity_2_angle = entity_2.position
-
-    relative_angle = (entity_2_angle - entity_1_angle)%(2*math.pi)
-
-    relative_x = (entity_2_x - entity_1_x)*math.cos(-entity_1_angle) \
-                 - (entity_2_y - entity_1_y)*math.sin(-entity_1_angle)
-    relative_y = (entity_2_x - entity_1_x)*math.sin(-entity_1_angle) \
-                 + (entity_2_y - entity_1_y)*math.cos(-entity_1_angle)
-
-    return relative_x, relative_y, relative_angle
+#
+# def get_relative_position_of_entities(entity_1, entity_2):
+#     """
+#     Calculates the relative position of entity_2 wrt entity_1.
+#
+#     Args:
+#         entity_1 (:obj: Entity): reference Entity.
+#         entity_2 (:obj: Entity):
+#
+#     Returns:
+#
+#     """
+#
+#     entity_1_x, entity_1_y, entity_1_angle = entity_1.position
+#     entity_2_x, entity_2_y, entity_2_angle = entity_2.position
+#
+#     relative_angle = (entity_2_angle - entity_1_angle)%(2*math.pi)
+#
+#     relative_x = (entity_2_x - entity_1_x)*math.cos(-entity_1_angle) \
+#                  - (entity_2_y - entity_1_y)*math.sin(-entity_1_angle)
+#     relative_y = (entity_2_x - entity_1_x)*math.sin(-entity_1_angle) \
+#                  + (entity_2_y - entity_1_y)*math.cos(-entity_1_angle)
+#
+#     return relative_x, relative_y, relative_angle

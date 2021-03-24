@@ -16,15 +16,13 @@ class ColorChanging(SceneElement):
     timed = True
     background = False
 
-    def __init__(self, initial_position, timers, textures, **kwargs):
+    def __init__(self, timers, textures, **kwargs):
         """
 
         ColorChanging changes color and is controlled at the level of the playground.
         The color changes depending on a list of timers.
 
         Args:
-            initial_position: initial position of the SeneElement.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             timers: Single timer (int) or list of Timers.
             textures: Single texture or list of Textures.
             **kwargs: other params to configure entity. Refer to Entity class.
@@ -47,7 +45,7 @@ class ColorChanging(SceneElement):
 
         assert len(self.list_texture_params) == len(self.timers)
 
-        super().__init__(initial_position=initial_position, **entity_params)
+        super().__init__(**entity_params)
 
         self.textures = []
         for texture in self.list_texture_params:
@@ -107,12 +105,10 @@ class ConditionedColorChanging(ColorChanging):
     Intended to work with Lever SceneElement.
     """
 
-    def __init__(self, initial_position, conditioned_entity, timers, textures, **kwargs):
+    def __init__(self, conditioned_entity, timers, textures, **kwargs):
         """
 
         Args:
-            initial_position: initial_position: initial position of the SeneElement.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
             conditioned_entity: Lever SceneElement.
             timers: list of Timers.
             textures: list of Textures.
@@ -127,7 +123,7 @@ class ConditionedColorChanging(ColorChanging):
 
         assert len(timers) == len(textures) == 2
 
-        super().__init__(initial_position, timers, textures, **kwargs)
+        super().__init__(timers, textures, **kwargs)
 
         self.conditioned_entity = conditioned_entity
 

@@ -13,7 +13,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from simple_playgrounds.utils.definitions import ActionSpaces
-from simple_playgrounds.utils.position_utils import PositionAreaSampler
+from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -27,16 +27,16 @@ class Agent(ABC):
 
     """
     index_agent = 0
+    overlapping = None
+    in_a_playground = False
 
-    def __init__(self, base_platform, initial_position=None, name=None, noise_params=None):
+    def __init__(self, base_platform, name=None, noise_params=None):
         """
         Base class for agents.
 
         Args:
             base_platform: Platform object, required to initialize an agent.
                 All agents have a Platform.
-            initial_position: initial position of the base of the agent.
-                Can be tuple, or PositionAreaSampler.
             name: Name of the agent. If not provide, a name will be added by default.
             noise_params: Dictionary of noise parameters.
                 Noise is applied to the actuator, before action.
@@ -61,7 +61,7 @@ class Agent(ABC):
         self.parts = [self.base_platform]
 
         # Default starting position
-        self.initial_position = initial_position
+        self.initial_coordinates = None
 
         # Information about sensor types
         self.has_geometric_sensor = False
@@ -94,6 +94,7 @@ class Agent(ABC):
         # Teleport
         self.is_teleporting = False
 
+
     # CONTROLLER
 
     @property
@@ -118,28 +119,36 @@ class Agent(ABC):
     # POSITION / VELOCITY
 
     @property
-    def initial_position(self):
+    def initial_coordinates(self):
         """
         Initial position can be fixed (tuple) or a PositionAreaSampler.
         """
 
-        if isinstance(self._initial_position, tuple):
-            return self._initial_position
-        if isinstance(self._initial_position, PositionAreaSampler):
-            return self._initial_position.sample()
+        if isinstance(self._initial_position_angle, tuple):
+            return self._initial_position_angle
+        if isinstance(self._initial_position_angle, CoordinateSampler):
+            return self._initial_position_angle.sample()
 
-        return self._initial_position
+        return self._initial_position_angle
 
-    @initial_position.setter
-    def initial_position(self, position):
-        self._initial_position = position
+    @initial_coordinates.setter
+    def initial_coordinates(self, coordinates):
+        self._initial_position_angle = coordinates
 
     @property
-    def position_np(self):
-        """
-        Position of the agent in numpy coordinate system.
-        """
-        return self.base_platform.position_np
+    def coordinates(self):
+        return self.base_platform.position, self.base_platform.angle
+
+    @coordinates.setter
+    def coordinates(self, coord):
+
+        position, angle = coord
+
+        for part in self.parts:
+            if part is self.base_platform:
+                part.position, part.angle = position, angle
+            else:
+                part.set_relative_coordinates()
 
     @property
     def position(self):
@@ -150,20 +159,21 @@ class Agent(ABC):
         return self.base_platform.position
 
     @position.setter
-    def position(self, position):
-
-        for part in self.parts:
-            if part is self.base_platform:
-                part.position = position
-            else:
-                part.set_relative_position()
+    def position(self, pos):
+        self.coordinates = pos, self.angle
 
     @property
-    def velocity_np(self):
+    def angle(self):
         """
-        Velocity of the agent in numpy coordinate system.
+        Angle of the agent.
+        In case of an Agent with multiple Parts, its angle is the angle of the base_platform.
+        Setter only used during initialization
         """
-        return self.base_platform.velocity_np
+        return self.base_platform.angle
+
+    @angle.setter
+    def angle(self, theta):
+        self.coordinates = self.position, theta
 
     @property
     def velocity(self):
@@ -178,32 +188,13 @@ class Agent(ABC):
         for part in self.parts:
             part.velocity = velocity
 
-    @property
-    def relative_velocity(self):
-        """
-        Velocity of the agent from the point of view of the agent.
-        In case of an Agent with multiple Parts, its velocity is the velocity of the base_platform.
-        """
-        return self.base_platform.relative_velocity
-
-    @property
-    def size_playground(self):
-        """
-        Size of the Playground where agents are playing.
-        """
-        return self.size_playground
-
-    @size_playground.setter
-    def size_playground(self, size_pg):
-        self._size_playground = size_pg
-        for part in self.parts:
-            part.size_playground = size_pg
-
     # SENSORS
 
     def add_sensor(self, new_sensor):
         """
         Add a Sensor to an agent.
+        Should be done outside of a playground.
+        Else, it will raise an error.
 
         Args:
             new_sensor: Sensor.
@@ -211,6 +202,9 @@ class Agent(ABC):
         Returns:
 
         """
+        if self.in_a_playground:
+            raise ValueError('Add sensors outside of a playground.')
+
         self.sensors.append(new_sensor)
 
     def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode=False):
@@ -348,8 +342,8 @@ class Agent(ABC):
         """
         Resets all body parts
         """
-        self.position = self.initial_position
-        self.velocity = [0, 0, 0]
+        self.coordinates = self.initial_coordinates
+        self.velocity = [0, 0]
 
     def draw(self, surface, excluded=None):
         """
@@ -391,7 +385,7 @@ class Agent(ABC):
                                + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
 
         img_actions = Image.new("RGB", (width_action, total_height_actions), (255, 255, 255))
-        d = ImageDraw.Draw(img_actions)
+        drawn_image = ImageDraw.Draw(img_actions)
 
         fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height_action*2/3))
 
@@ -401,12 +395,12 @@ class Agent(ABC):
 
             current_height += height_action
 
-            d.text((width_action / 2.0, current_height - height_action/2.0), part.name.upper(),
+            drawn_image.text((width_action / 2.0, current_height - height_action/2.0), part.name.upper(),
                    font=fnt, fill=(0, 0, 0), anchor='mm')
 
             start = (0, current_height - height_action)
             end = (width_action-1, current_height)
-            d.rectangle([start, end], outline=(0, 0, 0), width=2)
+            drawn_image.rectangle([start, end], outline=(0, 0, 0), width=2)
 
             current_height += _BORDER_IMAGE
 
@@ -417,13 +411,37 @@ class Agent(ABC):
 
                 current_height += height_action
 
-                if action.action_range == ActionSpaces.BOOL and value == action.max:
+                if action.action_space == ActionSpaces.DISCRETE_BINARY and value == 1:
 
                     start = (0, current_height - height_action)
                     end = (width_action - 1, current_height)
-                    d.rectangle([start, end], fill=(20, 200, 20))
+                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
-                elif action.action_range == ActionSpaces.CONTINUOUS_CENTERED and value != 0:
+                if action.action_space == ActionSpaces.DISCRETE_CENTERED and value != 0:
+
+                    if value < 0:
+                        left = int(0)
+                        right = int(width_action / 2.)
+                    else:
+                        right = int(width_action )
+                        left = int(width_action / 2.)
+
+                    start = (left, current_height - height_action)
+                    end = (right, current_height)
+
+                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
+
+                if action.action_space == ActionSpaces.DISCRETE_POSITIVE and value != 0:
+
+                    right = int(width_action )
+                    left = int(width_action / 2.)
+
+                    start = (left, current_height - height_action)
+                    end = (right, current_height)
+
+                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
+
+                elif action.action_space == ActionSpaces.CONTINUOUS_CENTERED and value != 0:
 
                     if value < 0:
                         left = int(width_action / 2. + value * width_action / 2.)
@@ -435,9 +453,9 @@ class Agent(ABC):
                     start = (left, current_height - height_action)
                     end = (right, current_height)
 
-                    d.rectangle([start, end], fill=(20, 200, 20))
+                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
-                elif action.action_range == ActionSpaces.CONTINUOUS_NOT_CENTERED and value != 0:
+                elif action.action_space == ActionSpaces.CONTINUOUS_POSITIVE and value != 0:
 
                     left = int(width_action / 2.)
                     right = int(width_action / 2. + value * width_action / 2.)
@@ -445,9 +463,9 @@ class Agent(ABC):
                     start = (left, current_height - height_action)
                     end = (right, current_height)
 
-                    d.rectangle([start, end], fill=(20, 200, 20))
+                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
-                d.text((width_action / 2.0, current_height - height_action / 2.0), action.action.name.upper(),
+                drawn_image.text((width_action / 2.0, current_height - height_action / 2.0), action.action_type.name.upper(),
                        font=fnt, fill=(0, 0, 0), anchor='mm')
 
                 current_height += _BORDER_IMAGE
