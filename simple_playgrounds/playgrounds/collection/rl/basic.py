@@ -29,7 +29,7 @@ class CandyCollectEnv(SingleRoom):
                                      area_shape='rectangle',
                                      width_length=size_area)
             field = Field(entity_produced=Candy, production_area=area,
-                          probability=0.1, limit=10)
+                          probability=0.01, limit=2)
             self.add_scene_element(field)
 
         self.time_limit = 2000
