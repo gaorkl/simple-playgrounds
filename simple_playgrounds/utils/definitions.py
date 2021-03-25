@@ -152,6 +152,7 @@ class ActionTypes(IntEnum):
     GRASP = auto()
     EAT = auto()
     ACTIVATE = auto()
+    LINK = auto()
 
 
 class KeyTypes(IntEnum):
