@@ -76,15 +76,18 @@ class Part(Entity, ABC):
         self.actuators = []
 
         if self.can_grasp:
-            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP, ActionSpaces.DISCRETE_BINARY)
+            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP,
+                                           ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.grasp_actuator)
 
         if self.can_activate:
-            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE, ActionSpaces.DISCRETE_BINARY)
+            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE,
+                                              ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.activate_actuator)
 
         if self.can_eat:
-            self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionSpaces.DISCRETE_BINARY)
+            self.eat_actuator = Actuator(self.name, ActionTypes.EAT,
+                                         ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.eat_actuator)
 
     def apply_action(self, actuator, value):
@@ -113,13 +116,11 @@ class Part(Entity, ABC):
 
 
 class Actuator:
-
     """
     Actuator classes defines how one body acts.
     It is used to define physical movements as well as interactions (eat, grasp, ...)
     of parts of an agent.
     """
-
     def __init__(self, part_name, action_type, action_space, action_range=1):
         """
 
