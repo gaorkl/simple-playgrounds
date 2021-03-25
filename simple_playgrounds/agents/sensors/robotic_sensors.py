@@ -131,6 +131,11 @@ class GreyCamera(RgbCamera):
         return img
 
 
+class BlindCamera(GreyCamera):
+    def _compute_raw_sensor(self, playground, *_):
+        self.sensor_values = np.zeros((self._resolution,))
+
+
 class Lidar(RayCollisionSensor):
     """
     Lidar are Sensors that measure distances by projecting rays.
