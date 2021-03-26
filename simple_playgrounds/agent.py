@@ -264,7 +264,7 @@ class Agent(ABC):
 
         return actuators
 
-    def apply_actions_to_body_parts(self, actions_dict):
+    def apply_actions_to_actuators(self, actions_dict):
         """
         Apply actions to each body part of the agent.
 
@@ -277,10 +277,8 @@ class Agent(ABC):
         else:
             self.current_actions = actions_dict
 
-        for body_part in self.parts:
-            for actuator in body_part.actuators:
-                body_part.apply_action(actuator,
-                                       self.current_actions[actuator])
+        for actuator, value in actions_dict.items():
+            actuator.apply_action(value)
 
     def _apply_noise(self, actions_dict):
 
@@ -405,7 +403,7 @@ class Agent(ABC):
             current_height += _BORDER_IMAGE
 
             all_action_parts = [(action, value) for action, value in self.current_actions.items() if
-                                action.part_name == part.name]
+                                action.part.name == part.name]
 
             for action, value in all_action_parts:
 

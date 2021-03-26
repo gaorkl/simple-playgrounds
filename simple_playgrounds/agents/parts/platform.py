@@ -9,8 +9,7 @@ from abc import ABC
 import pymunk
 
 from simple_playgrounds.agents.parts.part import Part, Actuator
-from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes, ActionSpaces,\
-    LINEAR_FORCE, ANGULAR_VELOCITY
+from simple_playgrounds.utils.definitions import ActionTypes, AgentPartTypes, ActionSpaces
 from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
@@ -68,11 +67,11 @@ class ForwardPlatform(Platform):
 
         super().__init__(**kwargs)
 
-        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
+        self.longitudinal_force_actuator = Actuator(self, ActionTypes.LONGITUDINAL_FORCE,
                                                     ActionSpaces.CONTINUOUS_POSITIVE)
         self.actuators.append(self.longitudinal_force_actuator)
 
-        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
+        self.angular_velocity_actuator = Actuator(self, ActionTypes.ANGULAR_VELOCITY,
                                                   ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.angular_velocity_actuator)
 
@@ -82,9 +81,9 @@ class ForwardPlatformDiscrete(ForwardPlatform):
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
-        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
+        self.longitudinal_force_actuator = Actuator(self, ActionTypes.LONGITUDINAL_FORCE,
                                                     ActionSpaces.DISCRETE_POSITIVE)
-        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
+        self.angular_velocity_actuator = Actuator(self, ActionTypes.ANGULAR_VELOCITY,
                                                   ActionSpaces.DISCRETE_CENTERED)
 
 
@@ -101,7 +100,7 @@ class ForwardBackwardPlatform(ForwardPlatform):
 
         self.actuators.remove(self.longitudinal_force_actuator)
 
-        self.longitudinal_force_actuator = Actuator(self.name, ActionTypes.LONGITUDINAL_FORCE,
+        self.longitudinal_force_actuator = Actuator(self, ActionTypes.LONGITUDINAL_FORCE,
                                                     ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.longitudinal_force_actuator)
 
@@ -115,5 +114,5 @@ class HolonomicPlatform(ForwardBackwardPlatform):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.lateral_force_actuator = Actuator(self.name, ActionTypes.LATERAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED)
+        self.lateral_force_actuator = Actuator(self, ActionTypes.LATERAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.lateral_force_actuator)

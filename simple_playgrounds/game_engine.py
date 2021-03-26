@@ -175,7 +175,7 @@ class Engine:
     def _engine_step(self, actions):
 
         for agent in actions:
-            agent.apply_actions_to_body_parts(actions[agent])
+            agent.apply_actions_to_actuators(actions[agent])
 
         self.playground.update(SIMULATION_STEPS)
 

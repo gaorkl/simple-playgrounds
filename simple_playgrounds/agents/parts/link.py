@@ -48,32 +48,32 @@ class Link(Part, ABC):
 
         """
 
-        self.anchor = anchor
-
         default_config = parse_configuration('agent_parts', self.entity_type)
         body_part_params = {**default_config, **kwargs}
 
         super().__init__(**body_part_params)
 
-        self._rotation_range = body_part_params['rotation_range']
-        self._angle_offset = angle_offset
+        self.anchor = anchor
 
-        self.rel_coord_anchor = Vec2d(*position_anchor)
-        self.rel_coord_part = Vec2d(*position_part)
+        self.rotation_range = body_part_params['rotation_range']
+        self.angle_offset = angle_offset
+
+        self._rel_coord_anchor = Vec2d(*position_anchor)
+        self._rel_coord_part = Vec2d(*position_part)
 
         self.set_relative_coordinates()
 
-        self.joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body, self.rel_coord_anchor, self.rel_coord_part)
+        self.joint = pymunk.PivotJoint(anchor.pm_body, self.pm_body, self._rel_coord_anchor, self._rel_coord_part)
         self.joint.collide_bodies = False
         self.limit = pymunk.RotaryLimitJoint(anchor.pm_body, self.pm_body,
-                                               self._angle_offset - self._rotation_range / 2,
-                                               self._angle_offset + self._rotation_range / 2)
+                                             self.angle_offset - self.rotation_range / 2,
+                                             self.angle_offset + self.rotation_range / 2)
 
         self.motor = pymunk.SimpleMotor(anchor.pm_body, self.pm_body, 0)
 
         self.pm_elements += [self.joint, self.motor, self.limit]
 
-        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.LINK,
+        self.angular_velocity_actuator = Actuator(self, ActionTypes.ANGULAR_VELOCITY,
                                                   ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.angular_velocity_actuator)
 
@@ -83,9 +83,9 @@ class Link(Part, ABC):
         Sets the position of the Part.
         """
 
-        self.pm_body.position = self.anchor.position + self.rel_coord_anchor.rotated(self.anchor.angle) \
-                                 - self.rel_coord_part.rotated( self.anchor.angle + self._angle_offset)
-        self.pm_body.angle = self.anchor.pm_body.angle + self._angle_offset
+        self.pm_body.position = self.anchor.position + self._rel_coord_anchor.rotated(self.anchor.angle) \
+                                 - self._rel_coord_part.rotated(self.anchor.angle + self.angle_offset)
+        self.pm_body.angle = self.anchor.pm_body.angle + self.angle_offset
 
 
 class Head(Link):
