@@ -26,8 +26,6 @@ head: &head
   physical_shape: circle
   mass: 5
   radius: 12
-  max_angular_velocity: 0.25
-  rotation_range: 90
 
 #Eye
 eye_texture : &eye-texture
@@ -41,8 +39,6 @@ eye: &eye
   physical_shape: circle
   mass: 5
   radius: 6
-  max_angular_velocity: 0.25
-  rotation_range: 90
 
 #Arm
 arm_texture : &arm-texture
@@ -54,8 +50,6 @@ arm: &arm
   physical_shape: rectangle
   mass: 2
   width_length : [3, 30]
-  max_angular_velocity: 0.25
-  rotation_range: 120
 
 # Hand
 hand_texture : &hand-texture
@@ -67,6 +61,4 @@ hand: &hand
   physical_shape: circle
   mass: 5
   radius: 6
-  max_angular_velocity: 0.25
-  rotation_range: 180
 

@@ -1,4 +1,4 @@
-from simple_playgrounds.agents.controllers import Random
+from simple_playgrounds.agents.parts.controllers import Random
 from simple_playgrounds.agents import BaseAgent
 from simple_playgrounds import Engine
 from simple_playgrounds.agents.parts import ForwardPlatform

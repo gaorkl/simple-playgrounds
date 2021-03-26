@@ -14,6 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from simple_playgrounds.utils.definitions import ActionSpaces
 from simple_playgrounds.utils.position_utils import CoordinateSampler
+from simple_playgrounds.agents.parts.actuators import Eat, Activate, Grasp
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -73,6 +74,9 @@ class Agent(ABC):
         # Keep track of the actions for display
         self.current_actions = None
 
+        # Actuators
+        self._actuators = []
+
         # Motor noise
         self._noise = False
         if noise_params is not None:
@@ -109,12 +113,19 @@ class Agent(ABC):
 
         self._controller = controller
 
-        self._controller.controlled_actuators = self.get_all_actuators()
+        self._controller.controlled_actuators = self._actuators
 
         if self._controller.require_key_mapping:
             self._controller.discover_key_mapping()
 
         self.current_actions = controller.generate_null_actions()
+
+    def add_actuator(self, actuator):
+
+        self._actuators.append(actuator)
+        if isinstance(actuator, Grasp):
+            actuator.part.can_grasp = True
+
 
     # POSITION / VELOCITY
 
@@ -250,19 +261,6 @@ class Agent(ABC):
 
         """
         self.parts.append(part)
-
-    def get_all_actuators(self):
-        """
-        Computes all the available actions of the agent.
-
-        Returns: List of available actions.
-        """
-
-        actuators = []
-        for part in self.parts:
-            actuators = actuators + part.actuators
-
-        return actuators
 
     def apply_actions_to_actuators(self, actions_dict):
         """
@@ -409,61 +407,39 @@ class Agent(ABC):
 
                 current_height += height_action
 
-                if action.action_space == ActionSpaces.DISCRETE_BINARY and value == 1:
+                if action.action_space == ActionSpaces.BINARY and value == 1:
 
                     start = (0, current_height - height_action)
                     end = (width_action - 1, current_height)
                     drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
-                if action.action_space == ActionSpaces.DISCRETE_CENTERED and value != 0:
+                elif action.action_space == ActionSpaces.CONTINUOUS and value != 0:
 
-                    if value < 0:
-                        left = int(0)
-                        right = int(width_action / 2.)
+                    if action.centered:
+
+                        if value < 0:
+                            left = int(width_action / 2. + value * width_action / 2.)
+                            right = int(width_action / 2.)
+                        else:
+                            right = int(width_action / 2. + value * width_action / 2.)
+                            left = int(width_action / 2.)
+
+                        start = (left, current_height - height_action)
+                        end = (right, current_height)
+
+                        drawn_image.rectangle([start, end], fill=(20, 200, 20))
+
                     else:
-                        right = int(width_action )
+
                         left = int(width_action / 2.)
-
-                    start = (left, current_height - height_action)
-                    end = (right, current_height)
-
-                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
-
-                if action.action_space == ActionSpaces.DISCRETE_POSITIVE and value != 0:
-
-                    right = int(width_action )
-                    left = int(width_action / 2.)
-
-                    start = (left, current_height - height_action)
-                    end = (right, current_height)
-
-                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
-
-                elif action.action_space == ActionSpaces.CONTINUOUS_CENTERED and value != 0:
-
-                    if value < 0:
-                        left = int(width_action / 2. + value * width_action / 2.)
-                        right = int(width_action / 2.)
-                    else:
                         right = int(width_action / 2. + value * width_action / 2.)
-                        left = int(width_action / 2.)
 
-                    start = (left, current_height - height_action)
-                    end = (right, current_height)
+                        start = (left, current_height - height_action)
+                        end = (right, current_height)
 
-                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
+                        drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
-                elif action.action_space == ActionSpaces.CONTINUOUS_POSITIVE and value != 0:
-
-                    left = int(width_action / 2.)
-                    right = int(width_action / 2. + value * width_action / 2.)
-
-                    start = (left, current_height - height_action)
-                    end = (right, current_height)
-
-                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
-
-                drawn_image.text((width_action / 2.0, current_height - height_action / 2.0), action.action_type.name.upper(),
+                drawn_image.text((width_action / 2.0, current_height - height_action / 2.0), type(action).__name__.upper(),
                        font=fnt, fill=(0, 0, 0), anchor='mm')
 
                 current_height += _BORDER_IMAGE

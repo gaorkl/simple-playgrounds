@@ -1,7 +1,7 @@
 import pytest
 
 from simple_playgrounds import Engine
-from simple_playgrounds.agents.controllers import Random
+from simple_playgrounds.agents.parts.controllers import Random
 from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 

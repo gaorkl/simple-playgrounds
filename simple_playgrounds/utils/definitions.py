@@ -134,24 +134,9 @@ class ControllerTypes(Enum):
 
 class ActionSpaces(IntEnum):
 
-    DISCRETE_BINARY = auto()
-
-    DISCRETE_POSITIVE = auto()
-    DISCRETE_CENTERED = auto()
-
-    CONTINUOUS_POSITIVE = auto()
-    CONTINUOUS_CENTERED = auto()
-
-
-class ActionTypes(IntEnum):
-
-    LONGITUDINAL_FORCE = auto()
-    LATERAL_FORCE = auto()
-    ANGULAR_VELOCITY = auto()
-
-    GRASP = auto()
-    EAT = auto()
-    ACTIVATE = auto()
+    BINARY = auto()
+    DISCRETE = auto()
+    CONTINUOUS = auto()
 
 
 class KeyTypes(IntEnum):

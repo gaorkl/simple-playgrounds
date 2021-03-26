@@ -26,7 +26,8 @@ from pymunk import pygame_util
 
 from skimage.transform import rescale
 
-from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS, ActionTypes
+from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS
+from simple_playgrounds.agents.parts.actuators import Eat, Activate, Grasp
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
@@ -123,7 +124,7 @@ class Engine:
                 last_action[agent_name][actuator] = value
                 hold_actions[agent_name][actuator] = value
 
-                if actuator.action_type in [ActionTypes.ACTIVATE, ActionTypes.EAT]:
+                if isinstance(actuator, (Activate, Eat)):
                     hold_actions[agent_name][actuator] = 0
 
         cumulated_rewards = {}

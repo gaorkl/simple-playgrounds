@@ -73,7 +73,7 @@ class Random(Controller):
             elif actuator.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
                 act_value = random.uniform(0, 1)*actuator.action_range
 
-            elif actuator.action_space == ActionSpaces.DISCRETE_BINARY:
+            elif actuator.action_space == ActionSpaces.BINARY:
                 act_value = random.choice([0, 1])
 
             elif actuator.action_space == ActionSpaces.DISCRETE_CENTERED:

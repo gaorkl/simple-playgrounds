@@ -2,7 +2,7 @@ from simple_playgrounds.agents.sensors import RgbCamera, GreyCamera, Lidar,\
     Touch, SemanticRay, SemanticCones, TopdownSensor, BlindCamera
 from simple_playgrounds.playgrounds.collection.test.test_scene_elements import Basics, Teleports, Interactives
 
-from simple_playgrounds.agents.controllers import Random
+from simple_playgrounds.agents.parts.controllers import Random
 from simple_playgrounds.agents import BaseAgent
 from simple_playgrounds.agents.parts import ForwardPlatform
 from simple_playgrounds import Engine

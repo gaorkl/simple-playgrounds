@@ -3,7 +3,7 @@ InteractiveSceneElements can be activated by an agent.
 """
 from abc import ABC, abstractmethod
 
-from simple_playgrounds.agents.parts.part import Part
+from simple_playgrounds.agents.parts.parts import Part
 from simple_playgrounds.playground import Playground
 from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes

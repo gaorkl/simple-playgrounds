@@ -2,7 +2,7 @@ import pytest
 
 from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
                                               HeadEyeAgent, TurretAgent)
-from simple_playgrounds.agents.controllers import Random
+from simple_playgrounds.agents.parts.controllers import Random
 from simple_playgrounds.agents.parts.platform import (FixedPlatform,
                                                       ForwardBackwardPlatform,
                                                       ForwardPlatform,

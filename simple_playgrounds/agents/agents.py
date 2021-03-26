@@ -19,8 +19,10 @@ import math
 from pygame.locals import *  # pylint: disable=wildcard-import
 
 from simple_playgrounds.agent import Agent
-from simple_playgrounds.agents.parts import Head, Hand, Eye, Arm, FixedPlatform
-from simple_playgrounds.utils.definitions import KeyTypes, ActionSpaces
+from simple_playgrounds.agents.parts.parts import Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
+from simple_playgrounds.utils.definitions import KeyTypes
+from simple_playgrounds.agents.parts.actuators import AngularVelocity, LongitudinalForce, LateralForce, Grasp, Eat, Activate, AngularRelativeVelocity
+
 
 # pylint: disable=undefined-variable
 
@@ -28,18 +30,23 @@ from simple_playgrounds.utils.definitions import KeyTypes, ActionSpaces
 class BaseAgent(Agent):
     """
     Class for Base Agents: single platform without extra body parts.
+    Base agent absorb through their base
     """
 
-    def __init__(self, controller=None, platform=None, interactive=False,
+    def __init__(self,
+                 controller,
+                 rotate=True,
+                 forward=True,
+                 backward=True,
+                 lateral=False,
+                 interactive=False,
                  **kwargs):
         """
         Base Agent, with a single platform as a body.
 
         Args:
-            initial_position: initial position of the agent (Position, or PositionAreaSampler)
             controller: controller of the agent.
-            platform: Platform object
-                (HolonomicPlatform, FixedPlatform, ForwardPlatform, ForwardBackwardPlatform)
+            platform: Platform (FixedPlatform or MobilePlatform)
             interactive: if interactive, can eat/grasp/activate/absorb
             **kwargs: additional kwargs
 
@@ -48,44 +55,50 @@ class BaseAgent(Agent):
 
         """
 
-        radius_platform = kwargs.get('radius', 15)
+        if not (forward or backward or lateral or rotate):
+            base = FixedPlatform(can_absorb=True)
 
-        base_agent = platform(name='base', radius=radius_platform,
-                              can_eat=interactive,
-                              can_grasp=interactive,
-                              can_activate=interactive,
-                              can_absorb=interactive)
+        else:
+            base = MobilePlatform(can_absorb=True)
 
-        super().__init__(base_platform=base_agent, **kwargs)
+        super().__init__(base_platform=base, **kwargs)
 
-        if hasattr(self.base_platform, 'longitudinal_force_actuator'):
+        if forward:
 
-            self.base_platform.longitudinal_force_actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
+            if backward:
+                actuator = LongitudinalForce(base)
+                actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
+                actuator.assign_key(K_DOWN, KeyTypes.PRESS_HOLD, -1)
+            else:
+                actuator = LongitudinalForce(base, centered=False)
+                actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
 
-            if self.base_platform.longitudinal_force_actuator.action_space \
-                    is ActionSpaces.CONTINUOUS_CENTERED:
-                self.base_platform.longitudinal_force_actuator.assign_key(K_DOWN,
-                                                                          KeyTypes.PRESS_HOLD,
-                                                                          -1)
+            self.add_actuator(actuator)
 
-        if hasattr(self.base_platform, 'lateral_force_actuator'):
+        if lateral:
+            actuator = LateralForce(base)
+            actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, 1)
+            actuator.assign_key(K_v, KeyTypes.PRESS_HOLD, -1)
+            self.add_actuator(actuator)
 
-            self.base_platform.lateral_force_actuator.assign_key(K_b,
-                                                                 KeyTypes.PRESS_HOLD, 1)
-            self.base_platform.lateral_force_actuator.assign_key(K_v,
-                                                                 KeyTypes.PRESS_HOLD, -1)
-
-        if hasattr(self.base_platform, 'angular_velocity_actuator'):
-
-            self.base_platform.angular_velocity_actuator.assign_key(K_RIGHT,
-                                                                    KeyTypes.PRESS_HOLD, 1)
-            self.base_platform.angular_velocity_actuator.assign_key(K_LEFT,
-                                                                    KeyTypes.PRESS_HOLD, -1)
+        if rotate:
+            actuator = AngularVelocity(base)
+            actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, 1)
+            actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, -1)
+            self.add_actuator(actuator)
 
         if interactive:
-            self.base_platform.eat_actuator.assign_key(K_e, KeyTypes.PRESS_ONCE, 1)
-            self.base_platform.activate_actuator.assign_key(K_a, KeyTypes.PRESS_ONCE, 1)
-            self.base_platform.grasp_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, 1)
+            grasp_actuator = Grasp(base)
+            grasp_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, 1)
+            self.add_actuator(grasp_actuator)
+
+            activate_actuator = Activate(base)
+            activate_actuator.assign_key(K_a, KeyTypes.PRESS_ONCE, 1)
+            self.add_actuator(activate_actuator)
+
+            eat_actuator = Eat(base)
+            eat_actuator.assign_key(K_e, KeyTypes.PRESS_ONCE, 1)
+            self.add_actuator(eat_actuator)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -99,14 +112,9 @@ class HeadAgent(BaseAgent):
         head: Head of the agent
     """
 
-    def __init__(self,
-                 controller=None,
-                 platform=None,
-                 interactive=False,
-                 **kwargs):
+    def __init__(self, controller, **kwargs):
 
-        super().__init__(controller=controller,
-                         platform=platform, interactive=interactive, **kwargs)
+        super().__init__(controller, **kwargs)
 
         self.head = Head(self.base_platform,
                          position_anchor=[0, 0],
@@ -114,12 +122,13 @@ class HeadAgent(BaseAgent):
                          angle_offset=0,
                          rotation_range=math.pi,
                          name='head')
-
         self.add_body_part(self.head)
 
-        # Key maps
-        self.head.angular_velocity_actuator.assign_key(K_n, KeyTypes.PRESS_HOLD, 1)
-        self.head.angular_velocity_actuator.assign_key(K_m, KeyTypes.PRESS_HOLD, -1)
+        head_actuator = AngularRelativeVelocity(self.head)
+        head_actuator.assign_key(K_n, KeyTypes.PRESS_HOLD, -1)
+        head_actuator.assign_key(K_m, KeyTypes.PRESS_HOLD, 1)
+
+        self.add_actuator(head_actuator)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -135,14 +144,9 @@ class HeadEyeAgent(HeadAgent):
         eye_r: Right Eye
     """
 
-    def __init__(self,
-                 controller=None,
-                 platform=None,
-                 interactive=False,
-                 **kwargs):
+    def __init__(self, controller, **kwargs):
 
-        super().__init__(controller=controller,
-                         platform=platform, interactive=interactive, **kwargs)
+        super().__init__(controller=controller, **kwargs)
 
         self.eye_l = Eye(self.head,
                          position_anchor=[self.head.radius/2, -self.head.radius/2],
@@ -151,37 +155,21 @@ class HeadEyeAgent(HeadAgent):
                          name='left_eye')
         self.add_body_part(self.eye_l)
 
+        eye_l_actuator = AngularVelocity(self.eye_l)
+        eye_l_actuator.assign_key(K_d, KeyTypes.PRESS_HOLD, 1)
+        eye_l_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, 1)
+        self.add_actuator(eye_l_actuator)
+
         self.eye_r = Eye(self.head, position_anchor=[self.head.radius/2, self.head.radius/2],
                          angle_offset=math.pi / 5,
                          rotation_range=2*math.pi/3,
                          name='right_eye')
         self.add_body_part(self.eye_r)
 
-        # New Key maps
-        self.eye_l.angular_velocity_actuator.assign_key(K_d, KeyTypes.PRESS_HOLD, 1)
-        self.eye_l.angular_velocity_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, -1)
-
-        self.eye_r.angular_velocity_actuator.assign_key(K_h, KeyTypes.PRESS_HOLD, 1)
-        self.eye_r.angular_velocity_actuator.assign_key(K_j, KeyTypes.PRESS_HOLD, -1)
-
-        # Assign controller once all body parts are declared
-        self.controller = controller
-
-
-class TurretAgent(HeadAgent):
-
-    """
-    Agent with a Head.
-    Base is fixed.
-
-    Attributes:
-        head: Head of the agent
-    """
-
-    def __init__(self, controller=None, interactive=False, platform=None, **kwargs):
-
-        super().__init__(platform=FixedPlatform,
-                         controller=controller, interactive=interactive, **kwargs)
+        eye_r_actuator = AngularVelocity(self.eye_r)
+        eye_r_actuator.assign_key(K_h, KeyTypes.PRESS_HOLD, 1)
+        eye_r_actuator.assign_key(K_j, KeyTypes.PRESS_HOLD, -1)
+        self.add_actuator(eye_r_actuator)
 
         # Assign controller once all body parts are declared
         self.controller = controller
@@ -222,11 +210,21 @@ class FullAgent(HeadEyeAgent):
                          rotation_range=math.pi)
         self.add_body_part(self.arm_r)
 
+        arm_r_actuator = AngularVelocity(self.arm_r)
+        arm_r_actuator.assign_key(K_r, KeyTypes.PRESS_HOLD, 1)
+        arm_r_actuator.assign_key(K_t, KeyTypes.PRESS_HOLD, -1)
+        self.add_actuator(arm_r_actuator)
+
         self.arm_r_2 = Arm(self.arm_r,
                            position_anchor=self.arm_r.extremity_anchor_point,
                            angle_offset=-math.pi / 4,
                            rotation_range=math.pi)
         self.add_body_part(self.arm_r_2)
+
+        arm_r_2_actuator = AngularVelocity(self.eye_l)
+        arm_r_2_actuator.assign_key(K_y, KeyTypes.PRESS_HOLD, 1)
+        arm_r_2_actuator.assign_key(K_u, KeyTypes.PRESS_HOLD, -1)
+        self.add_actuator(arm_r_2_actuator)
 
         self.hand_r = Hand(self.arm_r_2,
                            position_anchor=self.arm_r_2.extremity_anchor_point,
@@ -242,11 +240,21 @@ class FullAgent(HeadEyeAgent):
                          rotation_range=math.pi)
         self.add_body_part(self.arm_l)
 
+        arm_l_actuator = AngularVelocity(self.arm_l)
+        arm_l_actuator.assign_key(K_i, KeyTypes.PRESS_HOLD, 1)
+        arm_l_actuator.assign_key(K_o, KeyTypes.PRESS_HOLD, -1)
+        self.add_actuator(arm_l_actuator)
+
         self.arm_l_2 = Arm(self.arm_l,
                            position_anchor=self.arm_l.extremity_anchor_point,
                            angle_offset=math.pi/4,
                            rotation_range=math.pi)
         self.add_body_part(self.arm_l_2)
+
+        arm_l_2_actuator = AngularVelocity(self.arm_l_2)
+        arm_l_2_actuator.assign_key(K_k, KeyTypes.PRESS_HOLD, 1)
+        arm_l_2_actuator.assign_key(K_l, KeyTypes.PRESS_HOLD, -1)
+        self.add_actuator(arm_l_2_actuator)
 
         self.hand_l = Hand(self.arm_l_2,
                            position_anchor=self.arm_l_2.extremity_anchor_point,
@@ -255,18 +263,6 @@ class FullAgent(HeadEyeAgent):
                            can_grasp=interactive,
                            can_activate=interactive)
         self.add_body_part(self.hand_l)
-
-        self.arm_r.angular_velocity_actuator.assign_key(K_r, KeyTypes.PRESS_HOLD, 1)
-        self.arm_r.angular_velocity_actuator.assign_key(K_t, KeyTypes.PRESS_HOLD, -1)
-
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_y, KeyTypes.PRESS_HOLD, 1)
-        self.arm_r_2.angular_velocity_actuator.assign_key(K_u, KeyTypes.PRESS_HOLD, -1)
-
-        self.arm_l.angular_velocity_actuator.assign_key(K_i, KeyTypes.PRESS_HOLD, 1)
-        self.arm_l.angular_velocity_actuator.assign_key(K_o, KeyTypes.PRESS_HOLD, -1)
-
-        self.arm_l_2.angular_velocity_actuator.assign_key(K_k, KeyTypes.PRESS_HOLD, 1)
-        self.arm_l_2.angular_velocity_actuator.assign_key(K_l, KeyTypes.PRESS_HOLD, -1)
 
         # Assign controller once all body parts are declared
         self.controller = controller
