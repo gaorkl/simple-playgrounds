@@ -1,5 +1,5 @@
 from simple_playgrounds.agents.sensors import RgbCamera, GreyCamera, Lidar,\
-    Touch, SemanticRay, SemanticCones, TopdownSensor
+    Touch, SemanticRay, SemanticCones, TopdownSensor, BlindCamera
 from simple_playgrounds.playgrounds.collection.test.test_scene_elements import Basics, Teleports, Interactives
 
 from simple_playgrounds.agents.controllers import Random
@@ -14,6 +14,7 @@ def run_experiment_on_sensor(**sensor_config):
 
     for sens in [RgbCamera,
                  GreyCamera,
+                 BlindCamera,
                  Lidar,
                  Touch,
                  SemanticRay,
