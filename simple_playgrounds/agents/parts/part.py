@@ -9,11 +9,17 @@ can be attached to Link or Platform.
 Examples can be found in simple_playgrounds/agents/agents.py
 """
 
-from abc import ABC
 import numbers
+from abc import ABC
+
+import numpy as np
+import pymunk
 
 from simple_playgrounds.entity import Entity
-from simple_playgrounds.utils.definitions import ActionTypes, CollisionTypes, AgentPartTypes, ActionSpaces
+from simple_playgrounds.utils.definitions import (ANGULAR_VELOCITY,
+                                                  LINEAR_FORCE, ActionSpaces,
+                                                  ActionTypes, AgentPartTypes,
+                                                  CollisionTypes)
 
 # pylint: disable=line-too-long
 
@@ -70,15 +76,18 @@ class Part(Entity, ABC):
         self.actuators = []
 
         if self.can_grasp:
-            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP, ActionSpaces.DISCRETE_BINARY)
+            self.grasp_actuator = Actuator(self.name, ActionTypes.GRASP,
+                                           ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.grasp_actuator)
 
         if self.can_activate:
-            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE, ActionSpaces.DISCRETE_BINARY)
+            self.activate_actuator = Actuator(self.name, ActionTypes.ACTIVATE,
+                                              ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.activate_actuator)
 
         if self.can_eat:
-            self.eat_actuator = Actuator(self.name, ActionTypes.EAT, ActionSpaces.DISCRETE_BINARY)
+            self.eat_actuator = Actuator(self.name, ActionTypes.EAT,
+                                         ActionSpaces.DISCRETE_BINARY)
             self.actuators.append(self.eat_actuator)
 
     def apply_action(self, actuator, value):
@@ -90,40 +99,7 @@ class Part(Entity, ABC):
             value (float): value of the Actuator
 
         """
-        self._check_value_actuator(actuator, value)
-
-        if self.can_activate and actuator is self.activate_actuator:
-            self.is_activating = value
-
-        if self.can_eat and actuator is self.eat_actuator:
-            self.is_eating = value
-
-        if self.can_grasp and actuator is self.grasp_actuator:
-            self.is_grasping = value
-
-        if self.is_holding and not self.is_grasping:
-            self.is_holding = False
-
-    @staticmethod
-    def _check_value_actuator(actuator, value):
-
-        if not isinstance(value, numbers.Real):
-            raise ValueError('Action value for actuator ' + actuator.part_name + 'not a number')
-
-        if actuator.action_space == ActionSpaces.CONTINUOUS_CENTERED:
-            assert -actuator.action_range <= value <= actuator.action_range
-
-        elif actuator.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
-            assert 0. <= value <= actuator.action_range
-
-        elif actuator.action_space == ActionSpaces.DISCRETE_BINARY:
-            assert value in [0, 1]
-
-        elif actuator.action_space == ActionSpaces.DISCRETE_CENTERED:
-            assert value in [-1, 0, 1]
-
-        elif actuator.action_space == ActionSpaces.DISCRETE_POSITIVE:
-            assert value in [0, 1]
+        actuator.action_cb(self, value)
 
     def reset(self):
 
@@ -140,13 +116,11 @@ class Part(Entity, ABC):
 
 
 class Actuator:
-
     """
     Actuator classes defines how one body acts.
     It is used to define physical movements as well as interactions (eat, grasp, ...)
     of parts of an agent.
     """
-
     def __init__(self, part_name, action_type, action_space, action_range=1):
         """
 
@@ -180,3 +154,106 @@ class Actuator:
 
         self.has_key_mapping = True
         self.key_map[key] = [key_behavior, value]
+
+    def _check_value(self, value):
+
+        if not isinstance(value, numbers.Real):
+            raise ValueError('Action value for actuator ' + self.part_name +
+                             'not a number')
+
+        if self.action_space == ActionSpaces.CONTINUOUS_CENTERED:
+            assert -self.action_range <= value <= self.action_range
+
+        elif self.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
+            assert 0.0 <= value <= self.action_range
+
+        elif self.action_space == ActionSpaces.DISCRETE_BINARY:
+            assert value in [0, 1]
+
+        elif self.action_space == ActionSpaces.DISCRETE_CENTERED:
+            assert value in [-1, 0, 1]
+
+        elif self.action_space == ActionSpaces.DISCRETE_POSITIVE:
+            assert value in [0, 1]
+
+    @property
+    def min(self):
+        if self.action_space == ActionSpaces.CONTINUOUS_CENTERED:
+            return -self.action_range
+
+        elif self.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
+            return 0.0
+
+        elif self.action_space == ActionSpaces.DISCRETE_BINARY:
+            return 0
+
+        elif self.action_space == ActionSpaces.DISCRETE_CENTERED:
+            return -1
+
+        elif self.action_space == ActionSpaces.DISCRETE_POSITIVE:
+            return 0
+
+    @property
+    def max(self):
+        if self.action_space == ActionSpaces.CONTINUOUS_CENTERED:
+            return self.action_range
+
+        elif self.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
+            return self.action_range
+
+        elif self.action_space == ActionSpaces.DISCRETE_BINARY:
+            return 1
+
+        elif self.action_space == ActionSpaces.DISCRETE_CENTERED:
+            return 1
+
+        elif self.action_space == ActionSpaces.DISCRETE_POSITIVE:
+            return 1
+
+    def action_cb(self, part, value):
+        self._check_value(value)
+
+        if part.can_activate and self.action_type is ActionTypes.ACTIVATE:
+            part.is_activating = value
+
+        if part.can_eat and self.action_type is ActionTypes.EAT:
+            self.is_eating = value
+
+        if part.can_grasp and self.action_type is ActionTypes.GRASP:
+            self.is_grasping = value
+
+        if part.is_holding and not part.is_grasping:
+            part.is_holding = False
+
+        if self.action_type is ActionTypes.LONGITUDINAL_FORCE:
+            part.pm_body.apply_force_at_local_point(
+                pymunk.Vec2d(value, 0) * LINEAR_FORCE, (0, 0))
+
+        if self.action_type is ActionTypes.LATERAL_FORCE:
+            part.pm_body.apply_force_at_local_point(
+                pymunk.Vec2d(0, -value) * LINEAR_FORCE, (0, 0))
+
+        if self.action_type is ActionTypes.ANGULAR_VELOCITY:
+            part.pm_body.angular_velocity = value * ANGULAR_VELOCITY
+
+        if self.action_type is ActionTypes.LINK:
+            # Case when theta close to limit -> speed to zero
+            theta_part = part.angle
+            theta_anchor = part.anchor.angle
+
+            angle_centered = (theta_part - (theta_anchor + part._angle_offset))
+            angle_centered = angle_centered % (2 * np.pi)
+            angle_centered = (angle_centered - 2 * np.pi
+                              if angle_centered > np.pi else angle_centered)
+
+            # Do not set the motor if the limb is close to limit
+            if (angle_centered <
+                    -part._rotation_range / 2 + np.pi / 20) and value > 0:
+                part.motor.rate = 0
+
+            elif (angle_centered >
+                  part._rotation_range / 2 - np.pi / 20) and value < 0:
+                part.motor.rate = 0
+
+            else:
+                part.motor.rate = value * ANGULAR_VELOCITY

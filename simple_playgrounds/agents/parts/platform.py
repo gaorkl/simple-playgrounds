@@ -76,19 +76,6 @@ class ForwardPlatform(Platform):
                                                   ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.angular_velocity_actuator)
 
-    def apply_action(self, actuator, value):
-
-        super().apply_action(actuator, value)
-        self._check_value_actuator(actuator, value)
-
-        if actuator is self.longitudinal_force_actuator:
-            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * LINEAR_FORCE, (0, 0))
-
-        if actuator is self.angular_velocity_actuator:
-            self.pm_body.angular_velocity = value * ANGULAR_VELOCITY
-
-        return value
-
 
 class ForwardPlatformDiscrete(ForwardPlatform):
 
@@ -118,19 +105,6 @@ class ForwardBackwardPlatform(ForwardPlatform):
                                                     ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.longitudinal_force_actuator)
 
-    def apply_action(self, actuator, value):
-
-        super().apply_action(actuator, value)
-        self._check_value_actuator(actuator, value)
-
-        if actuator is self.longitudinal_force_actuator:
-            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(value, 0) * LINEAR_FORCE, (0, 0))
-
-        if actuator is self.angular_velocity_actuator:
-            self.pm_body.angular_velocity = value * ANGULAR_VELOCITY
-
-        return value
-
 
 class HolonomicPlatform(ForwardBackwardPlatform):
     """
@@ -143,13 +117,3 @@ class HolonomicPlatform(ForwardBackwardPlatform):
 
         self.lateral_force_actuator = Actuator(self.name, ActionTypes.LATERAL_FORCE, ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.lateral_force_actuator)
-
-    def apply_action(self, actuator, value):
-
-        super().apply_action(actuator, value)
-        self._check_value_actuator(actuator, value)
-
-        if actuator is self.lateral_force_actuator:
-            self.pm_body.apply_force_at_local_point(pymunk.Vec2d(0, -value) * LINEAR_FORCE, (0, 0))
-
-        return value

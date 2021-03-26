@@ -277,10 +277,10 @@ class Agent(ABC):
         else:
             self.current_actions = actions_dict
 
-        for actuator, value in self.current_actions.items():
-
-            for body_part in self.parts:
-                body_part.apply_action(actuator, value)
+        for body_part in self.parts:
+            for actuator in body_part.actuators:
+                body_part.apply_action(actuator,
+                                       self.current_actions[actuator])
 
     def _apply_noise(self, actions_dict):
 

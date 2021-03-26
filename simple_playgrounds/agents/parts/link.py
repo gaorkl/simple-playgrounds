@@ -73,7 +73,7 @@ class Link(Part, ABC):
 
         self.pm_elements += [self.joint, self.motor, self.limit]
 
-        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.ANGULAR_VELOCITY,
+        self.angular_velocity_actuator = Actuator(self.name, ActionTypes.LINK,
                                                   ActionSpaces.CONTINUOUS_CENTERED)
         self.actuators.append(self.angular_velocity_actuator)
 
@@ -86,32 +86,6 @@ class Link(Part, ABC):
         self.pm_body.position = self.anchor.position + self.rel_coord_anchor.rotated(self.anchor.angle) \
                                  - self.rel_coord_part.rotated( self.anchor.angle + self._angle_offset)
         self.pm_body.angle = self.anchor.pm_body.angle + self._angle_offset
-
-    def apply_action(self, actuator, value):
-
-        super().apply_action(actuator, value)
-        self._check_value_actuator(actuator, value)
-
-        if actuator is self.angular_velocity_actuator:
-
-            # Case when theta close to limit -> speed to zero
-            theta_part = self.angle
-            theta_anchor = self.anchor.angle
-
-            angle_centered = (theta_part - (theta_anchor + self._angle_offset)) % (2 * math.pi)
-            angle_centered = angle_centered - 2 * math.pi if angle_centered > math.pi else angle_centered
-
-            # Do not set the motor if the limb is close to limit
-            if angle_centered < - self._rotation_range/2 + math.pi/20 and value > 0:
-                self.motor.rate = 0
-
-            elif angle_centered > self._rotation_range/2 - math.pi/20 and value < 0:
-                self.motor.rate = 0
-
-            else:
-                self.motor.rate = value * ANGULAR_VELOCITY
-
-        return value
 
 
 class Head(Link):
