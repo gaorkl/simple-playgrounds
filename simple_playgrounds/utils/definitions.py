@@ -79,7 +79,7 @@ class SensorTypes(IntEnum):
     GREY = auto()
     LIDAR = auto()
     TOUCH = auto()
-    DEPTH = auto()
+    Proximity = auto()
 
     SEMANTIC_CONE = auto()
     SEMANTIC_RAY = auto()

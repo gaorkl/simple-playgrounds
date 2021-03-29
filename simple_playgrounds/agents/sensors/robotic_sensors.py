@@ -170,7 +170,7 @@ class Lidar(RayCollisionSensor):
             if collision:
                 pixels[angle_index] = collision.alpha*self._range
 
-        self.sensor_values = pixels[::-1].astype(float)
+        self.sensor_values = pixels[:].astype(float)
 
     @property
     def shape(self):
@@ -194,11 +194,11 @@ class Lidar(RayCollisionSensor):
         return img
 
 
-class Depth(Lidar):
+class Proximity(Lidar):
     """
-    Depth Sensors are opposite of Lidar sensor. Close objects have high value.
+    Proximity Sensors are opposite of Lidar sensor. Close objects have high value.
     """
-    sensor_type = SensorTypes.DEPTH
+    sensor_type = SensorTypes.Proximity
 
     def _compute_raw_sensor(self, playground, *_):
 

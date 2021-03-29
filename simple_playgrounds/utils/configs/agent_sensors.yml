@@ -25,7 +25,7 @@ lidar:
   fov: 180
   resolution: 64
 
-depth:
+proximity:
   max_range: 300
   fov: 180
   resolution: 64
