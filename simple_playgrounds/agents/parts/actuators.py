@@ -52,10 +52,6 @@ class InteractionActuator(Actuator, ABC):
 
     action_space = ActionSpaces.BINARY
 
-    def __init__(self, part):
-
-        super().__init__(part)
-
     def _check_value(self, value):
         assert value in [0, 1]
 
@@ -80,7 +76,7 @@ class Grasp(InteractionActuator):
 
     def apply_action(self, value):
         self._check_value(value)
-        self.part.is_holding = value
+        self.part.is_grasping = value
 
         if self.part.is_holding and not self.part.is_grasping:
             self.part.is_holding = False

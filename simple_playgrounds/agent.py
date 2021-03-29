@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from simple_playgrounds.utils.definitions import ActionSpaces
 from simple_playgrounds.utils.position_utils import CoordinateSampler
-from simple_playgrounds.agents.parts.actuators import Eat, Activate, Grasp
+from simple_playgrounds.agents.parts.actuators import Grasp
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member

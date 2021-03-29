@@ -27,7 +27,7 @@ from pymunk import pygame_util
 from skimage.transform import rescale
 
 from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS
-from simple_playgrounds.agents.parts.actuators import Eat, Activate, Grasp
+from simple_playgrounds.agents.parts.actuators import Eat, Activate
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
@@ -508,33 +508,3 @@ class Engine:
 
         """
         pygame.quit()  # pylint: disable=no-member
-
-
-# class RLibSingleAgentWrapper(gym.Env):
-#
-#     def __init__(self, playground, time_limit, **kwargs):
-#
-#         if len(playground.agents) != 1:
-#             raise ValueError('Only single agent')
-#
-#         self.agent = playground.agents[0]
-#         self.multisteps = kwargs.get('multisteps', 1)
-#         self.engine = Engine(playground, time_limit=time_limit)
-#
-#         self._set_action_space()
-#         self._set_observation_space()
-#
-#     def _set_action_space(self):
-#
-#         pass
-#
-#     def _set_observation_space(self):
-#
-#         self.observation_space = gym.spaces.Dict({"position": gym.spaces.Discrete(2), "velocity": gym.spaces.Discrete(3)})
-#
-#
-#     def reset(self):
-#         self.engine.reset()
-#
-#     def step(self, action):
-

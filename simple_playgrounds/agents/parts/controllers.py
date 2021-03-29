@@ -54,7 +54,7 @@ class Dummy(Controller):
         return self.generate_null_actions()
 
 
-class Random(Controller):
+class RandomDiscrete(Controller):
     """
     A random controller generate random commands.
     If the actuator is continuous, it picks the action using a uniform distribution.
@@ -67,23 +67,47 @@ class Random(Controller):
 
         for actuator in self.controlled_actuators:
 
-            if actuator.action_space == ActionSpaces.CONTINUOUS_CENTERED:
-                act_value = random.uniform(-1, 1)*actuator.action_range
+            act_value = 0
 
-            elif actuator.action_space == ActionSpaces.CONTINUOUS_POSITIVE:
-                act_value = random.uniform(0, 1)*actuator.action_range
-
-            elif actuator.action_space == ActionSpaces.BINARY:
+            if actuator.action_space == ActionSpaces.BINARY:
                 act_value = random.choice([0, 1])
 
-            elif actuator.action_space == ActionSpaces.DISCRETE_CENTERED:
-                act_value = random.choice([-1, 0, 1]) * actuator.action_range
+            elif actuator.action_space == ActionSpaces.CONTINUOUS:
 
-            elif actuator.action_space == ActionSpaces.DISCRETE_POSITIVE:
-                act_value = random.choice([0, 1])*actuator.action_range
+                if actuator.centered:
+                    act_value = random.choice([-1, 0, 1])
+                else:
+                    act_value = random.choice([0, 1])
 
-            else:
-                raise ValueError
+            commands[actuator] = act_value
+
+        return commands
+
+
+class RandomContinuous(Controller):
+    """
+    A random controller generate random commands.
+    If the actuator is continuous, it picks the action using a uniform distribution.
+    If the actuator is discrete (binary), it picks a random action.
+    """
+
+    def generate_actions(self):
+
+        commands = {}
+
+        for actuator in self.controlled_actuators:
+
+            act_value = 0
+
+            if actuator.action_space == ActionSpaces.BINARY:
+                act_value = random.choice([0, 1])
+
+            elif actuator.action_space == ActionSpaces.CONTINUOUS:
+
+                if actuator.centered:
+                    act_value = random.uniform(-1, 1)
+                else:
+                    act_value = random.uniform(0, 1)
 
             commands[actuator] = act_value
 

@@ -1,7 +1,6 @@
 import pytest
 
 from simple_playgrounds import Engine
-from simple_playgrounds.agents.parts.controllers import Random
 from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 
@@ -10,7 +9,7 @@ def run_engine(agent, pg_class):
     playground = pg_class()
     playground.add_agent(agent)
 
-    engine = Engine(playground, time_limit=1000)
+    engine = Engine(playground, time_limit=100)
     engine.run()
 
     assert 0 < agent.position[0] < playground.size[0]
@@ -19,10 +18,12 @@ def run_engine(agent, pg_class):
     playground.remove_agent(agent)
 
 
-def test_base_agent(is_interactive, platform_cls, pg_cls, agent_cls):
-    agent = agent_cls(controller=Random(),
+def test_base_agent(is_interactive, going_backward, moving_laterally, pg_cls, agent_cls, random_controller):
+    agent = agent_cls(controller=random_controller(),
                       interactive=is_interactive,
-                      platform=platform_cls)
+                      backward=going_backward,
+                      lateral=moving_laterally,
+                      )
 
     run_engine(agent, pg_cls)
 

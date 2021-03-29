@@ -176,13 +176,12 @@ class FullPlaygroundSensor(Sensor):
     sensor_type = SensorTypes.FULL_PLAYGROUND
     sensor_modality = SensorTypes.VISUAL
 
-    def __init__(self, size_playground, invisible_elements=None, normalize=True, noise_params=None,
+    def __init__(self, anchor=None, invisible_elements=None, normalize=True, noise_params=None,
                  **sensor_params):
         """
         Refer to Sensor Class.
 
         Args:
-            size_playground: Needed to calculate the shape of the sensor values.
             invisible_elements: elements that the sensor does not perceive.
                 List of Parts of SceneElements.
             normalize: if true, Sensor values are normalized between 0 and 1.
@@ -202,9 +201,7 @@ class FullPlaygroundSensor(Sensor):
         else:
             self._invisible_elements = []
 
-        max_size_playground = max(size_playground)
-        self._scale = (int(self._resolution * size_playground[1] / max_size_playground),
-                       int(self._resolution * size_playground[0] / max_size_playground))
+        self._scale = None
 
         self._sensor_max_value = 255
 
@@ -228,8 +225,17 @@ class FullPlaygroundSensor(Sensor):
     def _compute_raw_sensor(self, playground, sensor_surface):
 
         full_image = self.get_sensor_image(playground, sensor_surface)
+        if self._scale is None:
+            self.set_scale( playground.size )
 
         self.sensor_values = resize(full_image, (self._scale[0], self._scale[1]), order=0, preserve_range=True)
+
+    def set_scale(self, size_playground):
+
+        max_size = max(size_playground)
+        self._scale = (int(self._resolution * size_playground[1] / max_size),
+                       int(self._resolution * size_playground[0] / max_size))
+
 
     def _apply_normalization(self):
         self.sensor_values /= self._sensor_max_value

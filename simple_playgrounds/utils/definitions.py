@@ -9,7 +9,7 @@ from collections import namedtuple
 SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9
 LINEAR_FORCE = 100
-ANGULAR_VELOCITY = 0.5
+ANGULAR_VELOCITY = 0.3
 ARM_MAX_FORCE = 500
 
 
@@ -135,14 +135,13 @@ class ControllerTypes(Enum):
 class ActionSpaces(IntEnum):
 
     BINARY = auto()
-    DISCRETE = auto()
     CONTINUOUS = auto()
 
 
 class KeyTypes(IntEnum):
 
-    PRESS_HOLD = 1
-    PRESS_ONCE = 2
+    PRESS_HOLD = auto()
+    PRESS_ONCE = auto()
 
 
 Detection = namedtuple('Detection', 'entity, distance, angle')

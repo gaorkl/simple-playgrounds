@@ -1,72 +1,58 @@
-from simple_playgrounds.agents.sensors import RgbCamera, GreyCamera, Lidar,\
-    Touch, SemanticRay, SemanticCones, TopdownSensor, BlindCamera
-from simple_playgrounds.playgrounds.collection.test.test_scene_elements import Basics, Teleports, Interactives
-
-from simple_playgrounds.agents.parts.controllers import Random
-from simple_playgrounds.agents import BaseAgent
-from simple_playgrounds.agents.parts import ForwardPlatform
+from simple_playgrounds.agents.parts.controllers import RandomContinuous
+from simple_playgrounds.agents.agents import HeadAgent
+from simple_playgrounds.agents.sensors import RgbCamera
 from simple_playgrounds import Engine
+from simple_playgrounds.playgrounds.collection import Basics, Teleports, Interactives
 
 
-def run_experiment_on_sensor(**sensor_config):
+def test_sensor_without_params(single_sensor):
 
-    agent = BaseAgent(controller=Random(), interactive=True, platform=ForwardPlatform)
+    agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
-    for sens in [RgbCamera,
-                 GreyCamera,
-                 BlindCamera,
-                 Lidar,
-                 Touch,
-                 SemanticRay,
-                 SemanticCones,
-                 TopdownSensor]:
-        agent.add_sensor(sens(anchor=agent.base_platform,
-                              invisible_elements=agent.parts,
-                              **sensor_config
-                              ))
-
-    print('Testing of sensor params ', sensor_config)
+    agent.add_sensor(single_sensor(anchor=agent.head,
+                                   invisible_elements=agent.parts,
+                                  ))
 
     for pg_class in [Basics, Teleports, Interactives, ]:
         playground = pg_class()
         playground.add_agent(agent)
 
-        print('.... on playground ', pg_class.__name__)
-
         engine = Engine(playground, time_limit=100)
         engine.run()
-
-        assert 0 < agent.position[0] < playground.size[0]
-        assert 0 < agent.position[1] < playground.size[1]
 
         playground.remove_agent(agent)
         playground.reset()
 
 
-# Run all test playgrounds with basic non-interactive agent
-def test_default_sensors():
+def test_sensor_with_params(single_sensor, resolution, fov, obs_range):
 
-    run_experiment_on_sensor()
+    agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+
+    agent.add_sensor(single_sensor(anchor=agent.head,
+                                   invisible_elements=agent.parts,
+                                   fov=fov,
+                                   resolution=resolution,
+                                   range=obs_range
+                                  ))
+
+    for pg_class in [Basics, Teleports, Interactives, ]:
+        playground = pg_class()
+        playground.add_agent(agent)
+
+        engine = Engine(playground, time_limit=100)
+        engine.run()
+
+        playground.remove_agent(agent)
+        playground.reset()
 
 
-def test_parameter_sensors():
+def test_rgb_on_teleports(base_forward_agent):
 
-    for resolution in [2, 16]:
-
-        for range_sensor in [2, 100]:
-
-            for fov in [2, 180, 360, 380]:
-
-                run_experiment_on_sensor(resolution=resolution, max_range=range_sensor, fov=fov)
-
-
-def test_rgb_on_teleports():
-
-    agent = BaseAgent(controller=Random(), interactive=True, platform=ForwardPlatform)
+    agent = base_forward_agent
 
     agent.add_sensor(RgbCamera(anchor=agent.base_platform,
-                              invisible_elements=agent.parts,
-                              ))
+                               invisible_elements=agent.parts,
+                               ))
 
     playground = Teleports()
     playground.add_agent(agent)
