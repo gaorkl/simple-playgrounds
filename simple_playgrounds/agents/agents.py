@@ -56,10 +56,10 @@ class BaseAgent(Agent):
         """
 
         if not (forward or backward or lateral or rotate):
-            base = FixedPlatform(can_absorb=True)
+            base = FixedPlatform(name='base', can_absorb=True)
 
         else:
-            base = MobilePlatform(can_absorb=True)
+            base = MobilePlatform(name='base', can_absorb=True)
 
         super().__init__(base_platform=base, **kwargs)
 

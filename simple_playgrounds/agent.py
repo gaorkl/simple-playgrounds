@@ -98,9 +98,7 @@ class Agent(ABC):
         # Teleport
         self.is_teleporting = False
 
-
     # CONTROLLER
-
     @property
     def controller(self):
         """
@@ -126,9 +124,7 @@ class Agent(ABC):
         if isinstance(actuator, Grasp):
             actuator.part.can_grasp = True
 
-
     # POSITION / VELOCITY
-
     @property
     def initial_coordinates(self):
         """
@@ -285,12 +281,20 @@ class Agent(ABC):
         if self._noise_type == 'gaussian':
 
             for actuator, value in actions_dict.items():
-                additive_noise = random.gauss(self._noise_mean, self._noise_scale)
-                new_value = additive_noise + value
-                new_value = new_value if new_value > actuator.min else actuator.min
-                new_value = new_value if new_value < actuator.max else actuator.max
 
-                noisy_actions[actuator] = new_value
+                if actuator.action_space is ActionSpaces.CONTINUOUS:
+
+                    additive_noise = random.gauss(self._noise_mean, self._noise_scale)
+
+                    new_value = additive_noise + value
+                    new_value = new_value if new_value > actuator.min else actuator.min
+                    new_value = new_value if new_value < actuator.max else actuator.max
+
+                    noisy_actions[actuator] = new_value
+
+                else:
+
+                    noisy_actions[actuator] = value
 
         else:
             raise ValueError('Noise type not implemented')
@@ -380,37 +384,34 @@ class Agent(ABC):
         total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \
                                + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
 
-        img_actions = Image.new("RGB", (width_action, total_height_actions), (255, 255, 255))
+        img_actions = Image.new("RGB", (total_height_actions, width_action), (255, 255, 255))
         drawn_image = ImageDraw.Draw(img_actions)
 
         fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height_action*2/3))
 
-        current_height = _BORDER_IMAGE
+        current_height = 0
 
         for part in self.parts:
 
-            current_height += height_action
+            w_text, h_text = fnt.getsize(text=part.name.upper())
+            drawn_image.text((width_action / 2.0 - w_text/2, current_height + height_action/2 - h_text/2), part.name.upper(),
+                   font=fnt, fill=(0, 0, 0))
 
-            drawn_image.text((width_action / 2.0, current_height - height_action/2.0), part.name.upper(),
-                   font=fnt, fill=(0, 0, 0), anchor='mm')
-
-            start = (0, current_height - height_action)
-            end = (width_action-1, current_height)
+            start = (0, current_height)
+            end = (width_action, current_height + height_action)
             drawn_image.rectangle([start, end], outline=(0, 0, 0), width=2)
 
-            current_height += _BORDER_IMAGE
+            current_height += _BORDER_IMAGE + height_action
 
             all_action_parts = [(action, value) for action, value in self.current_actions.items() if
                                 action.part.name == part.name]
 
             for action, value in all_action_parts:
 
-                current_height += height_action
-
                 if action.action_space == ActionSpaces.BINARY and value == 1:
 
-                    start = (0, current_height - height_action)
-                    end = (width_action - 1, current_height)
+                    start = (0, current_height)
+                    end = (width_action, current_height + height_action)
                     drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
                 elif action.action_space == ActionSpaces.CONTINUOUS and value != 0:
@@ -424,8 +425,8 @@ class Agent(ABC):
                             right = int(width_action / 2. + value * width_action / 2.)
                             left = int(width_action / 2.)
 
-                        start = (left, current_height - height_action)
-                        end = (right, current_height)
+                        start = (left, current_height)
+                        end = (right, current_height + height_action)
 
                         drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
@@ -434,15 +435,17 @@ class Agent(ABC):
                         left = int(width_action / 2.)
                         right = int(width_action / 2. + value * width_action / 2.)
 
-                        start = (left, current_height - height_action)
-                        end = (right, current_height)
+                        start = (left, current_height)
+                        end = (right, current_height + height_action)
 
                         drawn_image.rectangle([start, end], fill=(20, 200, 20))
 
-                drawn_image.text((width_action / 2.0, current_height - height_action / 2.0), type(action).__name__.upper(),
-                       font=fnt, fill=(0, 0, 0), anchor='mm')
+                w_text, h_text = fnt.getsize(text=type(action).__name__)
+                drawn_image.text((width_action / 2.0 - w_text / 2, current_height + height_action / 2 - h_text / 2),
+                                 type(action).__name__,
+                                 font=fnt, fill=(0, 0, 0))
 
-                current_height += _BORDER_IMAGE
+                current_height += _BORDER_IMAGE + height_action
 
         img_actions = np.asarray(img_actions)/255.
 
