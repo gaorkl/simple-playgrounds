@@ -47,6 +47,14 @@ class Actuator(ABC):
     def apply_action(self, value):
         pass
 
+    @abstractmethod
+    def min(self):
+        pass
+
+    @abstractmethod
+    def max(self):
+        pass
+
 
 class InteractionActuator(Actuator, ABC):
 
@@ -54,6 +62,14 @@ class InteractionActuator(Actuator, ABC):
 
     def _check_value(self, value):
         assert value in [0, 1]
+
+    @property
+    def min(self):
+        return 0
+
+    @property
+    def max(self):
+        return 1
 
 
 class Activate(InteractionActuator):
@@ -105,6 +121,16 @@ class PhysicalActuator(Actuator, ABC):
             assert -1 <= value <= 1
         else:
             assert 0 <= value <= 1
+
+    @property
+    def min(self):
+        if self.centered:
+            return -1
+        return 0
+
+    @property
+    def max(self):
+        return 1
 
 
 class LongitudinalForce(PhysicalActuator):
