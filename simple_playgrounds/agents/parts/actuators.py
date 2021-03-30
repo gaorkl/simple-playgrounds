@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import pymunk
-from PIL import ImageFont
+
 from simple_playgrounds.utils.definitions import ActionSpaces, LINEAR_FORCE, ANGULAR_VELOCITY
 
 
@@ -56,6 +56,14 @@ class Actuator(ABC):
     def default_value(self):
         return 0
 
+    @abstractmethod
+    def min(self):
+        pass
+
+    @abstractmethod
+    def max(self):
+        pass
+
 
 # DISCRETE ACTUATORS
 
@@ -85,6 +93,13 @@ class DiscreteActuator(Actuator, ABC):
         assert value in range(len(self.actuator_values))
         self.current_value = value
 
+    @property
+    def min(self):
+        return 0
+
+    @property
+    def max(self):
+        return 1
 
 class InteractionActuator(DiscreteActuator, ABC):
 
@@ -196,6 +211,15 @@ class ContinuousActuator(Actuator, ABC):
                          type(self).__name__,
                          font=fnt, fill=(0, 0, 0))
 
+    @property
+    def min(self):
+        if self.centered:
+            return -1
+        return 0
+
+    @property
+    def max(self):
+        return 1
 
 class LongitudinalForce(ContinuousActuator):
 
