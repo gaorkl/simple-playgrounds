@@ -52,9 +52,9 @@ class Actuator(ABC):
     def draw(self, drawer_action_image, position_height, height_action, fnt):
         pass
 
-    @property
+    @abstractmethod
     def default_value(self):
-        return 0
+        pass
 
     @abstractmethod
     def min(self):
@@ -89,21 +89,59 @@ class DiscreteActuator(Actuator, ABC):
 
         self.actuator_values = actuator_values
 
-    def _pre_step(self, value):
-        assert value in range(len(self.actuator_values))
-        self.current_value = value
+    def _pre_step(self, action_index):
+        assert action_index in range(self.range)
+        self.current_value = action_index
+
+    @abstractmethod
+    def apply_action(self, action_index):
+        """
+        Apply action receives the index of the action applied to the part.
+
+        Args:
+            action_index: index of the action, in {0, 1, .. self.range-1}.
+        """
+        pass
 
     @property
-    def min(self):
+    def default_value(self):
         return 0
 
     @property
+    def min(self):
+        return min(self.actuator_values)
+
+    @property
     def max(self):
-        return 1
+        return max(self.actuator_values)
+
+    @property
+    def argmin(self):
+        """
+        Index of the action of minimum value.
+        """
+        return self.actuator_values.index(self.min)
+
+    @property
+    def argmax(self):
+        """
+        Index of the action of maximum value.
+        """
+        return self.actuator_values.index(self.max)
+
+    @property
+    def range(self):
+        """
+        Returns the number of actions for this actuator.
+        """
+        return len(self.actuator_values)
+
 
 class InteractionActuator(DiscreteActuator, ABC):
-
-    """ Base class for binary actuators."""
+    """
+    Base class for Interaction Actuators.
+    Interaction Actuators are binary actuators.
+    """
 
     def __init__(self, part):
         super().__init__(part, actuator_values=(0, 1))
@@ -125,25 +163,25 @@ class InteractionActuator(DiscreteActuator, ABC):
 
 class Activate(InteractionActuator):
 
-    def apply_action(self, value):
+    def apply_action(self, action_index):
 
-        self._pre_step(value)
-        self.part.is_activating = self.actuator_values[value]
+        self._pre_step(action_index)
+        self.part.is_activating = self.actuator_values[action_index]
 
 
 class Eat(InteractionActuator):
 
-    def apply_action(self, value):
+    def apply_action(self, action_index):
 
-        self._pre_step(value)
-        self.part.is_eating = self.actuator_values[value]
+        self._pre_step(action_index)
+        self.part.is_eating = self.actuator_values[action_index]
 
 
 class Grasp(InteractionActuator):
 
-    def apply_action(self, value):
-        self._pre_step(value)
-        self.part.is_grasping = self.actuator_values[value]
+    def apply_action(self, action_index):
+        self._pre_step(action_index)
+        self.part.is_grasping = self.actuator_values[action_index]
 
         if self.part.is_holding and not self.part.is_grasping:
             self.part.is_holding = False
@@ -161,22 +199,22 @@ class ContinuousActuator(Actuator, ABC):
 
         Args:
             part: part that the actuator is affecting
-            centered: if True, values are in [-1, 1]. If False, values are in [0, 1].
-            action_range: multiplication factor for the values.
+            centered: if True, actions are in [-1, 1]. If False, actions are in [0, 1].
+            action_range: multiplication factor for the action.
         """
         super().__init__(part)
 
-        self.centered = centered
+        self._centered = centered
         self._action_range = action_range
 
-    def _pre_step(self, value):
+    def _pre_step(self, action):
 
         if self.centered:
-            assert -1 <= value <= 1
+            assert -1 <= action <= 1
         else:
-            assert 0 <= value <= 1
+            assert 0 <= action <= 1
 
-        self.current_value = value
+        self.current_value = action
 
     def draw(self, drawer_action_image, position_height, height_action, fnt):
 
@@ -211,6 +249,28 @@ class ContinuousActuator(Actuator, ABC):
                          type(self).__name__,
                          font=fnt, fill=(0, 0, 0))
 
+    @abstractmethod
+    def apply_action(self, action):
+        """
+        Applies a continuous action to an actuator.
+        The continuous action is a product of the value (in [0, 1] or [-1,1]) and the action range.
+            
+        Args:
+            action: 
+
+        Returns:
+
+        """
+        pass
+
+    @property
+    def default_value(self):
+        return 0
+
+    @property
+    def centered(self):
+        return self._centered
+
     @property
     def min(self):
         if self.centered:
@@ -221,35 +281,36 @@ class ContinuousActuator(Actuator, ABC):
     def max(self):
         return 1
 
+
 class LongitudinalForce(ContinuousActuator):
 
-    def apply_action(self, value):
-        self._pre_step(value)
+    def apply_action(self, action):
+        self._pre_step(action)
 
         self.part.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(value, 0) * LINEAR_FORCE * self._action_range, (0, 0))
+            pymunk.Vec2d(action, 0) * LINEAR_FORCE * self._action_range, (0, 0))
 
 
 class LateralForce(ContinuousActuator):
 
-    def apply_action(self, value):
-        self._pre_step(value)
+    def apply_action(self, action):
+        self._pre_step(action)
 
         self.part.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(0, value) * self._action_range * LINEAR_FORCE, (0, 0))
+            pymunk.Vec2d(0, action) * self._action_range * LINEAR_FORCE, (0, 0))
 
 
 class AngularVelocity(ContinuousActuator):
 
-    def apply_action(self, value):
-        self._pre_step(value)
-        self.part.pm_body.angular_velocity = value * ANGULAR_VELOCITY * self._action_range
+    def apply_action(self, action):
+        self._pre_step(action)
+        self.part.pm_body.angular_velocity = action * ANGULAR_VELOCITY * self._action_range
 
 
 class AngularRelativeVelocity(ContinuousActuator):
 
-    def apply_action(self, value):
-        self._pre_step(value)
+    def apply_action(self, action):
+        self._pre_step(action)
 
         theta_part = self.part.angle
         theta_anchor = self.part.anchor.angle
@@ -261,13 +322,13 @@ class AngularRelativeVelocity(ContinuousActuator):
 
         # Do not set the motor if the limb is close to limit
         if (angle_centered <
-            -self.part.rotation_range / 2 + np.pi / 20) and value > 0:
+            -self.part.rotation_range / 2 + np.pi / 20) and action > 0:
             self.part.motor.rate = 0
 
         elif (angle_centered >
-              self.part.rotation_range / 2 - np.pi / 20) and value < 0:
+              self.part.rotation_range / 2 - np.pi / 20) and action < 0:
             self.part.motor.rate = 0
 
         else:
-            self.part.motor.rate = value * ANGULAR_VELOCITY * self._action_range
+            self.part.motor.rate = action * ANGULAR_VELOCITY * self._action_range
 
