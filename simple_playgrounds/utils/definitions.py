@@ -134,7 +134,7 @@ class ControllerTypes(Enum):
 
 class ActionSpaces(IntEnum):
 
-    BINARY = auto()
+    DISCRETE = auto()
     CONTINUOUS = auto()
 
 

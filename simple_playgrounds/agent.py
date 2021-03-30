@@ -385,66 +385,30 @@ class Agent(ABC):
                                + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
 
         img_actions = Image.new("RGB", (total_height_actions, width_action), (255, 255, 255))
-        drawn_image = ImageDraw.Draw(img_actions)
+        drawer_action_image = ImageDraw.Draw(img_actions)
 
-        fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height_action*2/3))
+        fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height_action * 2 / 3))
 
         current_height = 0
 
         for part in self.parts:
 
             w_text, h_text = fnt.getsize(text=part.name.upper())
-            drawn_image.text((width_action / 2.0 - w_text/2, current_height + height_action/2 - h_text/2), part.name.upper(),
+            drawer_action_image.text((width_action / 2.0 - w_text/2, current_height + height_action/2 - h_text/2), part.name.upper(),
                    font=fnt, fill=(0, 0, 0))
 
             start = (0, current_height)
             end = (width_action, current_height + height_action)
-            drawn_image.rectangle([start, end], outline=(0, 0, 0), width=2)
+            drawer_action_image.rectangle([start, end], outline=(0, 0, 0), width=2)
 
             current_height += _BORDER_IMAGE + height_action
 
             all_action_parts = [(action, value) for action, value in self.current_actions.items() if
                                 action.part.name == part.name]
 
-            for action, value in all_action_parts:
+            for actuator, value in all_action_parts:
 
-                if action.action_space == ActionSpaces.BINARY and value == 1:
-
-                    start = (0, current_height)
-                    end = (width_action, current_height + height_action)
-                    drawn_image.rectangle([start, end], fill=(20, 200, 20))
-
-                elif action.action_space == ActionSpaces.CONTINUOUS and value != 0:
-
-                    if action.centered:
-
-                        if value < 0:
-                            left = int(width_action / 2. + value * width_action / 2.)
-                            right = int(width_action / 2.)
-                        else:
-                            right = int(width_action / 2. + value * width_action / 2.)
-                            left = int(width_action / 2.)
-
-                        start = (left, current_height)
-                        end = (right, current_height + height_action)
-
-                        drawn_image.rectangle([start, end], fill=(20, 200, 20))
-
-                    else:
-
-                        left = int(width_action / 2.)
-                        right = int(width_action / 2. + value * width_action / 2.)
-
-                        start = (left, current_height)
-                        end = (right, current_height + height_action)
-
-                        drawn_image.rectangle([start, end], fill=(20, 200, 20))
-
-                w_text, h_text = fnt.getsize(text=type(action).__name__)
-                drawn_image.text((width_action / 2.0 - w_text / 2, current_height + height_action / 2 - h_text / 2),
-                                 type(action).__name__,
-                                 font=fnt, fill=(0, 0, 0))
-
+                actuator.draw(drawer_action_image, current_height, height_action, fnt)
                 current_height += _BORDER_IMAGE + height_action
 
         img_actions = np.asarray(img_actions)/255.

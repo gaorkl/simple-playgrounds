@@ -77,8 +77,8 @@ class BaseAgent(Agent):
 
         if lateral:
             actuator = LateralForce(base)
-            actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, 1)
             actuator.assign_key(K_v, KeyTypes.PRESS_HOLD, -1)
+            actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, 1)
             self.add_actuator(actuator)
 
         if rotate:

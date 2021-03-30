@@ -57,8 +57,10 @@ class Dummy(Controller):
 class RandomDiscrete(Controller):
     """
     A random controller generate random commands.
-    If the actuator is continuous, it picks the action using a uniform distribution.
-    If the actuator is discrete (binary), it picks a random action.
+    If the actuator is continuous, it picks the actions in:
+     - {-1, 0, 1} if the actuator is centered
+     - {0, 1} is not centered.
+    If the actuator is discrete, it picks a random action in the set of available actions.
     """
 
     def generate_actions(self):
@@ -69,7 +71,7 @@ class RandomDiscrete(Controller):
 
             act_value = 0
 
-            if actuator.action_space == ActionSpaces.BINARY:
+            if actuator.action_space == ActionSpaces.DISCRETE:
                 act_value = random.choice([0, 1])
 
             elif actuator.action_space == ActionSpaces.CONTINUOUS:
@@ -99,7 +101,7 @@ class RandomContinuous(Controller):
 
             act_value = 0
 
-            if actuator.action_space == ActionSpaces.BINARY:
+            if actuator.action_space == ActionSpaces.DISCRETE:
                 act_value = random.choice([0, 1])
 
             elif actuator.action_space == ActionSpaces.CONTINUOUS:
