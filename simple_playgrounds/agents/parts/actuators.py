@@ -7,9 +7,10 @@ from simple_playgrounds.utils.definitions import ActionSpaces, LINEAR_FORCE, ANG
 
 class Actuator(ABC):
     """
-    Actuator classes defines how one body acts.
-    It is used to define physical movements as well as interactions (eat, grasp, ...)
-    of parts of an agent.
+    Actuator classes defines how one body part acts.
+    It is used to control parts of an agent:
+        - physical actions (movements)
+        - interactive actions (eat, grasp, ...)
     """
 
     action_space = None
@@ -51,31 +52,46 @@ class Actuator(ABC):
     def draw(self, drawer_action_image, position_height, height_action, fnt):
         pass
 
+    @property
+    def default_value(self):
+        return 0
+
 
 # DISCRETE ACTUATORS
 
 class DiscreteActuator(Actuator, ABC):
+    """
+    Discrete Actuators are initialized by providing a list of valid actuator values.
+    Then, an action is applied by providing the index of the desired actuator value.
+    """
 
     action_space = ActionSpaces.DISCRETE
 
-    def __init__(self, part, value_set):
+    def __init__(self, part, actuator_values):
+        """
 
+        Args:
+            part (Part): part that the Actuator is controlling.
+            actuator_values: list or tuple of discrete values.
+        """
         super().__init__(part)
 
-        if not isinstance(value_set, (list, tuple)):
+        if not isinstance(actuator_values, (list, tuple)):
             raise ValueError('Set of values must be list or tuple')
 
-        self.value_set = value_set
+        self.actuator_values = actuator_values
 
     def _pre_step(self, value):
-        assert value in self.value_set
+        assert value in range(len(self.actuator_values))
         self.current_value = value
 
 
 class InteractionActuator(DiscreteActuator, ABC):
 
+    """ Base class for binary actuators."""
+
     def __init__(self, part):
-        super().__init__(part, value_set=(0, 1))
+        super().__init__(part, actuator_values=(0, 1))
 
     def draw(self, drawer_action_image, position_height, height_action, fnt):
 
@@ -87,9 +103,9 @@ class InteractionActuator(DiscreteActuator, ABC):
             drawer_action_image.rectangle([start, end], fill=(20, 200, 20))
 
         w_text, h_text = fnt.getsize(text=type(self).__name__)
-        drawer_action_image.text((img_width / 2.0 - w_text / 2, position_height + height_action / 2 - h_text / 2),
-                          type(self).__name__,
-                          font=fnt, fill=(0, 0, 0))
+        pos_text = (img_width/2.0 - w_text/2,
+                    position_height+height_action/2 - h_text/2)
+        drawer_action_image.text(pos_text, type(self).__name__, font=fnt, fill=(0, 0, 0))
 
 
 class Activate(InteractionActuator):
@@ -97,7 +113,7 @@ class Activate(InteractionActuator):
     def apply_action(self, value):
 
         self._pre_step(value)
-        self.part.is_activating = value
+        self.part.is_activating = self.actuator_values[value]
 
 
 class Eat(InteractionActuator):
@@ -105,14 +121,14 @@ class Eat(InteractionActuator):
     def apply_action(self, value):
 
         self._pre_step(value)
-        self.part.is_eating = value
+        self.part.is_eating = self.actuator_values[value]
 
 
 class Grasp(InteractionActuator):
 
     def apply_action(self, value):
         self._pre_step(value)
-        self.part.is_grasping = value
+        self.part.is_grasping = self.actuator_values[value]
 
         if self.part.is_holding and not self.part.is_grasping:
             self.part.is_holding = False

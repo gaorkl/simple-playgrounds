@@ -31,7 +31,7 @@ class Controller(ABC):
         """
         commands = {}
         for actuator in self.controlled_actuators:
-            commands[actuator] = 0
+            commands[actuator] = actuator.default_value
 
         return commands
 
@@ -69,7 +69,7 @@ class RandomDiscrete(Controller):
 
         for actuator in self.controlled_actuators:
 
-            act_value = 0
+            act_value = actuator.default_value
 
             if actuator.action_space == ActionSpaces.DISCRETE:
                 act_value = random.choice([0, 1])
@@ -99,7 +99,7 @@ class RandomContinuous(Controller):
 
         for actuator in self.controlled_actuators:
 
-            act_value = 0
+            act_value = actuator.default_value
 
             if actuator.action_space == ActionSpaces.DISCRETE:
                 act_value = random.choice([0, 1])
