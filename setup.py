@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='simple_playgrounds',
-    version='0.9.25',
+    version='0.9.26',
     description='Simulator for Embedded Learning',
     author='Michael Garcia Ortiz',
     author_email='michael.garcia-ortiz@city.ac.uk',
