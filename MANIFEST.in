@@ -1,9 +1,8 @@
-include simple_playgrounds/playgrounds/configs/playground_default.yml
-include simple_playgrounds/entities/agents/parts/parts_default.yml
-include simple_playgrounds/entities/agents/sensors/semantic_sensors/semantic_sensor_default.yml
-include simple_playgrounds/entities/agents/sensors/visual_sensors/visual_sensor_default.yml
-include simple_playgrounds/entities/scene_elements/configs/basic_default.yml
-include simple_playgrounds/entities/scene_elements/configs/contact_default.yml
-include simple_playgrounds/entities/scene_elements/configs/interactive_default.yml
-include simple_playgrounds/entities/scene_elements/configs/proximity_default.yml
-include simple_playgrounds/entities/scene_elements/configs/zone_default.yml
+include simple_playgrounds/playgrounds/utils/configs/agent_parts.yml
+include simple_playgrounds/playgrounds/utils/configs/agent_sensors.yml
+include simple_playgrounds/playgrounds/utils/configs/element_basic.yml
+include simple_playgrounds/playgrounds/utils/configs/element_contact.yml
+include simple_playgrounds/playgrounds/utils/configs/element_interactive.yml
+include simple_playgrounds/playgrounds/utils/configs/element_proximity.yml
+include simple_playgrounds/playgrounds/utils/configs/element_zone.yml
+include simple_playgrounds/playgrounds/utils/configs/playground.yml
