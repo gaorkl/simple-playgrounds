@@ -4,9 +4,12 @@ Module containing classical RL environments.
 import random
 
 from simple_playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.empty import SingleRoom, ConnectedRooms2D
-from simple_playgrounds.playgrounds.scene_elements \
-    import Basic, GoalZone, Candy, Dispenser, Coin, DeathZone, Field, VendingMachine
+from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
+from simple_playgrounds.playgrounds.scene_elements import (Basic, Candy,
+                                                           Coin, DeathZone,
+                                                           Dispenser, Field,
+                                                           GoalZone, Poison,
+                                                           VendingMachine)
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 
@@ -29,6 +32,10 @@ class CandyCollectEnv(SingleRoom):
                                      area_shape='rectangle',
                                      width_length=size_area)
             field = Field(entity_produced=Candy, production_area=area,
+                          probability=0.01, limit=2)
+            self.add_scene_element(field)
+
+            field = Field(entity_produced=Poison, production_area=area,
                           probability=0.01, limit=2)
             self.add_scene_element(field)
 
