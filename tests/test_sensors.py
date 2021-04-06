@@ -32,8 +32,15 @@ def test_sensor_with_params(single_sensor, resolution, fov, obs_range):
                                    invisible_elements=agent.parts,
                                    fov=fov,
                                    resolution=resolution,
-                                   range=obs_range
+                                   max_range=obs_range
                                   ))
+
+    agent.add_sensor(single_sensor(anchor=agent.head,
+                                   min_range=agent.base_platform.radius,
+                                   fov=fov,
+                                   resolution=resolution,
+                                   max_range=obs_range
+                                   ))
 
     for pg_class in [Basics, Teleports, Interactives, ]:
         playground = pg_class()
