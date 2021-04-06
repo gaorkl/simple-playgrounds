@@ -41,7 +41,6 @@ class Entity(ABC):
     entity_type = None
     entity_number = None
 
-    background = True
     drawn = False
 
     follows_waypoints = False
@@ -127,6 +126,10 @@ class Entity(ABC):
 
         for prop, value in entity_params.get('pm_attr', {}).items():
             self._set_pm_attr(prop, value)
+
+        background = entity_params.get('background', False)
+        assert isinstance(background, bool)
+        self.background = background
 
     def _get_physical_properties(self, params):
 

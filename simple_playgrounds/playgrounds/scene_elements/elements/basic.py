@@ -35,7 +35,11 @@ class Basic(SceneElement):
 class Traversable(Basic):
     """ Traversable Scene elements are non-interactive visible and traversable objects."""
     traversable = True
-    background = False
+
+
+class Wall(Basic):
+    """ Wall class"""
+    background = True
 
 
 class Door(SceneElement):
@@ -46,7 +50,6 @@ class Door(SceneElement):
     """
 
     entity_type = SceneElementTypes.DOOR
-    background = False
 
     def __init__(self, **kwargs):
 

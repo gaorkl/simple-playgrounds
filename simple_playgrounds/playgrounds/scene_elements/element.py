@@ -33,7 +33,7 @@ class SceneElement(Entity, ABC):
 
     terminate_upon_contact = False
 
-    def __init__(self, initial_position=None, **kwargs):
+    def __init__(self, **kwargs):
 
         self.graspable = kwargs.get('graspable', self.graspable)
         self.movable = kwargs.get('movable', self.movable)
@@ -45,4 +45,4 @@ class SceneElement(Entity, ABC):
         if self.movable:
             self.background = False
 
-        Entity.__init__(self, initial_position=initial_position, **kwargs)
+        Entity.__init__(self, **kwargs)

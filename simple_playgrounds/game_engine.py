@@ -254,13 +254,11 @@ class Engine:
 
         for entity in self.playground.scene_elements:
 
-            if entity.background and not entity.drawn:
-                entity.draw(self._surface_buffer, draw_interaction=with_interactions)
+            # if entity.background and not entity.drawn:
+            #     entity.draw(self._surface_buffer, draw_interaction=with_interactions)
 
             if not entity.background or entity.graspable or entity.interactive:
                 entity.draw(self._surface_buffer, draw_interaction=with_interactions)
-
-
 
     def update_screen(self):
         """
@@ -501,10 +499,11 @@ class Engine:
                 if steps == 0:
                     continue_for_n_steps = False
 
-    @staticmethod
-    def terminate():
+    def terminate(self):
         """
         Terminate the engine. Quits all pygame instances.
 
         """
         pygame.quit()  # pylint: disable=no-member
+        for elem in self.playground.scene_elements:
+            elem.drawn = False

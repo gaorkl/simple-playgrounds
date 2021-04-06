@@ -14,7 +14,6 @@ class ColorChanging(SceneElement):
 
     entity_type = SceneElementTypes.COLOR_CHANGING
     timed = True
-    background = False
 
     def __init__(self, timers, textures, **kwargs):
         """

@@ -217,9 +217,8 @@ class FullPlaygroundSensor(Sensor):
                 elem.draw(sensor_surface)
 
         img = pygame.surfarray.pixels3d(sensor_surface).astype(float)
-        np_image = np.rot90(img, 1, (1, 0))
+        np_image = np.rot90(img, -1, (1, 0))
         np_image = np_image[::-1, :, ::-1]
-
         return np_image
 
     def _compute_raw_sensor(self, playground, sensor_surface):

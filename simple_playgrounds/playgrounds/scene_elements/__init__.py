@@ -1,5 +1,5 @@
 from simple_playgrounds.playgrounds.scene_elements.elements.basic \
-    import Basic, Door, Traversable
+    import Basic, Door, Traversable, Wall
 from simple_playgrounds.playgrounds.scene_elements.elements.conditioning \
     import ConditionedColorChanging, ColorChanging
 from simple_playgrounds.playgrounds.scene_elements.elements.contact \

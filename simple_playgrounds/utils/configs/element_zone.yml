@@ -7,8 +7,8 @@ deathzone_texture : &deathzone-texture
   color: [225, 10, 10]
 
 death_zone :
-  physical_shape: square
-  radius: 15
+  physical_shape: rectangle
+  width_length: [ 15, 15 ]
   texture: *deathzone-texture
   reward: -200
 
@@ -17,8 +17,8 @@ goalzone_texture : &goalzone-texture
   color: [10, 255, 10]
 
 goal_zone :
-  physical_shape: square
-  radius: 15
+  physical_shape: rectangle
+  width_length: [ 15, 15 ]
   texture: *goalzone-texture
   reward: 200
 
@@ -30,8 +30,8 @@ toxiczone_texture : &toxiczone-texture
   color: [250, 250, 0]
 
 toxic_zone :
-  physical_shape: square
-  radius: 15
+  physical_shape: rectangle
+  width_length: [ 15, 15 ]
   texture: *toxiczone-texture
   reward: -1
   total_reward: -1000000
@@ -41,8 +41,8 @@ healingzone_texture : &healingzone-texture
   color: [0, 250, 250]
 
 healing_zone :
-  physical_shape: square
-  radius: 15
+  physical_shape: rectangle
+  width_length: [ 15, 15 ]
   texture: *healingzone-texture
   reward: 1
   total_reward: 100000

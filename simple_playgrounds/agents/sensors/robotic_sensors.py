@@ -53,10 +53,8 @@ class RgbCamera(RayCollisionSensor):
                 if collision.alpha == 0.0:
                     collision_pt = self.anchor.position
 
-
                 else:
                     collision_pt = collision.point
-
 
                 rel_pos_point = self._range / (self._range + 1) \
                                 * (collision_pt - elem_colliding.position).rotated(math.pi/2 - elem_colliding.angle)
@@ -110,20 +108,16 @@ class GreyCamera(RgbCamera):
 
     def _compute_raw_sensor(self, playground, *_):
         super()._compute_raw_sensor(playground)
-        self.sensor_values = np.dot(self.sensor_values[..., :3], [0.114, 0.299, 0.587])
+        self.sensor_values = np.dot(self.sensor_values[..., :3], [0.114, 0.299, 0.587]).reshape(self.shape)
 
     @property
     def shape(self):
-        return self._resolution
+        return self._resolution, 1
 
     def draw(self, width, height):
-
-        expanded = np.zeros((self.shape, 3))
-
-        for i in range(3):
-            expanded[:, i] = self.sensor_values[:]
-        img = np.expand_dims(expanded, 0)
-        img = resize(img, (height, width), order=0, preserve_range=True)
+        img = np.repeat(self.sensor_values, 3, axis=1)
+        img = np.expand_dims(img, 0)
+        img = resize(img, (height, width, 3), order=0, preserve_range=True)
 
         if not self._normalize:
             img /= 255.
@@ -133,7 +127,7 @@ class GreyCamera(RgbCamera):
 
 class BlindCamera(GreyCamera):
     def _compute_raw_sensor(self, playground, *_):
-        self.sensor_values = np.zeros((self._resolution,))
+        self.sensor_values = np.zeros(self.shape)
 
 
 class Lidar(RayCollisionSensor):
@@ -170,11 +164,11 @@ class Lidar(RayCollisionSensor):
             if collision:
                 pixels[angle_index] = collision.alpha*self._range
 
-        self.sensor_values = pixels[:].astype(float)
+        self.sensor_values = pixels[:].astype(float).reshape(self.shape)
 
     @property
     def shape(self):
-        return self._resolution
+        return self._resolution, 1
 
     def _apply_normalization(self):
 
@@ -182,11 +176,9 @@ class Lidar(RayCollisionSensor):
 
     def draw(self, width, height):
 
-        expanded = np.zeros((self.shape, 3))
-        for i in range(3):
-            expanded[:, i] = self.sensor_values[:]
-        img = np.expand_dims(expanded, 0)
-        img = resize(img, (height, width), order=0, preserve_range=True)
+        img = np.repeat(self.sensor_values, 3, axis=1)
+        img = np.expand_dims(img, 0)
+        img = resize(img, (height, width, 3), order=0, preserve_range=True)
 
         if not self._normalize:
             img /= self._sensor_max_value

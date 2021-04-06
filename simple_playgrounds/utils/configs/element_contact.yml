@@ -8,8 +8,8 @@ visible_endgoal_texture : &visible_endgoal_texture
 
 
 visible_endgoal:
-  'physical_shape': 'square'
-  'radius': 20
+  physical_shape: rectangle
+  width_length: [ 15, 15 ]
   'texture': *visible_endgoal_texture
   'reward': 200
 
@@ -20,8 +20,8 @@ visible_deathtrap_texture : &visible_deathtrap_texture
 
 
 visible_deathtrap:
-  'physical_shape': 'square'
-  'radius': 20
+  physical_shape: rectangle
+  width_length: [ 15, 15 ]
   'texture': *visible_deathtrap_texture
   'reward': -200
 

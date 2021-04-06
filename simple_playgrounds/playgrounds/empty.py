@@ -7,7 +7,7 @@ import math
 import random
 
 from simple_playgrounds.playground import Playground
-from simple_playgrounds.playgrounds.scene_elements import Basic, Door
+from simple_playgrounds.playgrounds.scene_elements import Wall, Door
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.parser import parse_configuration
 
@@ -118,7 +118,7 @@ class ConnectedRooms2D(Playground):
             else:
                 raise ValueError('doorstep not implemented')
 
-            doorsteps[(room_1_index, room_2_index)] = (x_doorstep, y_doorstep, orientation)
+            doorsteps[(room_1_index, room_2_index)] = ((x_doorstep, y_doorstep), orientation)
 
         return doorsteps
 
@@ -126,7 +126,7 @@ class ConnectedRooms2D(Playground):
 
         for _, doorstep_coordinates in self.doorsteps.items():
 
-            pos_x, pos_y, orientation = doorstep_coordinates
+            (pos_x, pos_y), orientation = doorstep_coordinates
 
             if orientation == 'vertical':
                 lower_wall_length = (pos_y % self._length_room) - self._doorstep_size / 2.0
@@ -141,9 +141,9 @@ class ConnectedRooms2D(Playground):
                                        pos_y + self._doorstep_size / 2.0 + upper_wall_length / 2.0),
                                        math.pi / 2)
 
-                lower_wall = Basic(width_length=[self._wall_depth, lower_wall_length],
+                lower_wall = Wall(width_length=[self._wall_depth, lower_wall_length],
                                    **self._wall_params)
-                upper_wall = Basic(width_length=[self._wall_depth, upper_wall_length],
+                upper_wall = Wall(width_length=[self._wall_depth, upper_wall_length],
                                    **self._wall_params)
 
                 self.add_scene_element(lower_wall, lower_wall_position)
@@ -162,10 +162,10 @@ class ConnectedRooms2D(Playground):
                                        pos_y),
                                        0)
 
-                left_wall = Basic(initial_position=left_wall_position,
+                left_wall = Wall(initial_position=left_wall_position,
                                   width_length=[self._wall_depth, left_wall_length],
                                   **self._wall_params)
-                right_wall = Basic(initial_position=right_wall_position,
+                right_wall = Wall(initial_position=right_wall_position,
                                    width_length=[self._wall_depth, right_wall_length],
                                    **self._wall_params)
 
@@ -180,11 +180,11 @@ class ConnectedRooms2D(Playground):
 
             wall_params['width_length'] = [self._wall_depth * 2, self._length_room]
 
-            wall = Basic(**wall_params)
+            wall = Wall(**wall_params)
             position = (0, vert * self._length_room + self._length_room / 2.0), math.pi / 2.0
             self.add_scene_element(wall, position)
 
-            wall = Basic(**wall_params)
+            wall = Wall(**wall_params)
             position = (self.width, vert * self._length_room + self._length_room / 2.0), math.pi / 2.0
             self.add_scene_element(wall, position)
 
@@ -192,11 +192,11 @@ class ConnectedRooms2D(Playground):
 
             wall_params['width_length'] = [self._wall_depth * 2, self._width_room]
 
-            wall = Basic(**wall_params)
+            wall = Wall(**wall_params)
             position = (hor * self._width_room + self._width_room / 2.0, 0), 0
             self.add_scene_element(wall, position)
 
-            wall = Basic(**wall_params)
+            wall = Wall(**wall_params)
             position = (hor * self._width_room + self._width_room / 2.0, self.length), 0
             self.add_scene_element(wall, position)
 
@@ -210,7 +210,7 @@ class ConnectedRooms2D(Playground):
             Scene Element Door
         """
 
-        pos_x, pos_y, orientation = self.doorsteps[doorstep]
+        (pos_x, pos_y), orientation = self.doorsteps[doorstep]
 
         if orientation == 'horizontal':
             theta = 0
@@ -219,7 +219,7 @@ class ConnectedRooms2D(Playground):
 
         door = Door(width_length=[self._wall_depth, self._doorstep_size])
 
-        self.add_scene_element(door, (pos_x, pos_y, theta))
+        self.add_scene_element(door, ((pos_x, pos_y), theta))
 
         return door
 
@@ -276,14 +276,15 @@ class ConnectedRooms2D(Playground):
             close_to_doorstep = False
 
             for _, doorstep in self.doorsteps.items():
-                if ((doorstep[0] - pos_x) ** 2 + (doorstep[1] - pos_y)**2)\
+                (doorstep_x, doorstep_y), _ = doorstep
+                if ((doorstep_x - pos_x) ** 2 + (doorstep_y - pos_y)**2)\
                         < ((size_object+self._doorstep_size) / 2) ** 2:
                     close_to_doorstep = True
 
             if not close_to_doorstep:
                 break
 
-        return pos_x, pos_y, 0
+        return (pos_x, pos_y), 0
 
     def get_area(self, room_coordinates, area_location):
         """

@@ -40,6 +40,7 @@ class BaseAgent(Agent):
                  backward=True,
                  lateral=False,
                  interactive=False,
+                 name=None,
                  **kwargs):
         """
         Base Agent, with a single platform as a body.
@@ -48,7 +49,7 @@ class BaseAgent(Agent):
             controller: controller of the agent.
             platform: Platform (FixedPlatform or MobilePlatform)
             interactive: if interactive, can eat/grasp/activate/absorb
-            **kwargs: additional kwargs
+            **kwargs: additional kwargs for the base
 
         Keyword Args:
             radius: radius of the platform. Default 15.
@@ -56,12 +57,12 @@ class BaseAgent(Agent):
         """
 
         if not (forward or backward or lateral or rotate):
-            base = FixedPlatform(name='base', can_absorb=True)
+            base = FixedPlatform(name='base', can_absorb=True, **kwargs)
 
         else:
-            base = MobilePlatform(name='base', can_absorb=True)
+            base = MobilePlatform(name='base', can_absorb=True, **kwargs)
 
-        super().__init__(base_platform=base, **kwargs)
+        super().__init__(base_platform=base, name=name)
 
         if forward:
 

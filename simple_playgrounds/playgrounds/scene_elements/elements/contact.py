@@ -13,6 +13,9 @@ from simple_playgrounds.utils.parser import parse_configuration
 
 class ContactSceneElement(SceneElement, ABC):
     """ Base Class for Contact Entities"""
+
+    background = True
+
     def __init__(self, **kwargs):
 
         SceneElement.__init__(self, **kwargs)
@@ -103,7 +106,6 @@ class Absorbable(ContactSceneElement, ABC):
     """Base class for entities that are absorbed upon contact."""
 
     absorbable = True
-    background = False
 
     def __init__(self, **kwargs):
         """

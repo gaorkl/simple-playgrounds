@@ -221,7 +221,7 @@ class Doors(SingleRoom):
         self.add_scene_element(pushbutton, [(200, 90), 0])
 
         door_4 = Door()
-        key = Key(graspable=True, interaction_range=5, mass=30)
+        key = Key(graspable=True, interaction_range=5, mass=10)
         lock = Lock(door=door_4, key=key)
 
         self.add_scene_element(door_4, [(250, 150), math.pi / 2])
