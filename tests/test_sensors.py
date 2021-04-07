@@ -5,13 +5,17 @@ from simple_playgrounds import Engine
 from simple_playgrounds.playgrounds.collection import Basics, Teleports, Interactives
 
 
-def test_sensor_without_params(single_sensor):
+def test_sensor_without_params(any_sensor):
 
     agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
-    agent.add_sensor(single_sensor(anchor=agent.head,
-                                   invisible_elements=agent.parts,
-                                  ))
+    agent.add_sensor(any_sensor(anchor=agent.head,
+                                invisible_elements=agent.parts,
+                                ))
+
+    agent.add_sensor(RgbCamera(anchor=agent.base_platform,
+                               min_range=agent.base_platform.radius,
+                               ))
 
     for pg_class in [Basics, Teleports, Interactives, ]:
         playground = pg_class()
@@ -24,18 +28,18 @@ def test_sensor_without_params(single_sensor):
         playground.reset()
 
 
-def test_sensor_with_params(single_sensor, resolution, fov, obs_range):
+def test_ray_sensors(ray_sensor, resolution, fov, obs_range):
 
     agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
-    agent.add_sensor(single_sensor(anchor=agent.head,
+    agent.add_sensor(ray_sensor(anchor=agent.head,
                                    invisible_elements=agent.parts,
                                    fov=fov,
                                    resolution=resolution,
                                    max_range=obs_range
                                   ))
 
-    agent.add_sensor(single_sensor(anchor=agent.head,
+    agent.add_sensor(ray_sensor(anchor=agent.head,
                                    min_range=agent.base_platform.radius,
                                    fov=fov,
                                    resolution=resolution,
@@ -59,6 +63,10 @@ def test_rgb_on_teleports(base_forward_agent):
 
     agent.add_sensor(RgbCamera(anchor=agent.base_platform,
                                invisible_elements=agent.parts,
+                               ))
+
+    agent.add_sensor(RgbCamera(anchor=agent.base_platform,
+                               min_range=agent.base_platform.radius,
                                ))
 
     playground = Teleports()
