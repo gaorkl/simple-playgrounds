@@ -42,7 +42,7 @@ class Sensor(ABC):
     sensor_type = SensorTypes.SENSOR
     sensor_modality = SensorTypes.SENSOR
 
-    def __init__(self, anchor, fov, resolution, max_range,
+    def __init__(self, anchor, fov, resolution, max_range, min_range,
                  invisible_elements, normalize, noise_params, name=None, **_kwargs):
         """
         Sensors are attached to an anchor. They detect every visible Agent Part or Scene Element.
@@ -53,6 +53,7 @@ class Sensor(ABC):
             fov: Field of view of the sensor (in degrees).
             resolution: Resolution of the sensor (in pixels, or number of rays).
             max_range: maximum range of the sensor (in the same units as the playground distances).
+            min_range: minimum range of the sensor (in the same units as the playground distances).
             invisible_elements: list of elements invisible to the sensor.
             normalize: boolean. If True, sensor values are scaled between 0 and 1.
             noise_params: Dictionary of noise parameters.
@@ -67,7 +68,15 @@ class Sensor(ABC):
 
         Notes:
              As only 32 invisible groups can be set in pymunk, this limits the number of sensors
-             with invisible_elements to around 30.
+             with invisible_elements to around 30 for each playground. While not a problem in most cases,
+             it can become a limitation for large-scale Multi-agent systems.
+
+             For SEMANTIC and ROBOTIC sensors, another way to prevent the sensor from detecting its own anchor
+             is to set the min_range of the sensor to a range larger than the radius of its anchor.
+             In this case: min_range = anchor.radius + 1.
+
+             The sensor values are the same when using invisible_elements or setting a minimum range.
+             The approach that sets invisible_elements attributes is preferred as it is slightly faster.
         """
 
         # Sensor name
@@ -108,16 +117,19 @@ class Sensor(ABC):
             else:
                 raise ValueError('Noise type not implemented')
 
-        self._range = max_range
+        self._max_range = max_range
         self._fov = fov * math.pi / 180
         self._resolution = resolution
+        self._min_range = min_range
 
         if not self._resolution > 0:
             raise ValueError('resolution must be more than 1')
         if not self._fov > 0:
             raise ValueError('field of view must be more than 1')
-        if not self._range > 0:
-            raise ValueError('range must be more than 1')
+        if not self._max_range > 0:
+            raise ValueError('maximum range must be more than 1')
+        if not self._min_range >= 0:
+            raise ValueError('minimum range must be more than 0')
 
         # Sensor max value is used for noise and normalization calculation
         self._sensor_max_value = 0
@@ -239,12 +251,16 @@ class RayCollisionSensor(Sensor, ABC):
 
     def _compute_collision(self, playground, sensor_angle):
 
-        position = self.anchor.pm_body.position
+        position_body = self.anchor.pm_body.position
         angle = self.anchor.pm_body.angle + sensor_angle
 
-        position_end = position + pymunk.Vec2d(self._range, 0).rotated(angle)
+        position_start = position_body + pymunk.Vec2d(self._min_range+1, 0).rotated(angle)
+        position_end = position_body + pymunk.Vec2d(self._max_range-1, 0).rotated(angle)
 
-        collision = playground.space.segment_query_first(position, position_end, 1, self.invisible_filter)
+        collision = playground.space.segment_query_first(position_start,
+                                                         position_end,
+                                                         1,
+                                                         self.invisible_filter)
 
         return collision
 

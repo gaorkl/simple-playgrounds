@@ -96,10 +96,10 @@ class TopdownSensor(Sensor):
             if not elem.background and elem not in self._invisible_elements:
                 elem.draw(sensor_surface)
 
-        cropped = pygame.Surface((2 * self._range + 1, 2 * self._range + 1))
+        cropped = pygame.Surface((2 * self._max_range + 1, 2 * self._max_range + 1))
 
-        pos_x = playground.length - (self.anchor.position[0] + self._range)
-        pos_y = playground.length - (self.anchor.position[1] + self._range)
+        pos_x = playground.length - (self.anchor.position[0] + self._max_range)
+        pos_y = playground.length - (self.anchor.position[1] + self._max_range)
         cropped.blit(sensor_surface, (pos_x, pos_y))
 
         img_cropped = pygame.surfarray.pixels3d(cropped).astype(float)

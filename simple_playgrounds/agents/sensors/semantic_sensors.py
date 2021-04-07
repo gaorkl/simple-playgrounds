@@ -34,7 +34,7 @@ class SemanticRay(RayCollisionSensor):
                          remove_duplicates=remove_duplicates,
                          **sensor_params)
 
-        self._sensor_max_value = self._range
+        self._sensor_max_value = self._max_range
 
     def _compute_raw_sensor(self, playground, *_):
 
@@ -66,7 +66,7 @@ class SemanticRay(RayCollisionSensor):
             if collision:
 
                 element_colliding = playground.get_entity_from_shape(pm_shape=collision.shape)
-                distance = collision.alpha * self._range
+                distance = collision.alpha * self._max_range
 
                 detection = Detection(entity=element_colliding,
                                       distance=distance,
@@ -97,9 +97,9 @@ class SemanticRay(RayCollisionSensor):
 
             distance = detection.distance
             if self._normalize:
-                distance *= self._range
+                distance *= self._max_range
 
-            distance *= width / (2 * self._range)
+            distance *= width / (2 * self._max_range)
 
             pos_x = int(width / 2 - distance * math.cos(-detection.angle))
             pos_y = int(width / 2 - distance * math.sin(-detection.angle))
@@ -200,9 +200,9 @@ class SemanticCones(SemanticRay):
 
             distance = detection.distance
             if self._normalize:
-                distance *= self._range
+                distance *= self._max_range
 
-            distance *= width / (2 * self._range)
+            distance *= width / (2 * self._max_range)
 
             pos_x_1 = int(width / 2
                           - distance * math.cos(-detection.angle - self._fov/self.number_cones/2))

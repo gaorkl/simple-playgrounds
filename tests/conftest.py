@@ -55,24 +55,31 @@ def base_forward_agent():
 
 # Agent Sensor
 @pytest.fixture(scope="module", params=[RgbCamera, GreyCamera, Lidar,
-                                       Touch, TopdownSensor,
+                                       Touch, Proximity,
+                                       TopdownSensor,
                                        FullPlaygroundSensor,
                                        SemanticRay, SemanticCones])
-def single_sensor(request):
+def any_sensor(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 90, 180, 360, 380])
+@pytest.fixture(scope="module", params=[RgbCamera,
+                                       SemanticRay, SemanticCones])
+def ray_sensor(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[2, 90, 180])
 def fov(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 100, 1000])
+@pytest.fixture(scope="module", params=[2, 100, 500])
 def obs_range(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 16, 32])
+@pytest.fixture(scope="module", params=[2, 32, 64])
 def resolution(request):
     return request.param
 

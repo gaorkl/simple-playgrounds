@@ -2,32 +2,9 @@
 
 Part inherits from Entity, and is used to create different body parts
 of an agent. Parts are visible and movable by default.
-Two different kind of body parts inherit from Part: Link and Platform.
-Platform is the base of an Agent while Link is an additional part which
-can be attached to Link or Platform.
 
-Examples can be found in simple_playgrounds/agents/agents.py
-Module implementing BodyParts.
-
-A BodyPart is a Part which can be attached to any other Part.
-BodyParts are controlled by angular velocity relative to their anchor.
-BodyParts do not collide with the Part (anchor) they are attached to.
-
-Module that defines the base class Part and Actuator.
-
-Part inherits from Entity, and is used to create different body parts
-of an agent. Parts are visible and movable by default.
-Two different kind of body parts inherit from Part: Link and Platform.
-Platform is the base of an Agent while Link is an additional part which
-can be attached to Link or Platform.
-
-Examples can be found in simple_playgrounds/agents/agents.py
-Module implementing BodyParts.
-
-A BodyPart is a Part which can be attached to any other Part.
-BodyParts are controlled by angular velocity relative to their anchor.
-BodyParts do not collide with the Part (anchor) they are attached to.
-
+Examples on how to add Parts to an agent can be found
+in simple_playgrounds/agents/agents.py
 """
 
 from abc import ABC
@@ -48,18 +25,8 @@ class Part(Entity, ABC):
     Part inherits from Entity. It is a visible, movable Entity.
 
     An Anchored part is attached to an other Part (anchor).
-        They are joined at a single point.
-        A Link can never collide with its Anchor.
-        A link has at least one actuator controlling its angular velocity.
-
-        Args:
-            anchor: Part on which the new Link will be attached
-            position_anchor: relative position of the joint on the anchor. Default: (0,0)
-            position_part: relative position of the joint on the part. Default: (0,0)
-            angle_offset: angle offset of the link compared to the anchor (in rads). Default: 0
-            **kwargs: additional Keyword Parameters
-
-
+    They are joined at a single point.
+    A Part can never collide with its Anchor.
     """
 
     # pylint: disable=too-many-instance-attributes
@@ -79,15 +46,16 @@ class Part(Entity, ABC):
                  **kwargs,
                  ):
         """
+
         Args:
-            **kwargs: Optional Keyword Arguments
-
-
-
-        Note:
-            All physical properties of the Part can be set as keyword argument.
-            Refer to the Entity class for the list of available keyword arguments.
-
+            anchor (:obj:`Part`):
+                Body Part on which the Part is attached
+            position_anchor:
+            position_part:
+            rotation_range:
+            angle_offset:
+            can_absorb:
+            **kwargs:
         """
 
         default_config = parse_configuration('agent_parts', self.entity_type)

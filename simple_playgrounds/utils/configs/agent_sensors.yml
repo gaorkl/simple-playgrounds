@@ -3,6 +3,7 @@
 
 sensor:
   resolution: None
+  min_range: None
   max_range: None
   fov: None
 
@@ -10,27 +11,32 @@ sensor:
 
 rgb:
   resolution: 64
+  min_range: 0
   max_range: 600
   fov: 120
 
 grey:
   resolution: 128
+  min_range: 0
   max_range: 600
   fov: 180
 
 # Distance-like sensors
 
 lidar:
+  min_range: 0
   max_range: 300
   fov: 180
   resolution: 64
 
 proximity:
+  min_range: 0
   max_range: 300
   fov: 180
   resolution: 64
 
 touch:
+  min_range: 0
   max_range: 5
   fov: 360
   resolution: 36
@@ -40,11 +46,13 @@ touch:
 
 top_down:
   resolution: 200
+  min_range: 0
   max_range: 100
   fov: 180
 
 full_playground:
   resolution: 64
+  min_range: 0
   max_range: 10
   fov: 10
 
@@ -53,12 +61,14 @@ full_playground:
 
 semantic_ray:
   resolution: 32
+  min_range: 0
   max_range: 200
   fov: 360
 
 semantic_cone:
   n_cones: 36
   rays_per_cone: 4
+  min_range: 0
   max_range: 200
   fov: 360
 
