@@ -1,10 +1,9 @@
 import math
 
-from simple_playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.empty import SingleRoom
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
-from simple_playgrounds.playgrounds.scene_elements import *
 from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
 
 

@@ -2,15 +2,12 @@
 Module for Edible SceneElement
 """
 from abc import ABC
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
 
-
-class Edible(SceneElement, ABC):
-
+class Edible(InteractiveElement, ABC):
     """
     Base class for edible Scene Elements.
     Once eaten by an agent, the SceneElement shrinks in size, mass, and available reward.
@@ -21,12 +18,16 @@ class Edible(SceneElement, ABC):
     interactive = True
     background = False
 
-    def __init__(self,  **kwargs):
+    def __init__(self,
+                 reward: float,
+                 shrink_ratio_when_eaten: float,
+                 min_reward: float,
+                 **entity_params):
         """
         Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
 
         Args:
-            **kwargs: other params to configure SceneElement. Refer to Entity class.
+            **entity_params: other params to configure SceneElement. Refer to Entity class.
 
         Keyword Args:
             shrink_ratio_when_eaten: When eaten by an agent, the mass, size, and reward are multiplied by this ratio.
@@ -36,21 +37,21 @@ class Edible(SceneElement, ABC):
 
         """
 
-        default_config = parse_configuration('element_interactive', self.entity_type)
-        entity_params = {**default_config, **kwargs}
+        default_config = parse_configuration('element_interactive', self.element_type)
+        entity_params = {**default_config, **entity_params}
 
-        super().__init__(**entity_params)
+        super().__init__(reward=reward, **entity_params)
 
-        self.shrink_ratio_when_eaten = entity_params['shrink_ratio_when_eaten']
-        self.min_reward = entity_params['min_reward']
-        self.initial_reward = entity_params['initial_reward']
+        self._shrink_ratio_when_eaten = shrink_ratio_when_eaten
+        self._min_reward = min_reward
 
         self.initial_width, self.initial_length = self.width, self.length
         self.initial_radius = self.radius
         self.initial_mass = self.mass
 
-        self.reward = self.initial_reward
+        self.initial_reward = reward
 
+    def assign_collision_to_shape(self):
         self.pm_interaction_shape.collision_type = CollisionTypes.EDIBLE
 
     def _generate_shapes_and_masks(self):
@@ -70,27 +71,26 @@ class Edible(SceneElement, ABC):
             self.grasp_mask = self._create_mask(is_interactive=True)
             self.pm_elements.append(self.pm_grasp_shape)
 
-    def get_reward(self):
-        """ Returns current reward when eaten."""
-        return self.reward
+    def activate(self,
+                 entity: Union[None, Entity] = None,
+                 ) -> AddRemoveElems:
 
-    def eats(self):
-        """ Change size, reward, and appearance."""
+        """" Change size, reward, and appearance."""
         # Change reward, size and mass
         previous_position = self.pm_body.position
         previous_angle = self.pm_body.angle
 
-        self.reward = self.reward*self.shrink_ratio_when_eaten
+        self.reward = self.reward * self._shrink_ratio_when_eaten
 
         if self.movable:
-            self.mass = self.mass * self.shrink_ratio_when_eaten
+            self.mass = self.mass * self._shrink_ratio_when_eaten
 
         self.pm_body = self._create_pm_body()
         # self.pm_elements = [self.pm_body]
 
-        self.width = self.width * self.shrink_ratio_when_eaten
-        self.length = self.length * self.shrink_ratio_when_eaten
-        self.radius = self.radius * self.shrink_ratio_when_eaten
+        self.width = self.width * self._shrink_ratio_when_eaten
+        self.length = self.length * self._shrink_ratio_when_eaten
+        self.radius = self.radius * self._shrink_ratio_when_eaten
         self.interaction_width = self.width + self.interaction_range
         self.interaction_length = self.length + self.interaction_range
         self.interaction_radius = self.radius + self.interaction_range
@@ -100,12 +100,20 @@ class Edible(SceneElement, ABC):
 
         self._generate_shapes_and_masks()
 
-        if self.initial_reward > 0 and self.reward > self.min_reward:
-            return False
-        if self.initial_reward < 0 and self.reward < self.min_reward:
-            return False
+        continue_eating = False
 
-        return True
+        if self.initial_reward > 0 and self.reward > self._min_reward:
+            continue_eating = True
+
+        if self.initial_reward < 0 and self.reward < self._min_reward:
+            continue_eating = True
+
+        if continue_eating:
+            elem_add = (self, None)
+        else:
+            elem_add = True
+
+        return (self,), elem_add
 
     def reset(self):
 
@@ -136,7 +144,7 @@ class Apple(Edible):
     a min reward of 5, and a shrink_ratio of 0.9.
     """
 
-    entity_type = SceneElementTypes.APPLE
+    entity_type = ElementTypes.APPLE
 
 
 class RottenApple(Edible):
@@ -147,4 +155,4 @@ class RottenApple(Edible):
     a min reward of -5, and a shrink_ratio of 0.9.
 
     """
-    entity_type = SceneElementTypes.ROTTEN_APPLE
+    entity_type = ElementTypes.ROTTEN_APPLE

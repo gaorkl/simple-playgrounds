@@ -69,6 +69,13 @@ class Entity(ABC):
             mass (:obj: 'float'): mass of the entity.
         """
 
+        if self.graspable:
+            self.interactive = True
+            self.movable = True
+
+        if self.movable:
+            self.background = False
+
         # Internal counter to assign identity number and name to each entity
         self.name = entity_params.get('name', self.entity_type.name.lower() + '_' + str(Entity.index_entity))
         Entity.index_entity += 1
@@ -122,7 +129,10 @@ class Entity(ABC):
         self.prev_angle = self.pm_body.angle
 
         # Used to set an element which is not supposed to overlap
-        self.allow_overlapping = entity_params.get('allow_overlapping', True)
+        self._allow_overlapping = False
+        self._overlapping_strategy_set = False
+        self._max_attempts = 100
+        self._error_if_fails = False
 
         for prop, value in entity_params.get('pm_attr', {}).items():
             self._set_pm_attr(prop, value)
@@ -334,6 +344,21 @@ class Entity(ABC):
         mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
 
         return mask
+
+    # OVERLAPPING STRATEGY
+    @property
+    def overlapping_strategy(self):
+        if self._overlapping_strategy_set:
+            return self._allow_overlapping, self._max_attempts, self._error_if_fails
+
+        else:
+            return None
+
+    @overlapping_strategy.setter
+    def overlapping_strategy(self, strategy):
+        self._allow_overlapping, self._max_attempts, self._error_if_fails = strategy
+        self._overlapping_strategy_set = False
+
 
     # POSITION AND VELOCITY
 

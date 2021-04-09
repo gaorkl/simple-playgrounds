@@ -6,8 +6,8 @@ Empty Playgrounds with built-in walls and rooms
 import math
 import random
 
-from simple_playgrounds.playground import Playground
-from simple_playgrounds.playgrounds.scene_elements import Wall, Door
+from simple_playgrounds.playgrounds.playground import Playground
+from simple_playgrounds.scene_elements import Wall, Door
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.parser import parse_configuration
 

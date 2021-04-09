@@ -18,7 +18,7 @@ import math
 # pylint: disable=unused-wildcard-import
 from pygame.locals import *  # pylint: disable=wildcard-import
 
-from simple_playgrounds.agent import Agent
+from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts.parts import Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
 from simple_playgrounds.utils.definitions import KeyTypes
 from simple_playgrounds.agents.parts.actuators import AngularVelocity, LongitudinalForce, LateralForce, Grasp, Eat, Activate, AngularRelativeVelocity

@@ -1,6 +1,6 @@
-from simple_playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.empty import SingleRoom
-from simple_playgrounds.playgrounds.scene_elements import Basic
+from simple_playgrounds.scene_elements import Basic
 
 
 @PlaygroundRegister.register('test_test', 'basic')

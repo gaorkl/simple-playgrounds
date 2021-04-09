@@ -1,15 +1,15 @@
 """
 Teleport can be used to teleport an agent.
 """
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 
 # pylint: disable=line-too-long
 
 
 class Teleport(SceneElement):
 
-    entity_type = SceneElementTypes.TELEPORT
+    entity_type = ElementTypes.TELEPORT
     interactive = True
     traversable = True
 

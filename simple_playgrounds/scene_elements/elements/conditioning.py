@@ -1,18 +1,18 @@
 """
 Scene Elements used for conditioning experiments
 """
-from simple_playgrounds.playground import Playground
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.playgrounds.scene_elements.elements.interactive import Lever
+from simple_playgrounds.playgrounds.playground import Playground
+from simple_playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.scene_elements.elements import Lever
 from simple_playgrounds.utils.parser import parse_configuration
-from simple_playgrounds.utils.definitions import SceneElementTypes
+from simple_playgrounds.utils.definitions import ElementTypes
 
 
 class ColorChanging(SceneElement):
 
     """ SceneElement that changes its texture based on a timer."""
 
-    entity_type = SceneElementTypes.COLOR_CHANGING
+    entity_type = ElementTypes.COLOR_CHANGING
     timed = True
 
     def __init__(self, timers, textures, **kwargs):
@@ -54,19 +54,6 @@ class ColorChanging(SceneElement):
         self.texture_surface = self.textures[0]
         self.force_redraw = False
 
-        self.timer = 0
-        self.current_index = 0
-        self._reset_timer()
-
-    def _reset_timer(self):
-
-        self.current_index = 0
-        self.timer = self.timers[self.current_index]
-        self.force_redraw = True
-
-    def pre_step(self):
-
-        self.timer -= 1
 
     def activate(self, activating_entity):
         """
@@ -95,7 +82,8 @@ class ColorChanging(SceneElement):
     def reset(self):
 
         super().reset()
-        self._reset_timer()
+        self.force_redraw = True
+
 
 
 class ConditionedColorChanging(ColorChanging):

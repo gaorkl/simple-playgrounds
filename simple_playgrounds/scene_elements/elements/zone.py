@@ -4,12 +4,12 @@ Passive Scene Elements do not require action from an agent.
 """
 from abc import ABC
 
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.utils.parser import parse_configuration
 
 
-class PassiveSceneElement(SceneElement, ABC):
+class ZoneElement(SceneElement, ABC):
     """
     Passive Scene Elements are activated when an agent is within
     their interaction radius.
@@ -19,7 +19,7 @@ class PassiveSceneElement(SceneElement, ABC):
 
     def __init__(self, **kwargs):
         SceneElement.__init__(self, **kwargs)
-        self.pm_interaction_shape.collision_type = CollisionTypes.PASSIVE
+        self.pm_interaction_shape.collision_type = CollisionTypes.ZONE
 
         self.reward = 0
         self.reward_provided = False
@@ -41,7 +41,7 @@ class PassiveSceneElement(SceneElement, ABC):
         self._reward = rew
 
 
-class TerminationZone(PassiveSceneElement, ABC):
+class TerminationZone(ZoneElement, ABC):
     """
     Termination Zones terminate the episode when activated.
     """
@@ -77,7 +77,7 @@ class GoalZone(TerminationZone):
     Termination Zone that provides positive reward when activated.
     """
 
-    entity_type = SceneElementTypes.GOAL_ZONE
+    entity_type = ElementTypes.GOAL_ZONE
 
 
 class DeathZone(TerminationZone):
@@ -85,10 +85,10 @@ class DeathZone(TerminationZone):
     Termination Zone that provides negative reward when activated.
     """
 
-    entity_type = SceneElementTypes.DEATH_ZONE
+    entity_type = ElementTypes.DEATH_ZONE
 
 
-class RewardZone(PassiveSceneElement, ABC):
+class RewardZone(ZoneElement, ABC):
     """
     Reward Zones provide a reward to an agent in the zone.
     """
@@ -149,7 +149,7 @@ class ToxicZone(RewardZone):
     Default: Yellow square of radius 15, reward -1 and total_reward -1000000
     """
 
-    entity_type = SceneElementTypes.TOXIC_ZONE
+    entity_type = ElementTypes.TOXIC_ZONE
 
 
 class HealingZone(RewardZone):
@@ -163,4 +163,4 @@ class HealingZone(RewardZone):
 
     """
 
-    entity_type = SceneElementTypes.HEALING_ZONE
+    entity_type = ElementTypes.HEALING_ZONE

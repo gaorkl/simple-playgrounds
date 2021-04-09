@@ -1,56 +1,17 @@
 """
 Contact entities interact upon touching an agent
 """
-from abc import ABC, abstractmethod
+from abc import ABC
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    pass
 
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.definitions import ElementTypes
 from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
 # pylint: disable=useless-super-delegation
 
-
-class ContactSceneElement(SceneElement, ABC):
-    """ Base Class for Contact Entities"""
-
-    background = True
-
-    def __init__(self, **kwargs):
-
-        SceneElement.__init__(self, **kwargs)
-        self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
-
-        self.reward = 0
-        self.reward_provided = False
-
-    def pre_step(self):
-        self.reward_provided = False
-
-    @abstractmethod
-    def activate(self):
-        """
-        Upon activation, returns a list of entity to remove from PLayground,
-        and a list of entities to add to Playground.
-        """
-        list_remove = []
-        list_add = []
-
-        return list_remove, list_add
-
-    @property
-    def reward(self):
-        """ Reward provided upon contact."""
-
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self._reward
-
-        return 0
-
-    @reward.setter
-    def reward(self, rew):
-        self._reward = rew
 
 
 class TerminationContact(ContactSceneElement, ABC):
@@ -78,9 +39,6 @@ class TerminationContact(ContactSceneElement, ABC):
         super().__init__(**entity_params)
         self.reward = entity_params['reward']
 
-    def activate(self):
-        return super().activate()
-
 
 class VisibleEndGoal(TerminationContact):
     """ TerminationContact terminates the episode and provides a positive reward.
@@ -88,7 +46,7 @@ class VisibleEndGoal(TerminationContact):
     Default: Green square of radius 20, reward of 200.
 
     """
-    entity_type = SceneElementTypes.VISIBLE_ENDGOAL
+    entity_type = ElementTypes.VISIBLE_ENDGOAL
 
 
 class VisibleDeathTrap(TerminationContact):
@@ -98,7 +56,7 @@ class VisibleDeathTrap(TerminationContact):
     Default: Red square of radius 20, reward of -200.
 
     """
-    entity_type = SceneElementTypes.VISIBLE_DEATHTRAP
+    entity_type = ElementTypes.VISIBLE_DEATHTRAP
 
 
 class Absorbable(ContactSceneElement, ABC):
@@ -122,7 +80,7 @@ class Absorbable(ContactSceneElement, ABC):
         super().__init__(**entity_params)
         self.reward = entity_params['reward']
 
-    def activate(self):
+    def activate_by_contact(self):
 
         list_add = []
         list_remove = [self]
@@ -136,7 +94,7 @@ class Candy(Absorbable):
     Default: Violet triangle of radius 4, which provides a reward of 5 when in contact with an agent.
 
     """
-    entity_type = SceneElementTypes.CANDY
+    entity_type = ElementTypes.CANDY
 
 
 class Poison(Absorbable):
@@ -146,13 +104,13 @@ class Poison(Absorbable):
 
     """
 
-    entity_type = SceneElementTypes.POISON
+    entity_type = ElementTypes.POISON
 
 
 class PushButton(ContactSceneElement):
     """Push button used to open a door."""
 
-    entity_type = SceneElementTypes.SWITCH
+    entity_type = ElementTypes.SWITCH
     background = False
 
     def __init__(self, door, **kwargs):
@@ -172,8 +130,8 @@ class PushButton(ContactSceneElement):
 
         self.door = door
 
-    def activate(self):
-        list_remove = [self, self.door]
+    def activate_by_contact(self):
+        elems_remove = [self, self.door]
         list_add = []
 
         self.door.opened = True

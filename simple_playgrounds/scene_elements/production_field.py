@@ -3,7 +3,7 @@ Module for Field
 """
 import random
 
-from simple_playgrounds.utils.definitions import SceneElementTypes
+from simple_playgrounds.utils.definitions import ElementTypes
 
 
 # pylint: disable=too-many-instance-attributes
@@ -16,7 +16,7 @@ class Field:
     """
 
     id_number = 0
-    entity_type = SceneElementTypes.FIELD
+    entity_type = ElementTypes.FIELD
 
     def __init__(self, entity_produced, production_area, probability=0.05, limit=10, total_limit=30,
                  entity_produced_params=None):

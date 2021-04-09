@@ -28,7 +28,6 @@ class Agent(ABC):
 
     """
     index_agent = 0
-    overlapping = None
     in_a_playground = False
 
     def __init__(self, base_platform, name=None, noise_params=None):
@@ -98,6 +97,12 @@ class Agent(ABC):
         # Teleport
         self.is_teleporting = False
 
+        # Used to set an element which is not supposed to overlap
+        self._allow_overlapping = False
+        self._overlapping_strategy_set = False
+        self._max_attempts = 100
+        self._error_if_fails = False
+
     # CONTROLLER
     @property
     def controller(self):
@@ -123,6 +128,21 @@ class Agent(ABC):
         self._actuators.append(actuator)
         if isinstance(actuator, Grasp):
             actuator.part.can_grasp = True
+
+    # OVERLAPPING STRATEGY
+    @property
+    def overlapping_strategy(self):
+        if self._overlapping_strategy_set:
+            return self._allow_overlapping, self._max_attempts, self._error_if_fails
+
+        else:
+            return None
+
+    @overlapping_strategy.setter
+    def overlapping_strategy(self, strategy):
+        self._allow_overlapping, self._max_attempts, self._error_if_fails = strategy
+        self._overlapping_strategy_set = False
+
 
     # POSITION / VELOCITY
     @property

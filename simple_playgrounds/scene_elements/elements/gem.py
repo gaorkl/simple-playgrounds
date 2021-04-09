@@ -4,8 +4,8 @@ Gem interacts with other SceneElements.
 """
 from abc import ABC
 
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.utils.parser import parse_configuration
 
 
@@ -31,7 +31,7 @@ class Coin(GemSceneElement):
     """Coins are used with a VendingMachine to get rewards.
     A Coin disappears when in contact with its VendingMachine."""
 
-    entity_type = SceneElementTypes.COIN
+    entity_type = ElementTypes.COIN
 
 
 class Key(GemSceneElement):
@@ -39,4 +39,4 @@ class Key(GemSceneElement):
     """Keys are used to open Chests or Doors.
     A Key disappears when in contact with its VendingMachine."""
 
-    entity_type = SceneElementTypes.KEY
+    entity_type = ElementTypes.KEY

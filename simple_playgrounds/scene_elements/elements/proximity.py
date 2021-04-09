@@ -1,10 +1,10 @@
 from abc import ABC
-from simple_playgrounds.playgrounds.scene_elements.elements.passive import PassiveSceneElement
+from simple_playgrounds.scene_elements.elements.zone import ZoneElement
 from simple_playgrounds.utils.parser import parse_configuration
-from simple_playgrounds.utils.definitions import SceneElementTypes
+from simple_playgrounds.utils.definitions import ElementTypes
 
 
-class VisibleRewardZone(PassiveSceneElement, ABC):
+class VisibleRewardZone(ZoneElement, ABC):
     """
     Base class for entities that provide reward to an agent in its proximity.
     """
@@ -66,7 +66,7 @@ class Fairy(VisibleRewardZone):
     Default: Turquoise-blue circle of radius 8, reward 2 and total_reward 200.
 
     """
-    entity_type = SceneElementTypes.FAIRY
+    entity_type = ElementTypes.FAIRY
 
 
 class Fireball(VisibleRewardZone):
@@ -78,4 +78,4 @@ class Fireball(VisibleRewardZone):
 
     """
 
-    entity_type = SceneElementTypes.FIREBALL
+    entity_type = ElementTypes.FIREBALL

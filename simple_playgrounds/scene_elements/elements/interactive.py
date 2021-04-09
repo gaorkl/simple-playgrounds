@@ -1,12 +1,9 @@
 """
 InteractiveSceneElements can be activated by an agent.
 """
-from abc import ABC, abstractmethod
 
 from simple_playgrounds.agents.parts.parts import Part
-from simple_playgrounds.playground import Playground
-from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
+from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.parser import parse_configuration
 
@@ -14,57 +11,10 @@ from simple_playgrounds.utils.parser import parse_configuration
 # pylint: disable=line-too-long
 
 
-class InteractiveSceneElement(SceneElement, ABC):
-    """Base Class dor InteractiveSceneElements"""
-    interactive = True
-
-    def __init__(self, **kwargs):
-        SceneElement.__init__(self, **kwargs)
-        self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
-
-        self.activated = False
-
-    @abstractmethod
-    def activate(self, activating_entity):
-        """
-        Activate the SceneElement.
-
-        Args:
-            activating_entity: Entity that activated the SceneElement.
-
-        Returns:
-            A tuple (entity_removed, entity_added).
-             entity_added can be:
-              - an entity, in which case playground will assume that it was already placed before and has a position.
-              - a tuple (entity, position).
-              - None
-             entity_removed can be:
-              - an entity
-              - a list of entities
-              - None
-
-        """
-        return None, None
-
-    @property
-    @abstractmethod
-    def reward(self):
-        """Reward provided upon activation."""
-        ...
-
-    @reward.setter
-    @abstractmethod
-    def reward(self, rew):
-        ...
-
-    def pre_step(self):
-        self.activated = False
-
-
 class Lever(InteractiveSceneElement):
     """Lever Entities provide a reward when activated."""
 
-    entity_type = SceneElementTypes.LEVER
+    entity_type = ElementTypes.LEVER
 
     def __init__(self, **kwargs):
 
@@ -96,16 +46,16 @@ class Lever(InteractiveSceneElement):
     def reward(self, rew):
         self._reward = rew
 
-    def activate(self, activating_entity):
+    def activate_by_element(self, activating_element):
         # pylint: disable=useless-super-delegation
-        return super().activate(activating_entity)
+        return super().activate_by_element(activating_element)
 
 
 class Dispenser(InteractiveSceneElement):
     """Dispenser produces a new entity in an area of the playground when activated.
     """
 
-    entity_type = SceneElementTypes.DISPENSER
+    entity_type = ElementTypes.DISPENSER
     interactive = True
 
     def __init__(self, entity_produced, entity_produced_params=None, production_area=None, **kwargs):
@@ -154,7 +104,7 @@ class Dispenser(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, _):
+    def activate_by_element(self, _):
 
         elem_add = None
 
@@ -188,7 +138,7 @@ class Chest(InteractiveSceneElement):
     When opened, Chest and key disappear, treasure appears.
     """
 
-    entity_type = SceneElementTypes.CHEST
+    entity_type = ElementTypes.CHEST
     interactive = True
     background = False
 
@@ -216,12 +166,12 @@ class Chest(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, activating_entity):
+    def activate_by_element(self, activating_element):
 
         list_remove = None
         elem_add = None
 
-        if activating_entity is self.key:
+        if activating_element is self.key:
 
             list_remove = [self.key, self]
             elem_add = (self.treasure, self.coordinates)
@@ -235,7 +185,7 @@ class VendingMachine(InteractiveSceneElement):
     When in contact with a coin, provide a reward to the agent closest to the coin.
     """
 
-    entity_type = SceneElementTypes.VENDING_MACHINE
+    entity_type = ElementTypes.VENDING_MACHINE
     interactive = True
 
     def __init__(self, **kwargs):
@@ -261,13 +211,13 @@ class VendingMachine(InteractiveSceneElement):
     def reward(self, rew):
         self._reward = rew
 
-    def activate(self, activating_entity):
+    def activate_by_element(self, activating_element):
 
         list_remove = None
 
-        if activating_entity in self.accepted_coins.copy() and self.activated is False:
-            list_remove = [activating_entity]
-            self.accepted_coins.remove(activating_entity)
+        if activating_element in self.accepted_coins.copy() and self.activated is False:
+            list_remove = [activating_element]
+            self.accepted_coins.remove(activating_element)
             self.activated = True
 
         return list_remove, None
@@ -279,7 +229,7 @@ class OpenCloseSwitch(InteractiveSceneElement):
     Opens or close a door when activated by an agent.
     """
 
-    entity_type = SceneElementTypes.SWITCH
+    entity_type = ElementTypes.SWITCH
     interactive = True
 
     def __init__(self, door, **kwargs):
@@ -307,7 +257,7 @@ class OpenCloseSwitch(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, _):
+    def activate_by_element(self, _):
 
         elem_add = None
         elem_remove = None
@@ -333,8 +283,7 @@ class TimerSwitch(InteractiveSceneElement):
     If activated when door is still open, resets the timer.
     """
 
-    entity_type = SceneElementTypes.SWITCH
-    timed = True
+    entity_type = ElementTypes.SWITCH
 
     def __init__(self, door, time_open, **kwargs):
         """ Switch used to open a door for a certain duration.
@@ -361,12 +310,12 @@ class TimerSwitch(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, activating_entity):
+    def activate_by_element(self, activating_element):
 
         elem_remove = None
         elem_add = None
 
-        if isinstance(activating_entity, Part) and self.activated is False:
+        if isinstance(activating_element, Part) and self.activated is False:
             if not self.door.opened:
                 self.door.opened = True
                 elem_remove = self.door
@@ -374,10 +323,15 @@ class TimerSwitch(InteractiveSceneElement):
             self._reset_timer()
             self.activated = True
 
-        if isinstance(activating_entity, Playground):
-            self.door.opened = False
-            elem_add = self.door
-            self._reset_timer()
+        return elem_remove, elem_add
+
+    def playground_activates(self):
+        elem_remove = None
+        elem_add = None
+
+        self.door.opened = False
+        elem_add = self.door
+        self._reset_timer()
 
         return elem_remove, elem_add
 
@@ -402,7 +356,7 @@ class Lock(InteractiveSceneElement):
     """
     Opens a door when in contact with the associated key.
     """
-    entity_type = SceneElementTypes.LOCK
+    entity_type = ElementTypes.LOCK
     background = False
 
     def __init__(self, door, key, **kwargs):
@@ -429,11 +383,11 @@ class Lock(InteractiveSceneElement):
     def reward(self):
         return 0
 
-    def activate(self, activating_entity):
+    def activate_by_element(self, activating_element):
 
         list_remove = None
 
-        if activating_entity is self.key:
+        if activating_element is self.key:
             self.door.opened = True
 
             list_remove = [self.door, self.key, self]
