@@ -25,6 +25,7 @@ class PassiveSceneElement(SceneElement, ABC):
         self.reward_provided = False
 
     def pre_step(self):
+        super(PassiveSceneElement, self).pre_step()
         self.reward_provided = False
 
     @property

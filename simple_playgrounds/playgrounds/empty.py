@@ -5,6 +5,7 @@ Empty Playgrounds with built-in walls and rooms
 
 import math
 import random
+import numpy as np
 
 from simple_playgrounds.playground import Playground
 from simple_playgrounds.playgrounds.scene_elements import Wall, Door
@@ -17,7 +18,9 @@ class ConnectedRooms2D(Playground):
     Multiple rooms with a grid layout
     """
 
-    def __init__(self, size=(400, 200), room_layout=(3, 2), wall_type='classic', **kwargs):
+    def __init__(self, size=(400, 200), room_layout=(3, 2), wall_type='classic',
+                 wall_texture_seed=None,
+                 **kwargs):
 
         self.width, self.length = size
 
@@ -25,9 +28,11 @@ class ConnectedRooms2D(Playground):
         playground_params = {**default_config, **kwargs}
 
         # Wall parameters
+        self.rng_texture = np.random.default_rng(wall_texture_seed)
         self._wall_texture = kwargs.get('wall_texture', parse_configuration('playground', wall_type))
+        self._wall_texture['rng_texture'] = self.rng_texture
         self._wall_params = {**parse_configuration('playground', 'wall'), **kwargs.get('wall_params', {}),
-                            'texture': self._wall_texture}
+                             'texture': self._wall_texture, }
         self._wall_depth = self._wall_params['depth']
 
         # Door parameters
@@ -45,6 +50,7 @@ class ConnectedRooms2D(Playground):
 
         super().__init__(size=size)
 
+        # Set random texture for possible replication
         self._add_external_walls()
         self._add_room_walls()
 
@@ -162,12 +168,11 @@ class ConnectedRooms2D(Playground):
                                        pos_y),
                                        0)
 
-                left_wall = Wall(initial_position=left_wall_position,
-                                  width_length=[self._wall_depth, left_wall_length],
+                left_wall = Wall(width_length=[self._wall_depth, left_wall_length],
+                                 **self._wall_params,
+                                 )
+                right_wall = Wall(width_length=[self._wall_depth, right_wall_length],
                                   **self._wall_params)
-                right_wall = Wall(initial_position=right_wall_position,
-                                   width_length=[self._wall_depth, right_wall_length],
-                                   **self._wall_params)
 
                 self.add_scene_element(left_wall, left_wall_position)
                 self.add_scene_element(right_wall, right_wall_position)
@@ -223,7 +228,7 @@ class ConnectedRooms2D(Playground):
 
         return door
 
-    def random_position_on_wall(self, area_coordinates, wall_location, size_object):
+    def random_position_on_wall(self, area_coordinates, wall_location, radius_object):
 
         """
 
@@ -233,7 +238,7 @@ class ConnectedRooms2D(Playground):
         Args:
             area_coordinates: coordinates of the room
             wall_location: up, down, left or right
-            size_object: size of the scene element to add to the wall.
+            radius_object: size of the scene element to add to the wall.
 
         Returns:
 
@@ -244,10 +249,10 @@ class ConnectedRooms2D(Playground):
         pos_x, pos_y = 0, 0
 
         if wall_location == 'up':
-            pos_y = area_center[1] + area_size[1]/2
+            pos_y = area_center[1] - area_size[1]/2
 
         elif wall_location == 'down':
-            pos_y = area_center[1] - area_size[1] / 2
+            pos_y = area_center[1] + area_size[1] / 2
 
         elif wall_location == 'left':
             pos_x = area_center[0] - area_size[0] / 2
@@ -270,15 +275,12 @@ class ConnectedRooms2D(Playground):
                 pos_y = random.uniform(area_center[1] - area_size[1] / 2,
                                        area_center[1] + area_size[1] / 2)
 
-            else:
-                raise ValueError
-
             close_to_doorstep = False
 
             for _, doorstep in self.doorsteps.items():
                 (doorstep_x, doorstep_y), _ = doorstep
                 if ((doorstep_x - pos_x) ** 2 + (doorstep_y - pos_y)**2)\
-                        < ((size_object+self._doorstep_size) / 2) ** 2:
+                        < ((radius_object + self._doorstep_size) / 2) ** 2:
                     close_to_doorstep = True
 
             if not close_to_doorstep:

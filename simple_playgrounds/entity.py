@@ -86,6 +86,9 @@ class Entity(ABC):
         # To be set when entity is added to playground. Used to calculate correct coordinates
 
         self._initial_coordinates = None
+
+        # Texture random generator can be set
+        self.texture_rng = entity_params.get('')
         self.texture_surface = self._create_texture(entity_params['texture'])
 
         self.trajectory = None
@@ -122,7 +125,10 @@ class Entity(ABC):
         self.prev_angle = self.pm_body.angle
 
         # Used to set an element which is not supposed to overlap
-        self.allow_overlapping = entity_params.get('allow_overlapping', True)
+        self._allow_overlapping = False
+        self._overlapping_strategy_set = False
+        self._max_attempts = 100
+        self._error_if_fails = False
 
         for prop, value in entity_params.get('pm_attr', {}).items():
             self._set_pm_attr(prop, value)
@@ -334,6 +340,21 @@ class Entity(ABC):
         mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
 
         return mask
+
+    # OVERLAPPING STRATEGY
+    @property
+    def overlapping_strategy(self):
+        if self._overlapping_strategy_set:
+            return self._allow_overlapping, self._max_attempts, self._error_if_fails
+
+        else:
+            return None
+
+    @overlapping_strategy.setter
+    def overlapping_strategy(self, strategy):
+        self._allow_overlapping, self._max_attempts, self._error_if_fails = strategy
+        self._overlapping_strategy_set = False
+
 
     # POSITION AND VELOCITY
 

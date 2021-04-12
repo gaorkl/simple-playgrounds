@@ -132,9 +132,45 @@ class Playground(ABC):
         # reset agents
         for agent in self.agents.copy():
             agent.reset()
-            agent.coordinates = agent.initial_coordinates
+            self.move_agent_to_initial_position(agent)
 
         self.done = False
+
+    def move_agent_to_initial_position(self, agent):
+        allow_overlapping, max_attempts, error_if_fails = agent.overlapping_strategy
+
+        if allow_overlapping:
+            agent.coordinates = agent.initial_coordinates
+
+        else:
+            attempt = 0
+            success = False
+
+            while (not success) or (attempt > max_attempts):
+
+                agent.coordinates = agent.initial_coordinates
+
+                agent_collides = self._agent_colliding(agent)
+
+                agent_out = False
+                if (not 0 < agent.position[0] < self._width
+                        or not 0 < agent.position[1] < self._length):
+                    agent_out = True
+
+                success = True
+                if agent_collides or agent_out:
+                    success = False
+
+                attempt += 1
+
+            if not success:
+
+                msg = 'Agent could not be placed without overlapping'
+
+                if error_if_fails:
+                    raise ValueError(msg)
+
+                print(msg)
 
     def add_agent(self, agent,
                   initial_coordinates=None,
@@ -163,11 +199,11 @@ class Playground(ABC):
             raise ValueError('Agent already in Playground')
 
         # If agent already has a positioning strategy, use it
-        if agent.overlapping is None:
-            agent.overlapping = {'allow_overlapping': allow_overlapping,
-                                 'max_attempts': max_attempts,
-                                 'error_if_fails': error_if_fails
-                                 }
+        if agent.overlapping_strategy is None:
+            agent.overlapping_strategy = (allow_overlapping,
+                                          max_attempts,
+                                          error_if_fails,
+                                          )
 
         # Set initial position
         if initial_coordinates is not None:
@@ -181,34 +217,9 @@ class Playground(ABC):
             raise ValueError("""Agent initial position should be defined in the playground or passed as an argument)
                              to the class agent""")
 
-        # Place agent in environment
-        if agent.overlapping['allow_overlapping']:
-            self._add_agent(agent, keep_coordinates)
-            self._set_sensor_filters(agent)
-
-        else:
-            attempt = 0
-            success = False
-
-            while (not success) or (attempt > agent.overlapping['max_attempts']):
-                self._add_agent(agent, keep_coordinates)
-                if not self._agent_colliding(agent):
-                    success = True
-                else:
-                    self.remove_agent(agent)
-                attempt += 1
-
-            if not success:
-
-                msg = 'Agent could not be placed without overlapping'
-
-                if agent.overlapping['error_if_fails']:
-                    raise ValueError(msg)
-
-                print(msg)
-
-            else:
-                self._set_sensor_filters(agent)
+        self._add_agent(agent, keep_coordinates)
+        self._set_sensor_filters(agent)
+        self.move_agent_to_initial_position(agent)
 
     def _set_sensor_filters(self, agent):
 
@@ -229,7 +240,6 @@ class Playground(ABC):
             agent: Agent.
 
         """
-
         self.agents.append(agent)
         agent.in_a_playground = True
 
@@ -241,21 +251,18 @@ class Playground(ABC):
 
     def _agent_colliding(self, agent):
 
-        all_agents_collision_shapes = [part.pm_visible_shape for part in agent.parts
-                                       if part.pm_visible_shape is not None]
+        all_agents_collision_shapes = [part.pm_visible_shape for part in agent.parts]
 
-        all_colliding_shapes = [shape for shape in self.space.shapes.copy()
-                                if not shape.sensor
-                                and shape not in all_agents_collision_shapes]
+        all_colliding_shapes = [shape for shape in self.space.shapes
+                                if shape not in all_agents_collision_shapes]
 
         collides = False
 
         for part in agent.parts:
 
-            if part.pm_visible_shape is not None:
-
-                collisions = [part.pm_visible_shape.shapes_collide(shape) for shape in all_colliding_shapes]
-                collides = collides or any([len(collision.points) != 0 for collision in collisions])
+            collisions = self.space.point_query(part.position, part.radius + 10, pymunk.ShapeFilter())
+            collisions = [col for col in collisions if col.shape not in all_agents_collision_shapes]
+            collides = collides or len(collisions) != 0
 
         return collides
 
@@ -297,13 +304,17 @@ class Playground(ABC):
             if initial_coordinates is not None:
                 scene_element.initial_coordinates = initial_coordinates
 
-            if scene_element.overlapping is None:
-                scene_element.overlapping = {'allow_overlapping': allow_overlapping,
-                                     'max_attempts': max_attempts,
-                                     'error_if_fails': error_if_fails
-                                     }
+            # If agent already has a positioning strategy, use it
+            if scene_element.overlapping_strategy is None:
+                scene_element.overlapping_strategy = (allow_overlapping,
+                                                      max_attempts,
+                                                      error_if_fails,
+                                                      )
 
-            if scene_element.background or scene_element.overlapping['allow_overlapping']:
+            else:
+                allow_overlapping, max_attempts, error_if_fails = scene_element.overlapping_strategy
+
+            if scene_element.background or allow_overlapping:
                 self._add_scene_element(scene_element, keep_position)
 
             else:
@@ -311,7 +322,7 @@ class Playground(ABC):
                 attempt = 0
                 success = False
 
-                while (not success) or (attempt > scene_element.overlapping['max_attempts']):
+                while (not success) or (attempt > max_attempts):
 
                     self._add_scene_element(scene_element, keep_position)
                     if not self._entity_colliding(scene_element):
@@ -324,7 +335,7 @@ class Playground(ABC):
 
                     msg = 'Scene Element could not be placed without overlapping'
 
-                    if scene_element.overlapping['error_if_fails']:
+                    if error_if_fails:
                         raise ValueError(msg)
 
                     print(msg)

@@ -9,7 +9,7 @@ from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 from simple_playgrounds.utils.definitions import CollisionTypes, SceneElementTypes
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.parser import parse_configuration
-
+from simple_playgrounds.playgrounds.scene_elements.elements.gem import Coin
 
 # pylint: disable=line-too-long
 
@@ -251,8 +251,6 @@ class VendingMachine(InteractiveSceneElement):
 
         self.reward = entity_params.get('reward')
 
-        self.accepted_coins = []
-
     @property
     def reward(self):
         return self._reward
@@ -265,9 +263,8 @@ class VendingMachine(InteractiveSceneElement):
 
         list_remove = None
 
-        if activating_entity in self.accepted_coins.copy() and self.activated is False:
+        if isinstance(activating_entity, Coin) and activating_entity.vending_machine is self:
             list_remove = [activating_entity]
-            self.accepted_coins.remove(activating_entity)
             self.activated = True
 
         return list_remove, None
