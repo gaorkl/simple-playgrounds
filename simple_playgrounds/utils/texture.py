@@ -298,7 +298,7 @@ class ListCenteredRandomTiles(Texture):
 
         img = np.zeros( (self.size, self.size , 3) )
 
-        colors = self.rng_texture.choices( self.colors, size = self.n_stripes, replace=True)
+        colors = self.rng_texture.choice( self.colors, size = self.n_stripes, replace=True)
 
         x = (self.size - 1) / 2
         y = (self.size - 1) / 2

@@ -253,6 +253,24 @@ class Teleports(SingleRoom):
         self.add_scene_element(teleport_4, [(250, 250), 0])
 
 
+@PlaygroundRegister.register('test', 'xteleports')
+class ExtraTeleports(SingleRoom):
+
+    def __init__(self, size=(300, 300), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        for x in range(50, 250, 50):
+            for y in range(50, 250, 50):
+
+                teleport_1 = Teleport(radius=10, physical_shape='circle')
+                target_1 = Traversable(radius=10, default_config_key='circle')
+                teleport_1.add_target(target_1)
+                self.add_scene_element(teleport_1, [(x, y), 0])
+                self.add_scene_element(target_1, [(x+25, y+25), 0])
+
+
+
 @PlaygroundRegister.register('test', 'proximity')
 class Proximity(SingleRoom):
 
