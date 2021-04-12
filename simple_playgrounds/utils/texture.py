@@ -74,7 +74,6 @@ class ColorTexture(Texture):
         return self.surface
 
 
-
 @TextureGenerator.register_subclass('uniform')
 class UniformTexture(Texture):
 
@@ -84,10 +83,12 @@ class UniformTexture(Texture):
         super().__init__(**params)
         self.min = params['color_min']
         self.max = params['color_max']
+        self.rng_texture = params.get('rng_texture', np.random.default_rng() )
+
 
     def generate(self):
 
-        random_image = np.random.uniform(self.min, self.max, (self.size, self.size, 3))
+        random_image = self.rng_texture.uniform(self.min, self.max, (self.size, self.size, 3))
         random_image = random_image.astype('int')
         surf = surfarray.make_surface(random_image)
         return surf
@@ -101,11 +102,13 @@ class RandomTilesTexture(Texture):
         self.min = params['color_min']
         self.max = params['color_max']
         self.size_tiles = params['size_tiles']
+        self.rng_texture = params.get('rng_texture', np.random.default_rng() )
+
 
     def generate(self):
 
         size_shrink = (int(self.size*1.0/self.size_tiles), int(self.size*1.0/self.size_tiles), 3)
-        random_image = np.random.uniform(self.min, self.max, size_shrink).astype('int')
+        random_image = self.rng_texture.uniform(self.min, self.max, size_shrink).astype('int')
         random_image = resize(random_image, (self.size, self.size), order=0, preserve_range=True)
         surf = surfarray.make_surface(random_image)
         return surf
@@ -139,7 +142,8 @@ class UniqueRandomTilesTexture(Texture):
                 for b in b_list:
                     self.list_rgb_colors.append([r,b,g])
 
-        random.shuffle(self.list_rgb_colors)
+        self.rng_texture = kwargs.get('rng_texture', np.random.default_rng() )
+        self.rng_texture.shuffle(self.list_rgb_colors)
 
     def generate(self):
         """
@@ -153,7 +157,7 @@ class UniqueRandomTilesTexture(Texture):
         min_color = [ max(0, x - self.delta_uniform) for x in color]
         max_color = [ min(255, x + self.delta_uniform) for x in color]
 
-        random_image = np.random.uniform(min_color, max_color, (int(self.size*1.0/self.size_tiles), int(self.size*1.0/self.size_tiles), 3)).astype('int')
+        random_image = self.rng_texture.uniform(min_color, max_color, (int(self.size*1.0/self.size_tiles), int(self.size*1.0/self.size_tiles), 3)).astype('int')
         random_image = resize(random_image, (self.size, self.size), order=0, preserve_range=True)
         surf = surfarray.make_surface(random_image)
         return surf
@@ -167,6 +171,9 @@ class PolarStripesTexture(Texture):
         self.color_1 = params['color_1']
         self.color_2 = params['color_2']
         self.n_stripes = params['n_stripes']
+        self.rng_texture = params.get('rng_texture', np.random.default_rng() )
+
+
 
     def generate(self):
         """
@@ -204,6 +211,7 @@ class UniqueCenteredStripeTexture(Texture):
         self.color_stripe = params['color_stripe']
         self.size_stripe = params['size_stripe']
 
+
     def generate(self):
         """
         Generate a pygame Surface with pixels following a circular striped pattern from the center of the parent entity
@@ -239,6 +247,9 @@ class CenteredRandomTilesTexture(Texture):
         self.size_tiles = params['size_tiles']
         self.n_stripes = int(2*math.pi*self.radius / self.size_tiles)
 
+        self.rng_texture = params.get('rng_texture', np.random.default_rng() )
+
+
     def generate(self):
         """
         Generate a pyame Surface with pixels following a circular striped pattern from the center of the parent entity
@@ -249,7 +260,7 @@ class CenteredRandomTilesTexture(Texture):
 
         img = np.zeros( (self.size, self.size, 3) )
 
-        colors = [ [ random.randint( self.min[i],self.max[i] ) for i in range(3)] for c in range(self.n_stripes) ]
+        colors = [ [ self.rng_texture.integers( self.min[i], self.max[i], endpoint=True) for i in range(3)] for c in range(self.n_stripes) ]
 
         x = (self.size - 1) / 2
         y = (self.size - 1) / 2
@@ -274,6 +285,8 @@ class ListCenteredRandomTiles(Texture):
         self.size_tiles = params['size_tiles']
         self.n_stripes = int(2*math.pi*self.radius / self.size_tiles)
         self.colors = params['colors']
+        self.rng_texture = params.get('rng_texture', np.random.default_rng() )
+
 
     def generate(self):
         """
@@ -285,7 +298,7 @@ class ListCenteredRandomTiles(Texture):
 
         img = np.zeros( (self.size, self.size , 3) )
 
-        colors = random.choices( self.colors, k = self.n_stripes)
+        colors = self.rng_texture.choices( self.colors, size = self.n_stripes, replace=True)
 
         x = (self.size - 1) / 2
         y = (self.size - 1) / 2

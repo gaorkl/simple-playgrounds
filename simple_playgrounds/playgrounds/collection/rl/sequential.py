@@ -21,9 +21,14 @@ class DispenserEnv(ConnectedRooms2D):
 
     def __init__(self,
                  time_limit=1000,
+                 wall_texture_seed=None,
                  ):
 
-        super().__init__(size=(450, 300), room_layout=(3, 2), doorstep_size=60, wall_type='colorful')
+        super().__init__(size=(450, 300),
+                         room_layout=(3, 2),
+                         doorstep_size=60,
+                         wall_type='colorful',
+                         wall_texture_seed=wall_texture_seed)
 
         self.initial_agent_coordinates, self.area_prod, self.area_dispenser = self._assign_areas()
 
@@ -75,9 +80,14 @@ class DoorDispenserCoin(ConnectedRooms2D):
 
     def __init__(self,
                  time_limit=1000,
+                 wall_texture_seed=None,
                  ):
 
-        super().__init__(size=(450, 150), room_layout=(3, 1), doorstep_size=60, wall_type='colorful')
+        super().__init__(size=(450, 150),
+                         room_layout=(3, 1),
+                         doorstep_size=60,
+                         wall_type='colorful',
+                         wall_texture_seed=wall_texture_seed)
 
         self.time_limit = time_limit
 

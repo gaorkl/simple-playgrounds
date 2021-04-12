@@ -21,9 +21,11 @@ class EndgoalRoomCue(SingleRoom):
                  time_limit=1000,
                  reward_reached_time_limit=-10,
                  reward_reached_endgoal=10,
-                 reward_reached_deathtrap=-10):
+                 reward_reached_deathtrap=-10,
+                 wall_texture_seed = None,
+                 ):
 
-        super().__init__(size=(200, 200))
+        super().__init__(size=(200, 200), wall_texture_seed=wall_texture_seed)
 
         # Starting area of the agent
         area_center, _ = self.area_rooms[(0, 0)]
@@ -94,9 +96,13 @@ class Endgoal9Rooms(ConnectedRooms2D):
     Each wall has a different color.
     """
     def __init__(self,
-                 time_limit = 1000):
+                 time_limit = 1000,
+                 wall_texture_seed = None):
 
-        super().__init__(size=(450, 450), room_layout=(3, 3), wall_type='colorful')
+        super().__init__(size=(450, 450),
+                         room_layout=(3, 3),
+                         wall_type='colorful',
+                         wall_texture_seed=wall_texture_seed)
 
         # Starting area of the agent
         area_start = CoordinateSampler(center=(225, 225),
