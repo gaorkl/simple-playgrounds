@@ -33,6 +33,11 @@ class Coin(GemSceneElement):
 
     entity_type = ElementTypes.COIN
 
+    def __init__(self, vending_machine, **kwargs):
+
+        super().__init__(**kwargs)
+        self.vending_machine = vending_machine
+
 
 class Key(GemSceneElement):
 

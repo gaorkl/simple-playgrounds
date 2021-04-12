@@ -39,8 +39,6 @@ from simple_playgrounds.scene_elements.elements.gem import GemSceneElement
 # pylint: disable=line-too-long
 
 
-
-
 class Playground(ABC):
     """ Playground is a Base Class that manages the physical simulation.
 
@@ -156,13 +154,49 @@ class Playground(ABC):
         # reset agents
         for agent in self.agents.copy():
             agent.reset()
-            agent.coordinates = agent.initial_coordinates
+            self.move_agent_to_initial_position(agent)
 
         # reset timers
         for timer in self._timers:
             timer.reset()
 
         self.done = False
+
+    def move_agent_to_initial_position(self, agent):
+        allow_overlapping, max_attempts, error_if_fails = agent.overlapping_strategy
+
+        if allow_overlapping:
+            agent.coordinates = agent.initial_coordinates
+
+        else:
+            attempt = 0
+            success = False
+
+            while (not success) or (attempt > max_attempts):
+
+                agent.coordinates = agent.initial_coordinates
+
+                agent_collides = self._agent_colliding(agent)
+
+                agent_out = False
+                if (not 0 < agent.position[0] < self._width
+                        or not 0 < agent.position[1] < self._length):
+                    agent_out = True
+
+                success = True
+                if agent_collides or agent_out:
+                    success = False
+
+                attempt += 1
+
+            if not success:
+
+                msg = 'Agent could not be placed without overlapping'
+
+                if error_if_fails:
+                    raise ValueError(msg)
+
+                print(msg)
 
     def add_agent(self,
                   agent: Agent,
@@ -198,9 +232,6 @@ class Playground(ABC):
                                           error_if_fails,
                                           )
 
-        else:
-            allow_overlapping, max_attempts, error_if_fails = agent.overlapping_strategy
-
         # Set initial position
         if initial_coordinates is not None:
             agent.initial_coordinates = initial_coordinates
@@ -213,34 +244,9 @@ class Playground(ABC):
             raise ValueError("""Agent initial position should be defined in the playground or passed as an argument)
                              to the class agent""")
 
-        # Place agent in environment
-        if allow_overlapping:
-            self._add_agent(agent, keep_coordinates)
-            self._set_sensor_filters(agent)
-
-        else:
-            attempt = 0
-            success = False
-
-            while (not success) or (attempt > max_attempts):
-                self._add_agent(agent, keep_coordinates)
-                if not self._agent_colliding(agent):
-                    success = True
-                else:
-                    self.remove_agent(agent)
-                attempt += 1
-
-            if not success:
-
-                msg = 'Agent could not be placed without overlapping'
-
-                if error_if_fails:
-                    raise ValueError(msg)
-
-                print(msg)
-
-            else:
-                self._set_sensor_filters(agent)
+        self._add_agent(agent, keep_coordinates)
+        self._set_sensor_filters(agent)
+        self.move_agent_to_initial_position(agent)
 
     def _set_sensor_filters(self, agent: Agent):
 
@@ -273,20 +279,18 @@ class Playground(ABC):
 
     def _agent_colliding(self, agent: Agent):
 
-        all_agents_collision_shapes = [part.pm_visible_shape for part in agent.parts
-                                       if part.pm_visible_shape is not None]
+        all_agents_collision_shapes = [part.pm_visible_shape for part in agent.parts]
 
-        all_colliding_shapes = [shape for shape in self.space.shapes.copy()
-                                if not shape.sensor
-                                and shape not in all_agents_collision_shapes]
+        all_colliding_shapes = [shape for shape in self.space.shapes
+                                if shape not in all_agents_collision_shapes]
 
         collides = False
 
         for part in agent.parts:
 
-            if part.pm_visible_shape is not None:
-                collisions = [part.pm_visible_shape.shapes_collide(shape) for shape in all_colliding_shapes]
-                collides = collides or any([len(collision.points) != 0 for collision in collisions])
+            collisions = self.space.point_query(part.position, part.radius + 10, pymunk.ShapeFilter())
+            collisions = [col for col in collisions if col.shape not in all_agents_collision_shapes]
+            collides = collides or len(collisions) != 0
 
         return collides
 
@@ -359,7 +363,7 @@ class Playground(ABC):
                 while (not success) or (attempt > max_attempts):
 
                     self._add_scene_element(scene_element, keep_position)
-                    if not self._element_collides(scene_element):
+                    if not self._entity_colliding(scene_element):
                         success = True
                     else:
                         self.remove_scene_element(scene_element)
@@ -426,8 +430,6 @@ class Playground(ABC):
             scene_element: Scene Element to remove.
 
         """
-
-        assert isinstance(scene_element, SceneElement)
 
         if scene_element not in self.scene_elements:
             return False

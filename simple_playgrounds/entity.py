@@ -93,6 +93,9 @@ class Entity(ABC):
         # To be set when entity is added to playground. Used to calculate correct coordinates
 
         self._initial_coordinates = None
+
+        # Texture random generator can be set
+        self.texture_rng = entity_params.get('')
         self.texture_surface = self._create_texture(entity_params['texture'])
 
         self.trajectory = None

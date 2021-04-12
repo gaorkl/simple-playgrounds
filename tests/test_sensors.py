@@ -2,7 +2,7 @@ from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import HeadAgent
 from simple_playgrounds.agents.sensors import RgbCamera
 from simple_playgrounds import Engine
-from simple_playgrounds.playgrounds.collection import Basics, Teleports, Interactives
+from simple_playgrounds.playgrounds.collection import Basics, Teleports, Interactives, ExtraTeleports
 
 
 def test_sensor_without_params(any_sensor):
@@ -69,7 +69,7 @@ def test_rgb_on_teleports(base_forward_agent):
                                min_range=agent.base_platform.radius,
                                ))
 
-    playground = Teleports()
+    playground = ExtraTeleports()
     playground.add_agent(agent)
 
     engine = Engine(playground, time_limit=10000)

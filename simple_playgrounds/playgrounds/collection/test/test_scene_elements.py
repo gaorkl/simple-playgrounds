@@ -166,17 +166,14 @@ class Interactives(SingleRoom):
         vending = VendingMachine()
         self.add_scene_element(vending, [(200, 200), 0])
 
-        coin = Coin(graspable=True)
+        coin = Coin(graspable=True, vending_machine=vending)
         self.add_scene_element(coin, [(150, 200), 0])
-        vending.accepted_coins.append(coin)
 
-        coin = Coin(graspable=True)
+        coin = Coin(graspable=True, vending_machine=vending)
         self.add_scene_element(coin, [(150, 220), 0])
-        vending.accepted_coins.append(coin)
 
-        coin = Coin(graspable=True)
+        coin = Coin(graspable=True, vending_machine=vending)
         self.add_scene_element(coin, [(150, 240), 0])
-        vending.accepted_coins.append(coin)
 
 
 @PlaygroundRegister.register('test', 'conditioning')
@@ -253,6 +250,24 @@ class Teleports(SingleRoom):
         teleport_4.add_target(teleport_3)
         self.add_scene_element(teleport_3, [(50, 250), 0])
         self.add_scene_element(teleport_4, [(250, 250), 0])
+
+
+@PlaygroundRegister.register('test', 'xteleports')
+class ExtraTeleports(SingleRoom):
+
+    def __init__(self, size=(300, 300), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        for x in range(50, 250, 50):
+            for y in range(50, 250, 50):
+
+                teleport_1 = Teleport(radius=10, physical_shape='circle')
+                target_1 = Traversable(radius=10, default_config_key='circle')
+                teleport_1.add_target(target_1)
+                self.add_scene_element(teleport_1, [(x, y), 0])
+                self.add_scene_element(target_1, [(x+25, y+25), 0])
+
 
 
 @PlaygroundRegister.register('test', 'proximity')

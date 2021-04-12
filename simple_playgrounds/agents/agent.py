@@ -141,7 +141,7 @@ class Agent(ABC):
     @overlapping_strategy.setter
     def overlapping_strategy(self, strategy):
         self._allow_overlapping, self._max_attempts, self._error_if_fails = strategy
-        self._overlapping_strategy_set = False
+        self._overlapping_strategy_set = True
 
 
     # POSITION / VELOCITY
