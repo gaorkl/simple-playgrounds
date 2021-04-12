@@ -223,7 +223,7 @@ class ConnectedRooms2D(Playground):
 
         return door
 
-    def random_position_on_wall(self, area_coordinates, wall_location, size_object):
+    def random_position_on_wall(self, area_coordinates, wall_location, radius_object):
 
         """
 
@@ -233,7 +233,7 @@ class ConnectedRooms2D(Playground):
         Args:
             area_coordinates: coordinates of the room
             wall_location: up, down, left or right
-            size_object: size of the scene element to add to the wall.
+            radius_object: size of the scene element to add to the wall.
 
         Returns:
 
@@ -244,10 +244,10 @@ class ConnectedRooms2D(Playground):
         pos_x, pos_y = 0, 0
 
         if wall_location == 'up':
-            pos_y = area_center[1] + area_size[1]/2
+            pos_y = area_center[1] - area_size[1]/2
 
         elif wall_location == 'down':
-            pos_y = area_center[1] - area_size[1] / 2
+            pos_y = area_center[1] + area_size[1] / 2
 
         elif wall_location == 'left':
             pos_x = area_center[0] - area_size[0] / 2
@@ -270,15 +270,12 @@ class ConnectedRooms2D(Playground):
                 pos_y = random.uniform(area_center[1] - area_size[1] / 2,
                                        area_center[1] + area_size[1] / 2)
 
-            else:
-                raise ValueError
-
             close_to_doorstep = False
 
             for _, doorstep in self.doorsteps.items():
                 (doorstep_x, doorstep_y), _ = doorstep
                 if ((doorstep_x - pos_x) ** 2 + (doorstep_y - pos_y)**2)\
-                        < ((size_object+self._doorstep_size) / 2) ** 2:
+                        < ((radius_object + self._doorstep_size) / 2) ** 2:
                     close_to_doorstep = True
 
             if not close_to_doorstep:

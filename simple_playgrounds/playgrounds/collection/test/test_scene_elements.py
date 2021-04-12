@@ -167,17 +167,14 @@ class Interactives(SingleRoom):
         vending = VendingMachine()
         self.add_scene_element(vending, [(200, 200), 0])
 
-        coin = Coin(graspable=True)
+        coin = Coin(graspable=True, vending_machine=vending)
         self.add_scene_element(coin, [(150, 200), 0])
-        vending.accepted_coins.append(coin)
 
-        coin = Coin(graspable=True)
+        coin = Coin(graspable=True, vending_machine=vending)
         self.add_scene_element(coin, [(150, 220), 0])
-        vending.accepted_coins.append(coin)
 
-        coin = Coin(graspable=True)
+        coin = Coin(graspable=True, vending_machine=vending)
         self.add_scene_element(coin, [(150, 240), 0])
-        vending.accepted_coins.append(coin)
 
 
 @PlaygroundRegister.register('test', 'conditioning')
