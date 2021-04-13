@@ -336,7 +336,7 @@ class Agent(ABC):
             return True
         return False
 
-    def get_bodypart_from_shape(self, pm_shape):
+    def get_part_from_shape(self, pm_shape):
         """
         Returns the body part that correspond to particular Pymunk shape.
 
@@ -364,6 +364,9 @@ class Agent(ABC):
         """
         self.coordinates = self.initial_coordinates
         self.velocity = [0, 0]
+
+        for part in self.parts:
+            part.reset()
 
     def draw(self, surface, excluded=None):
         """

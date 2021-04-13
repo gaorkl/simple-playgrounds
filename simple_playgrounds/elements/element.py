@@ -81,8 +81,24 @@ class ContactElement(InteractiveElement, ABC):
     pass
 
 
+class GemElement(SceneElement, ABC):
+    """
+    A Gem interacts with other SceneElements.
+    """
 
-class Activable(InteractiveElement):
+    movable = True
+    background = False
+
+    def __init__(self, **kwargs):
+
+        default_config = parse_configuration('element_interactive', self.entity_type)
+        entity_params = {**default_config, **kwargs}
+
+        SceneElement.__init__(self, **entity_params)
+        self.pm_visible_shape.collision_type = CollisionTypes.GEM
+
+
+class ActivableElement(InteractiveElement):
 
     def __init__(self, **kwargs):
 
@@ -116,4 +132,23 @@ class Activable(InteractiveElement):
 
     def activate_by_element(self, activating_element):
         # pylint: disable=useless-super-delegation
-        return super().activate_by_element(activating_element)
+        return super().activate(activating_element)
+
+
+class TeleportElement(SceneElement):
+
+    entity_type = ElementTypes.TELEPORT
+    interactive = True
+    traversable = True
+
+    def __init__(self, texture=(0, 100, 100), **kwargs):
+        super().__init__(texture=texture, **kwargs)
+        self.pm_interaction_shape.collision_type = CollisionTypes.TELEPORT
+
+        self.reward = 0
+        self.reward_provided = False
+
+        self.target = None
+
+    def add_target(self, target):
+        self.target = target

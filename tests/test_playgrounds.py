@@ -4,7 +4,7 @@ from simple_playgrounds.agents.agents import BaseAgent
 from simple_playgrounds.agents.sensors import Touch
 from simple_playgrounds.agents.parts.controllers import RandomContinuous
 
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playground import PlaygroundRegister
 
 from simple_playgrounds.playgrounds.empty import SingleRoom
 from simple_playgrounds.utils.position_utils import CoordinateSampler

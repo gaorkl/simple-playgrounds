@@ -7,7 +7,7 @@ import math
 import random
 import numpy as np
 
-from simple_playgrounds.playgrounds.playground import Playground
+from simple_playgrounds.playground import Playground
 from simple_playgrounds.scene_elements import Wall, Door
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.parser import parse_configuration

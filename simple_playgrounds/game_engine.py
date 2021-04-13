@@ -236,7 +236,7 @@ class Engine:
 
     def _update_surface_background(self):
         # Check that some background elements maybe need to be drawn
-        for element in self.playground.scene_elements:
+        for element in self.playground.elements:
             if element.background and not element.drawn:
                 element.draw(self._surface_background, )
 
@@ -252,7 +252,7 @@ class Engine:
         for agent in self.agents:
             agent.draw(self._surface_buffer)
 
-        for entity in self.playground.scene_elements:
+        for entity in self.playground.elements:
 
             # if entity.background and not entity.drawn:
             #     entity.draw(self._surface_buffer, draw_interaction=with_interactions)
@@ -464,7 +464,7 @@ class Engine:
         # Redraw everything
         self._surface_background.fill(pygame.Color(0, 0, 0, 0))
 
-        for elem in self.playground.scene_elements:
+        for elem in self.playground.elements:
             if elem.background:
                 elem.draw(self._surface_background)
 
@@ -505,5 +505,5 @@ class Engine:
 
         """
         pygame.quit()  # pylint: disable=no-member
-        for elem in self.playground.scene_elements:
+        for elem in self.playground.elements:
             elem.drawn = False

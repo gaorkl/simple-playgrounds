@@ -3,12 +3,9 @@ Module containing classical RL environments.
 """
 import random
 
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
-from simple_playgrounds.scene_elements import (Basic, Candy,
-                                               Coin, DeathZone,
-                                               Dispenser, Field,
-                                               GoalZone, Poison,
+from simple_playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playgrounds.empty import SingleRoom
+from simple_playgrounds.scene_elements import (Coin, Field,
                                                VendingMachine)
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 

@@ -3,7 +3,7 @@ import pytest
 from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
                                               HeadEyeAgent)
 from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar, Proximity,
                                                Touch, TopdownSensor,
                                                FullPlaygroundSensor,

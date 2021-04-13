@@ -1,6 +1,6 @@
 import math
 
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.empty import SingleRoom
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import

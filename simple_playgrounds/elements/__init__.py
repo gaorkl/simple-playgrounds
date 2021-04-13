@@ -1,3 +1,6 @@
+from simple_playgrounds.elements.elements.interactive \
+    import Lever, Dispenser, Chest, VendingMachine
+
 # from simple_playgrounds.playgrounds.scene_elements.elements.basic \
 #     import Basic, Door, Traversable, Wall
 # from simple_playgrounds.playgrounds.scene_elements.elements.conditioning \
@@ -8,8 +11,7 @@
 #     import Apple, RottenApple
 # from simple_playgrounds.playgrounds.scene_elements.elements.gem \
 #     import Key, Coin
-# from simple_playgrounds.playgrounds.scene_elements.elements.interactive \
-#     import Lever, Dispenser, Chest, VendingMachine, \
+
 #     OpenCloseSwitch, TimerSwitch, Lock
 # from simple_playgrounds.playgrounds.scene_elements.elements.passive \
 #     import GoalZone, HealingZone, RewardZone, DeathZone, \

@@ -68,8 +68,8 @@ class EndgoalRoomCue(SingleRoom):
         col = self.cue_colors[index_goal]
 
         if self.goal is not None:
-            self.remove_scene_element(self.goal)
-            self.remove_scene_element(self.cue)
+            self._remove_element_from_playground(self.goal)
+            self._remove_element_from_playground(self.cue)
 
         self.cue = Basic(physical_shape='circle', radius=10, texture=col, is_temporary_entity=True)
         self.add_scene_element(self.cue, ((100, 100), 0))

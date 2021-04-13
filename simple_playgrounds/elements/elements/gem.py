@@ -9,21 +9,7 @@ from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.utils.parser import parse_configuration
 
 
-class GemSceneElement(SceneElement, ABC):
-    """
-    A Gem interacts with other SceneElements.
-    """
 
-    movable = True
-    background = False
-
-    def __init__(self, **kwargs):
-
-        default_config = parse_configuration('element_interactive', self.entity_type)
-        entity_params = {**default_config, **kwargs}
-
-        SceneElement.__init__(self, **entity_params)
-        self.pm_visible_shape.collision_type = CollisionTypes.GEM
 
 
 class Coin(GemSceneElement):

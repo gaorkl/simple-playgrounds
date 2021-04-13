@@ -92,7 +92,7 @@ class TopdownSensor(Sensor):
                 if part not in self._invisible_elements:
                     part.draw(sensor_surface)
 
-        for elem in playground.scene_elements:
+        for elem in playground.elements:
             if not elem.background and elem not in self._invisible_elements:
                 elem.draw(sensor_surface)
 
@@ -212,7 +212,7 @@ class FullPlaygroundSensor(Sensor):
                 if part not in self._invisible_elements:
                     part.draw(sensor_surface)
 
-        for elem in playground.scene_elements:
+        for elem in playground.elements:
             if not elem.background and elem not in self._invisible_elements:
                 elem.draw(sensor_surface)
 

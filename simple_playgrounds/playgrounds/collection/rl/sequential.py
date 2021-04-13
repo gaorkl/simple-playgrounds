@@ -65,7 +65,7 @@ class DispenserEnv(ConnectedRooms2D):
         self.add_scene_element(self.dispenser, self.area_dispenser)
 
     def reset(self):
-        self.remove_scene_element(self.dispenser)
+        self._remove_element_from_playground(self.dispenser)
 
         self.agent_starting_area, self.area_prod, self.area_dispenser = self._assign_areas()
 
