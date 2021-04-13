@@ -76,6 +76,7 @@ class DispenserEnv(ConnectedRooms2D):
         self._place_scene_elements()
 
 
+@PlaygroundRegister.register('sequential', 'door_dispenser_coin')
 class DoorDispenserCoin(ConnectedRooms2D):
 
     def __init__(self,
