@@ -8,3 +8,16 @@ from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 
 
 
+class TeleportElement(SceneElement, ABC):
+
+    def __init__(self, texture=(0, 100, 100), **kwargs):
+        super().__init__(texture=texture, **kwargs)
+        self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
+
+        self.reward = 0
+        self.reward_provided = False
+
+        self.target = None
+
+    def add_target(self, target):
+        self.target = target

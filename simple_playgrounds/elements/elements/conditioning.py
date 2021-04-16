@@ -75,7 +75,7 @@ class ColorChanging(SceneElement):
 
     def draw(self, surface, draw_interaction=False, force_recompute_mask=False):
 
-        super().draw(surface, draw_interaction=draw_interaction,
+        super().draw(surface, draw_invisible=draw_interaction,
                      force_recompute_mask=self.force_redraw)
         self.force_redraw = False
 

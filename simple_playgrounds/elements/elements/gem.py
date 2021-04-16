@@ -9,6 +9,23 @@ from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.utils.parser import parse_configuration
 
 
+class GemElement(SceneElement, ABC):
+    """
+    A Gem interacts with other SceneElements.
+    """
+
+    def __init__(self, **kwargs):
+
+        SceneElement.__init__(self,
+                              visible_shape=True,
+                              invisible_shape=False,
+                              **kwargs)
+
+    def _set_visible_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.GEM
+
+    def _set_invisible_shape_collision(self):
+        pass
 
 
 

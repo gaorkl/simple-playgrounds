@@ -12,8 +12,8 @@ def run_engine(agent, pg_class):
     engine = Engine(playground, time_limit=100)
     engine.run()
 
-    assert 0 < agent.position[0] < playground.size[0]
-    assert 0 < agent.position[1] < playground.size[1]
+    assert 0 < agent.position[0] < playground._size[0]
+    assert 0 < agent.position[1] < playground._size[1]
 
     playground.remove_agent(agent)
 

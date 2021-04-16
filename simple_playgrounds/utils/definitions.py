@@ -1,12 +1,6 @@
 """ This module lists all the definitions.
 """
 
-from typing import Union, TYPE_CHECKING, Tuple
-if TYPE_CHECKING:
-    from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
-    from simple_playgrounds.scene_elements.element import SceneElement
-
-
 from enum import IntEnum, Enum, auto
 from collections import namedtuple
 
@@ -40,6 +34,7 @@ class ElementTypes(IntEnum):
     # Basic Entities
     BASIC = auto()
     DOOR = auto()
+    WALL = auto()
     COLOR_CHANGING = auto()
 
     # Contact entities
@@ -103,7 +98,7 @@ class CollisionTypes(IntEnum):
 
     AGENT = auto()
     CONTACT = auto()
-    INTERACTIVE = auto()
+    ACTIVABLE = auto()
     ZONE = auto()
     GEM = auto()
     EDIBLE = auto()
@@ -158,16 +153,17 @@ class KeyTypes(IntEnum):
 
 Detection = namedtuple('Detection', 'entity, distance, angle')
 
+
+class PhysicalShapes(IntEnum):
+
+    LINE = 2
+    TRIANGLE = 3
+    SQUARE = 4
+    PENTAGON = 5
+    HEXAGON = 6
+    CIRCLE = 60
+    RECTANGLE = auto()
+
 geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3,
                     'square': 4, 'pentagon': 5, 'hexagon': 6}
 
-
-InitCoord = Union[
-    None,
-    Tuple[Tuple[float, float], float],
-    CoordinateSampler,
-    Trajectory,
-]
-
-AddRemoveElems = Tuple[Union[None, Tuple[SceneElement]],
-                       Union[None, Tuple[SceneElement, InitCoord]]]

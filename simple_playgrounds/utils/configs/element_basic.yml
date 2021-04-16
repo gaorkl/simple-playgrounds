@@ -80,7 +80,12 @@ door : &door
   width_length: [10, 80]
   texture: *door-texture
 
+# Walls
 
+wall:
+  entity_type: basic
+  physical_shape: rectangle
+  depth: 10
 
 # color_changing
 color_changing:

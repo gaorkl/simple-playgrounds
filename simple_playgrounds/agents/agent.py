@@ -133,14 +133,14 @@ class Agent(ABC):
     @property
     def overlapping_strategy(self):
         if self._overlapping_strategy_set:
-            return self._allow_overlapping, self._max_attempts, self._error_if_fails
+            return self._allow_overlapping, self._max_attempts
 
         else:
             return None
 
     @overlapping_strategy.setter
     def overlapping_strategy(self, strategy):
-        self._allow_overlapping, self._max_attempts, self._error_if_fails = strategy
+        self._allow_overlapping, self._max_attempts = strategy
         self._overlapping_strategy_set = True
 
 
@@ -362,7 +362,6 @@ class Agent(ABC):
         """
         Resets all body parts
         """
-        self.coordinates = self.initial_coordinates
         self.velocity = [0, 0]
 
         for part in self.parts:

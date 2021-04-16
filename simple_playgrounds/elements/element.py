@@ -2,153 +2,116 @@
 Module that defines Base Class SceneElement
 """
 
-from typing import Union, Tuple, TYPE_CHECKING
-if TYPE_CHECKING:
-    from simple_playgrounds.utils.definitions import AddRemoveElems
+from typing import Union, Tuple
+from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
 
 from abc import ABC, abstractmethod
 
 from simple_playgrounds.entity import Entity
-from simple_playgrounds.utils.definitions import ElementTypes, CollisionTypes
-from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.agents import Agent
+
+
+InitCoord = Union[
+    None,
+    Tuple[Tuple[float, float], float],
+    CoordinateSampler,
+    Trajectory,
+]
 
 
 class SceneElement(Entity, ABC):
-    pass
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
-class BasicElement(SceneElement):
-    """ Basic Scene elements are non-interactive obstacles."""
-    visible = True
+# INTERACTIVE ELEMENT
 
 
 class InteractiveElement(SceneElement, ABC):
     """Base Class for Interactive Elements"""
-    interactive = True
-    terminate_upon_activation = False
 
-    def __init__(self, reward, **entity_params):
+    def __init__(self, reward: float, **kwargs):
 
-        super(SceneElement).__init__(**entity_params)
+        super(SceneElement).__init__(**kwargs)
 
         # Initialize reward
         self.reward = reward
-        self.reward_provided = False
+        self._reward_provided: bool = False
 
-        # assign collision shape
-        self.assign_collision_to_shape()
+        # Single Activation per step
 
     def pre_step(self):
-        self.reward_provided = False
+        self._reward_provided = False
 
     @property
     def reward(self):
         """ Reward provided upon contact."""
 
-        if not self.reward_provided:
-            self.reward_provided = True
+        if not self._reward_provided:
+            self._reward_provided = True
             return self._reward
 
         return 0
 
     @reward.setter
-    def reward(self, rew):
+    def reward(self, rew: float):
         self._reward = rew
 
     @abstractmethod
-    def assign_collision_to_shape(self):
+    def activate(self):
         ...
-
-    @abstractmethod
-    def activate(self,
-                 entity: Union[None, Entity] = None,
-                 ) -> AddRemoveElems:
-        """
-        Activate the SceneElement.
-
-        Args:
-            entity: Entity that activated the SceneElement.
-
-        Returns:
-            TODO
-        """
-        ...
-
-
-class ContactElement(InteractiveElement, ABC):
-    """ Base Class for Contact Entities"""
-
-    pass
-
-
-class GemElement(SceneElement, ABC):
-    """
-    A Gem interacts with other SceneElements.
-    """
-
-    movable = True
-    background = False
-
-    def __init__(self, **kwargs):
-
-        default_config = parse_configuration('element_interactive', self.entity_type)
-        entity_params = {**default_config, **kwargs}
-
-        SceneElement.__init__(self, **entity_params)
-        self.pm_visible_shape.collision_type = CollisionTypes.GEM
-
-
-class ActivableElement(InteractiveElement):
-
-    def __init__(self, **kwargs):
-
-        default_config = parse_configuration('element_interactive', self.entity_type)
-        entity_params = {**default_config, **kwargs}
-
-        super().__init__(**entity_params)
-
-        self.pm_interaction_shape.collision_type = CollisionTypes.INTERACTIVE
-
-        self.reward = entity_params['reward']
-
-        self.reward_provided = False
-
-    def pre_step(self):
-        super().pre_step()
-        self.reward_provided = False
 
     @property
-    def reward(self):
-
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self._reward
-
-        return 0
-
-    @reward.setter
-    def reward(self, rew):
-        self._reward = rew
-
-    def activate_by_element(self, activating_element):
-        # pylint: disable=useless-super-delegation
-        return super().activate(activating_element)
+    @abstractmethod
+    def terminate_upon_activation(self):
+        ...
 
 
-class TeleportElement(SceneElement):
+# TELEPORT ELEMENTS
 
-    entity_type = ElementTypes.TELEPORT
-    interactive = True
-    traversable = True
 
-    def __init__(self, texture=(0, 100, 100), **kwargs):
-        super().__init__(texture=texture, **kwargs)
-        self.pm_interaction_shape.collision_type = CollisionTypes.TELEPORT
+class TeleportElement(SceneElement, ABC):
+    """ Base Class for Contact Entities"""
 
-        self.reward = 0
-        self.reward_provided = False
+    def __init__(self,
+                 target: Union[InitCoord, SceneElement],
+                 **kwargs,
+                 ):
 
-        self.target = None
-
-    def add_target(self, target):
+        super().__init__(**kwargs)
         self.target = target
+
+    @abstractmethod
+    def energize(self, agent: Agent):
+        pass
+
+
+#
+        # if teleport.target.traversable:
+        #     agent.position = teleport.target.position
+        #
+        # else:
+        #     area_shape = teleport.target.physical_shape
+        #     if area_shape == 'rectangle':
+        #         width = teleport.target.width + agent.base_platform.radius * 2 + 1
+        #         length = teleport.target.length + agent.base_platform.radius * 2 + 1
+        #         angle = teleport.target.angle
+        #         sampler = CoordinateSampler(
+        #             center=teleport.target.position,
+        #             area_shape=area_shape,
+        #             angle=angle,
+        #             width_length=[width + 2, length + 2],
+        #             excl_width_length=[width, length],
+        #         )
+        #     else:
+        #         radius = teleport.target.radius + agent.base_platform.radius + 1
+        #         sampler = CoordinateSampler(
+        #             center=teleport.target.position,
+        #             area_shape='circle',
+        #             radius=radius,
+        #             excl_radius=radius,
+        #         )
+        #
+        #     agent.coordinates = sampler.sample()
+        #

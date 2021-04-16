@@ -2,81 +2,156 @@
 Empty Playgrounds with built-in walls and rooms
 
 """
+from typing import Union, Dict, Tuple
+
+from collections import namedtuple
 
 import math
 import random
 import numpy as np
 
 from simple_playgrounds.playground import Playground
-from simple_playgrounds.scene_elements import Wall, Door
+from simple_playgrounds.utils.texture import TextureGenerator, Texture
+from simple_playgrounds.elements.elements.basic import Wall, Door
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.parser import parse_configuration
 
 
+Room = namedtuple('Room', ['center', 'width', 'length', 'r', 'c', 'index'])
+
+
 class ConnectedRooms2D(Playground):
     """
-    Multiple rooms with a grid layout
+    Multiple rooms with a grid layout.
+    Rooms counted top to bottom, left to right, .
+    Rooms in row, column numpy style.
     """
 
-    def __init__(self, size=(400, 200), room_layout=(3, 2), wall_type='classic',
-                 wall_texture_seed=None,
-                 **kwargs):
+    def __init__(self,
+                 size: Tuple[int, int],
+                 room_layout: Tuple[int, int],
+                 doorstep_size: int,
+                 doorstep_type: str = 'middle',
+                 wall_type='classic',
+                 wall_depth=10,
+                 wall_texture_seed: Union[int, None] = None,
+                 **wall_params,
+                 ):
+        """
 
-        self.width, self.length = size
+        Args:
+            size:
+            room_layout:
+            doorstep_size:
+            doorstep_type:
+            wall_type:
+            wall_texture_seed:
+            **wall_params:
 
-        default_config = parse_configuration('playground', 'connected-rooms-2d')
-        playground_params = {**default_config, **kwargs}
 
-        # Wall parameters
-        self.rng_texture = np.random.default_rng(wall_texture_seed)
-        self._wall_texture = kwargs.get('wall_texture', parse_configuration('playground', wall_type))
-        self._wall_texture['rng_texture'] = self.rng_texture
-        self._wall_params = {**parse_configuration('playground', 'wall'), **kwargs.get('wall_params', {}),
-                             'texture': self._wall_texture, }
-        self._wall_depth = self._wall_params['depth']
+        Wall parameters take priority on wall type.
 
-        # Door parameters
-        self._doorstep_type = playground_params['doorstep_type']
-        self._doorstep_size = playground_params['doorstep_size']
-        self._size_door = [self._wall_depth, self._doorstep_size]
+        """
 
-        # Environment Layout
-        self.room_layout = room_layout
-        self._width_room = float(self.width) / self.room_layout[0]
-        self._length_room = float(self.length) / self.room_layout[1]
-
-        self.area_rooms = self._compute_area_rooms()
-        self.doorsteps = self._compute_doorsteps()
+        # Playground Layout
 
         super().__init__(size=size)
 
+        self._doorstep_type = doorstep_type
+        self._doorstep_size = doorstep_size
+
+        self._size_door = (wall_depth, self._doorstep_size)
+
+        self._room_layout = room_layout
+        self.rooms = self._compute_rooms()
+        self.doorsteps = self._compute_doorsteps()
+
+        # Wall parameters
+        rng_texture = np.random.default_rng(wall_texture_seed)
+
+        wall_type_params = parse_configuration('playground', wall_type)
+        wall_params = {**wall_type_params,
+                       **wall_params,
+                       'rng': rng_texture}
+        self._wall_params = wall_params
+        self._wall_depth = wall_depth
+
         # Set random texture for possible replication
         self._add_external_walls()
-        self._add_room_walls()
+        # self._add_room_walls()
 
         # By default, an agent starts in a random position of the first room
-        center, shape = self.area_rooms[(0, 0)]
-        shape = shape[0] - self._wall_depth, shape[1] - self._wall_depth
+        first_room = self.rooms[0]
+        center, size = first_room.center, (first_room.width, first_room.length)
         self.initial_agent_coordinates = CoordinateSampler(center=center,
                                                            area_shape='rectangle',
-                                                           width_length=shape)
+                                                           width_length=size)
 
-    def _compute_area_rooms(self):
+    def _compute_rooms(self):
 
-        areas = {}
+        rooms = []
+        width_room = int(self.size[0] / self._room_layout[1])
+        length_room = int(self.size[1] / self._room_layout[0])
 
-        for n_width in range(self.room_layout[0]):
-            for n_length in range(self.room_layout[1]):
+        index = 0
 
-                x_center = self._width_room / 2.0 + n_width * self._width_room
-                y_center = self._length_room / 2.0 + n_length * self._length_room
+        for r in range(self._room_layout[0]):
+            for c in range(self._room_layout[1]):
+
+                x_center = width_room / 2.0 + c * width_room
+                y_center = length_room / 2.0 + r * length_room
 
                 center = (x_center, y_center)
-                shape = (self._width_room - self._wall_depth, self._length_room - self._wall_depth)
 
-                areas[(n_width, n_length)] = (center, shape)
+                room = Room(center=center, index=index, width=width_room, length=length_room, r=r, c=c)
+                rooms.append(room)
+                index += 1
 
-        return areas
+        return rooms
+
+    def _add_external_walls(self):
+
+        upper_rooms = [room for room in self.rooms if room.r == 0]
+        lower_rooms = [room for room in self.rooms if room.r == self._room_layout[0] - 1]
+        left_rooms = [room for room in self.rooms if room.c == 0]
+        right_rooms = [room for room in self.rooms if room.c == self._room_layout[1] - 1]
+
+        for room in upper_rooms:
+
+            # Horizontal walls
+            size_wall = (self._wall_depth * 2, room.width)
+            texture = {**self._wall_params, 'size': size_wall}
+            wall = Wall(size=size_wall, texture=texture)
+            coord = (room.center[0], room.center[1] - room.length/2), 0
+            self.add_element(wall, coord)
+
+        for room in lower_rooms:
+
+            # Horizontal walls
+            size_wall = (self._wall_depth * 2, room.width)
+            texture = {**self._wall_params, 'size': size_wall}
+            wall = Wall(size=size_wall, texture=texture)
+            coord = (room.center[0], room.center[1] + room.length/2), 0
+            self.add_element(wall, coord)
+
+        for room in right_rooms:
+
+            # Horizontal walls
+            size_wall = (self._wall_depth * 2, room.length)
+            texture = {**self._wall_params, 'size': size_wall}
+            wall = Wall(size=size_wall, texture=texture)
+            coord = (room.center[0], room.center[1] + room.width/2), math.pi/2
+            self.add_element(wall, coord)
+
+        for room in left_rooms:
+
+            # Horizontal walls
+            size_wall = (self._wall_depth * 2, room.length)
+            texture = {**self._wall_params, 'size': size_wall}
+            wall = Wall(size=size_wall, texture=texture)
+            coord = (room.center[0], room.center[1] - room.width/2), math.pi/2
+            self.add_element(wall, coord)
+
 
     def _compute_doorsteps(self):
 
@@ -147,13 +222,13 @@ class ConnectedRooms2D(Playground):
                                        pos_y + self._doorstep_size / 2.0 + upper_wall_length / 2.0),
                                        math.pi / 2)
 
-                lower_wall = Wall(width_length=[self._wall_depth, lower_wall_length],
+                lower_wall = Wall(size=[self._wall_depth, lower_wall_length],
                                    **self._wall_params)
-                upper_wall = Wall(width_length=[self._wall_depth, upper_wall_length],
+                upper_wall = Wall(size=[self._wall_depth, upper_wall_length],
                                    **self._wall_params)
 
-                self.add_scene_element(lower_wall, lower_wall_position)
-                self.add_scene_element(upper_wall, upper_wall_position)
+                self.add_element(lower_wall, lower_wall_position)
+                self.add_element(upper_wall, upper_wall_position)
 
             else:
                 left_wall_length = (pos_x % self._width_room) - self._doorstep_size / 2.0
@@ -168,42 +243,16 @@ class ConnectedRooms2D(Playground):
                                        pos_y),
                                        0)
 
-                left_wall = Wall(width_length=[self._wall_depth, left_wall_length],
+                left_wall = Wall(size=[self._wall_depth, left_wall_length],
                                  **self._wall_params,
                                  )
-                right_wall = Wall(width_length=[self._wall_depth, right_wall_length],
+                right_wall = Wall(size=[self._wall_depth, right_wall_length],
                                   **self._wall_params)
 
-                self.add_scene_element(left_wall, left_wall_position)
-                self.add_scene_element(right_wall, right_wall_position)
+                self.add_element(left_wall, left_wall_position)
+                self.add_element(right_wall, right_wall_position)
 
-    def _add_external_walls(self):
 
-        wall_params = self._wall_params.copy()
-
-        for vert in range(self.room_layout[1]):
-
-            wall_params['width_length'] = [self._wall_depth * 2, self._length_room]
-
-            wall = Wall(**wall_params)
-            position = (0, vert * self._length_room + self._length_room / 2.0), math.pi / 2.0
-            self.add_scene_element(wall, position)
-
-            wall = Wall(**wall_params)
-            position = (self.width, vert * self._length_room + self._length_room / 2.0), math.pi / 2.0
-            self.add_scene_element(wall, position)
-
-        for hor in range(self.room_layout[0]):
-
-            wall_params['width_length'] = [self._wall_depth * 2, self._width_room]
-
-            wall = Wall(**wall_params)
-            position = (hor * self._width_room + self._width_room / 2.0, 0), 0
-            self.add_scene_element(wall, position)
-
-            wall = Wall(**wall_params)
-            position = (hor * self._width_room + self._width_room / 2.0, self.length), 0
-            self.add_scene_element(wall, position)
 
     def add_door(self, doorstep):
         """ Add a door to the Playground, at a particular doostep
@@ -224,7 +273,7 @@ class ConnectedRooms2D(Playground):
 
         door = Door(width_length=[self._wall_depth, self._doorstep_size])
 
-        self.add_scene_element(door, ((pos_x, pos_y), theta))
+        self.add_element(door, ((pos_x, pos_y), theta))
 
         return door
 
@@ -334,9 +383,17 @@ class SingleRoom(ConnectedRooms2D):
     Playground composed of a single room
     """
 
-    def __init__(self, size=(200, 200), wall_type='classic', **kwargs):
+    def __init__(self,
+                 size,
+                 wall_type='classic',
+                 **kwargs):
 
-        super().__init__(size=size, room_layout=(1, 1), wall_type=wall_type, **kwargs)
+        super().__init__(size=size, room_layout=(1, 1), wall_type=wall_type,
+                         doorstep_size = 0,
+                         **kwargs)
+
+    def _compute_doorsteps(self):
+        pass
 
 
 class LinearRooms(ConnectedRooms2D):

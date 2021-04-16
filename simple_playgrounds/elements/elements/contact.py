@@ -14,6 +14,10 @@ from simple_playgrounds.utils.parser import parse_configuration
 
 
 
+class ContactElement(InteractiveElement, ABC):
+    """ Base Class for Contact Entities"""
+
+
 class TerminationContact(ContactSceneElement, ABC):
 
     """Base class for entities that terminate upon contact"""

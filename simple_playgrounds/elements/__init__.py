@@ -1,5 +1,5 @@
-from simple_playgrounds.elements.elements.interactive \
-    import Lever, Dispenser, Chest, VendingMachine
+# from simple_playgrounds.elements.elements.interactive \
+#     import Lever, Dispenser, Chest, VendingMachine
 
 # from simple_playgrounds.playgrounds.scene_elements.elements.basic \
 #     import Basic, Door, Traversable, Wall

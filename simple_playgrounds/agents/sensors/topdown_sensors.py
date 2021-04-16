@@ -225,7 +225,7 @@ class FullPlaygroundSensor(Sensor):
 
         full_image = self.get_sensor_image(playground, sensor_surface)
         if self._scale is None:
-            self.set_scale( playground.size )
+            self.set_scale(playground._size)
 
         self.sensor_values = resize(full_image, (self._scale[0], self._scale[1]), order=0, preserve_range=True)
 

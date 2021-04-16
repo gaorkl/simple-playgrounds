@@ -148,7 +148,7 @@ class InteractionActuator(DiscreteActuator, ABC):
 
     def draw(self, drawer_action_image, position_height, height_action, fnt):
 
-        img_width, _ = drawer_action_image.im.size
+        img_width, _ = drawer_action_image.im._size
 
         if self.current_value == 1:
             start = (0, position_height)
@@ -218,7 +218,7 @@ class ContinuousActuator(Actuator, ABC):
 
     def draw(self, drawer_action_image, position_height, height_action, fnt):
 
-        img_width, _ = drawer_action_image.im.size
+        img_width, _ = drawer_action_image.im._size
 
         if self.centered and self.current_value != 0:
 

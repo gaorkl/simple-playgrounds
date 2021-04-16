@@ -24,19 +24,3 @@ colorful :
   size_tiles : 10
   color_min : [ 100, 100, 100 ]
   color_max: [250, 250, 250 ]
-
-wall:
-  entity_type: basic
-  physical_shape: rectangle
-  depth: 10
-
-single-room:
-  none: None
-
-connected-rooms-2d:
-  doorstep_type: middle
-  doorstep_size: 40
-
-linear-rooms:
-  doorstep_type: middle
-  doorstep_size: 40

@@ -13,7 +13,7 @@ import math
 import pymunk
 
 from simple_playgrounds.entity import Entity
-from simple_playgrounds.utils.definitions import AgentPartTypes, CollisionTypes, ARM_MAX_FORCE
+from simple_playgrounds.utils.definitions import PartTypes, CollisionTypes, ARM_MAX_FORCE
 from simple_playgrounds.utils.parser import parse_configuration
 
 # pylint: disable=line-too-long
@@ -31,9 +31,9 @@ class Part(Entity, ABC):
 
     # pylint: disable=too-many-instance-attributes
 
-    entity_type = AgentPartTypes.PART
+    entity_type = None
     part_type = None
-    movable = True
+    _movable = True
     background = False
 
     def __init__(self,
@@ -61,8 +61,7 @@ class Part(Entity, ABC):
         default_config = parse_configuration('agent_parts', self.entity_type)
         body_part_params = {**default_config, **kwargs}
 
-        Entity.__init__(self, visible=True, movable=True, **body_part_params)
-        self.pm_visible_shape.collision_type = CollisionTypes.AGENT
+        Entity.__init__(self, visible_shape=True, invisible_shape=False, movable=True, **body_part_params)
 
         self.can_absorb = can_absorb
 
@@ -89,6 +88,20 @@ class Part(Entity, ABC):
 
             self.set_relative_coordinates()
             self._attach_to_anchor()
+
+    def _set_invisible_shape_collision(self):
+        pass
+
+    def _set_visible_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.AGENT
+
+    @property
+    def radius(self):
+        return self._radius_visible
+
+    @property
+    def size(self):
+        return self._size_visible
 
     def _attach_to_anchor(self):
 
@@ -132,7 +145,7 @@ class MobilePlatform(Part):
         Refer to the base class Platform.
 
     """
-    entity_type = AgentPartTypes.PLATFORM
+    entity_type = PartTypes.PLATFORM
 
     def __init__(self, can_absorb, **kwargs):
         super().__init__(anchor=None, can_absorb=can_absorb, **kwargs)
@@ -145,7 +158,7 @@ class FixedPlatform(MobilePlatform):
         Refer to the base class Platform.
 
     """
-    movable = False
+    _movable = False
 
 
 # Body parts
@@ -157,7 +170,7 @@ class Head(Part):
     Not colliding with any Entity or Part.
 
     """
-    entity_type = AgentPartTypes.HEAD
+    entity_type = PartTypes.HEAD
 
     def __init__(self, anchor, position_anchor=(0, 0), angle_offset=0, **kwargs):
         super().__init__(anchor, position_anchor=position_anchor, angle_offset=angle_offset, **kwargs)
@@ -171,7 +184,7 @@ class Eye(Head):
     Not colliding with any Entity or Part
 
     """
-    entity_type = AgentPartTypes.EYE
+    entity_type = PartTypes.EYE
 
 
 class Hand(Part):
@@ -180,7 +193,7 @@ class Hand(Part):
     Is colliding with other Entity or Part, except from anchor and other Parts attached to it.
 
     """
-    entity_type = AgentPartTypes.HAND
+    entity_type = PartTypes.HAND
 
 
 class Arm(Part):
@@ -192,7 +205,7 @@ class Arm(Part):
         extremity_anchor_point: coordinates of the free extremity, used to attach other Parts.
 
     """
-    entity_type = AgentPartTypes.ARM
+    entity_type = PartTypes.ARM
 
     def __init__(self, anchor, position_anchor, angle_offset=0, **kwargs):
 

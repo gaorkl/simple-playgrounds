@@ -137,7 +137,7 @@ class Sensor(ABC):
     def apply_shape_filter(self, sensor_collision_index):
 
         for elem in self.invisible_elements:
-            elem.update_mask_shape_filter(sensor_collision_index)
+            elem.assign_shape_filter(sensor_collision_index)
 
         self.invisible_filter = pymunk.ShapeFilter(categories=2 ** sensor_collision_index)
 

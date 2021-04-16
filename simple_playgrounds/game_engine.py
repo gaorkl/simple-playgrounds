@@ -84,15 +84,15 @@ class Engine:
         self._screen = None
         if screen:
             # Screen for Pygame
-            self._screen = pygame.display.set_mode((self.playground.width, self.playground.length))
+            self._screen = pygame.display.set_mode(self.playground.size)
             self._screen.set_alpha(None)
             self._quit_key_ready = True
 
         # Pygame Surfaces to display the environment
-        self._surface_background = pygame.Surface((self.playground.width, self.playground.length))
+        self._surface_background = pygame.Surface(self.playground.size)
         self._surface_background.fill(pygame.Color(0, 0, 0, 0))
 
-        self._surface_buffer = pygame.Surface((self.playground.width, self.playground.length))
+        self._surface_buffer = pygame.Surface(self.playground.size)
 
         self.game_on = True
         self.elapsed_time = 0
@@ -258,7 +258,7 @@ class Engine:
             #     entity.draw(self._surface_buffer, draw_interaction=with_interactions)
 
             if not entity.background or entity.graspable or entity.interactive:
-                entity.draw(self._surface_buffer, draw_interaction=with_interactions)
+                entity.draw(self._surface_buffer, draw_invisible=with_interactions)
 
     def update_screen(self):
         """
