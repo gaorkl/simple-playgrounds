@@ -143,7 +143,6 @@ class Agent(ABC):
         self._allow_overlapping, self._max_attempts = strategy
         self._overlapping_strategy_set = True
 
-
     # POSITION / VELOCITY
     @property
     def initial_coordinates(self):

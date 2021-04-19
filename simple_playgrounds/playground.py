@@ -249,10 +249,11 @@ class Playground(ABC):
         if initial_coordinates:
             element.initial_coordinates = initial_coordinates
 
-        # If agent already has a positioning strategy, use it
+        # If element already has a positioning strategy, use it
         element.overlapping_strategy = (allow_overlapping,
                                         max_attempts,
                                         )
+
         self._add_element_to_playground(element)
         self._move_to_initial_position(element)
 

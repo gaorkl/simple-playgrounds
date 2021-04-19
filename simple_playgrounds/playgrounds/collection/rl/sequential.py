@@ -2,7 +2,7 @@
 import random
 
 from simple_playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
+from simple_playgrounds.playgrounds.empty import GridRooms, SingleRoom
 from simple_playgrounds.playgrounds.scene_elements import (Lock, Candy,
                                                            Key, Coin,
                                                            Dispenser, Field,
@@ -12,7 +12,7 @@ from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 
 @PlaygroundRegister.register('sequential', 'dispenser_9rooms')
-class DispenserEnv(ConnectedRooms2D):
+class DispenserEnv(GridRooms):
     """
         Environment composed of 3 rooms (3x1).
         The agent must reach the dispenser, activate it to produce candies in an other room,
@@ -76,7 +76,7 @@ class DispenserEnv(ConnectedRooms2D):
         self._place_scene_elements()
 
 
-class DoorDispenserCoin(ConnectedRooms2D):
+class DoorDispenserCoin(GridRooms):
 
     def __init__(self,
                  time_limit=1000,

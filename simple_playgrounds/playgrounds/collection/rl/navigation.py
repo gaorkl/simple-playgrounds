@@ -1,7 +1,7 @@
 import random
 
 from simple_playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
+from simple_playgrounds.playgrounds.empty import GridRooms, SingleRoom
 from simple_playgrounds.playgrounds.scene_elements import (Basic,
                                                            DeathZone,
                                                            GoalZone,
@@ -89,7 +89,7 @@ class EndgoalRoomCue(SingleRoom):
 
 
 @PlaygroundRegister.register('navigation', 'endgoal_9rooms')
-class Endgoal9Rooms(ConnectedRooms2D):
+class Endgoal9Rooms(GridRooms):
     """
     Squared environment composed of 9 rooms (3x3).
     The agent must reach the invisible goal in the left-down corner.

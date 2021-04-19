@@ -63,6 +63,16 @@ class Texture(ABC):
 
         """ Generates a pygame surface at the correct dimension"""
 
+    def get_pixel(self, rel_pos):
+
+        x = int(rel_pos[0] + self._size[0])
+        y = int(rel_pos[1] + self._size[1])
+
+        x = min(max(0, x), self._size[0] - 1)
+        y = min(max(0, y), self._size[1] - 1)
+
+        return self._surface.get_at( (x,y) )[:3]
+
 
 @TextureGenerator.register_subclass('color')
 class ColorTexture(Texture):
@@ -75,9 +85,10 @@ class ColorTexture(Texture):
                  ):
 
         super().__init__(size)
-        self._surface.fill(color)
+        self._color = color
 
     def generate(self):
+        self._surface.fill(self._color)
         return self._surface
 
 
@@ -106,7 +117,6 @@ class UniqueCenteredStripeTexture(ColorTexture):
                   )
 
         return self._surface
-
 
 
 class RandomTexture(Texture, ABC):
@@ -160,6 +170,8 @@ class RandomTilesTexture(RandomTexture):
                  ):
 
         super().__init__(size, rng)
+
+        assert size_tiles <= self._size[0] and size_tiles <= self._size[1]
 
         self._shape_mini = int(self._size[0] * 1.0 / size_tiles), int(self._size[1] * 1.0 / size_tiles), 3
 

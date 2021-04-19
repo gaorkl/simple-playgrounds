@@ -73,7 +73,7 @@ door_texture : &door-texture
   texture_type: random_tiles
   color_min: [150, 170, 220]
   color_max: [180, 190, 240]
-  size_tiles : 6
+  size_tiles : 4
 
 door : &door
   physical_shape: rectangle

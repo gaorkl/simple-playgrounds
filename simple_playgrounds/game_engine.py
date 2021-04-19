@@ -78,6 +78,9 @@ class Engine:
         elif self.playground.time_limit is not None:
             self._time_limit = self.playground.time_limit
 
+        else:
+            self._time_limit = None
+
         self._debug = debug
 
         # Display screen
@@ -257,7 +260,7 @@ class Engine:
             # if entity.background and not entity.drawn:
             #     entity.draw(self._surface_buffer, draw_interaction=with_interactions)
 
-            if not entity.background or entity.graspable or entity.interactive:
+            if not entity.background or entity.movable:
                 entity.draw(self._surface_buffer, draw_invisible=with_interactions)
 
     def update_screen(self):

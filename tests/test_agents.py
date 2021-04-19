@@ -1,7 +1,7 @@
 import pytest
 
 from simple_playgrounds import Engine
-from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
+from simple_playgrounds.playgrounds.empty import GridRooms, SingleRoom
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 
@@ -31,7 +31,7 @@ def test_base_agent(is_interactive, going_backward, moving_laterally, pg_cls, ag
 @pytest.mark.parametrize(
     "pg,limits",
     [(SingleRoom((300, 300)), (300, 300)),
-     (ConnectedRooms2D((400, 400), (2, 2)), (200, 200))],
+     (GridRooms((400, 400), (2, 2)), (200, 200))],
 )
 def test_agent_initial_position1(base_forward_agent, pg, limits):
     agent = base_forward_agent

@@ -61,12 +61,7 @@ class RgbCamera(RayCollisionSensor):
 
                 rel_pos_point = (collision_pt - elem_colliding.position).rotated(math.pi/2 - elem_colliding.angle)
 
-                rel_pos_point = [int(x+elem_colliding.radius) for x in rel_pos_point]
-
-                rel_pos_point[0] = min(max(0, rel_pos_point[0]), elem_colliding.texture_surface.get_width()-1)
-                rel_pos_point[1] = min(max(0, rel_pos_point[1]), elem_colliding.texture_surface.get_height()-1)
-
-                rgb = elem_colliding.texture_surface.get_at(rel_pos_point)[:3]
+                rgb = elem_colliding.get_pixel(rel_pos_point)
 
                 pixels[angle_index] = rgb
 

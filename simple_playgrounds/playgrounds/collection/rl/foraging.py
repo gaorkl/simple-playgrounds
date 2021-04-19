@@ -1,7 +1,7 @@
 import random
 
 from simple_playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.empty import ConnectedRooms2D, SingleRoom
+from simple_playgrounds.playgrounds.empty import GridRooms, SingleRoom
 from simple_playgrounds.playgrounds.scene_elements import (Fireball, Candy,
                                                            Coin, DeathZone,
                                                            Dispenser, Field,

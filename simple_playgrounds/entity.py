@@ -80,7 +80,7 @@ class Entity(ABC):
 
         else:
             assert isinstance(size, tuple)
-            assert len(size)==2 and isinstance(size[0], int) and isinstance(size[1], int)
+            assert len(size) == 2 and isinstance(size[0], int) and isinstance(size[1], int)
 
             width, length = size
             self._size_visible = size
@@ -125,7 +125,8 @@ class Entity(ABC):
         if isinstance(texture, Dict):
             texture['size'] = self._size_visible
             texture = TextureGenerator.create(**texture)
-        self.texture_surface = texture.generate()
+        self.texture = texture
+        self._texture_surface = self.texture.generate()
 
         # Used to set an element which is not supposed to overlap
         self._allow_overlapping = False
@@ -139,9 +140,14 @@ class Entity(ABC):
             background = False
 
         self.background = background
+        self.movable = movable
         self.drawn = False
 
         self.temporary = temporary
+
+    def get_pixel(self, relative_pos):
+
+        self.texture.get_pixel(relative_pos)
 
     @abstractmethod
     def _set_visible_shape_collision(self):
@@ -273,19 +279,12 @@ class Entity(ABC):
 
         alpha = 255
         mask_size = self._size_visible
+        center = self._radius_visible, self._radius_visible
 
         if invisible:
             alpha = 75
             mask_size = self._size_invisible
-
-        if self.physical_shape == PhysicalShapes.RECTANGLE:
-            assert isinstance(mask_size, tuple)
-            center = mask_size[0]/2., mask_size[1]/2.
-
-        else:
-            assert isinstance(mask_size, int)
-            center = mask_size, mask_size
-            mask_size = (2 * mask_size + 1, 2 * mask_size + 1)
+            center = self._radius_invisible, self._radius_invisible
 
         mask = pygame.Surface(mask_size, pygame.SRCALPHA)
         mask.fill((0, 0, 0, 0))
@@ -300,10 +299,10 @@ class Entity(ABC):
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
         if invisible:
-            texture_surface = pygame.transform.scale(self.texture_surface,
+            texture_surface = pygame.transform.scale(self._texture_surface,
                                                      mask_size)
         else:
-            texture_surface = self.texture_surface.copy()
+            texture_surface = self._texture_surface.copy()
 
         # Pygame / numpy conversion
         mask_angle = math.pi/2 - self.angle
@@ -365,6 +364,7 @@ class Entity(ABC):
     @coordinates.setter
     def coordinates(self, coord):
         self.position, self.angle = coord
+        self.pm_body.space.reindex_shapes_for_body(self.pm_body)
 
     @property
     def position(self):
