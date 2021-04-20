@@ -21,7 +21,7 @@ from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts import Part
 from simple_playgrounds.entity import Entity
 from simple_playgrounds.elements.element import InitCoord, SceneElement, InteractiveElement, TeleportElement
-from simple_playgrounds.elements.production_field import Field
+from simple_playgrounds.elements.field import Field
 from simple_playgrounds.elements.elements.interactive import Dispenser
 from simple_playgrounds.agents.sensors import RayCollisionSensor
 

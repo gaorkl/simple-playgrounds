@@ -9,7 +9,7 @@ Examples can be found in :
     - simple_playgrounds/agents/parts
     - simple_playgrounds/playgrounds/scene_elements
 """
-from typing import Union, Tuple, Dict
+from typing import Union, Tuple, Dict, List
 
 import math
 from abc import ABC, abstractmethod
@@ -17,9 +17,9 @@ from abc import ABC, abstractmethod
 import pymunk
 import pygame
 
-from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
-from simple_playgrounds.utils.texture import Texture, TextureGenerator
-from simple_playgrounds.utils.definitions import CollisionTypes, PhysicalShapes
+from .utils.position_utils import CoordinateSampler, Trajectory
+from .utils.texture import Texture, TextureGenerator, ColorTexture
+from .utils.definitions import CollisionTypes, PhysicalShapes
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
@@ -34,16 +34,15 @@ class Entity(ABC):
     """
 
     index_entity = 0
-    # TODO: remove entity type
 
     def __init__(self,
                  visible_shape: bool,
                  invisible_shape: bool,
                  texture: Union[Texture, Dict],
                  physical_shape: str,
-                 size: Union[None, Tuple[int, int]] = None,
-                 radius: Union[None, int] = None,
-                 invisible_range: int = 5,
+                 size: Union[None, Tuple[float, float], List[float]] = None,
+                 radius: Union[None, float] = None,
+                 invisible_range: float = 5,
                  graspable: bool = False,
                  traversable: bool = False,
                  movable: bool = False,
@@ -67,26 +66,25 @@ class Entity(ABC):
         self.physical_shape = PhysicalShapes[physical_shape.upper()]
 
         # Dimensions of the entity
-        self.invisible_range = invisible_range
 
-        assert (radius or size)
+        self._invisible_range = invisible_range
 
         if radius and not size:
-            assert isinstance(radius, int)
+            assert isinstance(radius, (float, int))
             self._radius_visible = radius
-            self._size_visible = (radius, radius)
-            self._radius_invisible = radius + self.invisible_range
-            self._size_invisible = (self._radius_invisible, self._radius_invisible)
+            self._size_visible = (2*radius, 2*radius)
+            self._radius_invisible = radius + self._invisible_range
+            self._size_invisible = (2*self._radius_invisible, 2*self._radius_invisible)
 
         else:
-            assert isinstance(size, tuple)
-            assert len(size) == 2 and isinstance(size[0], int) and isinstance(size[1], int)
+            assert isinstance(size, (tuple, list))
+            assert len(size) == 2 and isinstance(size[0], (float, int)) and isinstance(size[1], (float, int))
 
             width, length = size
             self._size_visible = size
-            self._radius_visible = int(((width/2)**2 + (length/2)**2)**(1/2))
-            self._size_invisible = width+self.invisible_range, length+self.invisible_range
-            self._radius_invisible = self._radius_visible + self.invisible_range
+            self._radius_visible = ((width/2.)**2 + (length/2.)**2)**(1/2.)
+            self._size_invisible = width + self._invisible_range, length + self._invisible_range
+            self._radius_invisible = self._radius_visible + self._invisible_range
 
         self.pm_body = self._create_pm_body(movable)
         self.pm_elements = [self.pm_body]
@@ -125,6 +123,12 @@ class Entity(ABC):
         if isinstance(texture, Dict):
             texture['size'] = self._size_visible
             texture = TextureGenerator.create(**texture)
+
+        elif isinstance(texture, (tuple, list)):
+            assert len(texture) == 3
+            texture = ColorTexture(size=self._size_visible, color=texture )
+
+        assert isinstance(texture, Texture)
         self.texture = texture
         self._texture_surface = self.texture.generate()
 
@@ -212,14 +216,14 @@ class Entity(ABC):
             if invisible:
                 width, length = self._size_invisible
 
-            points = [(width / 2., length / 2.), (width / 2., -length / 2.),
-                      (-width / 2., -length / 2.), (-width / 2., length / 2.)]
+            points = [pymunk.Vec2d(width / 2., length / 2.),
+                      pymunk.Vec2d(width / 2., -length / 2.),
+                      pymunk.Vec2d(-width / 2., -length / 2.),
+                      pymunk.Vec2d(-width / 2., length / 2.)]
 
-            for coord in points:
-                pos_x = coord[0] * math.cos(offset_angle) - coord[1] * math.sin(offset_angle)
-                pos_y = coord[0] * math.sin(offset_angle) + coord[1] * math.cos(offset_angle)
-
-                vertices.append((pos_x, pos_y))
+            for pt in points:
+                pt_rotated = pt.rotated(offset_angle)
+                vertices.append(pt_rotated)
 
             return vertices
 
@@ -229,11 +233,12 @@ class Entity(ABC):
             if invisible:
                 radius = self._radius_invisible
 
-            number_sides = PhysicalShapes[self.physical_shape].value
+            number_sides = self.physical_shape.value
+
+            orig = pymunk.Vec2d(radius,0)
 
             for n_sides in range(number_sides):
-                vertices.append((radius * math.cos(n_sides * 2 * math.pi / number_sides + offset_angle),
-                                 radius * math.sin(n_sides * 2 * math.pi / number_sides + offset_angle)))
+                vertices.append(orig.rotated( n_sides * 2 * math.pi / number_sides + offset_angle))
 
         return vertices
 
@@ -278,12 +283,12 @@ class Entity(ABC):
         # pylint: disable-all
 
         alpha = 255
-        mask_size = self._size_visible
+        mask_size = (2*self._radius_visible, 2*self._radius_visible)
         center = self._radius_visible, self._radius_visible
 
         if invisible:
             alpha = 75
-            mask_size = self._size_invisible
+            mask_size = (2*self._radius_invisible, 2*self._radius_invisible)
             center = self._radius_invisible, self._radius_invisible
 
         mask = pygame.Surface(mask_size, pygame.SRCALPHA)
@@ -295,7 +300,7 @@ class Entity(ABC):
 
         else:
             vert = self._compute_vertices(offset_angle=self.angle, invisible=invisible)
-            vertices = [[x[0] + center[0], x[1] + center[1]] for x in vert]
+            vertices = [v - v.normalized() + center for v in vert]
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
         if invisible:
@@ -309,6 +314,8 @@ class Entity(ABC):
         texture_surface = pygame.transform.rotate(texture_surface, mask_angle * 180 / math.pi)
         mask_rect = texture_surface.get_rect()
         mask_rect.center = center
+        if self.physical_shape == PhysicalShapes.RECTANGLE:
+            mask_rect.center = center[0]+1, center[1]+1
         mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
 
         return mask
@@ -426,6 +433,7 @@ class Entity(ABC):
 
         self.drawn = False
 
+    # Todo: re set force to false
     def draw(self, surface, draw_invisible=False, force_recompute_mask=False):
         """
         Draw the entity on the surface.
@@ -436,18 +444,16 @@ class Entity(ABC):
             force_recompute_mask: If True, the visual appearance is re-calculated.
         """
 
-        if not self.drawn or force_recompute_mask:
+        if draw_invisible and (self.pm_invisible_shape or self.pm_grasp_shape):
+            invisible_mask = self._create_mask(invisible=True)
+            mask_rect = invisible_mask.get_rect()
+            mask_rect.center = self.position
+            surface.blit(invisible_mask, mask_rect, None)
 
-            if draw_invisible and (self.pm_invisible_shape or self.pm_grasp_shape):
-                invisible_mask = self._create_mask(invisible=True)
-                mask_rect = invisible_mask.get_rect()
-                mask_rect.center = self.position
-                surface.blit(invisible_mask, mask_rect, None)
-
-            if self.pm_visible_shape:
-                visible_mask = self._create_mask()
-                mask_rect = visible_mask.get_rect()
-                mask_rect.center = self.position
-                surface.blit(visible_mask, mask_rect, None)
+        if self.pm_visible_shape:
+            visible_mask = self._create_mask()
+            mask_rect = visible_mask.get_rect()
+            mask_rect.center = self.position
+            surface.blit(visible_mask, mask_rect, None)
 
         self.drawn = True

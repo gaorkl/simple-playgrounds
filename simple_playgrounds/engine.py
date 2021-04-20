@@ -15,6 +15,11 @@ Typical Usage:
     engine.terminate()
 """
 
+from typing import List, Union, TYPE_CHECKING, Dict
+
+from simple_playgrounds.playgrounds import Playground
+from simple_playgrounds.agents import Actuator, Agent
+
 import numpy as np
 
 import pygame
@@ -29,14 +34,15 @@ from skimage.transform import rescale
 from simple_playgrounds.utils.definitions import SensorTypes, SIMULATION_STEPS
 from simple_playgrounds.agents.parts.actuators import Eat, Activate
 
+
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
 
 
-class Engine:
+class SPGEngine:
 
     """
-    An Engine manages the interactions between agents and a playground.
+    An SPGEnv manages the interactions between agents and elements in a playground.
 
     Attributes:
         playground: Playground
@@ -49,7 +55,12 @@ class Engine:
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=line-too-long
 
-    def __init__(self, playground, time_limit=None, screen=False, debug=False):
+    def __init__(self,
+                 playground: Playground,
+                 time_limit: Union[int, None] = None,
+                 screen: bool = False,
+                 debug: bool = False,
+                 ):
         """
         Args:
             playground (:obj: 'Playground'): Playground where the agents will be placed.
@@ -72,14 +83,13 @@ class Engine:
         self.playground = playground
         self.agents = self.playground.agents
 
+        self._time_limit: Union[None, int] = None
+
         if time_limit is not None:
             self._time_limit = time_limit
 
         elif self.playground.time_limit is not None:
             self._time_limit = self.playground.time_limit
-
-        else:
-            self._time_limit = None
 
         self._debug = debug
 
@@ -102,7 +112,9 @@ class Engine:
 
     # STEP
 
-    def multiple_steps(self, actions, n_steps=1):
+    def multiple_steps(self,
+                       actions: Dict[Agent, Dict[Actuator, float]],
+                       n_steps: int = 1):
         """
         Runs multiple steps of the game, with the same actions for the agents.
         The physical actions are performed for n_steps.
@@ -113,8 +125,8 @@ class Engine:
             n_steps: Number of consecutive steps where the same actions will be applied
 
         """
-        hold_actions = {}
-        last_action = {}
+        hold_actions: Dict[Agent, Dict[Actuator, float]] = {}
+        last_action: Dict[Agent, Dict[Actuator, float]] = {}
 
         terminate = False
 
@@ -159,7 +171,7 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
-    def step(self, actions):
+    def step(self, actions: Dict[Agent, Dict[Actuator, float]]):
         """
         Runs a single step of the game, with the same actions for the agents.
 
@@ -176,7 +188,7 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
-    def _engine_step(self, actions):
+    def _engine_step(self, actions: Dict[Agent, Dict[Actuator, float]]):
 
         for agent in actions:
             agent.apply_actions_to_actuators(actions[agent])

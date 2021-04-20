@@ -1,12 +1,12 @@
-from simple_playgrounds import Engine
+from simple_playgrounds import SPGEngine
 
 from simple_playgrounds.agents.agents import BaseAgent
 from simple_playgrounds.agents.sensors import Touch
 from simple_playgrounds.agents.parts.controllers import RandomContinuous
 
-from simple_playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 
-from simple_playgrounds.playgrounds.empty import SingleRoom
+from simple_playgrounds.playgrounds.layouts import SingleRoom
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 
@@ -57,7 +57,7 @@ def test_add_remove_agent_in_area(base_forward_agent):
 def test_engine(base_forward_agent):
     playground = SingleRoom(size=(200, 200))
     agent = base_forward_agent
-    engine = Engine(playground, time_limit=100)
+    engine = SPGEngine(playground, time_limit=100)
     playground.add_agent(agent)
     assert len(engine.agents) == 1
     playground.remove_agent(agent)
@@ -69,7 +69,7 @@ def test_engine_run(base_forward_agent):
     playground = SingleRoom(size=(200, 200))
     agent = base_forward_agent
     playground.add_agent(agent)
-    engine = Engine(playground, time_limit=100)
+    engine = SPGEngine(playground, time_limit=100)
 
     pos_start = agent.position
     engine.run()
@@ -78,12 +78,12 @@ def test_engine_run(base_forward_agent):
     playground.remove_agent(agent)
     playground.add_agent(agent)
 
-    engine = Engine(playground, time_limit=100)
+    engine = SPGEngine(playground, time_limit=100)
     assert len(engine.agents) == 1
     engine.run()
 
     playground.remove_agent(agent)
-    engine = Engine(playground,  time_limit=100)
+    engine = SPGEngine(playground, time_limit=100)
     playground.add_agent(agent)
     assert len(engine.agents) == 1
 
@@ -102,7 +102,7 @@ def test_all_test_playgrounds(base_forward_agent):
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(playground, time_limit=10000)
+        engine = SPGEngine(playground, time_limit=10000)
         engine.run()
         assert 0 < agent.position[0] < playground._size[0]
         assert 0 < agent.position[1] < playground._size[1]
@@ -123,7 +123,7 @@ def test_all_test_playgrounds_interactive(base_forward_agent):
 
         print('Starting testing of ', pg_class.__name__)
 
-        engine = Engine(playground, time_limit=10000)
+        engine = SPGEngine(playground, time_limit=10000)
         engine.run()
         assert 0 < agent.position[0] < playground._size[0]
         assert 0 < agent.position[1] < playground._size[1]
@@ -150,7 +150,7 @@ def test_multiagents(base_forward_agent):
 
         assert len(playground.agents) == 100
 
-        engine = Engine(playground, time_limit=100, screen=False)
+        engine = SPGEngine(playground, time_limit=100, screen=False)
         engine.run(update_screen=False)
         engine.terminate()
 
@@ -173,7 +173,7 @@ def test_multiagents_no_overlapping(base_forward_agent):
 
         assert len(playground.agents) == 2
 
-        engine = Engine(playground, time_limit=100, screen=False)
+        engine = SPGEngine(playground, time_limit=100, screen=False)
         engine.run(update_screen=False)
 
 
@@ -190,7 +190,7 @@ def test_multisteps(base_forward_agent):
         print('Starting Multistep testing of ', pg_class.__name__)
         playground.add_agent(agent)
 
-        engine = Engine(playground, time_limit=10000, screen=False)
+        engine = SPGEngine(playground, time_limit=10000, screen=False)
 
         while engine.game_on:
 
@@ -215,14 +215,14 @@ def test_agent_in_different_environments(base_forward_agent):
 
     # Play in pg 1
     pg_1.add_agent(agent)
-    engine = Engine(pg_1, 100)
+    engine = SPGEngine(pg_1, 100)
     engine.run()
     engine.terminate()
     pg_1.remove_agent(agent)
 
     # Play in pg 2
     pg_2.add_agent(agent)
-    engine = Engine(pg_2, 100)
+    engine = SPGEngine(pg_2, 100)
     engine.run()
     engine.terminate()
     pg_2.remove_agent(agent)
@@ -231,8 +231,8 @@ def test_agent_in_different_environments(base_forward_agent):
     pg_1.reset()
     pg_2.reset()
 
-    engine_1 = Engine(pg_1, 100)
-    engine_2 = Engine(pg_2, 100)
+    engine_1 = SPGEngine(pg_1, 100)
+    engine_2 = SPGEngine(pg_2, 100)
 
     print('going to playground 1')
     pg_1.add_agent(agent)

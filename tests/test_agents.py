@@ -1,7 +1,7 @@
 import pytest
 
-from simple_playgrounds import Engine
-from simple_playgrounds.playgrounds.empty import GridRooms, SingleRoom
+from simple_playgrounds import SPGEngine
+from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 
 
@@ -9,7 +9,7 @@ def run_engine(agent, pg_class):
     playground = pg_class()
     playground.add_agent(agent)
 
-    engine = Engine(playground, time_limit=100)
+    engine = SPGEngine(playground, time_limit=100)
     engine.run()
 
     assert 0 < agent.position[0] < playground._size[0]

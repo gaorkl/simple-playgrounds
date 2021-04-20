@@ -1,7 +1,7 @@
 from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import HeadAgent
 from simple_playgrounds.agents.sensors import RgbCamera
-from simple_playgrounds import Engine
+from simple_playgrounds import SPGEngine
 from simple_playgrounds.playgrounds.collection import Basics, Teleports, Interactives, ExtraTeleports
 
 
@@ -21,7 +21,7 @@ def test_sensor_without_params(any_sensor):
         playground = pg_class()
         playground.add_agent(agent)
 
-        engine = Engine(playground, time_limit=100)
+        engine = SPGEngine(playground, time_limit=100)
         engine.run()
 
         playground.remove_agent(agent)
@@ -50,7 +50,7 @@ def test_ray_sensors(ray_sensor, resolution, fov, obs_range):
         playground = pg_class()
         playground.add_agent(agent)
 
-        engine = Engine(playground, time_limit=100)
+        engine = SPGEngine(playground, time_limit=100)
         engine.run()
 
         playground.remove_agent(agent)
@@ -72,7 +72,7 @@ def test_rgb_on_teleports(base_forward_agent):
     playground = ExtraTeleports()
     playground.add_agent(agent)
 
-    engine = Engine(playground, time_limit=10000)
+    engine = SPGEngine(playground, time_limit=10000)
     engine.run()
 
     assert 0 < agent.position[0] < playground.size[0]

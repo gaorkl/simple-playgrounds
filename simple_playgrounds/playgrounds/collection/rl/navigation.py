@@ -1,7 +1,7 @@
 import random
 
-from simple_playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.empty import GridRooms, SingleRoom
+from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
 from simple_playgrounds.playgrounds.scene_elements import (Basic,
                                                            DeathZone,
                                                            GoalZone,
