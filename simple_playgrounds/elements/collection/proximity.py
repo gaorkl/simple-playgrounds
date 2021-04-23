@@ -1,7 +1,7 @@
 from abc import ABC
 from simple_playgrounds.scene_elements.elements.zone import ZoneElement
-from simple_playgrounds.utils.parser import parse_configuration
-from simple_playgrounds.utils.definitions import ElementTypes
+from simple_playgrounds.configs import parse_configuration
+from simple_playgrounds.definitions import ElementTypes
 
 
 class VisibleRewardZone(ZoneElement, ABC):

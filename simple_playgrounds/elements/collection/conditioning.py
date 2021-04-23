@@ -4,8 +4,8 @@ Scene Elements used for conditioning experiments
 from simple_playgrounds.playgrounds.playground import Playground
 from simple_playgrounds.scene_elements.element import SceneElement
 from simple_playgrounds.scene_elements.elements import Lever
-from simple_playgrounds.utils.parser import parse_configuration
-from simple_playgrounds.utils.definitions import ElementTypes
+from simple_playgrounds.configs import parse_configuration
+from simple_playgrounds.definitions import ElementTypes
 
 
 class ColorChanging(SceneElement):

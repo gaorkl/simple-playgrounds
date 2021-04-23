@@ -2,44 +2,13 @@
 Scene elements that interact with an agent when they are in range.
 Passive Scene Elements do not require action from an agent.
 """
+from typing import Optional
+
 from abc import ABC
 
-from simple_playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.utils.definitions import CollisionTypes, ElementTypes
-from simple_playgrounds.utils.parser import parse_configuration
-
-
-class ZoneElement(SceneElement, ABC):
-    """
-    Passive Scene Elements are activated when an agent is within
-    their interaction radius.
-    """
-
-    interactive = True
-
-    def __init__(self, **kwargs):
-        SceneElement.__init__(self, **kwargs)
-        self.pm_interaction_shape.collision_type = CollisionTypes.ZONE
-
-        self.reward = 0
-        self.reward_provided = False
-
-    def pre_step(self):
-        super(PassiveSceneElement, self).pre_step()
-        self.reward_provided = False
-
-    @property
-    def reward(self):
-
-        if not self.reward_provided:
-            self.reward_provided = True
-            return self._reward
-
-        return 0
-
-    @reward.setter
-    def reward(self, rew):
-        self._reward = rew
+from simple_playgrounds.elements.element import ZoneElement
+from simple_playgrounds.definitions import ElementTypes
+from simple_playgrounds.configs import parse_configuration
 
 
 class TerminationZone(ZoneElement, ABC):
@@ -47,10 +16,7 @@ class TerminationZone(ZoneElement, ABC):
     Termination Zones terminate the episode when activated.
     """
 
-    terminate_upon_contact = True
-    visible = False
-
-    def __init__(self, **kwargs):
+    def __init__(self, config_key, **kwargs):
         """
         Base class for Invisible zones that terminate upon contact.
 
@@ -64,13 +30,17 @@ class TerminationZone(ZoneElement, ABC):
             reward: Reward provided.
         """
 
-        default_config = parse_configuration('element_zone', self.entity_type)
+        default_config = parse_configuration('element_zone', config_key)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(**entity_params)
 
-        self.reward = entity_params.get('reward', 0)
-        self.reward_provided = False
+    @property
+    def terminate_upon_activation(self):
+        return True
+
+    def activate(self, *args):
+        return None, None
 
 
 class GoalZone(TerminationZone):
@@ -78,7 +48,11 @@ class GoalZone(TerminationZone):
     Termination Zone that provides positive reward when activated.
     """
 
-    entity_type = ElementTypes.GOAL_ZONE
+    def __init__(self, reward: float, **kwargs):
+
+        assert reward > 0
+
+        super().__init__(ElementTypes.GOAL_ZONE, reward=reward, **kwargs)
 
 
 class DeathZone(TerminationZone):
@@ -86,16 +60,23 @@ class DeathZone(TerminationZone):
     Termination Zone that provides negative reward when activated.
     """
 
-    entity_type = ElementTypes.DEATH_ZONE
+    def __init__(self, reward: float, **kwargs):
+
+        assert reward < 0
+
+        super().__init__(ElementTypes.DEATH_ZONE, reward=reward, **kwargs)
 
 
 class RewardZone(ZoneElement, ABC):
     """
     Reward Zones provide a reward to an agent in the zone.
     """
-    visible = False
 
-    def __init__(self, **kwargs):
+    def __init__(self,
+                 config_key,
+                 reward: float,
+                 limit: Optional[float],
+                 **entity_params):
         """
         RewardZone entities are invisible zones.
         Provide a reward to the agent which is inside the zone.
@@ -108,37 +89,38 @@ class RewardZone(ZoneElement, ABC):
             total_reward: Total reward that the entity can provide during an Episode
         """
 
-        default_config = parse_configuration('element_zone', self.entity_type)
-        entity_params = {**default_config, **kwargs}
+        default_config = parse_configuration('element_zone', config_key)
+        entity_params = {**default_config, **entity_params}
 
-        super().__init__(**entity_params)
+        super().__init__(reward= reward, **entity_params)
 
-        self.reward = entity_params['reward']
-
-        self.initial_total_reward = entity_params['total_reward']
-        self.total_reward = self.initial_total_reward
+        self._limit = limit
+        self._total_reward_provided = 0
 
     @property
     def reward(self):
+        rew = super().reward
 
-        if not self.reward_provided:
-            self.reward_provided = True
+        if self._limit and self._total_reward_provided > self._limit:
+            return 0
 
-            if self._reward * self.total_reward < 0:
-                return 0
-
-            self.total_reward -= self._reward
-            return self._reward
-
-        return 0
+        self._total_reward_provided += rew
+        return rew
 
     @reward.setter
-    def reward(self, rew):
+    def reward(self, rew: float):
         self._reward = rew
 
     def reset(self):
-        self.total_reward = self.initial_total_reward
+        self._total_reward_provided = 0
         super().reset()
+
+    @property
+    def terminate_upon_activation(self):
+        return False
+
+    def activate(self, *args):
+        return None, None
 
 
 class ToxicZone(RewardZone):
@@ -150,7 +132,15 @@ class ToxicZone(RewardZone):
     Default: Yellow square of radius 15, reward -1 and total_reward -1000000
     """
 
-    entity_type = ElementTypes.TOXIC_ZONE
+    def __init__(self,
+                 reward: float,
+                 limit: Optional[float],
+                 **entity_params,
+                 ):
+
+        assert reward < 0
+
+        super().__init__(ElementTypes.TOXIC_ZONE, reward=reward, limit=limit, **entity_params)
 
 
 class HealingZone(RewardZone):
@@ -164,4 +154,11 @@ class HealingZone(RewardZone):
 
     """
 
-    entity_type = ElementTypes.HEALING_ZONE
+    def __init__(self,
+                 reward: float,
+                 limit: Optional[float],
+                 **entity_params,
+                 ):
+        assert reward > 0
+
+        super().__init__(ElementTypes.HEALING_ZONE, reward=reward, limit=limit, **entity_params)

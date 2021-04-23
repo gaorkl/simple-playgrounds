@@ -6,7 +6,7 @@ from simple_playgrounds.playgrounds.scene_elements import (Basic,
                                                            DeathZone,
                                                            GoalZone,
                                                            )
-from simple_playgrounds.utils.position_utils import CoordinateSampler
+from simple_playgrounds.common.position_samplers import CoordinateSampler
 
 
 @PlaygroundRegister.register('navigation', 'endgoal_cue')

@@ -11,6 +11,7 @@ SPACE_DAMPING = 0.9
 LINEAR_FORCE = 100
 ANGULAR_VELOCITY = 0.3
 ARM_MAX_FORCE = 500
+MAX_GRASP_FORCE = 600
 
 
 class EntityTypes(IntEnum):
@@ -96,14 +97,12 @@ class SensorTypes(IntEnum):
 
 class CollisionTypes(IntEnum):
 
-    AGENT = auto()
+    PART = auto()
     CONTACT = auto()
     ACTIVABLE = auto()
-    ZONE = auto()
     GEM = auto()
-    EDIBLE = auto()
     GRASPABLE = auto()
-    ACTIVATED_BY_GEM = auto()
+    ACTIVABLE_BY_GEM = auto()
     TELEPORT = auto()
 
 

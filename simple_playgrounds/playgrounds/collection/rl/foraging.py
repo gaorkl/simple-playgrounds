@@ -2,7 +2,7 @@ from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 from simple_playgrounds.playgrounds.scene_elements import (Fireball, Candy,
                                                            Field)
-from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
+from simple_playgrounds.common.position_samplers import CoordinateSampler, Trajectory
 
 
 @PlaygroundRegister.register('foraging', 'candy_fireballs')

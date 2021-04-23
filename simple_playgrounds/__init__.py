@@ -1,4 +1,4 @@
-from simple_playgrounds.engine import SPGEngine
+from simple_playgrounds.engine import Engine
 
 # import playgrounds into register
-# import simple_playgrounds.playgrounds.collection
+import simple_playgrounds.playgrounds.collection

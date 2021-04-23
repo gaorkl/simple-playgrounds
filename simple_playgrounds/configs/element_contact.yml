@@ -2,26 +2,26 @@
 
 # Termination on Contact
 visible_endgoal_texture : &visible_endgoal_texture
-  texture_type: uniform
+  texture_type: random_uniform
   color_min: [10, 200, 50]
   color_max: [20, 250, 70]
 
 
 visible_endgoal:
   physical_shape: rectangle
-  width_length: [ 15, 15 ]
+  size: [ 15, 15 ]
   'texture': *visible_endgoal_texture
   'reward': 200
 
 visible_deathtrap_texture : &visible_deathtrap_texture
-  texture_type: uniform
+  texture_type: random_uniform
   color_min: [230, 0, 50]
   color_max: [240, 50, 70]
 
 
 visible_deathtrap:
   physical_shape: rectangle
-  width_length: [ 15, 15 ]
+  size: [ 15, 15 ]
   'texture': *visible_deathtrap_texture
   'reward': -200
 

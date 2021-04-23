@@ -6,7 +6,7 @@ import random
 
 import pygame
 
-from simple_playgrounds.utils.definitions import ActionSpaces, KeyTypes
+from simple_playgrounds.definitions import ActionSpaces, KeyTypes
 
 
 class Controller(ABC):

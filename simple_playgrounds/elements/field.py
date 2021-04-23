@@ -3,7 +3,7 @@ Module for Field
 """
 import random
 
-from simple_playgrounds.utils.definitions import ElementTypes
+from simple_playgrounds.definitions import ElementTypes
 
 
 # pylint: disable=too-many-instance-attributes

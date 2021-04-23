@@ -6,15 +6,15 @@ from typing import Union
 import pymunk
 
 from simple_playgrounds.elements.element import SceneElement
-from simple_playgrounds.utils.parser import parse_configuration
-from simple_playgrounds.utils.definitions import ElementTypes, PhysicalShapes
+from simple_playgrounds.configs import parse_configuration
+from simple_playgrounds.definitions import ElementTypes
 
 
 class Physical(SceneElement):
 
     def __init__(self,
                  config_key: Union[str, ElementTypes],
-                 **kwargs,
+                 **entity_params,
                  ):
         """
 
@@ -24,14 +24,11 @@ class Physical(SceneElement):
         """
 
         elem_config = parse_configuration('element_basic', config_key)
-        elem_config = {**elem_config, **kwargs}
+        elem_config = {**elem_config, **entity_params}
 
         super().__init__(visible_shape=True, invisible_shape=False, **elem_config)
 
-    def _set_visible_shape_collision(self):
-        pass
-
-    def _set_invisible_shape_collision(self):
+    def _set_shape_collision(self):
         pass
 
 
@@ -39,7 +36,7 @@ class Traversable(SceneElement):
 
     def __init__(self,
                  config_key: Union[str, ElementTypes],
-                 **kwargs,
+                 **entity_params,
                  ):
         """
 
@@ -49,14 +46,11 @@ class Traversable(SceneElement):
         """
 
         elem_config = parse_configuration('element_basic', config_key)
-        elem_config = {**elem_config, **kwargs}
+        elem_config = {**elem_config, **entity_params}
 
         super().__init__(visible_shape=True, invisible_shape=False, traversable=True, **elem_config)
 
-    def _set_visible_shape_collision(self):
-        pass
-
-    def _set_invisible_shape_collision(self):
+    def _set_shape_collision(self):
         pass
 
 
@@ -67,7 +61,7 @@ class Wall(Physical):
                  start_point,
                  end_point,
                  wall_depth,
-                 **kwargs):
+                 **entity_params):
 
         start_point = pymunk.Vec2d(*start_point)
         end_point = pymunk.Vec2d(*end_point)
@@ -76,15 +70,9 @@ class Wall(Physical):
 
         super().__init__(config_key=ElementTypes.WALL,
                          size=(length_wall, wall_depth),
-                         **kwargs)
+                         **entity_params)
 
         self.initial_coordinates = (start_point+end_point)/2, (end_point-start_point).angle
-
-    def _set_visible_shape_collision(self):
-        pass
-
-    def _set_invisible_shape_collision(self):
-        pass
 
 
 class Door(Physical):
@@ -98,7 +86,7 @@ class Door(Physical):
                  start_point,
                  end_point,
                  door_depth,
-                 **kwargs):
+                 **entity_params):
         start_point = pymunk.Vec2d(*start_point)
         end_point = pymunk.Vec2d(*end_point)
 
@@ -106,8 +94,7 @@ class Door(Physical):
 
         super().__init__(config_key=ElementTypes.DOOR,
                          size=(length_wall, door_depth),
-
-                         **kwargs)
+                         **entity_params)
 
         self.initial_coordinates = (start_point + end_point) / 2, (end_point - start_point).angle
 

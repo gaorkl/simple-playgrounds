@@ -12,8 +12,8 @@ import numpy as np
 from skimage.draw import line, circle_perimeter
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
-from simple_playgrounds.utils.definitions import Detection, SensorTypes
-from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.definitions import Detection, SensorTypes
+from simple_playgrounds.configs import parse_configuration
 
 
 class SemanticRay(RayCollisionSensor):

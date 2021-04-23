@@ -12,9 +12,9 @@ import math
 
 import pymunk
 
-from simple_playgrounds.entity import Entity
-from simple_playgrounds.utils.definitions import PartTypes, CollisionTypes, ARM_MAX_FORCE
-from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.common.entity import Entity
+from simple_playgrounds.definitions import PartTypes, CollisionTypes, ARM_MAX_FORCE
+from simple_playgrounds.configs import parse_configuration
 
 # pylint: disable=line-too-long
 
@@ -66,7 +66,6 @@ class Part(Entity, ABC):
         self.can_absorb = can_absorb
 
         # Interactive parts
-        self.is_eating = False
         self.is_activating = False
 
         self.can_grasp = False
@@ -89,11 +88,8 @@ class Part(Entity, ABC):
             self.set_relative_coordinates()
             self._attach_to_anchor()
 
-    def _set_invisible_shape_collision(self):
-        pass
-
-    def _set_visible_shape_collision(self):
-        self.pm_visible_shape.collision_type = CollisionTypes.AGENT
+    def _set_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.PART
 
     @property
     def radius(self):
@@ -127,13 +123,17 @@ class Part(Entity, ABC):
 
     def reset(self):
 
-        super().reset()
+        # super().reset()
 
         self.is_activating = False
         self.is_eating = False
         self.is_grasping = False
         self.grasped = []
         self.is_holding = False
+
+    def pre_step(self):
+        super().pre_step()
+        self.is_activating = False
 
 
 # Platforms

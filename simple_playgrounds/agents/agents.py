@@ -20,8 +20,8 @@ from pygame.locals import *  # pylint: disable=wildcard-import
 
 from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts.parts import Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
-from simple_playgrounds.utils.definitions import KeyTypes
-from simple_playgrounds.agents.parts.actuators import AngularVelocity, LongitudinalForce, LateralForce, Grasp, Eat, Activate, AngularRelativeVelocity
+from simple_playgrounds.definitions import KeyTypes
+from simple_playgrounds.agents.parts.actuators import AngularVelocity, LongitudinalForce, LateralForce, Grasp, Activate, AngularRelativeVelocity
 
 
 # pylint: disable=undefined-variable
@@ -97,10 +97,6 @@ class BaseAgent(Agent):
             activate_actuator.assign_key(K_a, KeyTypes.PRESS_ONCE, 1)
             self.add_actuator(activate_actuator)
 
-            eat_actuator = Eat(base)
-            eat_actuator.assign_key(K_e, KeyTypes.PRESS_ONCE, 1)
-            self.add_actuator(eat_actuator)
-
         # Assign controller once all body parts are declared
         self.controller = controller
 
@@ -119,7 +115,7 @@ class HeadAgent(BaseAgent):
 
         self.head = Head(self.base_platform,
                          position_anchor=[0, 0],
-                         radius=self.base_platform.radius - 4,
+                         radius=self.base_platform._radius - 4,
                          angle_offset=0,
                          rotation_range=math.pi,
                          name='head')
@@ -206,7 +202,7 @@ class FullAgent(HeadEyeAgent):
         self.base_platform.can_activate = False
 
         self.arm_r = Arm(self.base_platform,
-                         position_anchor=[0, self.base_platform.radius],
+                         position_anchor=[0, self.base_platform._radius],
                          angle_offset=math.pi/4,
                          rotation_range=math.pi)
         self.add_body_part(self.arm_r)
@@ -236,7 +232,7 @@ class FullAgent(HeadEyeAgent):
         self.add_body_part(self.hand_r)
 
         self.arm_l = Arm(self.base_platform,
-                         position_anchor=[0, -self.base_platform.radius],
+                         position_anchor=[0, -self.base_platform._radius],
                          angle_offset=-math.pi / 4,
                          rotation_range=math.pi)
         self.add_body_part(self.arm_l)

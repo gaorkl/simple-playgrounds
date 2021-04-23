@@ -2,47 +2,81 @@
 Module that defines Base Class SceneElement
 """
 
-from typing import Union, Tuple
-from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
+from typing import Union, Tuple, Optional
+from simple_playgrounds.common.position_samplers import CoordinateSampler, Trajectory
+from simple_playgrounds.configs import parse_configuration
+from simple_playgrounds.definitions import CollisionTypes
+
 
 from abc import ABC, abstractmethod
 
-from simple_playgrounds.entity import Entity
+from simple_playgrounds.common.entity import Entity
 from simple_playgrounds.agents import Agent
-
-
-InitCoord = Union[
-    None,
-    Tuple[Tuple[float, float], float],
-    CoordinateSampler,
-    Trajectory,
-]
 
 
 class SceneElement(Entity, ABC):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, **entity_params):
+        super().__init__(**entity_params)
 
 
-# INTERACTIVE ELEMENT
+class TeleportElement(SceneElement, ABC):
+    """ Base Class for Teleport Entities"""
+
+    def __init__(self,
+                 target: Union[InitCoord, SceneElement],
+                 **entity_params,
+                 ):
+
+        super().__init__(**entity_params)
+        self.target = target
+
+    @abstractmethod
+    def energize(self, agent: Agent):
+        pass
+
+
+class GemElement(SceneElement, ABC):
+    """
+    A Gem interacts with other SceneElements.
+    """
+
+    def __init__(self, config_key, elem_activated, **entity_params):
+
+        default_config = parse_configuration('element_gem', config_key)
+        entity_params = {**default_config, **entity_params}
+
+        SceneElement.__init__(self,
+                              visible_shape=True,
+                              invisible_shape=False,
+                              **entity_params)
+
+        self.elem_activated = elem_activated
+
+    def _set_visible_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.GEM
+
+    def _set_invisible_shape_collision(self):
+        pass
 
 
 class InteractiveElement(SceneElement, ABC):
     """Base Class for Interactive Elements"""
 
-    def __init__(self, reward: float, **kwargs):
+    def __init__(self, reward: float = 0, **entity_params):
 
-        super(SceneElement).__init__(**kwargs)
+        SceneElement.__init__(self, **entity_params)
 
         # Initialize reward
         self.reward = reward
         self._reward_provided: bool = False
 
-        # Single Activation per step
+        # Element activated
+        self.activated = False
 
     def pre_step(self):
         self._reward_provided = False
+        self.activated = False
 
     @property
     def reward(self):
@@ -59,8 +93,8 @@ class InteractiveElement(SceneElement, ABC):
         self._reward = rew
 
     @abstractmethod
-    def activate(self):
-        ...
+    def activate(self, *args):
+        self.activated = True
 
     @property
     @abstractmethod
@@ -68,50 +102,24 @@ class InteractiveElement(SceneElement, ABC):
         ...
 
 
-# TELEPORT ELEMENTS
-
-
-class TeleportElement(SceneElement, ABC):
+class ContactElement(InteractiveElement, ABC):
     """ Base Class for Contact Entities"""
 
-    def __init__(self,
-                 target: Union[InitCoord, SceneElement],
-                 **kwargs,
-                 ):
+    def __init__(self, **entity_params):
 
-        super().__init__(**kwargs)
-        self.target = target
+        InteractiveElement.__init__(self, visible_shape=True, invisible_shape=False, **entity_params)
 
-    @abstractmethod
-    def energize(self, agent: Agent):
-        pass
+    def _set_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
 
 
-#
-        # if teleport.target.traversable:
-        #     agent.position = teleport.target.position
-        #
-        # else:
-        #     area_shape = teleport.target.physical_shape
-        #     if area_shape == 'rectangle':
-        #         width = teleport.target.width + agent.base_platform.radius * 2 + 1
-        #         length = teleport.target.length + agent.base_platform.radius * 2 + 1
-        #         angle = teleport.target.angle
-        #         sampler = CoordinateSampler(
-        #             center=teleport.target.position,
-        #             area_shape=area_shape,
-        #             angle=angle,
-        #             width_length=[width + 2, length + 2],
-        #             excl_width_length=[width, length],
-        #         )
-        #     else:
-        #         radius = teleport.target.radius + agent.base_platform.radius + 1
-        #         sampler = CoordinateSampler(
-        #             center=teleport.target.position,
-        #             area_shape='circle',
-        #             radius=radius,
-        #             excl_radius=radius,
-        #         )
-        #
-        #     agent.coordinates = sampler.sample()
-        #
+class ZoneElement(InteractiveElement, ABC):
+    """ Base Class for Contact Entities"""
+
+    def __init__(self, **entity_params):
+
+        InteractiveElement.__init__(self, visible_shape=False, invisible_shape=True, **entity_params)
+
+    def _set_shape_collision(self):
+        self.pm_invisible_shape.collision_type = CollisionTypes.CONTACT
+

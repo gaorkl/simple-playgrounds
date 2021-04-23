@@ -2,16 +2,16 @@
 Module containing classes to generate random positions and trajectories
 
 """
+from typing import Tuple, Optional, Union
+
+import pymunk
 import random
 import math
 from collections.abc import Generator
 
 import numpy as np
 
-from simple_playgrounds.utils.definitions import geometric_shapes
-
-#pylint: disable=line-too-long
-#pylint: disable=too-many-instance-attributes
+from simple_playgrounds.definitions import geometric_shapes
 
 
 class CoordinateSampler:
@@ -22,7 +22,17 @@ class CoordinateSampler:
         area_2 = PositionAreaSampler(area_shape='gaussian', center=[150, 50], variance = 300, radius=60)
 
     """
-    def __init__(self, center, area_shape, **kwargs):
+    def __init__(self,
+                 center: Tuple[float, float],
+                 area_shape: str,
+                 size: Optional[Tuple[float, float]] = None,
+                 radius: Optional[float] = None,
+                 variance: Optional[str] = None,
+                 angle_range: Optional[Tuple[float, float]] = None,
+                 min_size: Optional[Tuple[float, float]] = (0,0),
+                 min_radius: Optional[float] = 0,
+                 angle: Optional[float] = 0,
+                 ):
         """
 
         Args:
@@ -34,36 +44,51 @@ class CoordinateSampler:
             width_length (:obj: list of :obj: int): Width and Length of the rectangle shape
             radius (int): radius of the gaussian and circle shape
             variance (int): variance of the gaussian
-            theta_range (int): min and max sampled angle
 
         """
 
-        self.area_shape = area_shape
-        self.center = center
+        self._area_shape = area_shape
+        self._center = center
+        self._angle = angle
 
-        self.theta_min, self.theta_max = kwargs.get('theta_range', [-math.pi, math.pi])
+        if angle_range:
+            self._angle_range = angle_range
+        else:
+            self._angle_range = (-math.pi, math.pi)
 
         # Area shape
-        if self.area_shape == 'rectangle':
-            self.width, self.length = kwargs['width_length']
-            self.angle = kwargs.get('angle', 0)
-            self.excl_width, self.excl_length = kwargs.get('excl_width_length', (0, 0))
-            h_area = self.width * (self.length - self.excl_length)
-            v_area = (self.width - self.excl_width) * (self.length - self.excl_length)
-            self.h_threshold = h_area / (h_area + v_area)
+        if self._area_shape == 'rectangle':
 
-        elif self.area_shape == 'circle':
-            self.radius = kwargs['radius']
-            self.excl_radius = kwargs.get('excl_radius', 0)
+            assert size
+            self._width, self._length = size
+            self._min_width, self._min_length = min_size
 
-        elif self.area_shape == 'gaussian':
-            self.radius = kwargs['radius']
-            self.variance = kwargs['variance']
+            assert self._width > self._min_width
+            assert self._length > self._min_length
+
+        elif self._area_shape == 'circle':
+
+            assert radius
+
+            self._radius = radius
+            self._min_radius = min_radius
+
+            assert self._radius > self._min_radius
+
+        elif self._area_shape == 'gaussian':
+
+            assert radius
+            assert variance
+
+            self._radius = radius
+            self._min_radius = min_radius
+            self._variance = variance
 
         else:
             raise ValueError('area shape not implemented')
 
-    def sample(self, center=None):
+    def sample(self,
+               coordinates: Optional[Tuple[Tuple[float, float], float]] = None):
         """
 
         Args:
@@ -75,53 +100,57 @@ class CoordinateSampler:
         """
         pos_x, pos_y, theta = 0, 0, 0
 
-        if center is not None:
-            self.center = center
+        if not coordinates:
+            center = self._center
+            angle = random.uniform(*self._angle_range)
 
-        if self.area_shape == 'rectangle':
+        else:
+            center, angle = coordinates
+
+        if self._area_shape == 'rectangle':
             # split the rectangle to horizontal and vertical pieces,
             # choose based on h_threshold and then sample uniformly and shift
-            if random.random() < self.h_threshold:
-                width = self.width
-                length = self.length - self.excl_length
-                x_shift = 0
-                y_shift = self.excl_length
-            else:
-                width = self.width - self.excl_width
-                length = self.length - self.excl_length
-                x_shift = self.excl_width
-                y_shift = 0
 
-            sign = lambda x: math.copysign(1, x)
-            pos_x = random.uniform(-width / 2, width / 2)
-            pos_x += sign(pos_x) * x_shift / 2
+            found_position = False
 
-            pos_y = random.uniform(-length / 2, length / 2)
-            pos_y += sign(pos_y) * y_shift / 2
+            while not found_position:
+                x = random.uniform(-self._width/2, self._width/2)
+                y = random.uniform(-self._length/2, self._length/2)
 
-            pos_x_ = pos_x * math.cos(self.angle) - pos_y * math.sin(self.angle)
-            pos_y_ = pos_x * math.sin(self.angle) + pos_y * math.cos(self.angle)
-            pos_x = pos_x_ + self.center[0]
-            pos_y = pos_y_ + self.center[1]
+                if  not (-self._min_width/2 < x < self._min_width/2
+                        and -self._min_length/2 < y < self._min_length/2)
+                    found_position = True
 
-            theta = random.uniform(self.theta_min, self.theta_max)
 
-        elif self.area_shape == 'circle':
-            radius = math.sqrt(random.uniform(self.excl_radius**2, self.radius**2))
-            alpha = random.random() * 2 * math.pi
-            pos_x = self.center[0] + radius * math.cos(alpha)
-            pos_y = self.center[1] + radius * math.sin(alpha)
-            theta = random.uniform(self.theta_min, self.theta_max)
+        elif self._area_shape == 'circle':
 
-        elif self.area_shape == 'gaussian':
+            found_position = False
+
+            while not found_position:
+                x = random.uniform(-self._radius, self._radius)
+                y = random.uniform(-self._radius, self._radius)
+
+                if  ( x**2 < (self._min_radius / 2)**2
+                        and  y**2 < (self._min_radius / 2)**2 )
+                    found_position = True
+
+        elif self._area_shape == 'gaussian':
+
+            found_position = False
+
+            while not found_position:
+                x, y = np.random.multivariate_normal(center, [[self.variance, 0], [0, self.variance]])
 
             pos_x = math.inf
             pos_y = math.inf
-            theta = random.uniform(self.theta_min, self.theta_max)
+            theta = random.uniform(self._angle_range, self.theta_max)
 
-            while (pos_x - self.center[0])**2 + (pos_y - self.center[1])**2 > self.radius**2:
+            while (pos_x - center[0])**2 + (pos_y - center[1])**2 > self._radius**2:
 
-                pos_x, pos_y = np.random.multivariate_normal(self.center, [[self.variance, 0], [0, self.variance]])
+                pos_x, pos_y = np.random.multivariate_normal(center, [[self.variance, 0], [0, self.variance]])
+
+        rel_pos = pymunk.Vec2d(x, y).rotated(self._angle)
+        pos = tuple(rel_pos + center)
 
         return (pos_x, pos_y), theta
 
@@ -281,6 +310,14 @@ class Trajectory(Generator):
             self._index_start = index_start
 
         self.current_index = self._index_start
+
+
+InitCoord = Union[
+        Tuple[Tuple[float, float], float],
+        CoordinateSampler,
+        Trajectory,
+        ]
+
 
 #
 # def get_relative_position_of_entities(entity_1, entity_2):

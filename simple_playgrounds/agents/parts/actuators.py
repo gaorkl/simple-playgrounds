@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pymunk
 
-from simple_playgrounds.utils.definitions import ActionSpaces, LINEAR_FORCE, ANGULAR_VELOCITY
+from simple_playgrounds.definitions import ActionSpaces, LINEAR_FORCE, ANGULAR_VELOCITY
 
 
 class Actuator(ABC):
@@ -167,14 +167,6 @@ class Activate(InteractionActuator):
 
         self._pre_step(action_index)
         self.part.is_activating = self.actuator_values[action_index]
-
-
-class Eat(InteractionActuator):
-
-    def apply_action(self, action_index):
-
-        self._pre_step(action_index)
-        self.part.is_eating = self.actuator_values[action_index]
 
 
 class Grasp(InteractionActuator):

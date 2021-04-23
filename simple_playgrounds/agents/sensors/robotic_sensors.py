@@ -12,7 +12,7 @@ from skimage.transform import resize
 import pymunk
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
-from simple_playgrounds.utils.definitions import SensorTypes
+from simple_playgrounds.definitions import SensorTypes
 
 # pylint: disable=no-member
 
@@ -218,12 +218,12 @@ class Touch(Lidar):
                          **sensor_params)
 
         self._sensor_max_value = self._max_range
-        self._max_range = self.anchor.radius + self._max_range  # pylint: disable=access-member-before-definition
+        self._max_range = self.anchor._radius + self._max_range  # pylint: disable=access-member-before-definition
 
     def _compute_raw_sensor(self, playground, *_):
 
         super()._compute_raw_sensor(playground)
 
-        distance_to_anchor = self.sensor_values - self.anchor.radius
+        distance_to_anchor = self.sensor_values - self.anchor._radius
         distance_to_anchor[distance_to_anchor < 0] = 0
         self.sensor_values = self._sensor_max_value - distance_to_anchor

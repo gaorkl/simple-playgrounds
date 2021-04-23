@@ -2,10 +2,14 @@ import math
 
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.elements.elements.basic import Physical, Traversable
+from simple_playgrounds.elements.collection.basic import Physical, Traversable
+from simple_playgrounds.elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy
+from simple_playgrounds.elements.collection.zone import GoalZone, DeathZone, HealingZone, ToxicZone
+from simple_playgrounds.elements.collection.edible import Apple, RottenApple
+
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
-from simple_playgrounds.utils.position_utils import CoordinateSampler, Trajectory
+from simple_playgrounds.common.position_samplers import CoordinateSampler
 
 
 @PlaygroundRegister.register('test', 'basic')
@@ -41,97 +45,115 @@ class Basics(SingleRoom):
         self.add_element(tri_01, ((300, 133), math.pi/3))
 
 
-#
-# @PlaygroundRegister.register('test', 'grasp')
-# class Graspables(SingleRoom):
-#
-#     def __init__(self, size=(200, 200), **playground_params):
-#
-#         super().__init__(size=size, **playground_params)
-#
-#         rectangle_01 = Basic(default_config_key='rectangle',
-#                              graspable=True, mass=10)
-#         self.add_scene_element(rectangle_01, ((150, 160), 0.2))
-#
-#         circle_01 = Basic(default_config_key='circle',
-#                           graspable=True, mass=10, texture=[150, 150, 150])
-#         self.add_scene_element(circle_01, ((50, 50), 0))
-#
-#         square_01 = Basic(default_config_key='square',
-#                           graspable=True, mass=10)
-#         self.add_scene_element(square_01, ((150, 60), math.pi/4))
-#
-#         pentagon_01 = Basic(default_config_key='pentagon', radius=15,
-#                             graspable=True, mass=10)
-#         self.add_scene_element(pentagon_01, ((50, 160), 0))
-#
-#         hexagon_01 = Basic(default_config_key='hexagon',
-#                            graspable=True, mass=10)
-#         self.add_scene_element(hexagon_01, ((100, 100), 0))
-#
-#
-# @PlaygroundRegister.register('test', 'contacts')
-# class Contacts(SingleRoom):
-#
-#     def __init__(self, size=(200, 200), **playground_params):
-#
-#         super().__init__(size=size, **playground_params)
-#
-#         endgoal_01 = VisibleEndGoal(reward=50)
-#         self.add_scene_element(endgoal_01, ((20, 180), 0))
-#
-#         deathtrap_01 = VisibleDeathTrap()
-#         self.add_scene_element(deathtrap_01, ((180, 180), 0))
-#
-#         poison = Poison()
-#         self.add_scene_element(poison, ((15, 15), 0))
-#
-#         poison_area = CoordinateSampler(area_shape='rectangle',
-#                                         center=[100, 150], width_length=[20, 20])
-#         for _ in range(5):
-#             poison = Poison()
-#             self.add_scene_element(poison, poison_area)
-#
-#         candy_area = CoordinateSampler(area_shape='rectangle',
-#                                        center=[50, 100], width_length=[20, 20])
-#         for _ in range(5):
-#             candy = Candy()
-#             self.add_scene_element(candy, candy_area)
-#
-#         # outside on purpose
-#         outside_area = CoordinateSampler(area_shape='rectangle',
-#                                          center=[200, 100], width_length=[50, 50])
-#         for _ in range(8):
-#             candy = Candy()
-#             self.add_scene_element(candy, outside_area)
-#
-#
-# @PlaygroundRegister.register('test', 'zones')
-# class Zones(SingleRoom):
-#
-#     def __init__(self, size=(200, 200), **playground_params):
-#
-#         super().__init__(size=size, **playground_params)
-#
-#         goal_1 = GoalZone()
-#         self.add_scene_element(goal_1, ((20, 20), 0))
-#
-#         goal_2 = GoalZone()
-#         self.add_scene_element(goal_2, [(180, 20), 0])
-#
-#         death_1 = DeathZone(reward=-25)
-#         self.add_scene_element(death_1, [(20, 180), 0])
-#
-#         death_2 = DeathZone()
-#         self.add_scene_element(death_2, [(180, 180), 0])
-#
-#         healing_1 = HealingZone()
-#         self.add_scene_element(healing_1, [(50, 100), 0])
-#
-#         toxic_1 = ToxicZone()
-#         self.add_scene_element(toxic_1, [(150, 100), 0])
-#
-#
+@PlaygroundRegister.register('test', 'grasp')
+class Graspables(SingleRoom):
+
+    def __init__(self, size=(200, 200), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        rectangle_01 = Physical(config_key='rectangle',
+                             graspable=True, mass=10)
+        self.add_element(rectangle_01, ((150, 160), 0.2))
+
+        circle_01 = Physical(config_key='circle',
+                          graspable=True, mass=10, texture=[150, 150, 150])
+        self.add_element(circle_01, ((50, 50), 0))
+
+        square_01 = Physical(config_key='square',
+                          graspable=True, mass=10)
+        self.add_element(square_01, ((150, 60), math.pi/4))
+
+        pentagon_01 = Physical(config_key='pentagon', radius=15,
+                            graspable=True, mass=10)
+        self.add_element(pentagon_01, ((50, 160), 0))
+
+        hexagon_01 = Physical(config_key='hexagon',
+                           graspable=True, mass=10)
+        self.add_element(hexagon_01, ((100, 100), 0))
+
+
+@PlaygroundRegister.register('test', 'contacts')
+class Contacts(SingleRoom):
+
+    def __init__(self, size=(200, 200), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        endgoal_01 = VisibleEndGoal(reward=50)
+        self.add_element(endgoal_01, ((20, 180), 0))
+
+        deathtrap_01 = VisibleDeathTrap()
+        self.add_element(deathtrap_01, ((180, 180), 0))
+
+        poison = Poison()
+        self.add_element(poison, ((15, 15), 0))
+
+        poison_area = CoordinateSampler(area_shape='rectangle',
+                                        center=[100, 150], width_length=[20, 20])
+        for _ in range(5):
+            poison = Poison()
+            self.add_element(poison, poison_area)
+
+        candy_area = CoordinateSampler(area_shape='rectangle',
+                                       center=[50, 100], width_length=[20, 20])
+        for _ in range(5):
+            candy = Candy()
+            self.add_element(candy, candy_area)
+
+        # outside on purpose
+        outside_area = CoordinateSampler(area_shape='rectangle',
+                                         center=[200, 100], width_length=[50, 50])
+        for _ in range(8):
+            candy = Candy()
+            self.add_element(candy, outside_area)
+
+
+@PlaygroundRegister.register('test', 'zones')
+class Zones(SingleRoom):
+
+    def __init__(self, size=(200, 200), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        goal_1 = GoalZone(100)
+        self.add_element(goal_1, ((20, 20), 0))
+
+        goal_2 = GoalZone(150)
+        self.add_element(goal_2, ((180, 20), 0))
+
+        death_1 = DeathZone(-25)
+        self.add_element(death_1, ((20, 180), 0))
+
+        death_2 = DeathZone(-40)
+        self.add_element(death_2, ((180, 180), 0))
+
+        healing_1 = HealingZone(5, 100)
+        self.add_element(healing_1, ((50, 100), 0))
+
+        toxic_1 = ToxicZone(-5, 100)
+        self.add_element(toxic_1, ((150, 100), 0))
+
+
+@PlaygroundRegister.register('test', 'edibles')
+class Edibles(SingleRoom):
+
+    def __init__(self, size=(200, 200), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        apple = Apple(10, min_reward=1)
+        self.add_element(apple, ((50, 100), 0))
+
+        apple = Apple(20, 1, shrink_ratio=0.5)
+        self.add_element(apple, ((50, 50), 0))
+
+        rotten = RottenApple(-20, -1, graspable=True)
+        self.add_element(rotten, ((100, 100), 0))
+
+        rotten = RottenApple(-20, -5)
+        self.add_element(rotten, ((100, 100), 0))
+
 # @PlaygroundRegister.register('test', 'interactives')
 # class Interactives(SingleRoom):
 #
@@ -166,7 +188,7 @@ class Basics(SingleRoom):
 #         )
 #         self.add_scene_element(dispenser_3, [(200, 150), 0])
 #
-#         key_chest = Key(default_config_key='pentagon',
+#         key_chest = Key(config_key='pentagon',
 #                         radius=7, graspable=True, mass=10)
 #         self.add_scene_element(key_chest, [(50, 200), 0])
 #
@@ -185,7 +207,8 @@ class Basics(SingleRoom):
 #
 #         coin = Coin(graspable=True, vending_machine=vending)
 #         self.add_scene_element(coin, [(150, 240), 0])
-#
+
+
 #
 # @PlaygroundRegister.register('test', 'conditioning')
 # class Conditioning(SingleRoom):
@@ -244,13 +267,13 @@ class Basics(SingleRoom):
 #         super().__init__(size=size, **playground_params)
 #
 #         teleport_1 = Teleport(radius=10, physical_shape='circle')
-#         target_1 = Traversable(radius=10, default_config_key='circle')
+#         target_1 = Traversable(radius=10, config_key='circle')
 #         teleport_1.add_target(target_1)
 #         self.add_scene_element(teleport_1, [(50, 50), 0])
 #         self.add_scene_element(target_1, [(250, 50), 0])
 #
 #         teleport_2 = Teleport(radius=10, physical_shape='circle')
-#         target_2 = Basic(radius=20, default_config_key='circle')
+#         target_2 = Basic(radius=20, config_key='circle')
 #         teleport_2.add_target(target_2)
 #         self.add_scene_element(teleport_2, [(50, 150), 0])
 #         self.add_scene_element(target_2, [(250, 150), 0])
@@ -274,7 +297,7 @@ class Basics(SingleRoom):
 #             for y in range(50, 250, 50):
 #
 #                 teleport_1 = Teleport(radius=10, physical_shape='circle')
-#                 target_1 = Traversable(radius=10, default_config_key='circle')
+#                 target_1 = Traversable(radius=10, config_key='circle')
 #                 teleport_1.add_target(target_1)
 #                 self.add_scene_element(teleport_1, [(x, y), 0])
 #                 self.add_scene_element(target_1, [(x+25, y+25), 0])

@@ -26,7 +26,7 @@ class Basics(SingleRoom):
 def test_new_object():
 
     pg = PlaygroundRegister.playgrounds['test_test']['basic']()
-    assert pg.my_obj.radius == 22
+    assert pg.my_obj._radius == 22
 
 
 # TODO: add test add element without overlapping

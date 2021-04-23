@@ -11,9 +11,6 @@ apple :
   mass: 10
   texture: *apple-texture
   interaction_range: 10
-  shrink_ratio_when_eaten: 0.9
-  initial_reward: 30
-  min_reward: 5
 
 rotten_apple_texture : &rotten-apple-texture
   texture_type: centered_random_tiles
@@ -27,9 +24,6 @@ rotten_apple :
   mass: 10
   texture: *rotten-apple-texture
   interaction_range: 10
-  shrink_ratio_when_eaten: 0.9
-  initial_reward: -30
-  min_reward: -5
 
 # Lever
 
@@ -44,10 +38,7 @@ lever :
   radius: 15
   texture: *lever-texture
   interaction_range: 10
-  production_limit: 15
   mass : 10
-  reward : 10
-
 
 # Dispenser
 
@@ -63,7 +54,6 @@ dispenser :
   radius: 15
   texture: *dispenser-texture
   interaction_range: 10
-  production_limit: 15
   mass : 10
 
 # Chest

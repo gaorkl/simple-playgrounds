@@ -12,8 +12,8 @@ import random
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from simple_playgrounds.utils.definitions import ActionSpaces
-from simple_playgrounds.utils.position_utils import CoordinateSampler
+from simple_playgrounds.definitions import ActionSpaces
+from simple_playgrounds.common.position_samplers import CoordinateSampler
 from simple_playgrounds.agents.parts.actuators import Grasp
 
 # pylint: disable=too-many-instance-attributes

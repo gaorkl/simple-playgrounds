@@ -3,7 +3,7 @@ Module for Texture of SceneElements and Parts of Agents.
 Documentation is incomplete/missing. Refer to the tutorials for now.
 """
 
-from typing import Union, Tuple
+from typing import Union, Tuple, List, Dict, Callable
 
 from abc import ABC, abstractmethod
 import math
@@ -13,7 +13,45 @@ from pygame import Surface, draw
 from pygame import surfarray
 from skimage.transform import resize
 
-#pylint: disable=all
+
+class Texture(ABC):
+
+    """ Base Class for Textue"""
+
+    def __init__(self,
+                 size: Union[Tuple[float, float], float],
+                 ):
+
+        if isinstance(size, tuple):
+            assert len(size) == 2
+            self._size = int(size[1]) + 5, int(size[0]) + 5
+
+        elif isinstance(size, int):
+            self._size = (int(size + 5), int(size + 5))
+
+        else:
+            raise ValueError('Texture size not compatible')
+
+        self._surface = Surface(self._size)
+
+    @abstractmethod
+    def generate(self):
+
+        """ Generates a pygame surface at the correct dimension"""
+
+    def get_pixel(self, rel_pos):
+
+        x = int(rel_pos[0] + self._size[0])
+        y = int(rel_pos[1] + self._size[1])
+
+        x = min(max(0, x), self._size[0] - 1)
+        y = min(max(0, y), self._size[1] - 1)
+
+        return self._surface.get_at( (x,y) )[:3]
+
+    @property
+    def surface(self):
+        return self._surface
 
 
 class TextureGenerator:
@@ -21,7 +59,7 @@ class TextureGenerator:
     Class to register Textures.
     """
 
-    subclasses = {}
+    subclasses: Dict[str, Callable] = {}
 
     @classmethod
     def register_subclass(cls, texture_type):
@@ -43,38 +81,6 @@ class TextureGenerator:
             raise ValueError('Texture not implemented: '+texture_type)
 
         return cls.subclasses[texture_type](**params)
-
-
-class Texture(ABC):
-
-    """ Base Class for Textue"""
-
-    def __init__(self,
-                 size: Union[Tuple[int, int], int],
-                 ):
-
-        self._size = size
-        if isinstance(size, int):
-            self._size = (size, size)
-
-        self._size = self._size[1]+10, self._size[0]+10
-
-        self._surface = Surface(self._size)
-
-    @abstractmethod
-    def generate(self):
-
-        """ Generates a pygame surface at the correct dimension"""
-
-    def get_pixel(self, rel_pos):
-
-        x = int(rel_pos[0] + self._size[0])
-        y = int(rel_pos[1] + self._size[1])
-
-        x = min(max(0, x), self._size[0] - 1)
-        y = min(max(0, y), self._size[1] - 1)
-
-        return self._surface.get_at( (x,y) )[:3]
 
 
 @TextureGenerator.register_subclass('color')
@@ -158,6 +164,7 @@ class RandomUniformTexture(RandomTexture):
         random_image = self._rng.uniform(self._min, self._max, (*self._size, 3))
         random_image = random_image.astype('int')
         surf = surfarray.make_surface(random_image)
+        self._surface = surf
         return surf
 
 
@@ -186,6 +193,7 @@ class RandomTilesTexture(RandomTexture):
         random_image = self._rng.uniform(self._min, self._max, self._shape_mini ).astype('int')
         random_image = resize(random_image, self._size, order=0, preserve_range=True)
         surf = surfarray.make_surface(random_image)
+        self._surface = surf
         return surf
 
 
@@ -228,7 +236,53 @@ class CenteredRandomTilesTexture(RandomTexture):
                 img[i, j, :] = colors[angle]
 
         surf = surfarray.make_surface(img)
+        self._surface = surf
         return surf
+
+
+@TextureGenerator.register_subclass('list_centered_random_tiles')
+class ListCenteredRandomTiles(RandomTexture):
+
+    def __init__(self,
+                 size,
+                 size_tiles,
+                 colors: List[Tuple[int, int, int]],
+                 rng=None,
+                 ):
+
+        super().__init__(size, rng)
+
+        self._radius = max(self._size)
+
+        self._n_stripes = int(2*math.pi*self._radius / size_tiles)
+        self._colors = colors
+
+    def generate(self):
+        """
+        Generate a pyame Surface with pixels following a circular striped pattern from the center of the parent entity
+        :param width: the width of the generated surface
+        :param height: the height of the generated surface
+        :return: the pygame Surface
+        """
+
+        img = np.zeros((*self._size, 3))
+
+        colors = self._rng.choice( self._colors, size=self._n_stripes, replace=True)
+
+        x = (self._size[0] - 1) / 2
+        y = (self._size[1] - 1) / 2
+
+        for i in range(self._size[0]):
+            for j in range(self._size[1]):
+
+                angle = int( np.arctan2( j - y, i - x)  / (2*math.pi/self._n_stripes) )
+
+                img[i, j, :] = colors[angle]
+
+        surf = surfarray.make_surface(img)
+        self._surface = surf
+        return surf
+
 
 
 #
@@ -323,41 +377,4 @@ class CenteredRandomTilesTexture(RandomTexture):
 #
 #
 
-#
-# @TextureGenerator.register_subclass('list_centered_random_tiles')
-# class ListCenteredRandomTiles(Texture):
-#
-#     def __init__(self, **params):
-#         super().__init__(**params)
-#         self.radius = params['radius']
-#         self.size_tiles = params['size_tiles']
-#         self.n_stripes = int(2*math.pi*self.radius / self.size_tiles)
-#         self.colors = params['colors']
-#         self.rng_texture = params.get('rng_texture', np.random.default_rng() )
-#
-#
-#     def generate(self):
-#         """
-#         Generate a pyame Surface with pixels following a circular striped pattern from the center of the parent entity
-#         :param width: the width of the generated surface
-#         :param height: the height of the generated surface
-#         :return: the pygame Surface
-#         """
-#
-#         img = np.zeros((self._size, self._size , 3))
-#
-#         colors = self.rng_texture.choice( self.colors, size = self.n_stripes, replace=True)
-#
-#         x = (self._size - 1) / 2
-#         y = (self._size - 1) / 2
-#
-#         for i in range(self._size):
-#             for j in range(self._size):
-#
-#                 angle = int( np.arctan2( j - y, i - x)  / (2*math.pi/self.n_stripes) )
-#
-#                 img[i, j, :] = colors[angle]
-#
-#         surf = surfarray.make_surface(img)
-#         return surf
 #

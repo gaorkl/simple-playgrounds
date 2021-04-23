@@ -16,8 +16,8 @@ def parse_configuration(file_name, config_key):
     """
 
     yml_file_name = file_name+'.yml'
-    __location__ = os.path.join(os.getcwd(), os.path.dirname(__file__), 'configs/')
-    with open(os.path.join(__location__, yml_file_name), 'r') as yaml_file:
+
+    with open(os.path.join(os.path.dirname(__file__), yml_file_name), 'r') as yaml_file:
         default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     if hasattr(config_key, 'name'):

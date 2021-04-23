@@ -1,19 +1,19 @@
 import pytest
 
-from simple_playgrounds import SPGEngine
+from simple_playgrounds import Engine
 from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
-from simple_playgrounds.utils.position_utils import CoordinateSampler
+from simple_playgrounds.common.position_samplers import CoordinateSampler
 
 
 def run_engine(agent, pg_class):
     playground = pg_class()
-    playground.add_agent(agent)
+    playground.add_agent(agent, allow_overlapping=False)
 
-    engine = SPGEngine(playground, time_limit=100)
+    engine = Engine(playground, time_limit=100)
     engine.run()
 
-    assert 0 < agent.position[0] < playground._size[0]
-    assert 0 < agent.position[1] < playground._size[1]
+    assert 0 < agent.position[0] < playground.size[0]
+    assert 0 < agent.position[1] < playground.size[1]
 
     playground.remove_agent(agent)
 
@@ -31,7 +31,7 @@ def test_base_agent(is_interactive, going_backward, moving_laterally, pg_cls, ag
 @pytest.mark.parametrize(
     "pg,limits",
     [(SingleRoom((300, 300)), (300, 300)),
-     (GridRooms((400, 400), (2, 2)), (200, 200))],
+     (GridRooms((400, 400), (2, 2), doorstep_size=60), (200, 200))],
 )
 def test_agent_initial_position1(base_forward_agent, pg, limits):
     agent = base_forward_agent
@@ -55,7 +55,8 @@ def test_agent_initial_position3(base_forward_agent):
     agent = base_forward_agent
     # Setting initial position in playground as PositionAreaSampler
     playground = SingleRoom((300, 300))
-    center, shape = playground.area_rooms[(0, 0)]
+    first_room = playground.grid_rooms[0][0]
+    center, shape = first_room.center, first_room.size
     playground.initial_agent_coordinates = CoordinateSampler(
         center, area_shape='rectangle', width_length=shape)
     playground.add_agent(agent)

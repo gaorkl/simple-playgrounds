@@ -10,22 +10,23 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 
-from typing import Tuple, Union, List, Dict
+from typing import Tuple, Union, List, Dict, Optional
 
 from abc import ABC
 import pymunk
 
-from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes
+from simple_playgrounds.definitions import SPACE_DAMPING, CollisionTypes
 
 from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts import Part
-from simple_playgrounds.entity import Entity
-from simple_playgrounds.elements.element import InitCoord, SceneElement, InteractiveElement, TeleportElement
+from simple_playgrounds.common.entity import Entity
+from simple_playgrounds.elements.element import SceneElement, InteractiveElement, TeleportElement
 from simple_playgrounds.elements.field import Field
-from simple_playgrounds.elements.elements.interactive import Dispenser
+from simple_playgrounds.elements.collection.interactive import Dispenser
 from simple_playgrounds.agents.sensors import RayCollisionSensor
+from simple_playgrounds.common.position_samplers import InitCoord
 
-from simple_playgrounds.utils.timer import Timer
+from simple_playgrounds.common.timer import Timer
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -56,7 +57,7 @@ class Playground(ABC):
     time_limit_reached_reward = None
 
     def __init__(self,
-                 size: Tuple[int, int]
+                 size: Tuple[float, float]
                  ):
 
         # Generate Scene
@@ -80,7 +81,7 @@ class Playground(ABC):
         self._timers: Dict[Timer, InteractiveElement] = {}
 
         self.done = False
-        self.initial_agent_coordinates = None
+        self.initial_agent_coordinates: Optional[InitCoord] = None
 
         self._handle_interactions()
         self.sensor_collision_index = 2
@@ -131,7 +132,7 @@ class Playground(ABC):
         """
 
         # remove entities which are temporary. Reset the others
-        for element in self.elements:
+        for element in self.elements.copy():
             if element.temporary:
                 self._remove_element_from_playground(element)
             else:
@@ -139,7 +140,7 @@ class Playground(ABC):
                 self._move_to_initial_position(element)
 
         # reset and replace entities that are not temporary
-        for element in self._disappeared_scene_elements:
+        for element in self._disappeared_scene_elements.copy():
             element.reset()
             self._add_element_to_playground(element)
             self._move_to_initial_position(element)
@@ -161,9 +162,9 @@ class Playground(ABC):
 
     def add_agent(self,
                   agent: Agent,
-                  initial_coordinates: InitCoord = None,
-                  allow_overlapping: bool = True,
-                  max_attempts: int = 100,
+                  initial_coordinates: Optional[InitCoord] = None,
+                  allow_overlapping: Optional[bool] = True,
+                  max_attempts: Optional[int] = 100,
                   ):
         """ Method to add an Agent to the Playground.
 
@@ -226,9 +227,9 @@ class Playground(ABC):
 
     def add_element(self,
                     element: SceneElement,
-                    initial_coordinates: InitCoord = None,
-                    allow_overlapping: bool = True,
-                    max_attempts: int = 100,
+                    initial_coordinates: Optional[InitCoord] = None,
+                    allow_overlapping: Optional[bool] = True,
+                    max_attempts: Optional[int] = 100,
                     ):
 
         """ Method to add a SceneElement to the Playground.
@@ -348,13 +349,13 @@ class Playground(ABC):
         dispensers = [elem for elem in self.elements
                       if isinstance(elem, Dispenser)]
 
-        for elem in dispensers:
-            if element in elem.produced_entities:
-                elem.produced_entities.remove(element)
+        for dispenser in dispensers:
+            if element in dispenser.produced_entities:
+                dispenser.produced_entities.remove(element)
 
-        for elem in self.fields:
-            if element in elem.produced_entities:
-                elem.produced_entities.remove(element)
+        for field in self.fields:
+            if element in field.produced_entities:
+                field.produced_entities.remove(element)
 
         if element in self._grasped_elements.keys():
             body_part = self._grasped_elements[element]
@@ -363,17 +364,22 @@ class Playground(ABC):
 
         return True
 
-    def _add_remove_within(self, elems_remove, elems_add):
+    def _add_remove_within(self,
+                           elems_remove: Optional[List[SceneElement]],
+                           elems_add: Optional[List[Tuple[SceneElement, InitCoord]]],
+                           ):
 
-        for elem in elems_remove:
-            self._remove_element_from_playground(elem)
+        if elems_remove:
+            for elem in elems_remove:
+                self._remove_element_from_playground(elem)
 
-        for elem, coordinates in elems_add:
-            self._add_element_to_playground(elem)
-            if coordinates:
-                elem.coordinates = coordinates
-            else:
-                self._move_to_initial_position(elem)
+        if elems_add:
+            for elem, coordinates in elems_add:
+                self._add_element_to_playground(elem)
+                if coordinates:
+                    elem.coordinates = coordinates
+                else:
+                    self._move_to_initial_position(elem)
 
     def _fields_produce(self):
 
@@ -388,9 +394,7 @@ class Playground(ABC):
         for timer, element in self._timers.items():
 
             timer.step()
-
             if timer.timer_done:
-
                 elems_remove, elems_add = element.activate()
                 self._add_remove_within(elems_remove, elems_add)
 
@@ -414,17 +418,15 @@ class Playground(ABC):
         for agent, teleport in self._teleported.copy():
 
             overlaps = self._overlaps(agent, teleport)
-
             if not overlaps and not agent.is_teleporting:
                 self._teleported.remove((agent, teleport))
 
     # Overlaps
 
-    # TODO: simplify
     def _overlaps(self,
                   entity: Union[Agent, Part, SceneElement],
-                  entity_2: Union[None, Part, SceneElement] = None,
-                  entity_filter: Union[None, List[Entity]] = None,
+                  entity_2: Optional[Union[Part, SceneElement]] = None,
+                  entity_filter: Optional[List[Entity]] = None,
                   ) -> bool:
 
         filter_shapes = []
@@ -457,7 +459,9 @@ class Playground(ABC):
 
         return False
 
-    def _get_element_from_shape(self, pm_shape: pymunk.Shape) -> Union[None, SceneElement]:
+    def _get_element_from_shape(self,
+                                pm_shape: pymunk.Shape,
+                                ) -> Optional[SceneElement]:
         return next(iter([e for e in self.elements if pm_shape in e.pm_elements]), None)
 
     def _get_agent_from_shape(self, pm_shape: pymunk.Shape) -> Union[None, Agent]:
@@ -466,13 +470,13 @@ class Playground(ABC):
                 return agent
         return None
 
-    def _get_agent_from_part(self, part: Part) -> Union[None, Agent]:
+    def _get_agent_from_part(self, part: Part) -> Optional[Agent]:
         for agent in self.agents:
             if part in agent.parts:
                 return agent
         return None
 
-    def get_entity_from_shape(self, pm_shape: pymunk.Shape) -> Union[None, Part, SceneElement]:
+    def get_entity_from_shape(self, pm_shape: pymunk.Shape) -> Optional[Union[Part, SceneElement]]:
 
         element = self._get_element_from_shape(pm_shape)
         if element:
@@ -517,11 +521,17 @@ class Playground(ABC):
         part: Part = agent.get_part_from_shape(arbiter.shapes[0])
         activable_element = self._get_element_from_shape(arbiter.shapes[1])
 
+        if not activable_element:
+            return True
+
         assert isinstance(activable_element, InteractiveElement)
 
-        if part.is_activating:
+        # Note: later, should handle the case where two agents activate simultaneously.
+        if part.is_activating and not activable_element.activated:
 
             agent.reward += activable_element.reward
+
+            print(agent.reward)
 
             elems_remove, elems_add = activable_element.activate()
             self._add_remove_within(elems_remove, elems_add)
@@ -539,17 +549,22 @@ class Playground(ABC):
         part: Part = agent.get_part_from_shape(arbiter.shapes[0])
         grasped_element = self._get_element_from_shape(arbiter.shapes[1])
 
+        if not grasped_element:
+            return True
+
         assert isinstance(grasped_element, SceneElement)
 
         if part.is_grasping and not part.is_holding:
             part.is_holding = True
 
-            j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, 5), (0, 0))
-            j_2 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, -5), (0, 0))
-            motor = pymunk.SimpleMotor(part.pm_body, grasped_element.pm_body, 0)
+            j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, 0), (0, 20))
+            j_2 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, 0), (0, -20))
 
-            self.space.add(j_1, j_2, motor)
-            part.grasped = [j_1, j_2, motor]
+            j_3 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, 20), (0, 0))
+            j_4 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, -20), (0, 0))
+
+            self.space.add(j_1, j_2, j_3, j_4)
+            part.grasped = [j_1, j_2, j_3, j_4]
 
             self._grasped_elements[grasped_element] = part
 
@@ -564,10 +579,11 @@ class Playground(ABC):
 
         agent = self._get_closest_agent(gem)
 
-        agent.reward += activable_element.reward
-
         elems_remove, elems_add = activable_element.activate()
         self._add_remove_within(elems_remove, elems_add)
+
+        if activable_element.activated:
+            agent.reward += activable_element.reward
 
         if activable_element.terminate_upon_activation:
             self.done = True
@@ -597,13 +613,16 @@ class Playground(ABC):
 
         # Order is important
 
-        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.GRASPABLE, self._agent_grasps_element)
-        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.CONTACT, self._agent_touches_element)
-        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.ACTIVABLE, self._agent_activates_element)
-        self.add_interaction(CollisionTypes.GEM, CollisionTypes.ACTIVABLE, self._gem_activates_element)
-        self.add_interaction(CollisionTypes.AGENT, CollisionTypes.TELEPORT, self._agent_teleports)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.GRASPABLE, self._agent_grasps_element)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT, self._agent_touches_element)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.ACTIVABLE, self._agent_activates_element)
+        self.add_interaction(CollisionTypes.GEM, CollisionTypes.ACTIVABLE_BY_GEM, self._gem_activates_element)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT, self._agent_teleports)
 
-    def add_interaction(self, collision_type_1, collision_type_2, interaction_function):
+    def add_interaction(self,
+                        collision_type_1: CollisionTypes,
+                        collision_type_2: CollisionTypes,
+                        interaction_function):
         """
 
         Args:

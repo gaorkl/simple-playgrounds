@@ -10,8 +10,8 @@ from skimage import draw
 import pygame
 
 from simple_playgrounds.agents.sensors.sensor import Sensor
-from simple_playgrounds.utils.definitions import SensorTypes
-from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.definitions import SensorTypes
+from simple_playgrounds.configs import parse_configuration
 
 # pylint: disable=no-member
 

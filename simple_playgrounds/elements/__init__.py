@@ -1,3 +1,6 @@
+from .element import SceneElement, TeleportElement, InteractiveElement, ZoneElement, GemElement, ContactElement
+
+
 # from simple_playgrounds.elements.elements.interactive \
 #     import Lever, Dispenser, Chest, VendingMachine
 

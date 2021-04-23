@@ -2,14 +2,13 @@
 Empty Playgrounds with built-in walls and rooms
 
 """
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional, List
 
 import numpy as np
-import pymunk
 
 from simple_playgrounds.playgrounds.playground import Playground
-from simple_playgrounds.utils.position_utils import CoordinateSampler
-from simple_playgrounds.utils.parser import parse_configuration
+from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.configs import parse_configuration
 from .rooms import Doorstep, RectangleRoom
 
 
@@ -21,13 +20,13 @@ class GridRooms(Playground):
     """
 
     def __init__(self,
-                 size: Tuple[int, int],
+                 size: Tuple[float, float],
                  room_layout: Tuple[int, int],
-                 doorstep_size: int,
+                 doorstep_size: float,
                  random_doorstep_position: bool = True,
                  wall_type='classic',
-                 wall_depth=10,
-                 playground_seed: Union[int, None] = None,
+                 wall_depth: float = 10,
+                 playground_seed: Optional[int] = None,
                  **wall_params,
                  ):
         """
@@ -80,39 +79,44 @@ class GridRooms(Playground):
     def _generate_rooms(self,
                         room_layout: Tuple[int, int],
                         random_doorstep_position: bool,
-                        doorstep_size: int,
+                        doorstep_size: float,
                         ):
 
-        width_room = int(self.size[0] / room_layout[0] - self._wall_depth)
-        length_room = int(self.size[1] / room_layout[1] - self._wall_depth)
+        width_room = self.size[0] / room_layout[0] - self._wall_depth
+        length_room = self.size[1] / room_layout[1] - self._wall_depth
         size_room = width_room, length_room
 
-        rooms = []
+        rooms: List[List[RectangleRoom]] = []
+
+        doorstep_down: Optional[Doorstep] = None
+        doorstep_up: Optional[Doorstep] = None
+        doorstep_left: Optional[Doorstep] = None
+        doorstep_right: Optional[Doorstep] = None
 
         for c in range(room_layout[0]):
 
-            col_rooms = []
+            col_rooms: List[RectangleRoom] = []
 
             for r in range(room_layout[1]):
 
                 x_center = (self.size[0] / room_layout[0])*(1/2. + c)
                 y_center = (self.size[1] / room_layout[1])*(1/2. + r)
 
-                center = pymunk.Vec2d(x_center, y_center)
+                center = (x_center, y_center)
 
                 # Doorsteps
 
                 if random_doorstep_position:
-                    position = self.rng_playground.integers(doorstep_size, width_room-doorstep_size)
+                    position = self.rng_playground.uniform(doorstep_size, width_room-doorstep_size)
                     doorstep_up = Doorstep(position, doorstep_size, self._wall_depth)
 
-                    position = self.rng_playground.integers(doorstep_size, width_room-doorstep_size)
+                    position = self.rng_playground.uniform(doorstep_size, width_room-doorstep_size)
                     doorstep_down = Doorstep(position, doorstep_size, self._wall_depth)
 
-                    position = self.rng_playground.integers(doorstep_size, length_room-doorstep_size)
+                    position = self.rng_playground.uniform(doorstep_size, length_room-doorstep_size)
                     doorstep_left = Doorstep(position, doorstep_size, self._wall_depth)
 
-                    position = self.rng_playground.integers(doorstep_size, length_room-doorstep_size)
+                    position = self.rng_playground.uniform(doorstep_size, length_room-doorstep_size)
                     doorstep_right = Doorstep(position, doorstep_size, self._wall_depth)
 
                 else:
@@ -126,12 +130,14 @@ class GridRooms(Playground):
                 if c > 0:
                     room_on_left = rooms[c-1][r]
                     assert isinstance(room_on_left, RectangleRoom)
+                    assert isinstance(room_on_left.doorstep_right, Doorstep)
                     position = room_on_left.doorstep_right.position
                     doorstep_left = Doorstep(position, doorstep_size, self._wall_depth)
 
                 if r > 0:
                     room_on_top = col_rooms[-1]
                     assert isinstance(room_on_top, RectangleRoom)
+                    assert isinstance(room_on_top.doorstep_down, Doorstep)
                     position = room_on_top.doorstep_down.position
                     doorstep_up = Doorstep(position, doorstep_size, self._wall_depth)
 

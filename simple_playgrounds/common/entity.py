@@ -9,7 +9,7 @@ Examples can be found in :
     - simple_playgrounds/agents/parts
     - simple_playgrounds/playgrounds/scene_elements
 """
-from typing import Union, Tuple, Dict, List
+from typing import Union, Tuple, Dict, List, Optional
 
 import math
 from abc import ABC, abstractmethod
@@ -17,9 +17,9 @@ from abc import ABC, abstractmethod
 import pymunk
 import pygame
 
-from .utils.position_utils import CoordinateSampler, Trajectory
-from .utils.texture import Texture, TextureGenerator, ColorTexture
-from .utils.definitions import CollisionTypes, PhysicalShapes
+from simple_playgrounds.common.position_samplers import CoordinateSampler, Trajectory
+from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
+from simple_playgrounds.definitions import CollisionTypes, PhysicalShapes
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
@@ -38,10 +38,10 @@ class Entity(ABC):
     def __init__(self,
                  visible_shape: bool,
                  invisible_shape: bool,
-                 texture: Union[Texture, Dict],
+                 texture: Union[Texture, Dict, Tuple[int, int, int]],
                  physical_shape: str,
-                 size: Union[None, Tuple[float, float], List[float]] = None,
-                 radius: Union[None, float] = None,
+                 size: Optional[Tuple[float, float]] = None,
+                 radius: Optional[float] = None,
                  invisible_range: float = 5,
                  graspable: bool = False,
                  traversable: bool = False,
@@ -49,6 +49,7 @@ class Entity(ABC):
                  temporary: bool = False,
                  name: Union[str, None] = None,
                  mass: Union[float, None] = None,
+                 generate_texture: bool = True,
                  **pymunk_attributes,
                  ):
 
@@ -77,8 +78,7 @@ class Entity(ABC):
             self._size_invisible = (2*self._radius_invisible, 2*self._radius_invisible)
 
         else:
-            assert isinstance(size, (tuple, list))
-            assert len(size) == 2 and isinstance(size[0], (float, int)) and isinstance(size[1], (float, int))
+            assert isinstance(size, tuple) and len(size) == 2
 
             width, length = size
             self._size_visible = size
@@ -95,7 +95,6 @@ class Entity(ABC):
 
         if visible_shape:
             self.pm_visible_shape = self._create_pm_shape()
-            self._set_visible_shape_collision()
             self.pm_elements.append(self.pm_visible_shape)
 
             if traversable:
@@ -107,13 +106,14 @@ class Entity(ABC):
         
         if invisible_shape:
             self.pm_invisible_shape = self._create_pm_shape(invisible=True)
-            self._set_invisible_shape_collision()
             self.pm_elements.append(self.pm_invisible_shape)
 
         if graspable:
             self.pm_grasp_shape = self._create_pm_shape(invisible=True)
             self.pm_grasp_shape.collision_type = CollisionTypes.GRASPABLE
             self.pm_elements.append(self.pm_grasp_shape)
+
+        self._set_shape_collision()
 
         # To be set when entity is added to playground.
         self._initial_coordinates = None
@@ -124,13 +124,16 @@ class Entity(ABC):
             texture['size'] = self._size_visible
             texture = TextureGenerator.create(**texture)
 
-        elif isinstance(texture, (tuple, list)):
+        elif isinstance(texture, tuple):
             assert len(texture) == 3
-            texture = ColorTexture(size=self._size_visible, color=texture )
+            texture = ColorTexture(size=self._size_visible, color=texture)
 
         assert isinstance(texture, Texture)
         self.texture = texture
-        self._texture_surface = self.texture.generate()
+        if generate_texture:
+            self._texture_surface = self.texture.generate()
+        else:
+            self._texture_surface = self.texture.surface
 
         # Used to set an element which is not supposed to overlap
         self._allow_overlapping = False
@@ -145,6 +148,7 @@ class Entity(ABC):
 
         self.background = background
         self.movable = movable
+        self.graspable = graspable
         self.drawn = False
 
         self.temporary = temporary
@@ -154,11 +158,7 @@ class Entity(ABC):
         self.texture.get_pixel(relative_pos)
 
     @abstractmethod
-    def _set_visible_shape_collision(self):
-        pass
-
-    @abstractmethod
-    def _set_invisible_shape_collision(self):
+    def _set_shape_collision(self):
         pass
 
     def assign_shape_filter(self, category_index):
@@ -199,7 +199,8 @@ class Entity(ABC):
             moment = pymunk.moment_for_poly(self.mass, vertices)
 
         elif self.physical_shape == PhysicalShapes.RECTANGLE:
-            moment = pymunk.moment_for_box(self.mass, self._size_visible)
+            shape = self._size_visible[1], self._size_visible[0]
+            moment = pymunk.moment_for_box(self.mass, shape)
 
         else:
             raise ValueError
@@ -291,6 +292,7 @@ class Entity(ABC):
             mask_size = (2*self._radius_invisible, 2*self._radius_invisible)
             center = self._radius_invisible, self._radius_invisible
 
+        mask_size = int(mask_size[0]), int(mask_size[1])
         mask = pygame.Surface(mask_size, pygame.SRCALPHA)
         mask.fill((0, 0, 0, 0))
 
@@ -371,7 +373,8 @@ class Entity(ABC):
     @coordinates.setter
     def coordinates(self, coord):
         self.position, self.angle = coord
-        self.pm_body.space.reindex_shapes_for_body(self.pm_body)
+        if self.pm_body.space:
+            self.pm_body.space.reindex_shapes_for_body(self.pm_body)
 
     @property
     def position(self):

@@ -6,7 +6,7 @@ from simple_playgrounds.playgrounds.layouts import GridRooms
 from simple_playgrounds.playgrounds.scene_elements import (Lock, Candy,
                                                            Key, Coin,
                                                            Dispenser, VendingMachine)
-from simple_playgrounds.utils.position_utils import CoordinateSampler
+from simple_playgrounds.common.position_samplers import CoordinateSampler
 
 
 @PlaygroundRegister.register('sequential', 'dispenser_9rooms')
@@ -97,7 +97,7 @@ class DoorDispenserCoin(GridRooms):
         key = Key(graspable=True)
         self.add_scene_element(key, area_key )
         lock = Lock(door=door, key=key)
-        lock_position = self.random_position_on_wall( (1, 0), 'right', lock.radius )
+        lock_position = self.random_position_on_wall((1, 0), 'right', lock._radius)
 
         self.add_scene_element(lock, lock_position)
 

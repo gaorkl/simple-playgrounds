@@ -1,9 +1,9 @@
-from typing import Union, Dict, Tuple
+from typing import Union, Dict, Tuple, Optional
 
 import pymunk
 
-from simple_playgrounds.utils.texture import Texture
-from simple_playgrounds.elements.elements.basic import Wall, Door
+from simple_playgrounds.common.texture import Texture
+from simple_playgrounds.elements.collection.basic import Wall, Door
 
 
 class Doorstep:
@@ -48,14 +48,14 @@ class Doorstep:
 class RectangleRoom:
 
     def __init__(self,
-                 center: Tuple[int, int],
-                 size: Tuple[int, int],
-                 wall_depth: int,
+                 center: Tuple[float, float],
+                 size: Tuple[float, float],
+                 wall_depth: float,
                  wall_texture_params: Union[Dict, Texture],
-                 doorstep_up: Union[None, Doorstep] = None,
-                 doorstep_down: Union[None, Doorstep] = None,
-                 doorstep_left: Union[None, Doorstep] = None,
-                 doorstep_right: Union[None, Doorstep] = None,
+                 doorstep_up: Optional[Doorstep] = None,
+                 doorstep_down: Optional[Doorstep] = None,
+                 doorstep_left: Optional[Doorstep] = None,
+                 doorstep_right: Optional[Doorstep] = None,
                  ):
 
         self.center = pymunk.Vec2d(*center)
@@ -70,7 +70,7 @@ class RectangleRoom:
         self.doorstep_left = doorstep_left
         self.doorstep_right = doorstep_right
 
-        self._doors = {}
+        # self._doors = {}
 
     def generate_walls(self):
 
