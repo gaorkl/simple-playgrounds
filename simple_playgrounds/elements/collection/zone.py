@@ -15,7 +15,6 @@ class TerminationZone(ZoneElement, ABC):
     """
     Termination Zones terminate the episode when activated.
     """
-
     def __init__(self, config_key, **kwargs):
         """
         Base class for Invisible zones that terminate upon contact.
@@ -47,7 +46,6 @@ class GoalZone(TerminationZone):
     """
     Termination Zone that provides positive reward when activated.
     """
-
     def __init__(self, reward: float, **kwargs):
 
         assert reward > 0
@@ -59,7 +57,6 @@ class DeathZone(TerminationZone):
     """
     Termination Zone that provides negative reward when activated.
     """
-
     def __init__(self, reward: float, **kwargs):
 
         assert reward < 0
@@ -71,11 +68,7 @@ class RewardZone(ZoneElement, ABC):
     """
     Reward Zones provide a reward to an agent in the zone.
     """
-
-    def __init__(self,
-                 config_key,
-                 reward: float,
-                 limit: Optional[float],
+    def __init__(self, config_key, reward: float, limit: Optional[float],
                  **entity_params):
         """
         RewardZone entities are invisible zones.
@@ -92,7 +85,7 @@ class RewardZone(ZoneElement, ABC):
         default_config = parse_configuration('element_zone', config_key)
         entity_params = {**default_config, **entity_params}
 
-        super().__init__(reward= reward, **entity_params)
+        super().__init__(reward=reward, **entity_params)
 
         self._limit = limit
         self._total_reward_provided = 0
@@ -131,20 +124,22 @@ class ToxicZone(RewardZone):
     Provides a negative reward for each timestep when an agent is in the zone.
     Default: Yellow square of radius 15, reward -1 and total_reward -1000000
     """
-
-    def __init__(self,
-                 reward: float,
-                 limit: Optional[float],
-                 **entity_params,
-                 ):
+    def __init__(
+        self,
+        reward: float,
+        limit: Optional[float],
+        **entity_params,
+    ):
 
         assert reward < 0
 
-        super().__init__(ElementTypes.TOXIC_ZONE, reward=reward, limit=limit, **entity_params)
+        super().__init__(ElementTypes.TOXIC_ZONE,
+                         reward=reward,
+                         limit=limit,
+                         **entity_params)
 
 
 class HealingZone(RewardZone):
-
     """
     HealingZone is an invisible entity.
     Provides a reward to an agent which is in the zone.
@@ -153,12 +148,15 @@ class HealingZone(RewardZone):
     Default: Blue square of radius 15, reward 1 and total_reward  100000
 
     """
-
-    def __init__(self,
-                 reward: float,
-                 limit: Optional[float],
-                 **entity_params,
-                 ):
+    def __init__(
+        self,
+        reward: float,
+        limit: Optional[float],
+        **entity_params,
+    ):
         assert reward > 0
 
-        super().__init__(ElementTypes.HEALING_ZONE, reward=reward, limit=limit, **entity_params)
+        super().__init__(ElementTypes.HEALING_ZONE,
+                         reward=reward,
+                         limit=limit,
+                         **entity_params)

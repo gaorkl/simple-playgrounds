@@ -1,4 +1,4 @@
-from simple_playgrounds import Engine
+from simple_playgrounds.engine import Engine
 
 from simple_playgrounds.agents.agents import BaseAgent
 from simple_playgrounds.agents.sensors import Touch
@@ -22,26 +22,29 @@ def test_add_remove_agent(base_forward_agent):
 
 
 def test_add_remove_agent_in_area(base_forward_agent):
-    playground_1 = SingleRoom((800, 300))
+    playground_1 = SingleRoom((800, 400))
     agent = base_forward_agent
 
-    areas = {'up': [0, 800, 0, 150],
-             'down': [0, 800, 150, 300],
-             'right': [400, 800, 0, 300],
-             'left': [0, 400, 0, 300],
-             'up-right': [400, 800, 0, 150],
-             'up-left': [0, 400, 0, 150],
-             'down-right': [400, 800, 150, 300],
-             'down-left': [0, 400, 150, 300],
-             }
+    areas = {
+        'up': [0, 800, 0, 200],
+        'down': [0, 800, 200, 400],
+        'right': [400, 800, 0, 400],
+        'left': [0, 400, 0, 400],
+        'up-right': [400, 800, 0, 200],
+        'up-left': [0, 400, 0, 200],
+        'down-right': [400, 800, 200, 400],
+        'down-left': [0, 400, 200, 400],
+        'center': [200, 600, 100, 300]
+    }
 
     for area_name, coord in areas.items():
 
-        location, size = playground_1.get_area((0, 0), area_name)
+        location, size = playground_1.grid_rooms[0][0].get_partial_area(
+            area_name)
 
         pos_area_sampler = CoordinateSampler(location,
                                              area_shape='rectangle',
-                                             width_length=size)
+                                             size=size)
 
         playground_1.add_agent(agent, pos_area_sampler)
 
@@ -104,8 +107,8 @@ def test_all_test_playgrounds(base_forward_agent):
 
         engine = Engine(playground, time_limit=10000)
         engine.run()
-        assert 0 < agent.position[0] < playground._size[0]
-        assert 0 < agent.position[1] < playground._size[1]
+        assert 0 < agent.position[0] < playground.size[0]
+        assert 0 < agent.position[1] < playground.size[1]
 
         engine.terminate()
         playground.remove_agent(agent)
@@ -125,8 +128,8 @@ def test_all_test_playgrounds_interactive(base_forward_agent):
 
         engine = Engine(playground, time_limit=10000)
         engine.run()
-        assert 0 < agent.position[0] < playground._size[0]
-        assert 0 < agent.position[1] < playground._size[1]
+        assert 0 < agent.position[0] < playground.size[0]
+        assert 0 < agent.position[1] < playground.size[1]
 
         engine.terminate()
         playground.remove_agent(agent)
@@ -139,10 +142,10 @@ def test_multiagents(base_forward_agent):
 
         playground = pg_class()
         print('Starting Multiagent testing of ', pg_class.__name__)
-        center, shape = playground.area_rooms[(0, 0)]
+        center, shape = playground.initial_agent_coordinates
         pos_area_sampler = CoordinateSampler(center=center,
                                              area_shape='rectangle',
-                                             width_length=shape)
+                                             size=shape)
 
         for _ in range(100):
             agent = BaseAgent(controller=RandomContinuous(), interactive=True)
@@ -162,14 +165,10 @@ def test_multiagents_no_overlapping(base_forward_agent):
 
         playground = pg_class()
         print('Starting Multiagent testing of ', pg_class.__name__)
-        center, shape = playground.area_rooms[(0, 0)]
-        pos_area_sampler = CoordinateSampler(center=center,
-                                             area_shape='rectangle',
-                                             width_length=shape)
 
         for _ in range(2):
             agent = BaseAgent(controller=RandomContinuous(), interactive=True)
-            playground.add_agent(agent, pos_area_sampler)
+            playground.add_agent(agent, playground.initial_agent_coordinates)
 
         assert len(playground.agents) == 2
 

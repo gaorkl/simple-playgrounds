@@ -18,12 +18,8 @@ class Edible(InteractiveElement, ABC):
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self,
-                 config_key,
-                 reward: float,
-                 shrink_ratio: float,
-                 min_reward: float,
-                 **entity_params):
+    def __init__(self, config_key, reward: float, shrink_ratio: float,
+                 min_reward: float, **entity_params):
         """
         Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
 
@@ -38,10 +34,13 @@ class Edible(InteractiveElement, ABC):
 
         """
 
-        default_config = parse_configuration('element_interactive', config_key)
+        default_config = parse_configuration('element_activable', config_key)
         entity_params = {**default_config, **entity_params}
 
-        super().__init__(visible_shape=True, invisible_shape=True, reward=reward, **entity_params)
+        super().__init__(visible_shape=True,
+                         invisible_shape=True,
+                         reward=reward,
+                         **entity_params)
 
         self._entity_params = entity_params
 
@@ -51,7 +50,6 @@ class Edible(InteractiveElement, ABC):
     def activate(self):
 
         super().activate()
-
         """" Change size, reward, and appearance."""
 
         # Change reward, size and mass
@@ -59,7 +57,7 @@ class Edible(InteractiveElement, ABC):
 
         new_reward = self._reward * self._shrink_ratio
         new_mass = self.mass * self._shrink_ratio
-        new_radius = self._radius_visible*self._shrink_ratio
+        new_radius = self._radius_visible * self._shrink_ratio
 
         continue_eating = False
 
@@ -71,16 +69,17 @@ class Edible(InteractiveElement, ABC):
 
         if continue_eating:
 
-            entity_params = {**self._entity_params,
-                             'radius': new_radius,
-                             'reward': new_reward,
-                             'shrink_ratio': self._shrink_ratio,
-                             'min_reward': self._min_reward,
-                             'mass': new_mass,
-                             'texture': self.texture,
-                             'generate_texture': False,
-                             'temporary': True,
-                            }
+            entity_params = {
+                **self._entity_params,
+                'radius': new_radius,
+                'reward': new_reward,
+                'shrink_ratio': self._shrink_ratio,
+                'min_reward': self._min_reward,
+                'mass': new_mass,
+                'texture': self.texture,
+                'generate_texture': False,
+                'temporary': True,
+            }
 
             new_edible = self.__class__(**entity_params)
 
@@ -101,19 +100,18 @@ class Edible(InteractiveElement, ABC):
 
 
 class Apple(Edible):
-
     """ Edible entity that provides a positive reward
 
     Default: Green Circle of radius 10, with an initial_reward of 30,
     a min reward of 5, and a shrink_ratio of 0.9.
     """
-
-    def __init__(self,
-                 reward: float,
-                 min_reward: float,
-                 shrink_ratio: float = 0.9,
-                 **entity_params,
-                 ):
+    def __init__(
+        self,
+        reward: float = 30,
+        min_reward: float = 2,
+        shrink_ratio: float = 0.9,
+        **entity_params,
+    ):
 
         assert reward > min_reward > 0
 
@@ -130,13 +128,13 @@ class RottenApple(Edible):
     Default: Green Circle of radius 10, with an initial_reward of 30,
     a min reward of 5, and a shrink_ratio of 0.9.
     """
-
-    def __init__(self,
-                 reward: float,
-                 min_reward: float,
-                 shrink_ratio: float = 0.9,
-                 **entity_params,
-                 ):
+    def __init__(
+        self,
+        reward: float,
+        min_reward: float,
+        shrink_ratio: float = 0.9,
+        **entity_params,
+    ):
         assert reward < min_reward < 0
 
         super().__init__(config_key=ElementTypes.ROTTEN_APPLE,

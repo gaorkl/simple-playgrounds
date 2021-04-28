@@ -1,6 +1,4 @@
-
 class Timer(object):
-
     def __init__(self, durations):
         self._durations = durations
         self.timer_done = False
@@ -19,7 +17,8 @@ class Timer(object):
             self.timer_done = False
 
         if self._timer == 0:
-            self._current_index_timer = (self._current_index_timer + 1) % len(self._durations)
+            self._current_index_timer = (self._current_index_timer + 1) % len(
+                self._durations)
             self._timer = self._durations[self._current_index_timer]
 
             self.timer_done = True

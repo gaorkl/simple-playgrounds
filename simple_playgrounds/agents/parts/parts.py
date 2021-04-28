@@ -36,15 +36,16 @@ class Part(Entity, ABC):
     _movable = True
     background = False
 
-    def __init__(self,
-                 anchor,
-                 position_anchor=(0, 0),
-                 position_part=(0, 0),
-                 rotation_range=math.pi/4,
-                 angle_offset=0,
-                 can_absorb=False,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        anchor,
+        position_anchor=(0, 0),
+        position_part=(0, 0),
+        rotation_range=math.pi / 4,
+        angle_offset=0,
+        can_absorb=False,
+        **kwargs,
+    ):
         """
 
         Args:
@@ -61,7 +62,11 @@ class Part(Entity, ABC):
         default_config = parse_configuration('agent_parts', self.entity_type)
         body_part_params = {**default_config, **kwargs}
 
-        Entity.__init__(self, visible_shape=True, invisible_shape=False, movable=True, **body_part_params)
+        Entity.__init__(self,
+                        visible_shape=True,
+                        invisible_shape=False,
+                        movable=True,
+                        **body_part_params)
 
         self.can_absorb = can_absorb
 
@@ -91,21 +96,16 @@ class Part(Entity, ABC):
     def _set_shape_collision(self):
         self.pm_visible_shape.collision_type = CollisionTypes.PART
 
-    @property
-    def radius(self):
-        return self._radius_visible
-
-    @property
-    def size(self):
-        return self._size_visible
-
     def _attach_to_anchor(self):
 
-        self.joint = pymunk.PivotJoint(self.anchor.pm_body, self.pm_body, self._rel_coord_anchor, self._rel_coord_part)
+        self.joint = pymunk.PivotJoint(self.anchor.pm_body, self.pm_body,
+                                       self._rel_coord_anchor,
+                                       self._rel_coord_part)
         self.joint.collide_bodies = False
-        self.limit = pymunk.RotaryLimitJoint(self.anchor.pm_body, self.pm_body,
-                                             self.angle_offset - self.rotation_range / 2,
-                                             self.angle_offset + self.rotation_range / 2)
+        self.limit = pymunk.RotaryLimitJoint(
+            self.anchor.pm_body, self.pm_body,
+            self.angle_offset - self.rotation_range / 2,
+            self.angle_offset + self.rotation_range / 2)
 
         self.motor = pymunk.SimpleMotor(self.anchor.pm_body, self.pm_body, 0)
 
@@ -137,6 +137,7 @@ class Part(Entity, ABC):
 
 
 # Platforms
+
 
 class MobilePlatform(Part):
     """
@@ -172,13 +173,19 @@ class Head(Part):
     """
     entity_type = PartTypes.HEAD
 
-    def __init__(self, anchor, position_anchor=(0, 0), angle_offset=0, **kwargs):
-        super().__init__(anchor, position_anchor=position_anchor, angle_offset=angle_offset, **kwargs)
+    def __init__(self,
+                 anchor,
+                 position_anchor=(0, 0),
+                 angle_offset=0,
+                 **kwargs):
+        super().__init__(anchor,
+                         position_anchor=position_anchor,
+                         angle_offset=angle_offset,
+                         **kwargs)
         self.pm_visible_shape.sensor = True
 
 
 class Eye(Head):
-
     """
     Circular Part, attached on its center.
     Not colliding with any Entity or Part
@@ -214,11 +221,10 @@ class Arm(Part):
 
         # arm attached at one extremity, and other anchor point defined at other extremity
         width, length = body_part_params['width_length']
-        position_part = [-length/2.0 + width/2.0, 0]
-        self.extremity_anchor_point = [+length/2.0 - width/2.0, 0]
+        position_part = [-length / 2.0 + width / 2.0, 0]
+        self.extremity_anchor_point = [+length / 2.0 - width / 2.0, 0]
 
-        super().__init__(anchor, position_anchor, position_part, angle_offset, **body_part_params)
+        super().__init__(anchor, position_anchor, position_part, angle_offset,
+                         **body_part_params)
 
         self.motor.max_force = ARM_MAX_FORCE
-
-

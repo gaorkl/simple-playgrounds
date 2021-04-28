@@ -67,6 +67,7 @@ class Actuator(ABC):
 
 # DISCRETE ACTUATORS
 
+
 class DiscreteActuator(Actuator, ABC):
     """
     Discrete Actuators are initialized by providing a list of valid actuator values.
@@ -142,7 +143,6 @@ class InteractionActuator(DiscreteActuator, ABC):
     Base class for Interaction Actuators.
     Interaction Actuators are binary actuators.
     """
-
     def __init__(self, part):
         super().__init__(part, actuator_values=(0, 1))
 
@@ -156,13 +156,15 @@ class InteractionActuator(DiscreteActuator, ABC):
             drawer_action_image.rectangle([start, end], fill=(20, 200, 20))
 
         w_text, h_text = fnt.getsize(text=type(self).__name__)
-        pos_text = (img_width/2.0 - w_text/2,
-                    position_height+height_action/2 - h_text/2)
-        drawer_action_image.text(pos_text, type(self).__name__, font=fnt, fill=(0, 0, 0))
+        pos_text = (img_width / 2.0 - w_text / 2,
+                    position_height + height_action / 2 - h_text / 2)
+        drawer_action_image.text(pos_text,
+                                 type(self).__name__,
+                                 font=fnt,
+                                 fill=(0, 0, 0))
 
 
 class Activate(InteractionActuator):
-
     def apply_action(self, action_index):
 
         self._pre_step(action_index)
@@ -170,7 +172,6 @@ class Activate(InteractionActuator):
 
 
 class Grasp(InteractionActuator):
-
     def apply_action(self, action_index):
         self._pre_step(action_index)
         self.part.is_grasping = self.actuator_values[action_index]
@@ -215,10 +216,12 @@ class ContinuousActuator(Actuator, ABC):
         if self.centered and self.current_value != 0:
 
             if self.current_value < 0:
-                left = int(img_width / 2. + self.current_value * img_width / 2.)
+                left = int(img_width / 2. +
+                           self.current_value * img_width / 2.)
                 right = int(img_width / 2.)
             else:
-                right = int(img_width / 2. + self.current_value * img_width / 2.)
+                right = int(img_width / 2. +
+                            self.current_value * img_width / 2.)
                 left = int(img_width / 2.)
 
             start = (left, position_height)
@@ -237,9 +240,12 @@ class ContinuousActuator(Actuator, ABC):
             drawer_action_image.rectangle([start, end], fill=(20, 200, 20))
 
         w_text, h_text = fnt.getsize(text=type(self).__name__)
-        drawer_action_image.text((img_width / 2.0 - w_text / 2, position_height + height_action / 2 - h_text / 2),
-                         type(self).__name__,
-                         font=fnt, fill=(0, 0, 0))
+        drawer_action_image.text(
+            (img_width / 2.0 - w_text / 2,
+             position_height + height_action / 2 - h_text / 2),
+            type(self).__name__,
+            font=fnt,
+            fill=(0, 0, 0))
 
     @abstractmethod
     def apply_action(self, action):
@@ -275,32 +281,30 @@ class ContinuousActuator(Actuator, ABC):
 
 
 class LongitudinalForce(ContinuousActuator):
-
     def apply_action(self, action):
         self._pre_step(action)
 
         self.part.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(action, 0) * LINEAR_FORCE * self._action_range, (0, 0))
+            pymunk.Vec2d(action, 0) * LINEAR_FORCE * self._action_range,
+            (0, 0))
 
 
 class LateralForce(ContinuousActuator):
-
     def apply_action(self, action):
         self._pre_step(action)
 
         self.part.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(0, action) * self._action_range * LINEAR_FORCE, (0, 0))
+            pymunk.Vec2d(0, action) * self._action_range * LINEAR_FORCE,
+            (0, 0))
 
 
 class AngularVelocity(ContinuousActuator):
-
     def apply_action(self, action):
         self._pre_step(action)
         self.part.pm_body.angular_velocity = action * ANGULAR_VELOCITY * self._action_range
 
 
 class AngularRelativeVelocity(ContinuousActuator):
-
     def apply_action(self, action):
         self._pre_step(action)
 
@@ -314,7 +318,7 @@ class AngularRelativeVelocity(ContinuousActuator):
 
         # Do not set the motor if the limb is close to limit
         if (angle_centered <
-            -self.part.rotation_range / 2 + np.pi / 20) and action > 0:
+                -self.part.rotation_range / 2 + np.pi / 20) and action > 0:
             self.part.motor.rate = 0
 
         elif (angle_centered >
@@ -323,4 +327,3 @@ class AngularRelativeVelocity(ContinuousActuator):
 
         else:
             self.part.motor.rate = action * ANGULAR_VELOCITY * self._action_range
-

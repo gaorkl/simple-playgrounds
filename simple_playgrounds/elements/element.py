@@ -3,10 +3,9 @@ Module that defines Base Class SceneElement
 """
 
 from typing import Union, Tuple, Optional
-from simple_playgrounds.common.position_samplers import CoordinateSampler, Trajectory
+from simple_playgrounds.common.position_samplers import CoordinateSampler, Trajectory, InitCoord
 from simple_playgrounds.configs import parse_configuration
 from simple_playgrounds.definitions import CollisionTypes
-
 
 from abc import ABC, abstractmethod
 
@@ -15,18 +14,17 @@ from simple_playgrounds.agents import Agent
 
 
 class SceneElement(Entity, ABC):
-
     def __init__(self, **entity_params):
         super().__init__(**entity_params)
 
 
 class TeleportElement(SceneElement, ABC):
     """ Base Class for Teleport Entities"""
-
-    def __init__(self,
-                 target: Union[InitCoord, SceneElement],
-                 **entity_params,
-                 ):
+    def __init__(
+        self,
+        target: Union[InitCoord, SceneElement],
+        **entity_params,
+    ):
 
         super().__init__(**entity_params)
         self.target = target
@@ -40,7 +38,6 @@ class GemElement(SceneElement, ABC):
     """
     A Gem interacts with other SceneElements.
     """
-
     def __init__(self, config_key, elem_activated, **entity_params):
 
         default_config = parse_configuration('element_gem', config_key)
@@ -53,16 +50,12 @@ class GemElement(SceneElement, ABC):
 
         self.elem_activated = elem_activated
 
-    def _set_visible_shape_collision(self):
+    def _set_shape_collision(self):
         self.pm_visible_shape.collision_type = CollisionTypes.GEM
-
-    def _set_invisible_shape_collision(self):
-        pass
 
 
 class InteractiveElement(SceneElement, ABC):
     """Base Class for Interactive Elements"""
-
     def __init__(self, reward: float = 0, **entity_params):
 
         SceneElement.__init__(self, **entity_params)
@@ -104,10 +97,12 @@ class InteractiveElement(SceneElement, ABC):
 
 class ContactElement(InteractiveElement, ABC):
     """ Base Class for Contact Entities"""
-
     def __init__(self, **entity_params):
 
-        InteractiveElement.__init__(self, visible_shape=True, invisible_shape=False, **entity_params)
+        InteractiveElement.__init__(self,
+                                    visible_shape=True,
+                                    invisible_shape=False,
+                                    **entity_params)
 
     def _set_shape_collision(self):
         self.pm_visible_shape.collision_type = CollisionTypes.CONTACT
@@ -115,11 +110,12 @@ class ContactElement(InteractiveElement, ABC):
 
 class ZoneElement(InteractiveElement, ABC):
     """ Base Class for Contact Entities"""
-
     def __init__(self, **entity_params):
 
-        InteractiveElement.__init__(self, visible_shape=False, invisible_shape=True, **entity_params)
+        InteractiveElement.__init__(self,
+                                    visible_shape=False,
+                                    invisible_shape=True,
+                                    **entity_params)
 
     def _set_shape_collision(self):
         self.pm_invisible_shape.collision_type = CollisionTypes.CONTACT
-

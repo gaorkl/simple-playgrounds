@@ -12,7 +12,6 @@ from simple_playgrounds.definitions import ActionSpaces, KeyTypes
 class Controller(ABC):
     """ Base Class for Controllers.
     """
-
     def __init__(self):
 
         self.require_key_mapping = False
@@ -62,7 +61,6 @@ class RandomDiscrete(Controller):
      - {0, 1} is not centered.
     If the actuator is discrete, it picks a random action in the set of available actions.
     """
-
     def generate_actions(self):
 
         commands = {}
@@ -92,7 +90,6 @@ class RandomContinuous(Controller):
     If the actuator is continuous, it picks the action using a uniform distribution.
     If the actuator is discrete (binary), it picks a random action.
     """
-
     def generate_actions(self):
 
         commands = {}
@@ -121,7 +118,6 @@ class Keyboard(Controller):
     Keyboard controller require that a keymapping is defined in the agent.
     The keymapping should be assigned to the controller.
     """
-
     def __init__(self):
 
         super().__init__()

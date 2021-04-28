@@ -6,14 +6,12 @@ from typing import Union
 
 from simple_playgrounds.definitions import ElementTypes
 from ..element import GemElement
-from .interactive import Lock, Chest
+from .activable import Lock, Chest
 
 
 class Coin(GemElement):
-
     """Coins are used with a VendingMachine to get rewards.
     A Coin disappears when in contact with its VendingMachine."""
-
     def __init__(self, vending_machine, **kwargs):
 
         super().__init__(config_key=ElementTypes.COIN,
@@ -22,10 +20,10 @@ class Coin(GemElement):
 
 
 class Key(GemElement):
-
     """Keys are used to open Chests or Doors.
     A Key disappears when in contact with its VendingMachine."""
-
     def __init__(self, locked_elem: Union[Lock, Chest], **kwargs):
 
-        super().__init__(config_key=ElementTypes.KEY, elem_activated=locked_elem, **kwargs)
+        super().__init__(config_key=ElementTypes.KEY,
+                         elem_activated=locked_elem,
+                         **kwargs)

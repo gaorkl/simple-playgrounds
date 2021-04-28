@@ -35,54 +35,63 @@ class Entity(ABC):
 
     index_entity = 0
 
-    def __init__(self,
-                 visible_shape: bool,
-                 invisible_shape: bool,
-                 texture: Union[Texture, Dict, Tuple[int, int, int]],
-                 physical_shape: str,
-                 size: Optional[Tuple[float, float]] = None,
-                 radius: Optional[float] = None,
-                 invisible_range: float = 5,
-                 graspable: bool = False,
-                 traversable: bool = False,
-                 movable: bool = False,
-                 temporary: bool = False,
-                 name: Union[str, None] = None,
-                 mass: Union[float, None] = None,
-                 generate_texture: bool = True,
-                 **pymunk_attributes,
-                 ):
+    def __init__(
+        self,
+        visible_shape: bool,
+        invisible_shape: bool,
+        texture: Union[Texture, Dict, Tuple[int, int, int], List],
+        physical_shape: str,
+        size: Optional[Union[Tuple[float, float], List[float]]] = None,
+        radius: Optional[float] = None,
+        invisible_range: float = 5,
+        graspable: bool = False,
+        traversable: bool = False,
+        movable: bool = False,
+        temporary: bool = False,
+        name: Optional[str] = None,
+        mass: Optional[float] = None,
+        generate_texture: bool = True,
+        **pymunk_attributes,
+    ):
 
         # Internal counter to assign identity number and name to each entity
         self.name = name
         if not name:
-            self.name = self.__class__.__name__ + '_' + str(Entity.index_entity)
+            self.name = self.__class__.__name__ + '_' + str(
+                Entity.index_entity)
         Entity.index_entity += 1
 
         # Physical properties of the entity
         if graspable:
             movable = True
 
+        if movable:
+            assert mass
         self.mass = mass
         self.physical_shape = PhysicalShapes[physical_shape.upper()]
 
         # Dimensions of the entity
-
         self._invisible_range = invisible_range
+        self._size_visible: Union[Tuple[float, float], List[float]]
 
         if radius and not size:
+            assert radius
             assert isinstance(radius, (float, int))
             self._radius_visible = radius
-            self._size_visible = (2*radius, 2*radius)
+            self._size_visible = (2 * radius, 2 * radius)
             self._radius_invisible = radius + self._invisible_range
-            self._size_invisible = (2*self._radius_invisible, 2*self._radius_invisible)
+            self._size_invisible = (2 * self._radius_invisible,
+                                    2 * self._radius_invisible)
 
         else:
-            assert isinstance(size, tuple) and len(size) == 2
+            assert size
+            assert isinstance(size, (list, tuple))
+            assert len(size) == 2
 
             width, length = size
             self._size_visible = size
-            self._radius_visible = ((width/2.)**2 + (length/2.)**2)**(1/2.)
+            self._radius_visible = ((width / 2.)**2 + (length / 2.)**2)**(1 /
+                                                                          2.)
             self._size_invisible = width + self._invisible_range, length + self._invisible_range
             self._radius_invisible = self._radius_visible + self._invisible_range
 
@@ -100,10 +109,11 @@ class Entity(ABC):
             if traversable:
                 self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=1)
             else:
-                self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=2, mask=pymunk.ShapeFilter.ALL_MASKS() ^ 1)
+                self.pm_visible_shape.filter = pymunk.ShapeFilter(
+                    categories=2, mask=pymunk.ShapeFilter.ALL_MASKS() ^ 1)
 
         # Interactive properties of the entity
-        
+
         if invisible_shape:
             self.pm_invisible_shape = self._create_pm_shape(invisible=True)
             self.pm_elements.append(self.pm_invisible_shape)
@@ -124,11 +134,11 @@ class Entity(ABC):
             texture['size'] = self._size_visible
             texture = TextureGenerator.create(**texture)
 
-        elif isinstance(texture, tuple):
-            assert len(texture) == 3
+        elif isinstance(texture, (tuple, list)):
             texture = ColorTexture(size=self._size_visible, color=texture)
 
         assert isinstance(texture, Texture)
+
         self.texture = texture
         if generate_texture:
             self._texture_surface = self.texture.generate()
@@ -157,6 +167,14 @@ class Entity(ABC):
 
         self.texture.get_pixel(relative_pos)
 
+    @property
+    def radius(self):
+        return self._radius_visible
+
+    @property
+    def size(self):
+        return self._size_visible
+
     @abstractmethod
     def _set_shape_collision(self):
         pass
@@ -171,8 +189,9 @@ class Entity(ABC):
         """
         if self.pm_visible_shape is not None:
             mask_filter = self.pm_visible_shape.filter.mask ^ 2**category_index
-            self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=self.pm_visible_shape.filter.categories,
-                                                              mask=mask_filter)
+            self.pm_visible_shape.filter = pymunk.ShapeFilter(
+                categories=self.pm_visible_shape.filter.categories,
+                mask=mask_filter)
 
     def _set_pm_attr(self, attr):
 
@@ -188,12 +207,13 @@ class Entity(ABC):
             return pymunk.Body(body_type=pymunk.Body.STATIC)
 
         if self.physical_shape == PhysicalShapes.CIRCLE:
-            moment = pymunk.moment_for_circle(self.mass, 0, self._radius_visible)
+            moment = pymunk.moment_for_circle(self.mass, 0,
+                                              self._radius_visible)
 
-        elif self.physical_shape in [PhysicalShapes.TRIANGLE,
-                                     PhysicalShapes.SQUARE,
-                                     PhysicalShapes.PENTAGON,
-                                     PhysicalShapes.HEXAGON]:
+        elif self.physical_shape in [
+                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
+                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON
+        ]:
 
             vertices = self._compute_vertices()
             moment = pymunk.moment_for_poly(self.mass, vertices)
@@ -217,10 +237,12 @@ class Entity(ABC):
             if invisible:
                 width, length = self._size_invisible
 
-            points = [pymunk.Vec2d(width / 2., length / 2.),
-                      pymunk.Vec2d(width / 2., -length / 2.),
-                      pymunk.Vec2d(-width / 2., -length / 2.),
-                      pymunk.Vec2d(-width / 2., length / 2.)]
+            points = [
+                pymunk.Vec2d(width / 2., length / 2.),
+                pymunk.Vec2d(width / 2., -length / 2.),
+                pymunk.Vec2d(-width / 2., -length / 2.),
+                pymunk.Vec2d(-width / 2., length / 2.)
+            ]
 
             for pt in points:
                 pt_rotated = pt.rotated(offset_angle)
@@ -236,10 +258,12 @@ class Entity(ABC):
 
             number_sides = self.physical_shape.value
 
-            orig = pymunk.Vec2d(radius,0)
+            orig = pymunk.Vec2d(radius, 0)
 
             for n_sides in range(number_sides):
-                vertices.append(orig.rotated( n_sides * 2 * math.pi / number_sides + offset_angle))
+                vertices.append(
+                    orig.rotated(n_sides * 2 * math.pi / number_sides +
+                                 offset_angle))
 
         return vertices
 
@@ -252,10 +276,10 @@ class Entity(ABC):
             else:
                 pm_shape = pymunk.Circle(self.pm_body, self._radius_visible)
 
-        elif self.physical_shape in [PhysicalShapes.TRIANGLE,
-                                     PhysicalShapes.SQUARE,
-                                     PhysicalShapes.PENTAGON,
-                                     PhysicalShapes.HEXAGON]:
+        elif self.physical_shape in [
+                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
+                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON
+        ]:
 
             vertices = self._compute_vertices(invisible=invisible)
             pm_shape = pymunk.Poly(self.pm_body, vertices)
@@ -263,9 +287,11 @@ class Entity(ABC):
         elif self.physical_shape == PhysicalShapes.RECTANGLE:
 
             if invisible:
-                pm_shape = pymunk.Poly.create_box(self.pm_body, self._size_invisible)
+                pm_shape = pymunk.Poly.create_box(self.pm_body,
+                                                  self._size_invisible)
             else:
-                pm_shape = pymunk.Poly.create_box(self.pm_body, self._size_visible)
+                pm_shape = pymunk.Poly.create_box(self.pm_body,
+                                                  self._size_visible)
         else:
             raise ValueError
 
@@ -284,12 +310,13 @@ class Entity(ABC):
         # pylint: disable-all
 
         alpha = 255
-        mask_size = (2*self._radius_visible, 2*self._radius_visible)
+        mask_size = (2 * self._radius_visible, 2 * self._radius_visible)
         center = self._radius_visible, self._radius_visible
 
         if invisible:
             alpha = 75
-            mask_size = (2*self._radius_invisible, 2*self._radius_invisible)
+            mask_size = (2 * self._radius_invisible,
+                         2 * self._radius_invisible)
             center = self._radius_invisible, self._radius_invisible
 
         mask_size = int(mask_size[0]), int(mask_size[1])
@@ -301,7 +328,8 @@ class Entity(ABC):
             pygame.draw.circle(mask, (255, 255, 255, alpha), center, radius)
 
         else:
-            vert = self._compute_vertices(offset_angle=self.angle, invisible=invisible)
+            vert = self._compute_vertices(offset_angle=self.angle,
+                                          invisible=invisible)
             vertices = [v - v.normalized() + center for v in vert]
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
@@ -312,12 +340,13 @@ class Entity(ABC):
             texture_surface = self._texture_surface.copy()
 
         # Pygame / numpy conversion
-        mask_angle = math.pi/2 - self.angle
-        texture_surface = pygame.transform.rotate(texture_surface, mask_angle * 180 / math.pi)
+        mask_angle = math.pi / 2 - self.angle
+        texture_surface = pygame.transform.rotate(texture_surface,
+                                                  mask_angle * 180 / math.pi)
         mask_rect = texture_surface.get_rect()
         mask_rect.center = center
         if self.physical_shape == PhysicalShapes.RECTANGLE:
-            mask_rect.center = center[0]+1, center[1]+1
+            mask_rect.center = center[0] + 1, center[1] + 1
         mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
 
         return mask
@@ -436,7 +465,6 @@ class Entity(ABC):
 
         self.drawn = False
 
-    # Todo: re set force to false
     def draw(self, surface, draw_invisible=False, force_recompute_mask=False):
         """
         Draw the entity on the surface.

@@ -6,76 +6,82 @@ from simple_playgrounds.elements.collection.basic import Physical, Traversable
 from simple_playgrounds.elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy
 from simple_playgrounds.elements.collection.zone import GoalZone, DeathZone, HealingZone, ToxicZone
 from simple_playgrounds.elements.collection.edible import Apple, RottenApple
-
-# pylint: disable=wildcard-import
-# pylint: disable=unused-wildcard-import
+from simple_playgrounds.elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation
+from simple_playgrounds.elements.collection.gem import Key, Coin
+from simple_playgrounds.elements.collection.conditioning import RewardFlipper
 from simple_playgrounds.common.position_samplers import CoordinateSampler
-
+from simple_playgrounds.common.timer import Timer
 
 @PlaygroundRegister.register('test', 'basic')
 class Basics(SingleRoom):
-
     def __init__(self, size=(400, 200), **playground_params):
 
         super().__init__(size=size, **playground_params)
 
-        rectangle_01 = Physical(config_key='rectangle',  name='test')
-        self.add_element(rectangle_01, initial_coordinates=((150, 160), math.pi/4))
+        rectangle_01 = Physical(config_key='rectangle', name='test')
+        self.add_element(rectangle_01,
+                         initial_coordinates=((150, 160), math.pi / 4))
 
         circle_01 = Traversable(config_key='circle',
-                          movable=False, mass=100, texture=[150, 150, 150])
+                                movable=False,
+                                mass=100,
+                                texture=[150, 150, 150])
         self.add_element(circle_01, ((50, 50), 0))
 
         square_01 = Physical(config_key='square', movable=True, mass=10)
         self.add_element(square_01, ((150, 60), 0))
 
         pentagon_01 = Physical(config_key='pentagon', radius=15)
-        self.add_element(pentagon_01, ((50, 160), math.pi/2))
+        self.add_element(pentagon_01, ((50, 160), math.pi / 2))
+
+        tri_01 = Physical(config_key='triangle', movable=False, mass=5)
+        self.add_element(tri_01, ((100, 100), math.pi / 4))
 
         tri_01 = Physical(config_key='triangle',
-                          movable=False, mass=5)
-        self.add_element(tri_01, ((100, 100), math.pi/4))
-
-        tri_01 = Physical(config_key='triangle',
-                          movable=False, mass=5, radius = 20)
+                          movable=False,
+                          mass=5,
+                          radius=20)
         self.add_element(tri_01, ((300, 66), 0))
 
         tri_01 = Physical(config_key='triangle',
-                          movable=False, mass=5, radius = 20 )
-        self.add_element(tri_01, ((300, 133), math.pi/3))
+                          movable=False,
+                          mass=5,
+                          radius=20)
+        self.add_element(tri_01, ((300, 133), math.pi / 3))
 
 
 @PlaygroundRegister.register('test', 'grasp')
 class Graspables(SingleRoom):
-
     def __init__(self, size=(200, 200), **playground_params):
 
         super().__init__(size=size, **playground_params)
 
         rectangle_01 = Physical(config_key='rectangle',
-                             graspable=True, mass=10)
+                                graspable=True,
+                                mass=10)
         self.add_element(rectangle_01, ((150, 160), 0.2))
 
         circle_01 = Physical(config_key='circle',
-                          graspable=True, mass=10, texture=[150, 150, 150])
+                             graspable=True,
+                             mass=10,
+                             texture=[150, 150, 150])
         self.add_element(circle_01, ((50, 50), 0))
 
-        square_01 = Physical(config_key='square',
-                          graspable=True, mass=10)
-        self.add_element(square_01, ((150, 60), math.pi/4))
+        square_01 = Physical(config_key='square', graspable=True, mass=10)
+        self.add_element(square_01, ((150, 60), math.pi / 4))
 
-        pentagon_01 = Physical(config_key='pentagon', radius=15,
-                            graspable=True, mass=10)
+        pentagon_01 = Physical(config_key='pentagon',
+                               radius=15,
+                               graspable=True,
+                               mass=10)
         self.add_element(pentagon_01, ((50, 160), 0))
 
-        hexagon_01 = Physical(config_key='hexagon',
-                           graspable=True, mass=10)
+        hexagon_01 = Physical(config_key='hexagon', graspable=True, mass=10)
         self.add_element(hexagon_01, ((100, 100), 0))
 
 
 @PlaygroundRegister.register('test', 'contacts')
 class Contacts(SingleRoom):
-
     def __init__(self, size=(200, 200), **playground_params):
 
         super().__init__(size=size, **playground_params)
@@ -90,20 +96,23 @@ class Contacts(SingleRoom):
         self.add_element(poison, ((15, 15), 0))
 
         poison_area = CoordinateSampler(area_shape='rectangle',
-                                        center=[100, 150], width_length=[20, 20])
+                                        center=(100, 150),
+                                        size=(20, 20))
         for _ in range(5):
             poison = Poison()
             self.add_element(poison, poison_area)
 
         candy_area = CoordinateSampler(area_shape='rectangle',
-                                       center=[50, 100], width_length=[20, 20])
+                                       center=(50, 100),
+                                       size=(20, 20))
         for _ in range(5):
             candy = Candy()
             self.add_element(candy, candy_area)
 
         # outside on purpose
         outside_area = CoordinateSampler(area_shape='rectangle',
-                                         center=[200, 100], width_length=[50, 50])
+                                         center=(200, 100),
+                                         size=(50, 50))
         for _ in range(8):
             candy = Candy()
             self.add_element(candy, outside_area)
@@ -111,7 +120,6 @@ class Contacts(SingleRoom):
 
 @PlaygroundRegister.register('test', 'zones')
 class Zones(SingleRoom):
-
     def __init__(self, size=(200, 200), **playground_params):
 
         super().__init__(size=size, **playground_params)
@@ -137,7 +145,6 @@ class Zones(SingleRoom):
 
 @PlaygroundRegister.register('test', 'edibles')
 class Edibles(SingleRoom):
-
     def __init__(self, size=(200, 200), **playground_params):
 
         super().__init__(size=size, **playground_params)
@@ -154,77 +161,162 @@ class Edibles(SingleRoom):
         rotten = RottenApple(-20, -5)
         self.add_element(rotten, ((100, 100), 0))
 
-# @PlaygroundRegister.register('test', 'interactives')
-# class Interactives(SingleRoom):
-#
-#     def __init__(self, size=(300, 300), **playground_params):
-#
-#         super().__init__(size=size, **playground_params)
-#
-#         goal_1 = GoalZone()
-#         self.add_scene_element(goal_1, [(20, 20), 0])
-#
-#         apple = Apple(physical_shape='pentagon', graspable=True)
-#         self.add_scene_element(apple, [(100, 50), 0])
-#
-#         rotten = RottenApple()
-#         self.add_scene_element(rotten, [(100, 100), 0])
-#
-#         area_1 = CoordinateSampler(area_shape='rectangle',
-#                                    center=[200, 150], width_length=[20, 50])
-#         dispenser_1 = Dispenser(entity_produced=Poison, production_area=area_1)
-#         self.add_scene_element(dispenser_1, [(150, 150), 0])
-#
-#         area_2 = CoordinateSampler(area_shape='gaussian',
-#                                    center=[150, 50], variance=300, radius=60)
-#         dispenser_2 = Dispenser(entity_produced=Candy, production_area=area_2)
-#         self.add_scene_element(dispenser_2, [(100, 150), 0])
-#
-#         dispenser_3 = Dispenser(
-#             entity_produced=Candy,
-#             entity_produced_params={'radius': 3, 'reward': 42},
-#             movable=True,
-#             mass=5
-#         )
-#         self.add_scene_element(dispenser_3, [(200, 150), 0])
-#
-#         key_chest = Key(config_key='pentagon',
-#                         radius=7, graspable=True, mass=10)
-#         self.add_scene_element(key_chest, [(50, 200), 0])
-#
-#         treasure = Apple()
-#         chest = Chest(key=key_chest, treasure=treasure, width_length=[20, 50])
-#         self.add_scene_element(chest, [(100, 200), 0.2])
-#
-#         vending = VendingMachine()
-#         self.add_scene_element(vending, [(200, 200), 0])
-#
-#         coin = Coin(graspable=True, vending_machine=vending)
-#         self.add_scene_element(coin, [(150, 200), 0])
-#
-#         coin = Coin(graspable=True, vending_machine=vending)
-#         self.add_scene_element(coin, [(150, 220), 0])
-#
-#         coin = Coin(graspable=True, vending_machine=vending)
-#         self.add_scene_element(coin, [(150, 240), 0])
+
+@PlaygroundRegister.register('test', 'dispensers')
+class Dispensers(SingleRoom):
+    def __init__(self, size=(200, 400), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        x_dispenser = 50
+        x_area = 150
+
+        # Dispenser on Area
+        area = CoordinateSampler(area_shape='rectangle',
+                                 center=[x_area, 50],
+                                 size=[20, 60],
+                                 angle=math.pi / 3)
+        dispenser = Dispenser(
+            element_produced=Poison,
+            element_produced_params={'reward': -5},
+            production_area=area,
+            production_limit=20,
+        )
+        self.add_element(dispenser, ((x_dispenser, 50), 0))
+
+        # Dispenser on Area
+        area = CoordinateSampler(area_shape='circle',
+                                 center=[x_area, 100],
+                                 radius=30)
+        dispenser = Dispenser(
+            element_produced=Poison,
+            element_produced_params={'reward': -5},
+            production_area=area,
+        )
+        self.add_element(dispenser, ((x_dispenser, 100), 0))
+
+        # Dispenser on Area
+        area = CoordinateSampler(area_shape='circle',
+                                 center=[x_area, 150],
+                                 radius=50,
+                                 min_radius=30)
+        dispenser = Dispenser(
+            element_produced=Candy,
+            element_produced_params={'reward': 5},
+            production_area=area,
+        )
+        self.add_element(dispenser, ((x_dispenser, 150), 0))
+
+        # Dispenser on Area
+        area = CoordinateSampler(area_shape='gaussian',
+                                 center=[x_area, 200],
+                                 std=30,
+                                 radius=60)
+        dispenser = Dispenser(
+            element_produced=Poison,
+            element_produced_params={'reward': -5},
+            production_area=area,
+        )
+        self.add_element(dispenser, ((x_dispenser, 200), 0))
+
+        # Dispenser on Area
+        area = CoordinateSampler(area_shape='gaussian',
+                                 center=[x_area, 250],
+                                 std=40,
+                                 radius=60,
+                                 min_radius=20)
+        dispenser = Dispenser(
+            element_produced=Candy,
+            element_produced_params={'reward': 5},
+            production_area=area,
+        )
+        self.add_element(dispenser, ((x_dispenser, 250), 0))
+
+        # Dispenser on Dispenser
+
+        dispenser = Dispenser(element_produced=Candy,
+                              element_produced_params={'reward': 5},
+                              production_range=20,
+                              graspable=True)
+        self.add_element(dispenser, ((x_dispenser, 300), 0))
+
+        # Dispenser on Element
+
+        pentagon_01 = Physical(config_key='pentagon',
+                               radius=15,
+                               graspable=True,
+                               mass=5)
+        self.add_element(pentagon_01, ((x_area, 350), math.pi / 2))
+
+        dispenser = Dispenser(element_produced=Candy,
+                              element_produced_params={'reward': 5},
+                              production_range=20,
+                              production_area=pentagon_01)
+        self.add_element(dispenser, ((x_dispenser, 350), 0))
 
 
-#
-# @PlaygroundRegister.register('test', 'conditioning')
-# class Conditioning(SingleRoom):
-#
-#     def __init__(self, size=(300, 300), **playground_params):
-#
-#         super().__init__(size=size, **playground_params)
-#
-#         lever = Lever()
-#         self.add_scene_element(lever, [(100, 50), 0])
-#
-#         light_01 = ConditionedColorChanging(conditioned_entity=lever,
-#                                             timers=[100, 100],
-#                                             textures=[[100, 200, 0], [200, 100, 200]])
-#         self.add_scene_element(light_01, [(150, 100), 0])
-#
+@PlaygroundRegister.register('test', 'gems')
+class Gems(SingleRoom):
+    def __init__(self, size=(200, 400), **playground_params):
+        super().__init__(size=size, **playground_params)
+
+        x_gem = 50
+        x_activable = 100
+
+        treasure = Apple()
+
+        chest = Chest(treasure=treasure,
+                      size=[20, 50])
+        self.add_element(chest, ((x_activable, 50), 0))
+
+        key_chest = Key(graspable=True,
+                        mass=10,
+                        locked_elem=chest,
+                        )
+        self.add_element(key_chest, ((x_gem, 50), 0))
+
+        vending = VendingMachine(quantity_rewards=3, reward=10)
+        self.add_element(vending, ((x_activable, 100), 0))
+
+        coin = Coin(graspable=True, vending_machine=vending)
+        self.add_element(coin, ((x_gem, 100), 0))
+
+        coin = Coin(graspable=True, vending_machine=vending)
+        self.add_element(coin, ((x_gem, 120), 0))
+
+        coin = Coin(graspable=True, vending_machine=vending)
+        self.add_element(coin, ((x_gem, 80), 0))
+
+        coin = Coin(graspable=True, vending_machine=vending)
+        self.add_element(coin, ((x_gem, 60), 0))
+
+
+@PlaygroundRegister.register('test', 'conditioning')
+class Conditioning(SingleRoom):
+
+    def __init__(self, size=(200, 200), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        roa = RewardOnActivation(reward=10)
+        self.add_element(roa, ((50, 50), 0))
+
+        light_01 = RewardFlipper(element_flipped=roa,
+                                 textures=[[100, 200, 0], [200, 100, 200]],
+                                 activable_by_agent=True)
+        self.add_element(light_01, ((100, 50), 0))
+
+        roa = RewardOnActivation(reward=10)
+        self.add_element(roa, ((50, 150), 0))
+
+        light_02 = RewardFlipper(element_flipped=roa,
+                                 textures=[[100, 200, 0], [200, 100, 200]],
+                                 activable_by_agent=True)
+        self.add_element(light_02, ((100, 150), 0))
+
+        timer = Timer([100, 50])
+        self.add_timer(timer, light_02)
+
 #
 # @PlaygroundRegister.register('test', 'doors')
 # class Doors(SingleRoom):

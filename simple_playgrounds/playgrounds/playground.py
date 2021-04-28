@@ -22,7 +22,7 @@ from simple_playgrounds.agents.parts import Part
 from simple_playgrounds.common.entity import Entity
 from simple_playgrounds.elements.element import SceneElement, InteractiveElement, TeleportElement
 from simple_playgrounds.elements.field import Field
-from simple_playgrounds.elements.collection.interactive import Dispenser
+from simple_playgrounds.elements.collection.activable import Dispenser
 from simple_playgrounds.agents.sensors import RayCollisionSensor
 from simple_playgrounds.common.position_samplers import InitCoord
 
@@ -56,11 +56,15 @@ class Playground(ABC):
     time_limit = None
     time_limit_reached_reward = None
 
-    def __init__(self,
-                 size: Tuple[float, float]
-                 ):
+    def __init__(
+        self,
+        size: Union[List[float], Tuple[float, float]],
+    ):
 
         # Generate Scene
+        assert isinstance(size, (tuple, list))
+        assert len(size) == 2
+
         self.size = size
         self._width, self._length = self.size
 
@@ -160,12 +164,13 @@ class Playground(ABC):
 
         self.done = False
 
-    def add_agent(self,
-                  agent: Agent,
-                  initial_coordinates: Optional[InitCoord] = None,
-                  allow_overlapping: Optional[bool] = True,
-                  max_attempts: Optional[int] = 100,
-                  ):
+    def add_agent(
+        self,
+        agent: Agent,
+        initial_coordinates: Optional[InitCoord] = None,
+        allow_overlapping: Optional[bool] = True,
+        max_attempts: Optional[int] = 100,
+    ):
         """ Method to add an Agent to the Playground.
 
         Args:
@@ -190,7 +195,8 @@ class Playground(ABC):
         elif self.initial_agent_coordinates:
             agent.initial_coordinates = self.initial_agent_coordinates
         else:
-            raise ValueError("""Agent initial position should be defined in the playground or passed as an argument
+            raise ValueError(
+                """Agent initial position should be defined in the playground or passed as an argument
                              to the class agent""")
 
         self._add_agent_to_playground(agent)
@@ -225,13 +231,13 @@ class Playground(ABC):
 
         self.fields.append(field)
 
-    def add_element(self,
-                    element: SceneElement,
-                    initial_coordinates: Optional[InitCoord] = None,
-                    allow_overlapping: Optional[bool] = True,
-                    max_attempts: Optional[int] = 100,
-                    ):
-
+    def add_element(
+        self,
+        element: SceneElement,
+        initial_coordinates: Optional[InitCoord] = None,
+        allow_overlapping: Optional[bool] = True,
+        max_attempts: Optional[int] = 100,
+    ):
         """ Method to add a SceneElement to the Playground.
 
         Args:
@@ -251,19 +257,22 @@ class Playground(ABC):
             element.initial_coordinates = initial_coordinates
 
         # If element already has a positioning strategy, use it
-        element.overlapping_strategy = (allow_overlapping,
-                                        max_attempts,
-                                        )
+        element.overlapping_strategy = (
+            allow_overlapping,
+            max_attempts,
+        )
 
         self._add_element_to_playground(element)
         self._move_to_initial_position(element)
 
-    def add_timer(self,
-                  timer: Timer,
-                  element: InteractiveElement,
-                  ):
+    def add_timer(
+        self,
+        timer: Timer,
+        element: InteractiveElement,
+    ):
 
-        assert isinstance(timer, Timer) and isinstance(element, InteractiveElement)
+        assert isinstance(timer, Timer) and isinstance(element,
+                                                       InteractiveElement)
         assert element in self.elements
 
         self._timers[timer] = element
@@ -282,13 +291,16 @@ class Playground(ABC):
 
         # Set the invisible element filters
         for sensor in agent.sensors:
-            if isinstance(sensor, RayCollisionSensor) and sensor.invisible_elements:
+            if isinstance(sensor,
+                          RayCollisionSensor) and sensor.invisible_elements:
 
                 sensor.apply_shape_filter(self.sensor_collision_index)
                 self.sensor_collision_index += 1
 
                 if self.sensor_collision_index == 32:
-                    raise ValueError('Too many sensors using invisible shapes. Pymunk limits them to 32.')
+                    raise ValueError(
+                        'Too many sensors using invisible shapes. Pymunk limits them to 32.'
+                    )
 
     # Private methods for Elements
 
@@ -318,7 +330,8 @@ class Playground(ABC):
 
         while (not success) or (attempt > max_attempts):
             entity.coordinates = entity.initial_coordinates
-            success = not (self._overlaps(entity) or self._out_of_playground(entity))
+            success = not (self._overlaps(entity)
+                           or self._out_of_playground(entity))
             attempt += 1
 
         if success:
@@ -346,8 +359,9 @@ class Playground(ABC):
         if not element.temporary:
             self._disappeared_scene_elements.append(element)
 
-        dispensers = [elem for elem in self.elements
-                      if isinstance(elem, Dispenser)]
+        dispensers = [
+            elem for elem in self.elements if isinstance(elem, Dispenser)
+        ]
 
         for dispenser in dispensers:
             if element in dispenser.produced_entities:
@@ -364,10 +378,11 @@ class Playground(ABC):
 
         return True
 
-    def _add_remove_within(self,
-                           elems_remove: Optional[List[SceneElement]],
-                           elems_add: Optional[List[Tuple[SceneElement, InitCoord]]],
-                           ):
+    def _add_remove_within(
+        self,
+        elems_remove: Optional[List[SceneElement]],
+        elems_add: Optional[List[Tuple[SceneElement, InitCoord]]],
+    ):
 
         if elems_remove:
             for elem in elems_remove:
@@ -423,11 +438,12 @@ class Playground(ABC):
 
     # Overlaps
 
-    def _overlaps(self,
-                  entity: Union[Agent, Part, SceneElement],
-                  entity_2: Optional[Union[Part, SceneElement]] = None,
-                  entity_filter: Optional[List[Entity]] = None,
-                  ) -> bool:
+    def _overlaps(
+        self,
+        entity: Union[Agent, Part, SceneElement],
+        entity_2: Optional[Union[Part, SceneElement]] = None,
+        entity_filter: Optional[List[Entity]] = None,
+    ) -> bool:
 
         filter_shapes = []
         if entity_filter:
@@ -445,26 +461,31 @@ class Playground(ABC):
             assert entity.pm_visible_shape
 
         if entity_2 and entity_2.pm_visible_shape:
-            return entity.pm_visible_shape.shapes_collide(entity_2.pm_visible_shape)
+            return entity.pm_visible_shape.shapes_collide(
+                entity_2.pm_visible_shape)
 
         shape_queries = self.space.shape_query(entity.pm_visible_shape)
         overlapping_shapes = [shape_q.shape for shape_q in shape_queries]
-        overlapping_shapes = [shape for shape in overlapping_shapes
-                              if shape
-                              and not shape.sensor
-                              and shape not in filter_shapes]
+        overlapping_shapes = [
+            shape for shape in overlapping_shapes
+            if shape and not shape.sensor and shape not in filter_shapes
+        ]
 
         if overlapping_shapes:
             return True
 
         return False
 
-    def _get_element_from_shape(self,
-                                pm_shape: pymunk.Shape,
-                                ) -> Optional[SceneElement]:
-        return next(iter([e for e in self.elements if pm_shape in e.pm_elements]), None)
+    def _get_element_from_shape(
+        self,
+        pm_shape: pymunk.Shape,
+    ) -> Optional[SceneElement]:
+        return next(
+            iter([e for e in self.elements if pm_shape in e.pm_elements]),
+            None)
 
-    def _get_agent_from_shape(self, pm_shape: pymunk.Shape) -> Union[None, Agent]:
+    def _get_agent_from_shape(self,
+                              pm_shape: pymunk.Shape) -> Union[None, Agent]:
         for agent in self.agents:
             if agent.owns_shape(pm_shape):
                 return agent
@@ -476,7 +497,9 @@ class Playground(ABC):
                 return agent
         return None
 
-    def get_entity_from_shape(self, pm_shape: pymunk.Shape) -> Optional[Union[Part, SceneElement]]:
+    def get_entity_from_shape(
+            self,
+            pm_shape: pymunk.Shape) -> Optional[Union[Part, SceneElement]]:
 
         element = self._get_element_from_shape(pm_shape)
         if element:
@@ -491,7 +514,8 @@ class Playground(ABC):
         return None
 
     def _get_closest_agent(self, element: SceneElement) -> Agent:
-        return min(self.agents, key=lambda a: element.position.get_dist_sqrd(a))
+        return min(self.agents,
+                   key=lambda a: element.position.get_dist_sqrd(a.position))
 
     # Collision Handlers
 
@@ -531,8 +555,6 @@ class Playground(ABC):
 
             agent.reward += activable_element.reward
 
-            print(agent.reward)
-
             elems_remove, elems_add = activable_element.activate()
             self._add_remove_within(elems_remove, elems_add)
 
@@ -557,11 +579,15 @@ class Playground(ABC):
         if part.is_grasping and not part.is_holding:
             part.is_holding = True
 
-            j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, 0), (0, 20))
-            j_2 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, 0), (0, -20))
+            j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                  (0, 0), (0, 20))
+            j_2 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                  (0, 0), (0, -20))
 
-            j_3 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, 20), (0, 0))
-            j_4 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body, (0, -20), (0, 0))
+            j_3 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                  (0, 20), (0, 0))
+            j_4 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                  (0, -20), (0, 0))
 
             self.space.add(j_1, j_2, j_3, j_4)
             part.grasped = [j_1, j_2, j_3, j_4]
@@ -579,7 +605,7 @@ class Playground(ABC):
 
         agent = self._get_closest_agent(gem)
 
-        elems_remove, elems_add = activable_element.activate()
+        elems_remove, elems_add = activable_element.activate(gem)
         self._add_remove_within(elems_remove, elems_add)
 
         if activable_element.activated:
@@ -613,14 +639,19 @@ class Playground(ABC):
 
         # Order is important
 
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.GRASPABLE, self._agent_grasps_element)
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT, self._agent_touches_element)
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.ACTIVABLE, self._agent_activates_element)
-        self.add_interaction(CollisionTypes.GEM, CollisionTypes.ACTIVABLE_BY_GEM, self._gem_activates_element)
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT, self._agent_teleports)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.GRASPABLE,
+                             self._agent_grasps_element)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
+                             self._agent_touches_element)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.ACTIVABLE,
+                             self._agent_activates_element)
+        self.add_interaction(CollisionTypes.GEM,
+                             CollisionTypes.ACTIVABLE_BY_GEM,
+                             self._gem_activates_element)
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
+                             self._agent_teleports)
 
-    def add_interaction(self,
-                        collision_type_1: CollisionTypes,
+    def add_interaction(self, collision_type_1: CollisionTypes,
                         collision_type_2: CollisionTypes,
                         interaction_function):
         """
@@ -634,7 +665,8 @@ class Playground(ABC):
 
         """
 
-        handler = self.space.add_collision_handler(collision_type_1, collision_type_2)
+        handler = self.space.add_collision_handler(collision_type_1,
+                                                   collision_type_2)
         handler.pre_solve = interaction_function
 
 
@@ -646,14 +678,14 @@ class PlaygroundRegister:
     playgrounds: Dict[str, Dict[str, Playground]] = {}
 
     @classmethod
-    def register(cls,
-                 playground_group: str,
-                 playground_name: str,
-                 ):
+    def register(
+        cls,
+        playground_group: str,
+        playground_name: str,
+    ):
         """
         Registers a playground
         """
-
         def decorator(subclass):
 
             if playground_group not in cls.playgrounds:

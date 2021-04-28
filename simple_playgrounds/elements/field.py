@@ -5,7 +5,6 @@ import random
 
 from simple_playgrounds.definitions import ElementTypes
 
-
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
 
@@ -18,7 +17,12 @@ class Field:
     id_number = 0
     entity_type = ElementTypes.FIELD
 
-    def __init__(self, entity_produced, production_area, probability=0.05, limit=10, total_limit=30,
+    def __init__(self,
+                 entity_produced,
+                 production_area,
+                 probability=0.05,
+                 limit=10,
+                 total_limit=30,
                  entity_produced_params=None):
         """
         Field randomly produces a new SceneElement in a random part of the Playground.

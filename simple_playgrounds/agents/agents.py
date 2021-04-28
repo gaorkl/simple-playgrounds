@@ -23,7 +23,6 @@ from simple_playgrounds.agents.parts.parts import Head, Hand, Eye, Arm, FixedPla
 from simple_playgrounds.definitions import KeyTypes
 from simple_playgrounds.agents.parts.actuators import AngularVelocity, LongitudinalForce, LateralForce, Grasp, Activate, AngularRelativeVelocity
 
-
 # pylint: disable=undefined-variable
 
 
@@ -32,7 +31,6 @@ class BaseAgent(Agent):
     Class for Base Agents: single platform without extra body parts.
     Base agent absorb through their base
     """
-
     def __init__(self,
                  controller,
                  rotate=True,
@@ -108,14 +106,13 @@ class HeadAgent(BaseAgent):
     Attributes:
         head: Head of the agent
     """
-
     def __init__(self, controller, **kwargs):
 
         super().__init__(controller, **kwargs)
 
         self.head = Head(self.base_platform,
                          position_anchor=[0, 0],
-                         radius=self.base_platform._radius - 4,
+                         radius=self.base_platform.radius - 4,
                          angle_offset=0,
                          rotation_range=math.pi,
                          name='head')
@@ -140,16 +137,16 @@ class HeadEyeAgent(HeadAgent):
         eye_l: Left Eye
         eye_r: Right Eye
     """
-
     def __init__(self, controller, **kwargs):
 
         super().__init__(controller=controller, **kwargs)
 
-        self.eye_l = Eye(self.head,
-                         position_anchor=[self.head.radius/2, -self.head.radius/2],
-                         angle_offset=-math.pi / 5,
-                         rotation_range=2*math.pi/3,
-                         name='left_eye')
+        self.eye_l = Eye(
+            self.head,
+            position_anchor=[self.head.radius / 2, -self.head.radius / 2],
+            angle_offset=-math.pi / 5,
+            rotation_range=2 * math.pi / 3,
+            name='left_eye')
         self.add_body_part(self.eye_l)
 
         eye_l_actuator = AngularVelocity(self.eye_l)
@@ -157,10 +154,12 @@ class HeadEyeAgent(HeadAgent):
         eye_l_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, 1)
         self.add_actuator(eye_l_actuator)
 
-        self.eye_r = Eye(self.head, position_anchor=[self.head.radius/2, self.head.radius/2],
-                         angle_offset=math.pi / 5,
-                         rotation_range=2*math.pi/3,
-                         name='right_eye')
+        self.eye_r = Eye(
+            self.head,
+            position_anchor=[self.head.radius / 2, self.head.radius / 2],
+            angle_offset=math.pi / 5,
+            rotation_range=2 * math.pi / 3,
+            name='right_eye')
         self.add_body_part(self.eye_r)
 
         eye_r_actuator = AngularVelocity(self.eye_r)
@@ -195,7 +194,9 @@ class FullAgent(HeadEyeAgent):
                  interactive=False,
                  **kwargs):
 
-        super().__init__(platform=platform, controller=controller, interactive=interactive,
+        super().__init__(platform=platform,
+                         controller=controller,
+                         interactive=interactive,
                          **kwargs)
 
         self.base_platform.can_grasp = False
@@ -203,7 +204,7 @@ class FullAgent(HeadEyeAgent):
 
         self.arm_r = Arm(self.base_platform,
                          position_anchor=[0, self.base_platform._radius],
-                         angle_offset=math.pi/4,
+                         angle_offset=math.pi / 4,
                          rotation_range=math.pi)
         self.add_body_part(self.arm_r)
 
@@ -244,7 +245,7 @@ class FullAgent(HeadEyeAgent):
 
         self.arm_l_2 = Arm(self.arm_l,
                            position_anchor=self.arm_l.extremity_anchor_point,
-                           angle_offset=math.pi/4,
+                           angle_offset=math.pi / 4,
                            rotation_range=math.pi)
         self.add_body_part(self.arm_l_2)
 

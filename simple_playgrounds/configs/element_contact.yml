@@ -11,7 +11,6 @@ visible_endgoal:
   physical_shape: rectangle
   size: [ 15, 15 ]
   'texture': *visible_endgoal_texture
-  'reward': 200
 
 visible_deathtrap_texture : &visible_deathtrap_texture
   texture_type: random_uniform
@@ -23,7 +22,6 @@ visible_deathtrap:
   physical_shape: rectangle
   size: [ 15, 15 ]
   'texture': *visible_deathtrap_texture
-  'reward': -200
 
 # Reward On contact: Absorbable
 
@@ -37,7 +35,6 @@ candy:
   mass: 5
   texture: *candy-texture
   movable: True
-  reward : 5
 
 
 poison_texture: &poison-texture
@@ -50,4 +47,3 @@ poison:
   mass: 5
   texture: *poison-texture
   movable: True
-  reward : -5

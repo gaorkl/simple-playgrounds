@@ -24,14 +24,17 @@ class RgbCamera(RayCollisionSensor):
 
     sensor_type = SensorTypes.RGB
 
-    def __init__(self, anchor,
+    def __init__(self,
+                 anchor,
                  invisible_elements=None,
                  normalize=True,
                  noise_params=None,
                  **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
-                         normalize=normalize, noise_params=noise_params,
+        super().__init__(anchor=anchor,
+                         invisible_elements=invisible_elements,
+                         normalize=normalize,
+                         noise_params=noise_params,
                          remove_duplicates=False,
                          **sensor_params)
 
@@ -49,17 +52,22 @@ class RgbCamera(RayCollisionSensor):
 
             if collision:
 
-                elem_colliding = playground.get_entity_from_shape(pm_shape=collision.shape)
+                elem_colliding = playground.get_entity_from_shape(
+                    pm_shape=collision.shape)
 
                 if collision.alpha == 0.0:
 
                     angle = self.anchor.pm_body.angle + ray_angle
-                    collision_pt = self.anchor.position + pymunk.Vec2d(self._min_range + 1, 0).rotated(angle)
+                    collision_pt = self.anchor.position + pymunk.Vec2d(
+                        self._min_range + 1, 0).rotated(angle)
 
                 else:
                     collision_pt = collision.point
 
-                rel_pos_point = (collision_pt - elem_colliding.position).rotated(math.pi/2 - elem_colliding.angle)
+                rel_pos_point = (
+                    collision_pt -
+                    elem_colliding.position).rotated(math.pi / 2 -
+                                                     elem_colliding.angle)
 
                 rgb = elem_colliding.get_pixel(rel_pos_point)
 
@@ -105,7 +113,8 @@ class GreyCamera(RgbCamera):
 
     def _compute_raw_sensor(self, playground, *_):
         super()._compute_raw_sensor(playground)
-        self.sensor_values = np.dot(self.sensor_values[..., :3], [0.114, 0.299, 0.587]).reshape(self.shape)
+        self.sensor_values = np.dot(self.sensor_values[..., :3],
+                                    [0.114, 0.299, 0.587]).reshape(self.shape)
 
     @property
     def shape(self):
@@ -141,9 +150,12 @@ class Lidar(RayCollisionSensor):
                  noise_params=None,
                  **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
-                         normalize=normalize, noise_params=noise_params,
-                         remove_duplicates=False, remove_occluded=False,
+        super().__init__(anchor=anchor,
+                         invisible_elements=invisible_elements,
+                         normalize=normalize,
+                         noise_params=noise_params,
+                         remove_duplicates=False,
+                         remove_occluded=False,
                          **sensor_params)
 
         self._sensor_max_value = self._max_range
@@ -159,7 +171,7 @@ class Lidar(RayCollisionSensor):
             collision = collision_points[ray_angle]
 
             if collision:
-                pixels[angle_index] = collision.alpha*self._max_range
+                pixels[angle_index] = collision.alpha * self._max_range
 
         self.sensor_values = pixels[:].astype(float).reshape(self.shape)
 
@@ -213,17 +225,19 @@ class Touch(Lidar):
                  noise_params=None,
                  **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
-                         normalize=normalize, noise_params=noise_params,
+        super().__init__(anchor=anchor,
+                         invisible_elements=invisible_elements,
+                         normalize=normalize,
+                         noise_params=noise_params,
                          **sensor_params)
 
         self._sensor_max_value = self._max_range
-        self._max_range = self.anchor._radius + self._max_range  # pylint: disable=access-member-before-definition
+        self._max_range = self.anchor.radius + self._max_range  # pylint: disable=access-member-before-definition
 
     def _compute_raw_sensor(self, playground, *_):
 
         super()._compute_raw_sensor(playground)
 
-        distance_to_anchor = self.sensor_values - self.anchor._radius
+        distance_to_anchor = self.sensor_values - self.anchor.radius
         distance_to_anchor[distance_to_anchor < 0] = 0
         self.sensor_values = self._sensor_max_value - distance_to_anchor

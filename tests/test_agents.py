@@ -1,6 +1,6 @@
 import pytest
 
-from simple_playgrounds import Engine
+from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
 from simple_playgrounds.common.position_samplers import CoordinateSampler
 
@@ -18,12 +18,14 @@ def run_engine(agent, pg_class):
     playground.remove_agent(agent)
 
 
-def test_base_agent(is_interactive, going_backward, moving_laterally, pg_cls, agent_cls, random_controller):
-    agent = agent_cls(controller=random_controller(),
-                      interactive=is_interactive,
-                      backward=going_backward,
-                      lateral=moving_laterally,
-                      )
+def test_base_agent(is_interactive, going_backward, moving_laterally, pg_cls,
+                    agent_cls, random_controller):
+    agent = agent_cls(
+        controller=random_controller(),
+        interactive=is_interactive,
+        backward=going_backward,
+        lateral=moving_laterally,
+    )
 
     run_engine(agent, pg_cls)
 
@@ -58,7 +60,7 @@ def test_agent_initial_position3(base_forward_agent):
     first_room = playground.grid_rooms[0][0]
     center, shape = first_room.center, first_room.size
     playground.initial_agent_coordinates = CoordinateSampler(
-        center, area_shape='rectangle', width_length=shape)
+        center, area_shape='rectangle', size=shape)
     playground.add_agent(agent)
     pos_1 = agent.position
     playground.remove_agent(agent)

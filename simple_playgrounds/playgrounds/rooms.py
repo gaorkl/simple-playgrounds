@@ -1,4 +1,4 @@
-from typing import Union, Dict, Tuple, Optional
+from typing import Union, Dict, Tuple, Optional, List
 
 import pymunk
 
@@ -7,11 +7,7 @@ from simple_playgrounds.elements.collection.basic import Wall, Door
 
 
 class Doorstep:
-
-    def __init__(self,
-                 position,
-                 size,
-                 depth):
+    def __init__(self, position, size, depth):
 
         self.position = position
         self.size = size
@@ -38,25 +34,29 @@ class Doorstep:
 
     def generate_door(self, **door_params):
 
-        door = Door(start_point=self.start_point, end_point=self.end_point,
-                    door_depth = self.depth,
+        door = Door(start_point=self.start_point,
+                    end_point=self.end_point,
+                    door_depth=self.depth,
                     **door_params)
 
         return door
 
 
 class RectangleRoom:
+    def __init__(
+        self,
+        center: Union[List[float], Tuple[float, float]],
+        size: Union[List[float], Tuple[float, float]],
+        wall_depth: float,
+        wall_texture_params: Union[Dict, Texture],
+        doorstep_up: Optional[Doorstep] = None,
+        doorstep_down: Optional[Doorstep] = None,
+        doorstep_left: Optional[Doorstep] = None,
+        doorstep_right: Optional[Doorstep] = None,
+    ):
 
-    def __init__(self,
-                 center: Tuple[float, float],
-                 size: Tuple[float, float],
-                 wall_depth: float,
-                 wall_texture_params: Union[Dict, Texture],
-                 doorstep_up: Optional[Doorstep] = None,
-                 doorstep_down: Optional[Doorstep] = None,
-                 doorstep_left: Optional[Doorstep] = None,
-                 doorstep_right: Optional[Doorstep] = None,
-                 ):
+        assert isinstance(center, (list, tuple)) and len(center) == 2
+        assert isinstance(size, (list, tuple)) and len(size) == 2
 
         self.center = pymunk.Vec2d(*center)
         self.width, self.length = size
@@ -98,21 +98,27 @@ class RectangleRoom:
         for wall in self._generate_wall(start, end, self.doorstep_right):
             yield wall
 
-    def _generate_wall(self,
-                       start: pymunk.Vec2d,
-                       end: pymunk.Vec2d,
+    def _generate_wall(self, start: pymunk.Vec2d, end: pymunk.Vec2d,
                        doorstep: Doorstep):
 
         if doorstep:
             assert isinstance(doorstep, Doorstep)
 
-            middle_left = start + (end-start).normalized() * (doorstep.position - doorstep.size/2)
-            wall = Wall(start, middle_left, wall_depth=self._wall_depth, texture=self._wall_texture_params)
+            middle_left = start + (end - start).normalized() * (
+                doorstep.position - doorstep.size / 2)
+            wall = Wall(start,
+                        middle_left,
+                        wall_depth=self._wall_depth,
+                        texture=self._wall_texture_params)
 
             yield wall
 
-            middle_right = start + (end-start).normalized() * (doorstep.position + doorstep.size/2)
-            wall = Wall(middle_right, end, wall_depth=self._wall_depth, texture=self._wall_texture_params)
+            middle_right = start + (end - start).normalized() * (
+                doorstep.position + doorstep.size / 2)
+            wall = Wall(middle_right,
+                        end,
+                        wall_depth=self._wall_depth,
+                        texture=self._wall_texture_params)
 
             yield wall
 
@@ -121,8 +127,60 @@ class RectangleRoom:
 
         else:
 
-            wall = Wall(start, end, wall_depth=self._wall_depth, texture=self._wall_texture_params)
+            wall = Wall(start,
+                        end,
+                        wall_depth=self._wall_depth,
+                        texture=self._wall_texture_params)
             yield wall
+
+    def get_partial_area(
+        self,
+        area_location: str,
+    ):
+        """
+        Get particular area in a room.
+
+        Args:
+            room_coordinates: coordinate of the room.
+            area_location (str): can be 'up', 'down', 'right', 'left',
+                                 'up-right', 'up-left', 'down-right', or 'down-left'
+
+        Returns: center, size
+
+        """
+
+        if area_location not in [
+                'center', 'up', 'down', 'right', 'left', 'up-right', 'up-left',
+                'down-right', 'down-left'
+        ]:
+
+            raise ValueError('area_location not correct')
+
+        delta_x = 0
+        delta_y = 0
+        width, length = self.size
+
+        if 'up' in area_location:
+            delta_y = -self.size[1] / 4
+            length /= 2.
+
+        elif 'down' in area_location:
+            delta_y = self.size[1] / 4
+            length /= 2.
+
+        if 'right' in area_location:
+            delta_x = self.size[0] / 4
+            width /= 2.
+
+        elif 'left' in area_location:
+            delta_x = -self.size[0] / 4
+            width /= 2.
+
+        if area_location == 'center':
+            length /= 2.
+            width /= 2.
+
+        return self.center + (delta_x, delta_y), (width, length)
 
     # def random_position_on_wall(self, area_coordinates, wall_location, radius_object):
     #
@@ -184,42 +242,3 @@ class RectangleRoom:
     #
     #     return (pos_x, pos_y), 0
     #
-    # def get_area(self, room_coordinates, area_location):
-    #     """
-    #     Get particular area in a room.
-    #
-    #     Args:
-    #         room_coordinates: coordinate of the room.
-    #         area_location (str): can be 'up', 'down', 'right', 'left',
-    #                              'up-right', 'up-left', 'down-right', or 'down-left'
-    #
-    #     Returns: center, size
-    #
-    #     """
-    #
-    #     area_center, area_size = self.area_rooms[room_coordinates]
-    #
-    #     if area_location not in ['up', 'down', 'right', 'left',
-    #                              'up-right', 'up-left', 'down-right', 'down-left']:
-    #         raise ValueError('area_location not correct')
-    #
-    #     size_y = area_size[1] / 2
-    #     if 'up' in area_location:
-    #         center_y = area_center[1] - area_size[1] / 4
-    #     elif 'down' in area_location:
-    #         center_y = area_center[1] + area_size[1] / 4
-    #     else:
-    #         center_y = area_center[1]
-    #         size_y = area_size[1]
-    #
-    #     size_x = area_size[0] / 2
-    #     if 'right' in area_location:
-    #         center_x = area_center[0] + area_size[0] / 4
-    #     elif 'left' in area_location:
-    #         center_x = area_center[0] - area_size[0] / 4
-    #     else:
-    #         center_x = area_center[0]
-    #         size_x = area_size[0]
-    #
-    #     return [center_x, center_y], [size_x, size_y]
-

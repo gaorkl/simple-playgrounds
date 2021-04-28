@@ -15,14 +15,13 @@ from skimage.transform import resize
 
 
 class Texture(ABC):
-
     """ Base Class for Textue"""
+    def __init__(
+        self,
+        size: Union[List[float], Tuple[float, float], float],
+    ):
 
-    def __init__(self,
-                 size: Union[Tuple[float, float], float],
-                 ):
-
-        if isinstance(size, tuple):
+        if isinstance(size, (tuple, list)):
             assert len(size) == 2
             self._size = int(size[1]) + 5, int(size[0]) + 5
 
@@ -36,7 +35,6 @@ class Texture(ABC):
 
     @abstractmethod
     def generate(self):
-
         """ Generates a pygame surface at the correct dimension"""
 
     def get_pixel(self, rel_pos):
@@ -47,7 +45,7 @@ class Texture(ABC):
         x = min(max(0, x), self._size[0] - 1)
         y = min(max(0, y), self._size[1] - 1)
 
-        return self._surface.get_at( (x,y) )[:3]
+        return self._surface.get_at((x, y))[:3]
 
     @property
     def surface(self):
@@ -78,20 +76,22 @@ class TextureGenerator:
         texture_type = params.pop('texture_type')
 
         if texture_type not in cls.subclasses:
-            raise ValueError('Texture not implemented: '+texture_type)
+            raise ValueError('Texture not implemented: ' + texture_type)
 
         return cls.subclasses[texture_type](**params)
 
 
 @TextureGenerator.register_subclass('color')
 class ColorTexture(Texture):
-
     """ Simple Uniform texture of a single color"""
+    def __init__(
+        self,
+        size,
+        color: Union[Tuple[int, int, int], List[int]],
+    ):
 
-    def __init__(self,
-                 size,
-                 color: Tuple[int, int, int],
-                 ):
+        assert isinstance(color, (tuple, list))
+        assert len(color) == 3
 
         super().__init__(size)
         self._color = color
@@ -103,37 +103,41 @@ class ColorTexture(Texture):
 
 @TextureGenerator.register_subclass('unique_polar_stripe')
 class UniqueCenteredStripeTexture(ColorTexture):
-
-    def __init__(self,
-                 size,
-                 color,
-                 color_stripe,
-                 size_stripe,
-                 ):
+    def __init__(
+        self,
+        size,
+        color,
+        color_stripe: Union[Tuple[int, int, int], List[int]],
+        size_stripe,
+    ):
 
         super().__init__(size, color)
+
+        assert isinstance(color_stripe, (tuple, list))
+        assert len(color_stripe) == 3
 
         self._color_stripe = color_stripe
         self._size_stripe = size_stripe
 
     def generate(self):
         self._surface.fill(self._color)
-        draw.line(self._surface,
-                  color=self._color_stripe,
-                  start_pos= (self._size[0]/2, self._size[1]/2),
-                  end_pos= (self._size[0]/2, self._size[1]),
-                  width= 5,
-                  )
+        draw.line(
+            self._surface,
+            color=self._color_stripe,
+            start_pos=(self._size[0] / 2, self._size[1] / 2),
+            end_pos=(self._size[0] / 2, self._size[1]),
+            width=5,
+        )
 
         return self._surface
 
 
 class RandomTexture(Texture, ABC):
-
-    def __init__(self,
-                 size,
-                 rng: Union[np.random.Generator, None] = None,
-                 ):
+    def __init__(
+        self,
+        size,
+        rng: Union[np.random.Generator, None] = None,
+    ):
 
         self._rng = rng
         if not rng:
@@ -144,15 +148,20 @@ class RandomTexture(Texture, ABC):
 
 @TextureGenerator.register_subclass('random_uniform')
 class RandomUniformTexture(RandomTexture):
-
     """ Random Uniform Texture."""
+    def __init__(
+        self,
+        size,
+        color_min: Union[Tuple[int, int, int], List[int]],
+        color_max: Union[Tuple[int, int, int], List[int]],
+        rng=None,
+    ):
 
-    def __init__(self,
-                 size,
-                 color_min: Tuple[int, int, int],
-                 color_max: Tuple[int, int, int],
-                 rng=None,
-                 ):
+        assert isinstance(color_min, (tuple, list))
+        assert len(color_min) == 3
+
+        assert isinstance(color_max, (tuple, list))
+        assert len(color_max) == 3
 
         super().__init__(size, rng)
 
@@ -161,7 +170,8 @@ class RandomUniformTexture(RandomTexture):
 
     def generate(self):
 
-        random_image = self._rng.uniform(self._min, self._max, (*self._size, 3))
+        random_image = self._rng.uniform(self._min, self._max,
+                                         (*self._size, 3))
         random_image = random_image.astype('int')
         surf = surfarray.make_surface(random_image)
         self._surface = surf
@@ -170,28 +180,39 @@ class RandomUniformTexture(RandomTexture):
 
 @TextureGenerator.register_subclass('random_tiles')
 class RandomTilesTexture(RandomTexture):
+    def __init__(
+        self,
+        size,
+        size_tiles,
+        color_min: Union[Tuple[int, int, int], List[int]],
+        color_max: Union[Tuple[int, int, int], List[int]],
+        rng=None,
+    ):
 
-    def __init__(self,
-                 size,
-                 size_tiles,
-                 color_min: Tuple[int, int, int],
-                 color_max: Tuple[int, int, int],
-                 rng=None,
-                 ):
+        assert isinstance(color_min, (tuple, list))
+        assert len(color_min) == 3
+
+        assert isinstance(color_max, (tuple, list))
+        assert len(color_max) == 3
 
         super().__init__(size, rng)
 
         assert size_tiles <= self._size[0] and size_tiles <= self._size[1]
 
-        self._shape_mini = int(self._size[0] * 1.0 / size_tiles), int(self._size[1] * 1.0 / size_tiles), 3
+        self._shape_mini = int(self._size[0] * 1.0 / size_tiles), int(
+            self._size[1] * 1.0 / size_tiles), 3
 
         self._min = color_min
         self._max = color_max
 
     def generate(self):
 
-        random_image = self._rng.uniform(self._min, self._max, self._shape_mini ).astype('int')
-        random_image = resize(random_image, self._size, order=0, preserve_range=True)
+        random_image = self._rng.uniform(self._min, self._max,
+                                         self._shape_mini).astype('int')
+        random_image = resize(random_image,
+                              self._size,
+                              order=0,
+                              preserve_range=True)
         surf = surfarray.make_surface(random_image)
         self._surface = surf
         return surf
@@ -199,14 +220,20 @@ class RandomTilesTexture(RandomTexture):
 
 @TextureGenerator.register_subclass('centered_random_tiles')
 class CenteredRandomTilesTexture(RandomTexture):
+    def __init__(
+        self,
+        size,
+        size_tiles,
+        color_min: Union[Tuple[int, int, int], List[int]],
+        color_max: Union[Tuple[int, int, int], List[int]],
+        rng=None,
+    ):
 
-    def __init__(self,
-                 size,
-                 size_tiles,
-                 color_min: Tuple[int, int, int],
-                 color_max: Tuple[int, int, int],
-                 rng=None,
-                 ):
+        assert isinstance(color_min, (tuple, list))
+        assert len(color_min) == 3
+
+        assert isinstance(color_max, (tuple, list))
+        assert len(color_max) == 3
 
         super().__init__(size, rng)
 
@@ -217,13 +244,16 @@ class CenteredRandomTilesTexture(RandomTexture):
         self._min = color_min
         self._max = color_max
 
-        self.n_stripes = int(2*math.pi*self._radius / size_tiles)
+        self.n_stripes = int(2 * math.pi * self._radius / size_tiles)
 
     def generate(self):
 
-        img = np.zeros( (*self._size, 3))
+        img = np.zeros((*self._size, 3))
 
-        colors = [ [ self._rng.integers( self._min[i], self._max[i], endpoint=True) for i in range(3)] for c in range(self.n_stripes) ]
+        colors = [[
+            self._rng.integers(self._min[i], self._max[i], endpoint=True)
+            for i in range(3)
+        ] for _ in range(self.n_stripes)]
 
         x = (self._size[0] - 1) / 2
         y = (self._size[1] - 1) / 2
@@ -231,7 +261,8 @@ class CenteredRandomTilesTexture(RandomTexture):
         for i in range(self._size[0]):
             for j in range(self._size[1]):
 
-                angle = int( np.arctan2( j - y, i - x)  / (2*math.pi/self.n_stripes) )
+                angle = int(
+                    np.arctan2(j - y, i - x) / (2 * math.pi / self.n_stripes))
 
                 img[i, j, :] = colors[angle]
 
@@ -242,19 +273,24 @@ class CenteredRandomTilesTexture(RandomTexture):
 
 @TextureGenerator.register_subclass('list_centered_random_tiles')
 class ListCenteredRandomTiles(RandomTexture):
-
-    def __init__(self,
-                 size,
-                 size_tiles,
-                 colors: List[Tuple[int, int, int]],
-                 rng=None,
-                 ):
+    def __init__(
+        self,
+        size,
+        size_tiles,
+        colors: List[Union[Tuple[int, int, int], List[int]]],
+        rng=None,
+    ):
 
         super().__init__(size, rng)
 
         self._radius = max(self._size)
 
-        self._n_stripes = int(2*math.pi*self._radius / size_tiles)
+        self._n_stripes = int(2 * math.pi * self._radius / size_tiles)
+
+        for color in colors:
+            assert isinstance(color, (tuple, list))
+            assert len(color) == 3
+
         self._colors = colors
 
     def generate(self):
@@ -267,7 +303,9 @@ class ListCenteredRandomTiles(RandomTexture):
 
         img = np.zeros((*self._size, 3))
 
-        colors = self._rng.choice( self._colors, size=self._n_stripes, replace=True)
+        colors = self._rng.choice(self._colors,
+                                  size=self._n_stripes,
+                                  replace=True)
 
         x = (self._size[0] - 1) / 2
         y = (self._size[1] - 1) / 2
@@ -275,14 +313,14 @@ class ListCenteredRandomTiles(RandomTexture):
         for i in range(self._size[0]):
             for j in range(self._size[1]):
 
-                angle = int( np.arctan2( j - y, i - x)  / (2*math.pi/self._n_stripes) )
+                angle = int(
+                    np.arctan2(j - y, i - x) / (2 * math.pi / self._n_stripes))
 
                 img[i, j, :] = colors[angle]
 
         surf = surfarray.make_surface(img)
         self._surface = surf
         return surf
-
 
 
 #

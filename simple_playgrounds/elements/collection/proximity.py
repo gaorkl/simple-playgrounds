@@ -23,7 +23,8 @@ class VisibleRewardZone(ZoneElement, ABC):
             total_reward: Total reward that the entity can provide during an Episode
         """
 
-        default_config = parse_configuration('element_proximity', self.entity_type)
+        default_config = parse_configuration('element_proximity',
+                                             self.entity_type)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(**entity_params)

@@ -34,13 +34,11 @@ from skimage.transform import rescale
 from simple_playgrounds.definitions import SensorTypes, SIMULATION_STEPS
 from simple_playgrounds.agents.parts.actuators import Activate
 
-
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
 
 
 class Engine:
-
     """
     An SPGEnv manages the interactions between agents and elements in a playground.
 
@@ -55,12 +53,13 @@ class Engine:
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=line-too-long
 
-    def __init__(self,
-                 playground: Playground,
-                 time_limit: Union[int, None] = None,
-                 screen: bool = False,
-                 debug: bool = False,
-                 ):
+    def __init__(
+        self,
+        playground: Playground,
+        time_limit: Union[int, None] = None,
+        screen: bool = False,
+        debug: bool = False,
+    ):
         """
         Args:
             playground (:obj: 'Playground'): Playground where the agents will be placed.
@@ -150,7 +149,7 @@ class Engine:
 
         while step < n_steps and not terminate:
 
-            if step < n_steps-1:
+            if step < n_steps - 1:
                 action = hold_actions
             else:
                 action = last_action
@@ -167,7 +166,8 @@ class Engine:
         for agent in self.agents:
             agent.reward = cumulated_rewards[agent]
 
-        if self._reached_time_limit() and self.playground.time_limit_reached_reward is not None:
+        if self._reached_time_limit(
+        ) and self.playground.time_limit_reached_reward is not None:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
@@ -184,7 +184,8 @@ class Engine:
         self._engine_step(actions)
         self._has_terminated()
 
-        if self._reached_time_limit() and self.playground.time_limit_reached_reward is not None:
+        if self._reached_time_limit(
+        ) and self.playground.time_limit_reached_reward is not None:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
@@ -216,7 +217,7 @@ class Engine:
         if not self._time_limit:
             return False
 
-        if self.elapsed_time >= self._time_limit-1:
+        if self.elapsed_time >= self._time_limit - 1:
             return True
 
         return False
@@ -238,10 +239,12 @@ class Engine:
             # pylint: disable=no-member
 
             # Press Q to terminate
-            if not pygame.key.get_pressed()[pygame.locals.K_q] and not self._quit_key_ready:
+            if not pygame.key.get_pressed()[
+                    pygame.locals.K_q] and not self._quit_key_ready:
                 self._quit_key_ready = True
 
-            elif pygame.key.get_pressed()[pygame.locals.K_q] and self._quit_key_ready:
+            elif pygame.key.get_pressed()[
+                    pygame.locals.K_q] and self._quit_key_ready:
                 self._quit_key_ready = False
                 terminate_game = True
 
@@ -273,7 +276,8 @@ class Engine:
             #     entity.draw(self._surface_buffer, draw_interaction=with_interactions)
 
             if not entity.background or entity.movable:
-                entity.draw(self._surface_buffer, draw_invisible=with_interactions)
+                entity.draw(self._surface_buffer,
+                            draw_invisible=with_interactions)
 
     def update_screen(self):
         """
@@ -309,13 +313,15 @@ class Engine:
 
         self._generate_surface_environment(with_interactions=True)
 
-        np_image = pygame.surfarray.pixels3d(self._surface_buffer.copy()) / 255.
+        np_image = pygame.surfarray.pixels3d(
+            self._surface_buffer.copy()) / 255.
         np_image = np.rot90(np_image, -1, (1, 0))
         np_image = np_image[::-1, :, ::-1]
 
         if max_size is not None:
 
-            scaling_factor = max_size/max(np_image.shape[0], np_image.shape[1])
+            scaling_factor = max_size / max(np_image.shape[0],
+                                            np_image.shape[1])
             np_image = rescale(np_image, scaling_factor, multichannel=True)
 
         if plt_mode:
@@ -345,7 +351,8 @@ class Engine:
 
                     self._update_surface_background()
                     self._surface_buffer.blit(self._surface_background, (0, 0))
-                    sensor.update(playground=self.playground, sensor_surface=self._surface_buffer)
+                    sensor.update(playground=self.playground,
+                                  sensor_surface=self._surface_buffer)
 
                 elif sensor.sensor_modality is SensorTypes.ROBOTIC \
                         or sensor.sensor_modality is SensorTypes.SEMANTIC:
@@ -354,7 +361,8 @@ class Engine:
                 else:
                     raise ValueError("Sensor Modality not recognized")
 
-    def generate_agent_image(self, agent,
+    def generate_agent_image(self,
+                             agent,
                              with_pg=True,
                              max_size_pg=200,
                              rotate_pg=False,
@@ -410,11 +418,13 @@ class Engine:
             images['playground'] = pg_image
 
         if with_actions:
-            action_image = agent.generate_actions_image(width_action=width_action, height_action=height_action)
+            action_image = agent.generate_actions_image(
+                width_action=width_action, height_action=height_action)
             images['actions'] = action_image
 
         if with_sensors:
-            sensor_image = agent.generate_sensor_image(width_sensor=width_sensors, height_sensor=height_sensor)
+            sensor_image = agent.generate_sensor_image(
+                width_sensor=width_sensors, height_sensor=height_sensor)
             images['sensors'] = sensor_image
 
         full_width = _BORDER_IMAGE
@@ -424,12 +434,16 @@ class Engine:
 
             if isinstance(column, str):
                 full_width += images[column].shape[1] + _BORDER_IMAGE
-                full_height = max(full_height, images[column].shape[0] + 2*_BORDER_IMAGE)
+                full_height = max(full_height,
+                                  images[column].shape[0] + 2 * _BORDER_IMAGE)
 
             elif isinstance(column, tuple):
-                full_width += max([images[col].shape[1] for col in column]) + _BORDER_IMAGE
-                full_height = max(full_height, _BORDER_IMAGE
-                                  + sum(images[col].shape[0] + _BORDER_IMAGE for col in column))
+                full_width += max([images[col].shape[1]
+                                   for col in column]) + _BORDER_IMAGE
+                full_height = max(
+                    full_height,
+                    _BORDER_IMAGE + sum(images[col].shape[0] + _BORDER_IMAGE
+                                        for col in column))
 
         full_img = np.ones((full_height, full_width, 3))
 
@@ -451,8 +465,9 @@ class Engine:
                 for col in column:
 
                     # center
-                    delta_width = max([images[col].shape[1] for col in column]) - images[col].shape[1]
-                    delta_width = int(delta_width/2)
+                    delta_width = max([images[col].shape[1] for col in column
+                                       ]) - images[col].shape[1]
+                    delta_width = int(delta_width / 2)
 
                     full_img[current_height: current_height + images[col].shape[0],
                              current_width + delta_width:current_width + delta_width + images[col].shape[1], :] \
@@ -460,7 +475,8 @@ class Engine:
 
                     current_height += images[col].shape[0] + _BORDER_IMAGE
 
-                current_width += max([images[col].shape[1] for col in column]) + _BORDER_IMAGE
+                current_width += max([images[col].shape[1]
+                                      for col in column]) + _BORDER_IMAGE
 
         if plt_mode:
             full_img = full_img[:, :, ::-1]

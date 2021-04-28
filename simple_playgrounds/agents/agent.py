@@ -233,7 +233,10 @@ class Agent(ABC):
 
         self.sensors.append(new_sensor)
 
-    def generate_sensor_image(self, width_sensor=200, height_sensor=30, plt_mode=False):
+    def generate_sensor_image(self,
+                              width_sensor=200,
+                              height_sensor=30,
+                              plt_mode=False):
         """
         Generate a full image containing all the sensor representations of an Agent.
         Args:
@@ -303,7 +306,8 @@ class Agent(ABC):
 
                 if actuator.action_space is ActionSpaces.CONTINUOUS:
 
-                    additive_noise = random.gauss(self._noise_mean, self._noise_scale)
+                    additive_noise = random.gauss(self._noise_mean,
+                                                  self._noise_scale)
 
                     new_value = additive_noise + value
                     new_value = new_value if new_value > actuator.min else actuator.min
@@ -345,7 +349,11 @@ class Agent(ABC):
         Returns: Body part.
 
         """
-        return next(iter([part for part in self.parts if part.pm_visible_shape == pm_shape]), None)
+        return next(
+            iter([
+                part for part in self.parts
+                if part.pm_visible_shape == pm_shape
+            ]), None)
 
     # DYNAMICS
 
@@ -384,7 +392,10 @@ class Agent(ABC):
             if part not in list_excluded:
                 part.draw(surface, )
 
-    def generate_actions_image(self, width_action=100, height_action=30, plt_mode=False):
+    def generate_actions_image(self,
+                               width_action=100,
+                               height_action=30,
+                               plt_mode=False):
         """
         Function that draws all action values of the agent.
 
@@ -405,34 +416,46 @@ class Agent(ABC):
         total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \
                                + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
 
-        img_actions = Image.new("RGB", (total_height_actions, width_action), (255, 255, 255))
+        img_actions = Image.new("RGB", (total_height_actions, width_action),
+                                (255, 255, 255))
         drawer_action_image = ImageDraw.Draw(img_actions)
 
-        fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height_action * 2 / 3))
+        fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf",
+                                 int(height_action * 2 / 3))
 
         current_height = 0
 
         for part in self.parts:
 
             w_text, h_text = fnt.getsize(text=part.name.upper())
-            drawer_action_image.text((width_action / 2.0 - w_text/2, current_height + height_action/2 - h_text/2), part.name.upper(),
-                   font=fnt, fill=(0, 0, 0))
+            drawer_action_image.text(
+                (width_action / 2.0 - w_text / 2,
+                 current_height + height_action / 2 - h_text / 2),
+                part.name.upper(),
+                font=fnt,
+                fill=(0, 0, 0))
 
             start = (0, current_height)
             end = (width_action, current_height + height_action)
-            drawer_action_image.rectangle([start, end], outline=(0, 0, 0), width=2)
+            drawer_action_image.rectangle([start, end],
+                                          outline=(0, 0, 0),
+                                          width=2)
 
             current_height += _BORDER_IMAGE + height_action
 
-            all_action_parts = [(action, value) for action, value in self.current_actions.items() if
-                                action.part.name == part.name]
+            all_action_parts = [
+                (action, value)
+                for action, value in self.current_actions.items()
+                if action.part.name == part.name
+            ]
 
             for actuator, value in all_action_parts:
 
-                actuator.draw(drawer_action_image, current_height, height_action, fnt)
+                actuator.draw(drawer_action_image, current_height,
+                              height_action, fnt)
                 current_height += _BORDER_IMAGE + height_action
 
-        img_actions = np.asarray(img_actions)/255.
+        img_actions = np.asarray(img_actions) / 255.
 
         if plt_mode:
             img_actions = img_actions[:, :, ::-1]

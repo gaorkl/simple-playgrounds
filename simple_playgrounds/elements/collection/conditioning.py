@@ -1,61 +1,68 @@
 """
 Scene Elements used for conditioning experiments
 """
-from simple_playgrounds.playgrounds.playground import Playground
-from simple_playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.scene_elements.elements import Lever
+from typing import List, Union, Dict, Tuple
+
+import random
+
+from simple_playgrounds.elements.element import InteractiveElement
 from simple_playgrounds.configs import parse_configuration
-from simple_playgrounds.definitions import ElementTypes
+from simple_playgrounds.definitions import ElementTypes, CollisionTypes
+from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
 
 
-class ColorChanging(SceneElement):
+class ColorChanging(InteractiveElement):
+    """ SceneElement that changes its texture when activated."""
 
-    """ SceneElement that changes its texture based on a timer."""
+    def __init__(self,
+                 textures: List[Union[Texture, Dict, Tuple[int, int, int], List]],
+                 mode: str = 'loop',
+                 activable_by_agent: bool = False,
+                 **kwargs,
+                 ):
 
-    entity_type = ElementTypes.COLOR_CHANGING
-    timed = True
-
-    def __init__(self, timers, textures, **kwargs):
-        """
-
-        ColorChanging changes color and is controlled at the level of the playground.
-        The color changes depending on a list of timers.
-
-        Args:
-            timers: Single timer (int) or list of Timers.
-            textures: Single texture or list of Textures.
-            **kwargs: other params to configure entity. Refer to Entity class.
-        """
-
-        default_config = parse_configuration('element_basic', self.entity_type)
-        entity_params = {**default_config, **kwargs}
-
-        if isinstance(timers, int):
-            self.timers = [timers]
-        else:
-            if not isinstance(timers, (list, tuple)):
-                raise ValueError("timers should be int, list or tuple")
-            self.timers = timers
-
-        if isinstance(textures, (list, tuple)):
-            self.list_texture_params = textures
-        else:
-            self.list_texture_params = [textures]
-
-        assert len(self.list_texture_params) == len(self.timers)
-
-        super().__init__(**entity_params)
+        entity_params = parse_configuration('element_conditioning', config_key=ElementTypes.COLOR_CHANGING)
+        entity_params = {**kwargs, **entity_params}
 
         self.textures = []
-        for texture in self.list_texture_params:
-            texture_surface = self._create_texture(texture)
-            self.textures.append(texture_surface)
+        self._activable_by_agent = activable_by_agent
 
-        self.texture_surface = self.textures[0]
-        self.force_redraw = False
+        super().__init__(visible_shape=True, invisible_shape=activable_by_agent, background=False,texture=(0, 0, 0), **entity_params)
 
+        for text in textures:
 
-    def activate(self, activating_entity):
+            texture = text.copy()
+
+            if isinstance(texture, Dict):
+                texture['size'] = self._size_visible
+                texture = TextureGenerator.create(**texture)
+
+            elif isinstance(texture, (tuple, list)):
+                texture = ColorTexture(size=self._size_visible, color=texture)
+
+            assert isinstance(texture, Texture)
+
+            self.textures.append(texture)
+            texture.generate()
+
+        assert len(self.textures) > 1
+        self.state = 0
+
+        self._mode = mode
+        self._texture_changed = False
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, new_state):
+        self._state = new_state
+        self.texture = self.textures[self.state]
+        self._texture_surface = self.texture.surface
+        self._texture_changed = True
+
+    def activate(self):
         """
         When timer finishes, changes texture.
 
@@ -63,64 +70,66 @@ class ColorChanging(SceneElement):
             activating_entity: must be Playground.
         """
 
-        assert isinstance(activating_entity, Playground)
+        if self._mode == 'loop':
+            self.state = (self.state + 1) % len(self.textures)
 
-        self.current_index = (self.current_index + 1) % len(self.timers)
+        elif self._mode == 'random':
+            self.state = random.randint(0, len(self.textures) - 1)
 
-        self.timer = self.timers[self.current_index]
-        self.texture_surface = self.textures[self.current_index]
-        self.force_redraw = True
+        else:
+            raise ValueError('not implemented')
 
-        return [], []
+        return None, None
 
-    def draw(self, surface, draw_interaction=False, force_recompute_mask=False):
+    def draw(self,
+             surface,
+             draw_invisible=False,
+             force_recompute_mask=False):
 
-        super().draw(surface, draw_invisible=draw_interaction,
-                     force_recompute_mask=self.force_redraw)
-        self.force_redraw = False
+        super().draw(surface,
+                     draw_invisible=draw_invisible,
+                     force_recompute_mask=self._texture_changed)
+
+        self._texture_changed = False
 
     def reset(self):
 
         super().reset()
-        self.force_redraw = True
+        self.state = 0
+
+    def _set_shape_collision(self):
+        if self._activable_by_agent:
+            assert self.pm_invisible_shape
+            self.pm_invisible_shape.collision_type = CollisionTypes.ACTIVABLE
+
+    @property
+    def terminate_upon_activation(self):
+        return False
 
 
-
-class ConditionedColorChanging(ColorChanging):
+class RewardFlipper(ColorChanging):
     """
-    Flips the reward of an SceneElement based on timers.
-    Intended to work with Lever SceneElement.
+    Flips the reward of an SceneElement based ColorChanging Element
     """
+    def __init__(self,
+                 element_flipped: InteractiveElement,
+                 textures: List[Union[Texture, Dict, Tuple[int, int, int], List]],
+                 mode: str = 'loop',
+                 activable_by_agent: bool = False,
+                 **kwargs,
+                 ):
 
-    def __init__(self, conditioned_entity, timers, textures, **kwargs):
-        """
+        self.element_flipped = element_flipped
+        super().__init__(textures=textures, mode=mode, activable_by_agent=activable_by_agent, **kwargs)
+        assert len(self.textures) == 2
 
-        Args:
-            conditioned_entity: Lever SceneElement.
-            timers: list of Timers.
-            textures: list of Textures.
-            **kwargs: other params to configure entity. Refer to Entity class.
+    def activate(self):
 
-        Notes:
-            The length of timers and textures should be 2.
-        """
+        super().activate()
 
-        if not isinstance(conditioned_entity, Lever):
-            raise ValueError('conditioned_entity must be of class Lever')
+        if self.state == 0:
+            self.element_flipped.reward = abs(self.element_flipped.reward)
+        else:
+            self.element_flipped.reward = -abs(self.element_flipped.reward)
 
-        assert len(timers) == len(textures) == 2
-
-        super().__init__(timers, textures, **kwargs)
-
-        self.conditioned_entity = conditioned_entity
-
-    def activate(self, activating_entity):
-        """
-        When timers finishes, change color and flip rewards.
-        """
-
-        super().activate(activating_entity)
-
-        self.conditioned_entity.reward = -self.conditioned_entity.reward
-
-        return [], []
+        return None, None

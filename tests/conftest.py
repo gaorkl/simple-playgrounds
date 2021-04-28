@@ -4,11 +4,10 @@ from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
                                               HeadEyeAgent)
 from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar, Proximity,
-                                               Touch, TopdownSensor,
+from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
+                                               Proximity, Touch, TopdownSensor,
                                                FullPlaygroundSensor,
                                                SemanticRay, SemanticCones)
-
 
 ### Agent Body
 
@@ -47,24 +46,25 @@ def agent_cls(request):
 
 @pytest.fixture(scope="function")
 def base_forward_agent():
-    agent = BaseAgent(controller=RandomDiscrete(),
-                      interactive=False,
-                      )
+    agent = BaseAgent(
+        controller=RandomDiscrete(),
+        interactive=False,
+    )
     return agent
 
 
 # Agent Sensor
-@pytest.fixture(scope="module", params=[RgbCamera, GreyCamera, Lidar,
-                                       Touch, Proximity,
-                                       TopdownSensor,
-                                       FullPlaygroundSensor,
-                                       SemanticRay, SemanticCones])
+@pytest.fixture(scope="module",
+                params=[
+                    RgbCamera, GreyCamera, Lidar, Touch, Proximity,
+                    TopdownSensor, FullPlaygroundSensor, SemanticRay,
+                    SemanticCones
+                ])
 def any_sensor(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[RgbCamera,
-                                       SemanticRay, SemanticCones])
+@pytest.fixture(scope="module", params=[RgbCamera, SemanticRay, SemanticCones])
 def ray_sensor(request):
     return request.param
 

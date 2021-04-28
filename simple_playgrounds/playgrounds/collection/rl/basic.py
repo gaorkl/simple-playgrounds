@@ -5,7 +5,7 @@ import random
 
 from ...playground import PlaygroundRegister
 from ...layouts import SingleRoom
-from ....elements.collection.interactive import VendingMachine
+# from ....elements.collection.interactive import VendingMachine
 from ....elements.collection.gem import Coin
 from ....elements.field import Field
 
@@ -22,15 +22,22 @@ class CoinMaster(SingleRoom):
 
         super().__init__(size=(200, 200), wall_type='dark')
 
-        self.agent_starting_area, self.area_prod, self.area_vending = self._assign_areas()
+        self.agent_starting_area, self.area_prod, self.area_vending = self._assign_areas(
+        )
 
-        self.vending_machine = VendingMachine(allow_overlapping=False, reward=1)
+        self.vending_machine = VendingMachine(allow_overlapping=False,
+                                              reward=1)
         self.add_scene_element(self.vending_machine, self.area_vending)
 
-        self.field = Field(Coin, self.area_prod, limit=5, total_limit=1000,
-                           entity_produced_params={'graspable': True,
-                                                   'vending_machine': self.vending_machine,
-                                                   'reward': 1})
+        self.field = Field(Coin,
+                           self.area_prod,
+                           limit=5,
+                           total_limit=1000,
+                           entity_produced_params={
+                               'graspable': True,
+                               'vending_machine': self.vending_machine,
+                               'reward': 1
+                           })
         self.add_scene_element(self.field)
 
         self.time_limit = 2000
@@ -42,7 +49,8 @@ class CoinMaster(SingleRoom):
 
         # Starting area of the agent
         area_start_center = list_coord.pop()
-        area_start = CoordinateSampler(center=area_start_center, area_shape='rectangle',
+        area_start = CoordinateSampler(center=area_start_center,
+                                       area_shape='rectangle',
                                        width_length=[80, 80])
 
         agent_starting_area = area_start
@@ -52,14 +60,17 @@ class CoinMaster(SingleRoom):
         prod_center = list_coord.pop()
 
         area_prod = CoordinateSampler(center=prod_center,
-                                      area_shape='rectangle', width_length=[80, 80])
-        area_vm = CoordinateSampler(center=vm_center, area_shape='rectangle',
+                                      area_shape='rectangle',
+                                      width_length=[80, 80])
+        area_vm = CoordinateSampler(center=vm_center,
+                                    area_shape='rectangle',
                                     width_length=[80, 80])
 
         return agent_starting_area, area_prod, area_vm
 
     def reset(self):
-        self.agent_starting_area, self.area_prod, self.area_vending = self._assign_areas()
+        self.agent_starting_area, self.area_prod, self.area_vending = self._assign_areas(
+        )
 
         for agent in self.agents:
             agent.initial_coordinates = self.agent_starting_area

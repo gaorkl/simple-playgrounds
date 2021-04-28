@@ -84,9 +84,3 @@ wall:
   entity_type: basic
   physical_shape: rectangle
   depth: 10
-
-# color_changing
-color_changing:
-  texture: [125, 124, 123]
-  physical_shape: circle
-  radius: 10

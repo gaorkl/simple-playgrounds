@@ -1,7 +1,7 @@
 """
 InteractiveSceneElements can be activated by an agent.
 """
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 from abc import ABC
 
 from simple_playgrounds.elements.element import InteractiveElement, SceneElement, GemElement
@@ -18,16 +18,17 @@ from simple_playgrounds.configs import parse_configuration
 
 
 class ActivableElement(InteractiveElement, ABC):
-
     def __init__(self, config_key, **entity_params):
 
-        default_config = parse_configuration('element_interactive', config_key)
+        default_config = parse_configuration('element_activable', config_key)
         entity_params = {**default_config, **entity_params}
 
-        super().__init__(visible_shape=True, invisible_shape=True, **entity_params)
+        super().__init__(visible_shape=True,
+                         invisible_shape=True,
+                         **entity_params)
 
     def _set_shape_collision(self):
-        self.pm_visible_shape.collision_type = CollisionTypes.ACTIVABLE
+        self.pm_invisible_shape.collision_type = CollisionTypes.ACTIVABLE
 
     @property
     def terminate_upon_activation(self):
@@ -37,15 +38,14 @@ class ActivableElement(InteractiveElement, ABC):
 class Dispenser(ActivableElement):
     """Dispenser produces a new entity in an area of the playground when activated.
     """
-
     def __init__(self,
                  element_produced: SceneElement.__class__,
                  element_produced_params: Optional[Dict],
-                 production_area: Optional[CoordinateSampler],
-                 production_limit: Optional[int],
-                 production_range: Optional[float],
+                 production_limit: Optional[int] = None,
+                 production_area: Optional[Union[SceneElement,
+                                                 CoordinateSampler]] = None,
+                 production_range: Optional[float] = None,
                  **entity_params):
-
         """
         Default: pink circle of radius 15.
 
@@ -68,14 +68,30 @@ class Dispenser(ActivableElement):
             element_produced_params = {}
         self.element_produced_params = element_produced_params
 
-        if production_area:
-            self._coordinates_sampler = production_area
+        self._recompute_center = False
+        self._center_elem = None
+
+        if not production_area:
+            production_area = self
+
+        if isinstance(production_area, SceneElement):
+
+            assert production_range
+            self._recompute_center = True
+            self._center_elem = production_area
+
+            radius = production_area.radius + production_range
+            min_radius = production_area.radius
+
+            self._coordinates_sampler = CoordinateSampler(
+                area_shape='circle',
+                center=(0, 0),
+                radius=radius,
+                min_radius=min_radius)
 
         else:
-            self._coordinates_sampler = CoordinateSampler(area_shape='circle',
-                                                          center=self,
-                                                          radius=self._radius_visible + production_range,
-                                                          excl_radius=self._radius_visible)
+            assert isinstance(production_area, CoordinateSampler)
+            self._coordinates_sampler = production_area
 
         self.production_limit = production_limit
         self.produced_entities = []
@@ -84,14 +100,21 @@ class Dispenser(ActivableElement):
 
         elem_add = None
 
-        if len(self.produced_entities) < self.production_limit:
+        if not self.production_limit or len(
+                self.produced_entities) < self.production_limit:
 
-            initial_coordinate = self._coordinates_sampler.sample()
-            elem = self.elem_class_produced(is_temporary_entity=True,
+            self.activated = True
+
+            if self._recompute_center:
+                initial_coordinate = self._coordinates_sampler.sample(
+                    self._center_elem.coordinates)
+            else:
+                initial_coordinate = self._coordinates_sampler.sample()
+            elem = self.elem_class_produced(temporary=True,
                                             **self.element_produced_params)
 
             self.produced_entities.append(elem)
-            elem_add = (elem, initial_coordinate)
+            elem_add = [(elem, initial_coordinate)]
 
         return None, elem_add
 
@@ -101,8 +124,42 @@ class Dispenser(ActivableElement):
         super().reset()
 
 
-class ActivableByGem(ActivableElement, ABC):
+class RewardOnActivation(ActivableElement):
+    """Fountain provides a reward when activated."""
 
+    def __init__(self,
+                 reward: float,
+                 quantity_rewards: Optional[int] = None,
+                 **kwargs):
+
+        super().__init__(reward=reward, config_key=ElementTypes.REWARD_ON_ACTIVATION, **kwargs)
+
+        self._quantity_rewards = quantity_rewards
+        self._count_rewards = 0
+
+    @property
+    def reward(self):
+        rew = super().reward
+
+        if self._quantity_rewards and self._count_rewards >= self._quantity_rewards:
+            return 0
+
+        self._count_rewards += 1
+        return rew
+
+    @reward.setter
+    def reward(self, rew: float):
+        self._reward = rew
+
+    def activate(self):
+        return None, None
+
+    def reset(self):
+        super().reset()
+        self._count_rewards = 0
+
+
+class ActivableByGem(ActivableElement, ABC):
     def _set_shape_collision(self):
         self.pm_visible_shape.collision_type = CollisionTypes.ACTIVABLE_BY_GEM
 
@@ -111,28 +168,31 @@ class VendingMachine(ActivableByGem):
     """
     When in contact with a coin, provide a reward to the agent closest to the coin.
     """
-
-    def __init__(self,
-                 reward: float,
-                 limit: Optional[int],
-                 **entity_params,
-                 ):
+    def __init__(
+        self,
+        reward: float,
+        quantity_rewards: Optional[int] = None,
+        **entity_params,
+    ):
         """ Vending machine Entity.
         Default: Orange square of size 20, provides a reward of 10.
         """
 
-        super().__init__(ElementTypes.VENDING_MACHINE, reward=reward, **entity_params)
-        self._limit = limit
-        self._total_reward_provided = 0
+        super().__init__(ElementTypes.VENDING_MACHINE,
+                         reward=reward,
+                         **entity_params)
+        self._quantity_rewards = quantity_rewards
+        self._count_rewards = 0
 
-    def activate(self,
-                 activating: GemElement,
-                 ):
+    def activate(
+        self,
+        activating: GemElement,
+    ):
         list_remove = None
 
-        if activating.elem_activated is self:
+        if activating.elem_activated:
             self.activated = True
-            list_remove = activating
+            list_remove = [activating]
 
         return list_remove, None
 
@@ -140,10 +200,10 @@ class VendingMachine(ActivableByGem):
     def reward(self):
         rew = super().reward
 
-        if self._limit and self._total_reward_provided > self._limit:
+        if self._quantity_rewards and self._count_rewards >= self._quantity_rewards:
             return 0
 
-        self._total_reward_provided += rew
+        self._count_rewards += 1
         return rew
 
     @reward.setter
@@ -152,20 +212,15 @@ class VendingMachine(ActivableByGem):
 
     def reset(self):
         super().reset()
-        self._total_reward_provided = 0
+        self._count_rewards = 0
 
 
 class Chest(ActivableByGem):
-
     """
     Chest can be open when in contact with corresponding Key entity, and deliver a treasure.
     When opened, Chest and key disappear, treasure appears.
     """
-
-    def __init__(self,
-                 treasure: SceneElement,
-                 **entity_params):
-
+    def __init__(self, treasure: SceneElement, **entity_params):
         """ Chest Entity.
         Default: Purple rectangle of size 20x30
 
@@ -180,9 +235,10 @@ class Chest(ActivableByGem):
         self.treasure = treasure
         self.treasure.is_temporary_entity = True
 
-    def activate(self,
-                 activating: GemElement,
-                 ):
+    def activate(
+        self,
+        activating: GemElement,
+    ):
 
         list_remove = None
         elem_add = None
@@ -196,11 +252,9 @@ class Chest(ActivableByGem):
 
 
 class Lock(ActivableByGem):
-
     """
     Opens a door when in contact with the associated key.
     """
-
     def __init__(self, door, **kwargs):
         """ Lock for a door, opens with a key.
 
@@ -212,13 +266,14 @@ class Lock(ActivableByGem):
             **kwargs: other params to configure entity. Refer to Entity class
         """
 
-        super().__init__( ElementTypes.LOCK, **kwargs)
+        super().__init__(ElementTypes.LOCK, **kwargs)
 
         self.door = door
 
-    def activate(self,
-                 activating: GemElement,
-                 ):
+    def activate(
+        self,
+        activating: GemElement,
+    ):
 
         list_remove = None
 
@@ -229,46 +284,6 @@ class Lock(ActivableByGem):
 
         return list_remove, None
 
-
-# class Lever(InteractiveSceneElement):
-#     """Lever Entities provide a reward when activated."""
-#
-#     entity_type = SceneElementTypes.LEVER
-#
-#     def __init__(self, **kwargs):
-#
-#         default_config = parse_configuration('element_interactive', self.entity_type)
-#         entity_params = {**default_config, **kwargs}
-#
-#         super().__init__(**entity_params)
-#
-#         self.pm_interaction_shape.collision_type = CollisionTypes.ACTIVABLE
-#
-#         self.reward = entity_params['reward']
-#
-#         self.reward_provided = False
-#
-#     def pre_step(self):
-#         super().pre_step()
-#         self.reward_provided = False
-#
-#     @property
-#     def reward(self):
-#
-#         if not self.reward_provided:
-#             self.reward_provided = True
-#             return self._reward
-#
-#         return 0
-#
-#     @reward.setter
-#     def reward(self, rew):
-#         self._reward = rew
-#
-#     def activate(self, activating_entity):
-#         # pylint: disable=useless-super-delegation
-#         return super().activate(activating_entity)
-#
 
 #
 
@@ -398,6 +413,5 @@ class Lock(ActivableByGem):
 #
 #         self.timer = self.time_open
 #         self.door.opened = False
-
 
 #

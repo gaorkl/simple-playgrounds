@@ -2,7 +2,7 @@
 Module containing classes to generate random positions and trajectories
 
 """
-from typing import Tuple, Optional, Union
+from typing import Tuple, Optional, Union, List
 
 import pymunk
 import random
@@ -22,17 +22,18 @@ class CoordinateSampler:
         area_2 = PositionAreaSampler(area_shape='gaussian', center=[150, 50], variance = 300, radius=60)
 
     """
-    def __init__(self,
-                 center: Tuple[float, float],
-                 area_shape: str,
-                 size: Optional[Tuple[float, float]] = None,
-                 radius: Optional[float] = None,
-                 variance: Optional[str] = None,
-                 angle_range: Optional[Tuple[float, float]] = None,
-                 min_size: Optional[Tuple[float, float]] = (0,0),
-                 min_radius: Optional[float] = 0,
-                 angle: Optional[float] = 0,
-                 ):
+    def __init__(
+        self,
+        center: Union[List[float], Tuple[float, float]],
+        area_shape: str,
+        size: Optional[Union[Tuple[float, float], List[float]]] = None,
+        radius: Optional[float] = None,
+        std: Optional[float] = None,
+        angle_range: Optional[Union[List[float], Tuple[float, float]]] = None,
+        min_size: Tuple[float, float] = (0, 0),
+        min_radius: float = 0,
+        angle: float = 0,
+    ):
         """
 
         Args:
@@ -43,15 +44,19 @@ class CoordinateSampler:
         Keyword Arguments:
             width_length (:obj: list of :obj: int): Width and Length of the rectangle shape
             radius (int): radius of the gaussian and circle shape
-            variance (int): variance of the gaussian
+            std (int): variance of the gaussian
 
         """
 
         self._area_shape = area_shape
+
+        assert isinstance(center, (list, tuple)) and len(center) == 2
         self._center = center
         self._angle = angle
 
         if angle_range:
+            assert isinstance(angle_range,
+                              (list, tuple)) and len(angle_range) == 2
             self._angle_range = angle_range
         else:
             self._angle_range = (-math.pi, math.pi)
@@ -59,7 +64,8 @@ class CoordinateSampler:
         # Area shape
         if self._area_shape == 'rectangle':
 
-            assert size
+            assert isinstance(size, (list, tuple)) and len(size) == 2
+
             self._width, self._length = size
             self._min_width, self._min_length = min_size
 
@@ -78,34 +84,29 @@ class CoordinateSampler:
         elif self._area_shape == 'gaussian':
 
             assert radius
-            assert variance
+            assert std
 
             self._radius = radius
             self._min_radius = min_radius
-            self._variance = variance
+            assert self._radius > self._min_radius
+
+            self._std = std
 
         else:
             raise ValueError('area shape not implemented')
 
     def sample(self,
-               coordinates: Optional[Tuple[Tuple[float, float], float]] = None):
-        """
+               coordinates: Optional[Tuple[Tuple[float, float],
+                                           float]] = None):
 
-        Args:
-            center:
-
-        Returns:
-            position ('obj'list of 'obj'float): (x,pos_y,theta) position sampled
-
-        """
-        pos_x, pos_y, theta = 0, 0, 0
+        x, y, theta = 0., 0., 0.
 
         if not coordinates:
             center = self._center
-            angle = random.uniform(*self._angle_range)
+            theta = random.uniform(*self._angle_range)
 
         else:
-            center, angle = coordinates
+            center, theta = coordinates
 
         if self._area_shape == 'rectangle':
             # split the rectangle to horizontal and vertical pieces,
@@ -114,13 +115,12 @@ class CoordinateSampler:
             found_position = False
 
             while not found_position:
-                x = random.uniform(-self._width/2, self._width/2)
-                y = random.uniform(-self._length/2, self._length/2)
+                x = random.uniform(-self._width / 2, self._width / 2)
+                y = random.uniform(-self._length / 2, self._length / 2)
 
-                if  not (-self._min_width/2 < x < self._min_width/2
-                        and -self._min_length/2 < y < self._min_length/2)
+                if not (-self._min_width / 2 < x < self._min_width / 2
+                        and -self._min_length / 2 < y < self._min_length / 2):
                     found_position = True
-
 
         elif self._area_shape == 'circle':
 
@@ -130,8 +130,8 @@ class CoordinateSampler:
                 x = random.uniform(-self._radius, self._radius)
                 y = random.uniform(-self._radius, self._radius)
 
-                if  ( x**2 < (self._min_radius / 2)**2
-                        and  y**2 < (self._min_radius / 2)**2 )
+                r = math.sqrt(x**2 + y**2)
+                if self._min_radius < r < self._radius:
                     found_position = True
 
         elif self._area_shape == 'gaussian':
@@ -139,24 +139,25 @@ class CoordinateSampler:
             found_position = False
 
             while not found_position:
-                x, y = np.random.multivariate_normal(center, [[self.variance, 0], [0, self.variance]])
+                x, y = np.random.multivariate_normal(
+                    (0, 0),
+                    ((self._std**2, 0), (0, self._std**2)),
+                )
+                r = math.sqrt(x**2 + y**2)
+                if self._min_radius < r < self._radius:
+                    found_position = True
 
-            pos_x = math.inf
-            pos_y = math.inf
-            theta = random.uniform(self._angle_range, self.theta_max)
+        else:
 
-            while (pos_x - center[0])**2 + (pos_y - center[1])**2 > self._radius**2:
-
-                pos_x, pos_y = np.random.multivariate_normal(center, [[self.variance, 0], [0, self.variance]])
+            raise ValueError('Not implemented')
 
         rel_pos = pymunk.Vec2d(x, y).rotated(self._angle)
         pos = tuple(rel_pos + center)
 
-        return (pos_x, pos_y), theta
+        return pos, theta
 
 
 class Trajectory(Generator):
-
     """ Trajectory is a generator which is used to define a list of positions that an entity follows.
 
     Example:
@@ -164,8 +165,12 @@ class Trajectory(Generator):
     trajectory = Trajectory('shape', 200, 8, shape='square', center=[100, 70, 0], radius=50)
 
     """
-
-    def __init__(self, trajectory_type, trajectory_duration, n_rotations=0, index_start=0, **kwargs):
+    def __init__(self,
+                 trajectory_type,
+                 trajectory_duration,
+                 n_rotations=0,
+                 index_start=0,
+                 **kwargs):
         """ Trajectory follows waypoints or shape.
 
         Args:
@@ -216,7 +221,8 @@ class Trajectory(Generator):
             number_sides = geometric_shapes[self.shape]
 
             # Center the starting point on the x axis, angle 0
-            return self._idx_start - int(len(self.trajectory_points) / number_sides / 2)
+            return self._idx_start - int(
+                len(self.trajectory_points) / number_sides / 2)
 
         return self._idx_start
 
@@ -232,37 +238,51 @@ class Trajectory(Generator):
 
         waypoints = []
         for num_side in range(number_sides):
-            waypoints.append([self.center[0] + self.radius * math.cos(num_side * 2 * math.pi / number_sides + offset_angle),
-                              self.center[1] + self.radius * math.sin(num_side * 2 * math.pi / number_sides + offset_angle),
-                              0])
+            waypoints.append([
+                self.center[0] + self.radius *
+                math.cos(num_side * 2 * math.pi / number_sides + offset_angle),
+                self.center[1] + self.radius *
+                math.sin(num_side * 2 * math.pi / number_sides + offset_angle),
+                0
+            ])
 
         return waypoints[::-1]
 
     def _generate_trajectory(self):
 
         shifted_waypoints = self.waypoints[1:] + self.waypoints[:1]
-        total_length = sum([math.sqrt((x1[0] - x2[0])**2 + (x1[1] - x2[1])**2)
-                            for x1, x2 in zip(self.waypoints, shifted_waypoints)])
+        total_length = sum([
+            math.sqrt((x1[0] - x2[0])**2 + (x1[1] - x2[1])**2)
+            for x1, x2 in zip(self.waypoints, shifted_waypoints)
+        ])
 
         trajectory_points = []
 
         for pt_1, pt_2 in zip(self.waypoints, shifted_waypoints):
 
-            distance_between_points = math.sqrt((pt_1[0] - pt_2[0])**2 + (pt_1[1] - pt_2[1])**2)
+            distance_between_points = math.sqrt((pt_1[0] - pt_2[0])**2 +
+                                                (pt_1[1] - pt_2[1])**2)
 
             # Ratio of trajectory points between these two waypoints
             ratio_points = distance_between_points / total_length
-            n_points = int(self.trajectory_duration *ratio_points)
+            n_points = int(self.trajectory_duration * ratio_points)
 
-            pts_x = [pt_1[0] + x * (pt_2[0] - pt_1[0]) / n_points for x in range(n_points)]
-            pts_y = [pt_1[1] + x * (pt_2[1] - pt_1[1]) / n_points for x in range(n_points)]
+            pts_x = [
+                pt_1[0] + x * (pt_2[0] - pt_1[0]) / n_points
+                for x in range(n_points)
+            ]
+            pts_y = [
+                pt_1[1] + x * (pt_2[1] - pt_1[1]) / n_points
+                for x in range(n_points)
+            ]
 
             for i in range(n_points):
-                trajectory_points.append([ (pts_x[i], pts_y[i]), 0])
+                trajectory_points.append([(pts_x[i], pts_y[i]), 0])
 
         for pt_index, trajectory_point in enumerate(trajectory_points):
 
-            angle = (pt_index * self.n_rotations) * (2*math.pi) / len(trajectory_points) % (2*math.pi)
+            angle = (pt_index * self.n_rotations) * (
+                2 * math.pi) / len(trajectory_points) % (2 * math.pi)
 
             trajectory_point[1] = angle
 
@@ -312,12 +332,8 @@ class Trajectory(Generator):
         self.current_index = self._index_start
 
 
-InitCoord = Union[
-        Tuple[Tuple[float, float], float],
-        CoordinateSampler,
-        Trajectory,
-        ]
-
+InitCoord = Union[Tuple[Tuple[float, float], float], CoordinateSampler,
+                  Trajectory, ]
 
 #
 # def get_relative_position_of_entities(entity_1, entity_2):

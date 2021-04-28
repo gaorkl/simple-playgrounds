@@ -18,17 +18,17 @@ class GridRooms(Playground):
     Rooms counted top to bottom, left to right, .
     Rooms in row, column numpy style.
     """
-
-    def __init__(self,
-                 size: Tuple[float, float],
-                 room_layout: Tuple[int, int],
-                 doorstep_size: float,
-                 random_doorstep_position: bool = True,
-                 wall_type='classic',
-                 wall_depth: float = 10,
-                 playground_seed: Optional[int] = None,
-                 **wall_params,
-                 ):
+    def __init__(
+        self,
+        size: Union[List[float], Tuple[float, float]],
+        room_layout: Union[List[int], Tuple[int, int]],
+        doorstep_size: float,
+        random_doorstep_position: bool = True,
+        wall_type='classic',
+        wall_depth: float = 10,
+        playground_seed: Optional[int] = None,
+        **wall_params,
+    ):
         """
 
         Args:
@@ -47,6 +47,11 @@ class GridRooms(Playground):
 
         # Playground Layout
 
+        assert isinstance(room_layout, (list, tuple))
+        assert len(room_layout) == 2\
+               and isinstance(room_layout[0], int)\
+               and isinstance(room_layout[1], int)
+
         super().__init__(size=size)
 
         self._size_door = (wall_depth, doorstep_size)
@@ -55,9 +60,10 @@ class GridRooms(Playground):
 
         # Wall parameters
         wall_type_params = parse_configuration('playground', wall_type)
-        wall_params = {**wall_type_params,
-                       **wall_params,
-                       'rng': self.rng_playground}
+        wall_params = {
+            **wall_type_params,
+            **wall_params, 'rng': self.rng_playground
+        }
         self._wall_texture_params = wall_params
         self._wall_depth = wall_depth
 
@@ -72,15 +78,15 @@ class GridRooms(Playground):
         assert isinstance(first_room, RectangleRoom)
 
         center, size = first_room.center, (first_room.width, first_room.length)
-        self.initial_agent_coordinates = CoordinateSampler(center=center,
-                                                           area_shape='rectangle',
-                                                           width_length=size)
+        self.initial_agent_coordinates = CoordinateSampler(
+            center=center, area_shape='rectangle', size=size)
 
-    def _generate_rooms(self,
-                        room_layout: Tuple[int, int],
-                        random_doorstep_position: bool,
-                        doorstep_size: float,
-                        ):
+    def _generate_rooms(
+        self,
+        room_layout: Tuple[int, int],
+        random_doorstep_position: bool,
+        doorstep_size: float,
+    ):
 
         width_room = self.size[0] / room_layout[0] - self._wall_depth
         length_room = self.size[1] / room_layout[1] - self._wall_depth
@@ -99,47 +105,61 @@ class GridRooms(Playground):
 
             for r in range(room_layout[1]):
 
-                x_center = (self.size[0] / room_layout[0])*(1/2. + c)
-                y_center = (self.size[1] / room_layout[1])*(1/2. + r)
+                x_center = (self.size[0] / room_layout[0]) * (1 / 2. + c)
+                y_center = (self.size[1] / room_layout[1]) * (1 / 2. + r)
 
                 center = (x_center, y_center)
 
                 # Doorsteps
 
                 if random_doorstep_position:
-                    position = self.rng_playground.uniform(doorstep_size, width_room-doorstep_size)
-                    doorstep_up = Doorstep(position, doorstep_size, self._wall_depth)
+                    position = self.rng_playground.uniform(
+                        doorstep_size, width_room - doorstep_size)
+                    doorstep_up = Doorstep(position, doorstep_size,
+                                           self._wall_depth)
 
-                    position = self.rng_playground.uniform(doorstep_size, width_room-doorstep_size)
-                    doorstep_down = Doorstep(position, doorstep_size, self._wall_depth)
+                    position = self.rng_playground.uniform(
+                        doorstep_size, width_room - doorstep_size)
+                    doorstep_down = Doorstep(position, doorstep_size,
+                                             self._wall_depth)
 
-                    position = self.rng_playground.uniform(doorstep_size, length_room-doorstep_size)
-                    doorstep_left = Doorstep(position, doorstep_size, self._wall_depth)
+                    position = self.rng_playground.uniform(
+                        doorstep_size, length_room - doorstep_size)
+                    doorstep_left = Doorstep(position, doorstep_size,
+                                             self._wall_depth)
 
-                    position = self.rng_playground.uniform(doorstep_size, length_room-doorstep_size)
-                    doorstep_right = Doorstep(position, doorstep_size, self._wall_depth)
+                    position = self.rng_playground.uniform(
+                        doorstep_size, length_room - doorstep_size)
+                    doorstep_right = Doorstep(position, doorstep_size,
+                                              self._wall_depth)
 
                 else:
-                    doorstep_up = Doorstep(width_room/2, doorstep_size, self._wall_depth)
-                    doorstep_down = Doorstep(width_room/2, doorstep_size, self._wall_depth)
-                    doorstep_left = Doorstep(length_room/2, doorstep_size, self._wall_depth)
-                    doorstep_right = Doorstep(length_room/2, doorstep_size, self._wall_depth)
+                    doorstep_up = Doorstep(width_room / 2, doorstep_size,
+                                           self._wall_depth)
+                    doorstep_down = Doorstep(width_room / 2, doorstep_size,
+                                             self._wall_depth)
+                    doorstep_left = Doorstep(length_room / 2, doorstep_size,
+                                             self._wall_depth)
+                    doorstep_right = Doorstep(length_room / 2, doorstep_size,
+                                              self._wall_depth)
 
                 # If doorstep was already decided by other adjacent room
 
                 if c > 0:
-                    room_on_left = rooms[c-1][r]
+                    room_on_left = rooms[c - 1][r]
                     assert isinstance(room_on_left, RectangleRoom)
                     assert isinstance(room_on_left.doorstep_right, Doorstep)
                     position = room_on_left.doorstep_right.position
-                    doorstep_left = Doorstep(position, doorstep_size, self._wall_depth)
+                    doorstep_left = Doorstep(position, doorstep_size,
+                                             self._wall_depth)
 
                 if r > 0:
                     room_on_top = col_rooms[-1]
                     assert isinstance(room_on_top, RectangleRoom)
                     assert isinstance(room_on_top.doorstep_down, Doorstep)
                     position = room_on_top.doorstep_down.position
-                    doorstep_up = Doorstep(position, doorstep_size, self._wall_depth)
+                    doorstep_up = Doorstep(position, doorstep_size,
+                                           self._wall_depth)
 
                 if r == room_layout[1] - 1:
                     doorstep_down = None
@@ -153,15 +173,16 @@ class GridRooms(Playground):
                 if c == 0:
                     doorstep_left = None
 
-                room = RectangleRoom(center=center,
-                                     size=size_room,
-                                     doorstep_up=doorstep_up,
-                                     doorstep_right=doorstep_right,
-                                     doorstep_down=doorstep_down,
-                                     doorstep_left=doorstep_left,
-                                     wall_depth=self._wall_depth,
-                                     wall_texture_params=self._wall_texture_params,
-                                     )
+                room = RectangleRoom(
+                    center=center,
+                    size=size_room,
+                    doorstep_up=doorstep_up,
+                    doorstep_right=doorstep_right,
+                    doorstep_down=doorstep_down,
+                    doorstep_left=doorstep_left,
+                    wall_depth=self._wall_depth,
+                    wall_texture_params=self._wall_texture_params,
+                )
 
                 for wall in room.generate_walls():
                     self.add_element(wall)
@@ -174,18 +195,17 @@ class GridRooms(Playground):
 
 
 class SingleRoom(GridRooms):
-
     """
     Playground composed of a single room
     """
-
-    def __init__(self,
-                 size: Tuple[int, int],
-                 wall_type='classic',
-                 wall_depth=10,
-                 playground_seed: Union[int, None] = None,
-                 **wall_params,
-                 ):
+    def __init__(
+        self,
+        size,
+        wall_type='classic',
+        wall_depth=10,
+        playground_seed: Union[int, None] = None,
+        **wall_params,
+    ):
 
         super().__init__(size=size,
                          room_layout=(1, 1),
@@ -203,17 +223,17 @@ class LineRooms(GridRooms):
     """
     Playground composed of connected rooms organized as a line
     """
-
-    def __init__(self,
-                 size: Tuple[int, int],
-                 number_rooms: int,
-                 doorstep_size: int,
-                 random_doorstep_position: bool = True,
-                 wall_type='classic',
-                 wall_depth=10,
-                 playground_seed: Union[int, None] = None,
-                 **wall_params,
-                 ):
+    def __init__(
+        self,
+        size,
+        number_rooms: int,
+        doorstep_size,
+        random_doorstep_position=True,
+        wall_type='classic',
+        wall_depth=10,
+        playground_seed=None,
+        **wall_params,
+    ):
 
         super().__init__(size=size,
                          room_layout=(number_rooms, 1),

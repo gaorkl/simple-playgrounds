@@ -26,11 +26,18 @@ class SemanticRay(RayCollisionSensor):
     sensor_type = SensorTypes.SEMANTIC_RAY
     sensor_modality = SensorTypes.SEMANTIC
 
-    def __init__(self, anchor, invisible_elements=None, normalize=True, noise_params=None,
-                 remove_duplicates=True, **sensor_params):
+    def __init__(self,
+                 anchor,
+                 invisible_elements=None,
+                 normalize=True,
+                 noise_params=None,
+                 remove_duplicates=True,
+                 **sensor_params):
 
-        super().__init__(anchor=anchor, invisible_elements=invisible_elements,
-                         normalize=normalize, noise_params=noise_params,
+        super().__init__(anchor=anchor,
+                         invisible_elements=invisible_elements,
+                         normalize=normalize,
+                         noise_params=noise_params,
                          remove_duplicates=remove_duplicates,
                          **sensor_params)
 
@@ -40,13 +47,16 @@ class SemanticRay(RayCollisionSensor):
 
         collision_points = self._compute_points(playground)
 
-        collision_points = {k: v for k, v in collision_points.items() if v != []}
+        collision_points = {
+            k: v
+            for k, v in collision_points.items() if v != []
+        }
 
-        self.sensor_values = self._collisions_to_detections(playground, collision_points)
+        self.sensor_values = self._collisions_to_detections(
+            playground, collision_points)
         # class Point just for modifying alpha and replace by distance
 
     def _collisions_to_detections(self, playground, collision_points):
-
         """
         Transforms pymunk collisions into simpler data structures.
 
@@ -65,7 +75,8 @@ class SemanticRay(RayCollisionSensor):
 
             if collision:
 
-                element_colliding = playground.get_entity_from_shape(pm_shape=collision.shape)
+                element_colliding = playground.get_entity_from_shape(
+                    pm_shape=collision.shape)
                 distance = collision.alpha * self._max_range
 
                 detection = Detection(entity=element_colliding,
@@ -81,7 +92,8 @@ class SemanticRay(RayCollisionSensor):
         for index, detection in enumerate(self.sensor_values):
 
             new_detection = Detection(entity=detection.entity,
-                                      distance=detection.distance/self._sensor_max_value,
+                                      distance=detection.distance /
+                                      self._sensor_max_value,
                                       angle=detection.angle)
             self.sensor_values[index] = new_detection
 
@@ -120,8 +132,11 @@ class SemanticCones(SemanticRay):
 
     sensor_type = SensorTypes.SEMANTIC_CONE
 
-    def __init__(self, anchor, invisible_elements=None,
-                 remove_duplicates=False, **sensor_params):
+    def __init__(self,
+                 anchor,
+                 invisible_elements=None,
+                 remove_duplicates=False,
+                 **sensor_params):
         """
         Args:
             anchor: Entity on which the Lidar is attached.
@@ -147,22 +162,25 @@ class SemanticCones(SemanticRay):
         if not rays_per_cone > 0:
             raise ValueError('rays_per_cone should be at least 1')
 
-        n_rays = rays_per_cone*self.number_cones
+        n_rays = rays_per_cone * self.number_cones
 
         sensor_params['resolution'] = n_rays
         sensor_params['n_rays'] = n_rays
 
-        super().__init__(anchor, invisible_elements=invisible_elements,
+        super().__init__(anchor,
+                         invisible_elements=invisible_elements,
                          number_rays=n_rays,
                          remove_duplicates=remove_duplicates,
-                         ** sensor_params)
+                         **sensor_params)
 
         if self.number_cones == 1:
             self.angles_cone_center = [0]
         else:
             angle = self._fov - self._fov / self.number_cones
-            self.angles_cone_center = [n * angle / (self.number_cones - 1) - angle / 2
-                                       for n in range(self.number_cones)]
+            self.angles_cone_center = [
+                n * angle / (self.number_cones - 1) - angle / 2
+                for n in range(self.number_cones)
+            ]
 
     def _compute_raw_sensor(self, playground, *_):
 
@@ -174,7 +192,8 @@ class SemanticCones(SemanticRay):
 
         for detection in self.sensor_values:
             # pylint: disable=all
-            cone_angle = min(self.angles_cone_center, key=lambda x: (x - detection.angle) ** 2)
+            cone_angle = min(self.angles_cone_center,
+                             key=lambda x: (x - detection.angle)**2)
             detections_per_cone[cone_angle].append(detection)
 
         # detections_per_cone = {k: v for k, v in detections_per_cone.items() if v != []}
@@ -204,15 +223,19 @@ class SemanticCones(SemanticRay):
 
             distance *= width / (2 * self._max_range)
 
-            pos_x_1 = int(width / 2
-                          - distance * math.cos(-detection.angle - self._fov/self.number_cones/2))
-            pos_y_1 = int(width / 2
-                          - distance * math.sin(-detection.angle - self._fov/self.number_cones/2))
+            pos_x_1 = int(
+                width / 2 - distance *
+                math.cos(-detection.angle - self._fov / self.number_cones / 2))
+            pos_y_1 = int(
+                width / 2 - distance *
+                math.sin(-detection.angle - self._fov / self.number_cones / 2))
 
-            pos_x_2 = int(width / 2
-                          - distance * math.cos(-detection.angle + self._fov/self.number_cones/2))
-            pos_y_2 = int(width / 2
-                          - distance * math.sin(-detection.angle + self._fov/self.number_cones/2))
+            pos_x_2 = int(
+                width / 2 - distance *
+                math.cos(-detection.angle + self._fov / self.number_cones / 2))
+            pos_y_2 = int(
+                width / 2 - distance *
+                math.sin(-detection.angle + self._fov / self.number_cones / 2))
 
             # pylint: disable=no-member
 

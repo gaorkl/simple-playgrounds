@@ -54,7 +54,7 @@ class ElementTypes(IntEnum):
     KEY = auto()
 
     # Interactive
-    LEVER = auto()
+    REWARD_ON_ACTIVATION = auto()
     DISPENSER = auto()
     CHEST = auto()
     VENDING_MACHINE = auto()
@@ -163,6 +163,12 @@ class PhysicalShapes(IntEnum):
     CIRCLE = 60
     RECTANGLE = auto()
 
-geometric_shapes = {'line': 2, 'circle': 60, 'triangle': 3,
-                    'square': 4, 'pentagon': 5, 'hexagon': 6}
 
+geometric_shapes = {
+    'line': 2,
+    'circle': 60,
+    'triangle': 3,
+    'square': 4,
+    'pentagon': 5,
+    'hexagon': 6
+}

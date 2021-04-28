@@ -42,8 +42,17 @@ class Sensor(ABC):
     sensor_type = SensorTypes.SENSOR
     sensor_modality = SensorTypes.SENSOR
 
-    def __init__(self, anchor, fov, resolution, max_range, min_range,
-                 invisible_elements, normalize, noise_params, name=None, **_kwargs):
+    def __init__(self,
+                 anchor,
+                 fov,
+                 resolution,
+                 max_range,
+                 min_range,
+                 invisible_elements,
+                 normalize,
+                 noise_params,
+                 name=None,
+                 **_kwargs):
         """
         Sensors are attached to an anchor. They detect every visible Agent Part or Scene Element.
         If the entity is in invisible elements, it is not detected.
@@ -84,7 +93,8 @@ class Sensor(ABC):
         if name is not None:
             self.name = name
         else:
-            self.name = self.sensor_type.name.lower() + '_' + str(Sensor._index_sensor)
+            self.name = self.sensor_type.name.lower() + '_' + str(
+                Sensor._index_sensor)
             Sensor._index_sensor += 1
 
         self.anchor = anchor
@@ -139,7 +149,8 @@ class Sensor(ABC):
         for elem in self.invisible_elements:
             elem.assign_shape_filter(sensor_collision_index)
 
-        self.invisible_filter = pymunk.ShapeFilter(categories=2 ** sensor_collision_index)
+        self.invisible_filter = pymunk.ShapeFilter(
+            categories=2**sensor_collision_index)
 
     def update(self, **kwargs):
         """
@@ -222,15 +233,17 @@ class RayCollisionSensor(Sensor, ABC):
         if self._resolution == 1:
             self._ray_angles = [0]
         else:
-            self._ray_angles = [n * self._fov / (self._resolution - 1) - self._fov / 2
-                                for n in range(self._resolution)]
+            self._ray_angles = [
+                n * self._fov / (self._resolution - 1) - self._fov / 2
+                for n in range(self._resolution)
+            ]
 
     @staticmethod
     def _remove_duplicate_collisions(collisions_by_angle):
 
-        all_shapes = list(set(col.shape
-                              for angle, col in collisions_by_angle.items()
-                              if col))
+        all_shapes = list(
+            set(col.shape for angle, col in collisions_by_angle.items()
+                if col))
 
         all_collisions = []
         for angle, col in collisions_by_angle.items():
@@ -238,8 +251,9 @@ class RayCollisionSensor(Sensor, ABC):
 
         all_min_collisions = []
         for shape in all_shapes:
-            min_col = min([col for col in all_collisions if col.shape is shape],
-                          key=attrgetter('alpha'))
+            min_col = min(
+                [col for col in all_collisions if col.shape is shape],
+                key=attrgetter('alpha'))
             all_min_collisions.append(min_col)
 
         # Filter out noon-min collisions
@@ -254,13 +268,13 @@ class RayCollisionSensor(Sensor, ABC):
         position_body = self.anchor.pm_body.position
         angle = self.anchor.pm_body.angle + sensor_angle
 
-        position_start = position_body + pymunk.Vec2d(self._min_range+1, 0).rotated(angle)
-        position_end = position_body + pymunk.Vec2d(self._max_range-1, 0).rotated(angle)
+        position_start = position_body + pymunk.Vec2d(self._min_range + 1,
+                                                      0).rotated(angle)
+        position_end = position_body + pymunk.Vec2d(self._max_range - 1,
+                                                    0).rotated(angle)
 
-        collision = playground.space.segment_query_first(position_start,
-                                                         position_end,
-                                                         1,
-                                                         self.invisible_filter)
+        collision = playground.space.segment_query_first(
+            position_start, position_end, 1, self.invisible_filter)
 
         return collision
 
@@ -282,14 +296,20 @@ class RayCollisionSensor(Sensor, ABC):
 
         if self._noise_type == 'gaussian':
 
-            additive_noise = np.random.normal(self._noise_mean, self._noise_scale, size=self.shape)
+            additive_noise = np.random.normal(self._noise_mean,
+                                              self._noise_scale,
+                                              size=self.shape)
 
         elif self._noise_type == 'salt_pepper':
 
-            prob = [self._noise_probability/2, 1-self._noise_probability, self._noise_probability/2]
-            additive_noise = np.random.choice([-self._sensor_max_value, 0, self._sensor_max_value],
-                                              p=prob,
-                                              size=self.shape)
+            prob = [
+                self._noise_probability / 2, 1 - self._noise_probability,
+                self._noise_probability / 2
+            ]
+            additive_noise = np.random.choice(
+                [-self._sensor_max_value, 0, self._sensor_max_value],
+                p=prob,
+                size=self.shape)
 
         else:
             raise ValueError
@@ -297,4 +317,5 @@ class RayCollisionSensor(Sensor, ABC):
         self.sensor_values += additive_noise
 
         self.sensor_values[self.sensor_values < 0] = 0
-        self.sensor_values[self.sensor_values > self._sensor_max_value] = self._sensor_max_value
+        self.sensor_values[self.sensor_values >
+                           self._sensor_max_value] = self._sensor_max_value
