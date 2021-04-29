@@ -357,7 +357,8 @@ class Playground(ABC):
         if new_scene_element in self._disappeared_scene_elements:
             self._disappeared_scene_elements.remove(new_scene_element)
 
-    def create_entity_types_map(self, additional_types: List[Type[SceneElement]]):
+    def create_entity_types_map(self,
+                                additional_types: List[Type[SceneElement]] = []):
         entity_types = [type(e) for e in self.scene_elements]
         entity_types.extend(additional_types)
 
