@@ -12,10 +12,12 @@ Examples can be found in :
 
 from abc import ABC
 import pymunk
+from typing import Type, List
 
 from simple_playgrounds.utils.position_utils import CoordinateSampler
 from simple_playgrounds.utils.definitions import SPACE_DAMPING, CollisionTypes, SceneElementTypes, SensorTypes
 from simple_playgrounds.entity import Entity
+from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -69,6 +71,8 @@ class Playground(ABC):
 
         self._handle_interactions()
         self.sensor_collision_index = 2
+
+        self.entity_types_map = {}
 
     @staticmethod
     def _initialize_space():
@@ -352,6 +356,15 @@ class Playground(ABC):
         self.scene_elements.append(new_scene_element)
         if new_scene_element in self._disappeared_scene_elements:
             self._disappeared_scene_elements.remove(new_scene_element)
+
+    def create_entity_types_map(self, additional_types: List[Type[SceneElement]]):
+        entity_types = [type(e) for e in self.scene_elements]
+        entity_types.extend(additional_types)
+
+        self.entity_types_map = {}
+        for et in entity_types:
+            if et not in self.entity_types_map:
+                self.entity_types_map[et] = len(self.entity_types_map)
 
     def _entity_colliding(self, entity):
 
