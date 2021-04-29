@@ -37,6 +37,9 @@ class CandyCollectEnv(SingleRoom):
         self.time_limit = 2000
         self.time_limit_reached_reward = -1
 
+        self.create_entity_types_map(
+            [scene_elements.Candy, scene_elements.Poison])
+
 
 @PlaygroundRegister.register('foraging', 'candy_fireballs')
 class CandyFireballs(SingleRoom):
