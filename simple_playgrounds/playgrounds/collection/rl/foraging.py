@@ -5,8 +5,8 @@ from simple_playgrounds.utils.position_utils import (CoordinateSampler,
                                                      Trajectory)
 
 
-@PlaygroundRegister.register('foraging', 'candy_collect')
-class CandyCollectEnv(SingleRoom):
+@PlaygroundRegister.register('foraging', 'candy_poison')
+class CandyPoisonEnv(SingleRoom):
     def __init__(self):
         super().__init__(size=(200, 200))
 
