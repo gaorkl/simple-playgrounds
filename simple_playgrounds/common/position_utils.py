@@ -13,6 +13,8 @@ import numpy as np
 
 from simple_playgrounds.definitions import geometric_shapes
 
+Coordinate = Tuple[Tuple[float, float], float]
+
 
 class CoordinateSampler:
     """ Sampler for a random position within a particular area
@@ -24,12 +26,12 @@ class CoordinateSampler:
     """
     def __init__(
         self,
-        center: Union[List[float], Tuple[float, float]],
+        center: Tuple[float, float],
         area_shape: str,
-        size: Optional[Union[Tuple[float, float], List[float]]] = None,
+        size: Optional[Tuple[float, float]] = None,
         radius: Optional[float] = None,
         std: Optional[float] = None,
-        angle_range: Optional[Union[List[float], Tuple[float, float]]] = None,
+        angle_range: Optional[Tuple[float, float]] = None,
         min_size: Tuple[float, float] = (0, 0),
         min_radius: float = 0,
         angle: float = 0,
@@ -50,13 +52,12 @@ class CoordinateSampler:
 
         self._area_shape = area_shape
 
-        assert isinstance(center, (list, tuple)) and len(center) == 2
+        assert len(center) == 2
         self._center = center
         self._angle = angle
 
         if angle_range:
-            assert isinstance(angle_range,
-                              (list, tuple)) and len(angle_range) == 2
+            assert len(angle_range) == 2
             self._angle_range = angle_range
         else:
             self._angle_range = (-math.pi, math.pi)
@@ -64,7 +65,7 @@ class CoordinateSampler:
         # Area shape
         if self._area_shape == 'rectangle':
 
-            assert isinstance(size, (list, tuple)) and len(size) == 2
+            assert size and len(size) == 2
 
             self._width, self._length = size
             self._min_width, self._min_length = min_size
@@ -96,8 +97,7 @@ class CoordinateSampler:
             raise ValueError('area shape not implemented')
 
     def sample(self,
-               coordinates: Optional[Tuple[Tuple[float, float],
-                                           float]] = None):
+               coordinates: Optional[Coordinate] = None):
 
         x, y, theta = 0., 0., 0.
 
@@ -332,8 +332,9 @@ class Trajectory(Generator):
         self.current_index = self._index_start
 
 
-InitCoord = Union[Tuple[Tuple[float, float], float], CoordinateSampler,
+InitCoord = Union[Coordinate, CoordinateSampler,
                   Trajectory, ]
+
 
 #
 # def get_relative_position_of_entities(entity_1, entity_2):

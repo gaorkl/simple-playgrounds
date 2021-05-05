@@ -26,4 +26,5 @@ class Key(GemElement):
 
         super().__init__(config_key=ElementTypes.KEY,
                          elem_activated=locked_elem,
+                         graspable=True,
                          **kwargs)

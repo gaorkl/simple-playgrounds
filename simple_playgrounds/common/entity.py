@@ -17,7 +17,7 @@ from abc import ABC, abstractmethod
 import pymunk
 import pygame
 
-from simple_playgrounds.common.position_samplers import CoordinateSampler, Trajectory
+from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
 from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
 from simple_playgrounds.definitions import CollisionTypes, PhysicalShapes
 
@@ -39,9 +39,9 @@ class Entity(ABC):
         self,
         visible_shape: bool,
         invisible_shape: bool,
-        texture: Union[Texture, Dict, Tuple[int, int, int], List],
+        texture: Union[Texture, Dict, Tuple[int, int, int]],
         physical_shape: str,
-        size: Optional[Union[Tuple[float, float], List[float]]] = None,
+        size: Optional[Tuple[float, float]] = None,
         radius: Optional[float] = None,
         invisible_range: float = 5,
         graspable: bool = False,
@@ -51,6 +51,7 @@ class Entity(ABC):
         name: Optional[str] = None,
         mass: Optional[float] = None,
         generate_texture: bool = True,
+        background: bool = True,
         **pymunk_attributes,
     ):
 
@@ -75,7 +76,6 @@ class Entity(ABC):
         self._size_visible: Union[Tuple[float, float], List[float]]
 
         if radius and not size:
-            assert radius
             assert isinstance(radius, (float, int))
             self._radius_visible = radius
             self._size_visible = (2 * radius, 2 * radius)
@@ -83,9 +83,7 @@ class Entity(ABC):
             self._size_invisible = (2 * self._radius_invisible,
                                     2 * self._radius_invisible)
 
-        else:
-            assert size
-            assert isinstance(size, (list, tuple))
+        elif size and not radius:
             assert len(size) == 2
 
             width, length = size
@@ -94,6 +92,9 @@ class Entity(ABC):
                                                                           2.)
             self._size_invisible = width + self._invisible_range, length + self._invisible_range
             self._radius_invisible = self._radius_visible + self._invisible_range
+
+        else:
+            raise ValueError("size or radius should be set.")
 
         self.pm_body = self._create_pm_body(movable)
         self.pm_elements = [self.pm_body]
@@ -126,8 +127,8 @@ class Entity(ABC):
         self._set_shape_collision()
 
         # To be set when entity is added to playground.
-        self._initial_coordinates = None
-        self.trajectory = None
+        self._initial_coordinates: Optional[InitCoord] = None
+        self.trajectory: Optional[Trajectory] = None
 
         # Texture random generator can be set
         if isinstance(texture, Dict):
@@ -139,7 +140,7 @@ class Entity(ABC):
 
         assert isinstance(texture, Texture)
 
-        self.texture = texture
+        self.texture: Texture = texture
         if generate_texture:
             self._texture_surface = self.texture.generate()
         else:
@@ -152,7 +153,6 @@ class Entity(ABC):
 
         self._set_pm_attr(pymunk_attributes)
 
-        background = True
         if invisible_shape or movable:
             background = False
 
@@ -383,24 +383,25 @@ class Entity(ABC):
         raise ValueError
 
     @initial_coordinates.setter
-    def initial_coordinates(self, init_coordinates):
+    def initial_coordinates(self, init_coordinates: InitCoord):
 
         if isinstance(init_coordinates, Trajectory):
             self.trajectory = init_coordinates
             self._initial_coordinates = next(self.trajectory)
 
-        elif isinstance(init_coordinates, (tuple, list, CoordinateSampler)):
-            self._initial_coordinates = init_coordinates
-
         else:
-            raise ValueError('Initial position not valid')
+            if not isinstance(init_coordinates, CoordinateSampler):
+                assert len(init_coordinates) == 2 and len(init_coordinates[0]) == 2
+            self._initial_coordinates = init_coordinates
 
     @property
     def coordinates(self):
         return self.position, self.angle
 
     @coordinates.setter
-    def coordinates(self, coord):
+    def coordinates(self, coord: Coordinate):
+
+        assert len(coord) == 2 and len(coord[0]) == 2
         self.position, self.angle = coord
         if self.pm_body.space:
             self.pm_body.space.reindex_shapes_for_body(self.pm_body)

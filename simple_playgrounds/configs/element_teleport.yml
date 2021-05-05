@@ -1,0 +1,45 @@
+# beam
+beam_texture: &beam-texture
+  texture_type: color
+  color: [100, 220, 170]
+
+beam:
+  texture: *beam-texture
+  physical_shape: circle
+  radius: 16
+
+
+# beamer-homing
+beam_homing_texture: &beam-homing-texture
+  texture_type: color
+  color: [100, 220, 170]
+
+beam-homing:
+  texture: *beam-homing-texture
+  physical_shape: rectangle
+  size: [3, 20]
+
+
+
+
+# portal-blue
+portal_blue_texture: &blue-portal-texture
+  texture_type: color
+  color: [30, 30, 220]
+
+portal_blue:
+  texture: *blue-portal-texture
+  physical_shape: rectangle
+  size: [3, 20]
+
+
+# portal-red
+portal_red_texture: &red-portal-texture
+  texture_type: color
+  color: [220, 30, 30]
+
+portal_red:
+  texture: *red-portal-texture
+  physical_shape: rectangle
+  size: [3, 20]
+

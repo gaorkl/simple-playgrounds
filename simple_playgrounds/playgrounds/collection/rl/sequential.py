@@ -2,10 +2,10 @@ import random
 
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import GridRooms
-from simple_playgrounds.playgrounds.scene_elements import (Lock, Candy, Key,
-                                                           Coin, Dispenser,
-                                                           VendingMachine)
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.elements.collection.activable import Lock, Dispenser, VendingMachine
+from simple_playgrounds.elements.collection.gem import Key, Coin
+from simple_playgrounds.elements.collection.contact import Candy
+from simple_playgrounds.common.position_utils import CoordinateSampler
 
 
 @PlaygroundRegister.register('sequential', 'dispenser_9rooms')

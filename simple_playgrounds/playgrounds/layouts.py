@@ -7,7 +7,7 @@ from typing import Union, Tuple, Optional, List
 import numpy as np
 
 from simple_playgrounds.playgrounds.playground import Playground
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.configs import parse_configuration
 from .rooms import Doorstep, RectangleRoom
 
@@ -83,7 +83,7 @@ class GridRooms(Playground):
 
     def _generate_rooms(
         self,
-        room_layout: Tuple[int, int],
+        room_layout,
         random_doorstep_position: bool,
         doorstep_size: float,
     ):

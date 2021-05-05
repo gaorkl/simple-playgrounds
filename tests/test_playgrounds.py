@@ -7,7 +7,7 @@ from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 
 from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.common.position_utils import CoordinateSampler
 
 
 # Add/remove agent from a playground

@@ -9,7 +9,7 @@ from ...layouts import SingleRoom
 from ....elements.collection.gem import Coin
 from ....elements.field import Field
 
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.common.position_utils import CoordinateSampler
 
 
 @PlaygroundRegister.register('basic_rl', 'coinmaster_singleroom')

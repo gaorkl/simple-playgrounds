@@ -6,10 +6,11 @@ from abc import ABC
 
 from simple_playgrounds.elements.element import InteractiveElement, SceneElement, GemElement
 
-# from simple_playgrounds.playground import Playground
-# from simple_playgrounds.playgrounds.scene_elements.element import SceneElement
+from simple_playgrounds.agents import Agent
+from simple_playgrounds.common.timer import Timer
+from simple_playgrounds.elements.collection.basic import Door
 from simple_playgrounds.definitions import CollisionTypes, ElementTypes
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.configs import parse_configuration
 
 # from simple_playgrounds.playgrounds.scene_elements.elements.gem import Coin
@@ -96,7 +97,7 @@ class Dispenser(ActivableElement):
         self.production_limit = production_limit
         self.produced_entities = []
 
-    def activate(self):
+    def activate(self, _):
 
         elem_add = None
 
@@ -151,12 +152,98 @@ class RewardOnActivation(ActivableElement):
     def reward(self, rew: float):
         self._reward = rew
 
-    def activate(self):
+    def activate(self, _):
         return None, None
 
     def reset(self):
         super().reset()
         self._count_rewards = 0
+
+
+class OpenCloseSwitch(ActivableElement):
+
+    """
+    Opens or close a door when activated by an agent.
+    """
+
+    def __init__(self, door: Door, **kwargs):
+        """ Switch used to open and close a door
+
+        Default: Pale brown square of size 10.
+
+        Args:
+            door: Door opened by the switch.
+            **kwargs: other params to configure entity. Refer to Entity class.
+
+        Notes:
+            It is possible to have multiple switches for a single door.
+            However the behavior is unstable in multiagent setting.
+        """
+
+        super().__init__(reward=0, config_key=ElementTypes.SWITCH, **kwargs)
+
+        self.door = door
+
+    def activate(self, _):
+
+        elem_add = None
+        elem_remove = None
+
+        if self.door.opened:
+            self.door.close()
+            elem_add = [(self.door, None)]
+
+        else:
+            self.door.open()
+            elem_remove = [self.door]
+
+        self.activated = True
+
+        return elem_remove, elem_add
+
+
+class TimerSwitch(OpenCloseSwitch):
+
+    """
+    Opens a door for a certain amount of time when activated by an agent.
+    If activated when door is still open, resets the timer.
+    """
+
+    def __init__(self, door: Door, timer: Timer, **kwargs):
+        """ Switch used to open a door for a certain duration.
+
+        Default: Pale brown square of size 10.
+
+        Args:
+            door: Door opened by the switch.
+            time_open: Timesteps during which door will stay open.
+            **kwargs: other params to configure entity. Refer to Entity class.
+        """
+
+        super().__init__(door=door, **kwargs)
+
+        self._timer = timer
+
+    def activate(self, activator: Union[Timer, Agent]):
+
+        elem_remove = None
+        elem_add = None
+
+        self._timer.reset()
+
+        if isinstance(activator, Timer):
+            if self.door.opened:
+                self.door.close()
+                elem_add = [(self.door, None)]
+
+        elif isinstance(activator, Agent):
+            if not self.door.opened:
+                self.door.open()
+                elem_remove = [self.door]
+
+        self.activated = True
+
+        return elem_remove, elem_add
 
 
 class ActivableByGem(ActivableElement, ABC):
@@ -255,7 +342,7 @@ class Lock(ActivableByGem):
     """
     Opens a door when in contact with the associated key.
     """
-    def __init__(self, door, **kwargs):
+    def __init__(self, door: Door, **kwargs):
         """ Lock for a door, opens with a key.
 
         Default: pale green 10x10 square.
@@ -279,139 +366,9 @@ class Lock(ActivableByGem):
 
         if activating.elem_activated is self:
 
-            self.door.opened = True
+            self.door.open()
             list_remove = [activating, self]
 
         return list_remove, None
 
 
-#
-
-#
-#
-
-#
-# class OpenCloseSwitch(InteractiveSceneElement):
-#
-#     """
-#     Opens or close a door when activated by an agent.
-#     """
-#
-#     entity_type = SceneElementTypes.SWITCH
-#     interactive = True
-#
-#     def __init__(self, door, **kwargs):
-#         """ Switch used to open and close a door
-#
-#         Default: Pale brown square of size 10.
-#
-#         Args:
-#             door: Door opened by the switch.
-#             **kwargs: other params to configure entity. Refer to Entity class.
-#
-#         Notes:
-#             It is possible to have multiple switches for a single door.
-#             However the behavior is unstable in multiagent setting.
-#         """
-#
-#         default_config = parse_configuration('element_interactive', self.entity_type)
-#         entity_params = {**default_config, **kwargs}
-#
-#         super().__init__(**entity_params)
-#
-#         self.door = door
-#
-#     @property
-#     def reward(self):
-#         return 0
-#
-#     def activate(self, _):
-#
-#         elem_add = None
-#         elem_remove = None
-#
-#         if self.activated is False:
-#             if self.door.opened:
-#                 self.door.opened = False
-#                 elem_add = self.door
-#
-#             else:
-#                 self.door.opened = True
-#                 elem_remove = self.door
-#
-#             self.activated = True
-#
-#         return elem_remove, elem_add
-
-#
-# class TimerSwitch(InteractiveSceneElement):
-#
-#     """
-#     Opens a door for a certain amount of time when activated by an agent.
-#     If activated when door is still open, resets the timer.
-#     """
-#
-#     entity_type = SceneElementTypes.SWITCH
-#     timed = True
-#
-#     def __init__(self, door, time_open, **kwargs):
-#         """ Switch used to open a door for a certain duration.
-#
-#         Default: Pale brown square of size 10.
-#
-#         Args:
-#             door: Door opened by the switch.
-#             time_open: Timesteps during which door will stay open.
-#             **kwargs: other params to configure entity. Refer to Entity class.
-#         """
-#
-#         default_config = parse_configuration('element_interactive', self.entity_type)
-#         entity_params = {**default_config, **kwargs}
-#
-#         super().__init__(**entity_params)
-#
-#         self.door = door
-#
-#         self.time_open = time_open
-#         self.timer = self.time_open
-#
-#     @property
-#     def reward(self):
-#         return 0
-#
-#     def activate(self, activating_entity):
-#
-#         elem_remove = None
-#         elem_add = None
-#
-#         if isinstance(activating_entity, Part) and self.activated is False:
-#             if not self.door.opened:
-#                 self.door.opened = True
-#                 elem_remove = self.door
-#
-#             self._reset_timer()
-#             self.activated = True
-#
-#         if isinstance(activating_entity, Playground):
-#             self.door.opened = False
-#             elem_add = self.door
-#             self._reset_timer()
-#
-#         return elem_remove, elem_add
-#
-#     def _reset_timer(self):
-#
-#         self.timer = self.time_open
-#
-#     def pre_step(self):
-#
-#         self.activated = False
-#         if self.door.opened:
-#             self.timer -= 1
-#
-#     def reset(self):
-#
-#         self.timer = self.time_open
-#         self.door.opened = False
-
-#

@@ -92,6 +92,7 @@ class Door(Physical):
 
         super().__init__(config_key=ElementTypes.DOOR,
                          size=(length_wall, door_depth),
+                         background=False,
                          **entity_params)
 
         self.initial_coordinates = (start_point + end_point) / 2, (

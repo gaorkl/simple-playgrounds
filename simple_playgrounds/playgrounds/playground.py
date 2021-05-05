@@ -20,11 +20,11 @@ from simple_playgrounds.definitions import SPACE_DAMPING, CollisionTypes
 from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts import Part
 from simple_playgrounds.common.entity import Entity
-from simple_playgrounds.elements.element import SceneElement, InteractiveElement, TeleportElement
+from simple_playgrounds.elements.element import SceneElement, InteractiveElement, TeleportElement, GemElement
 from simple_playgrounds.elements.field import Field
 from simple_playgrounds.elements.collection.activable import Dispenser
 from simple_playgrounds.agents.sensors import RayCollisionSensor
-from simple_playgrounds.common.position_samplers import InitCoord
+from simple_playgrounds.common.position_utils import InitCoord
 
 from simple_playgrounds.common.timer import Timer
 
@@ -410,7 +410,7 @@ class Playground(ABC):
 
             timer.step()
             if timer.timer_done:
-                elems_remove, elems_add = element.activate()
+                elems_remove, elems_add = element.activate(timer)
                 self._add_remove_within(elems_remove, elems_add)
 
     def _release_grasps(self):
@@ -531,7 +531,7 @@ class Playground(ABC):
 
         agent.reward += touched_element.reward
 
-        elems_remove, elems_add = touched_element.activate()
+        elems_remove, elems_add = touched_element.activate(agent)
         self._add_remove_within(elems_remove, elems_add)
 
         if touched_element.terminate_upon_activation:
@@ -555,7 +555,7 @@ class Playground(ABC):
 
             agent.reward += activable_element.reward
 
-            elems_remove, elems_add = activable_element.activate()
+            elems_remove, elems_add = activable_element.activate(agent)
             self._add_remove_within(elems_remove, elems_add)
 
             if activable_element.terminate_upon_activation:
@@ -604,6 +604,11 @@ class Playground(ABC):
         assert isinstance(activable_element, InteractiveElement)
 
         agent = self._get_closest_agent(gem)
+
+        if not gem:
+            return True
+
+        assert isinstance(gem, GemElement)
 
         elems_remove, elems_add = activable_element.activate(gem)
         self._add_remove_within(elems_remove, elems_add)

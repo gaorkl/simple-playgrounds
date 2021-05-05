@@ -2,7 +2,7 @@ import pytest
 
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.common.position_utils import CoordinateSampler
 
 
 def run_engine(agent, pg_class):

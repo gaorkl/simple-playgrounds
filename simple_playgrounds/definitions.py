@@ -14,12 +14,6 @@ ARM_MAX_FORCE = 500
 MAX_GRASP_FORCE = 600
 
 
-class EntityTypes(IntEnum):
-
-    PART = auto()
-    ELEMENT = auto()
-    FIELD = auto()
-
 
 class PartTypes(IntEnum):
 
@@ -71,7 +65,10 @@ class ElementTypes(IntEnum):
     FIREBALL = auto()
 
     # Teleport
-    TELEPORT = auto()
+    BEAM = auto()
+    BEAM_HOMING = auto()
+    PORTAL_RED = auto()
+    PORTAL_BLUE = auto()
 
     FIELD = auto()
 

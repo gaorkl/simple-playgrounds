@@ -18,14 +18,14 @@ class Texture(ABC):
     """ Base Class for Textue"""
     def __init__(
         self,
-        size: Union[List[float], Tuple[float, float], float],
+        size: Union[Tuple[float, float], float],
     ):
 
         if isinstance(size, (tuple, list)):
             assert len(size) == 2
             self._size = int(size[1]) + 5, int(size[0]) + 5
 
-        elif isinstance(size, int):
+        elif isinstance(size, (float, int)):
             self._size = (int(size + 5), int(size + 5))
 
         else:
@@ -87,10 +87,9 @@ class ColorTexture(Texture):
     def __init__(
         self,
         size,
-        color: Union[Tuple[int, int, int], List[int]],
+        color: Tuple[int, int, int],
     ):
 
-        assert isinstance(color, (tuple, list))
         assert len(color) == 3
 
         super().__init__(size)
@@ -107,13 +106,12 @@ class UniqueCenteredStripeTexture(ColorTexture):
         self,
         size,
         color,
-        color_stripe: Union[Tuple[int, int, int], List[int]],
+        color_stripe: Tuple[int, int, int],
         size_stripe,
     ):
 
         super().__init__(size, color)
 
-        assert isinstance(color_stripe, (tuple, list))
         assert len(color_stripe) == 3
 
         self._color_stripe = color_stripe
@@ -152,15 +150,12 @@ class RandomUniformTexture(RandomTexture):
     def __init__(
         self,
         size,
-        color_min: Union[Tuple[int, int, int], List[int]],
-        color_max: Union[Tuple[int, int, int], List[int]],
+        color_min: Tuple[int, int, int],
+        color_max: Tuple[int, int, int],
         rng=None,
     ):
 
-        assert isinstance(color_min, (tuple, list))
         assert len(color_min) == 3
-
-        assert isinstance(color_max, (tuple, list))
         assert len(color_max) == 3
 
         super().__init__(size, rng)
@@ -184,15 +179,12 @@ class RandomTilesTexture(RandomTexture):
         self,
         size,
         size_tiles,
-        color_min: Union[Tuple[int, int, int], List[int]],
-        color_max: Union[Tuple[int, int, int], List[int]],
+        color_min: Tuple[int, int, int],
+        color_max: Tuple[int, int, int],
         rng=None,
     ):
 
-        assert isinstance(color_min, (tuple, list))
         assert len(color_min) == 3
-
-        assert isinstance(color_max, (tuple, list))
         assert len(color_max) == 3
 
         super().__init__(size, rng)
@@ -224,15 +216,12 @@ class CenteredRandomTilesTexture(RandomTexture):
         self,
         size,
         size_tiles,
-        color_min: Union[Tuple[int, int, int], List[int]],
-        color_max: Union[Tuple[int, int, int], List[int]],
+        color_min: Tuple[int, int, int],
+        color_max: Tuple[int, int, int],
         rng=None,
     ):
 
-        assert isinstance(color_min, (tuple, list))
         assert len(color_min) == 3
-
-        assert isinstance(color_max, (tuple, list))
         assert len(color_max) == 3
 
         super().__init__(size, rng)
@@ -277,7 +266,7 @@ class ListCenteredRandomTiles(RandomTexture):
         self,
         size,
         size_tiles,
-        colors: List[Union[Tuple[int, int, int], List[int]]],
+        colors: Tuple[Tuple[int, int, int], ...],
         rng=None,
     ):
 
@@ -288,7 +277,6 @@ class ListCenteredRandomTiles(RandomTexture):
         self._n_stripes = int(2 * math.pi * self._radius / size_tiles)
 
         for color in colors:
-            assert isinstance(color, (tuple, list))
             assert len(color) == 3
 
         self._colors = colors

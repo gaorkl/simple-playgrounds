@@ -1,5 +1,15 @@
+from typing import Union, List, Tuple
+
+
 class Timer(object):
-    def __init__(self, durations):
+    def __init__(self,
+                 durations: Union[List[int], int, Tuple[int, ...]]):
+
+        if isinstance(durations, int):
+            durations = [durations]
+
+        assert isinstance(durations, (list, tuple))
+
         self._durations = durations
         self.timer_done = False
         self._current_index_timer = 0

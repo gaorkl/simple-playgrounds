@@ -3,7 +3,8 @@ Module that defines Base Class SceneElement
 """
 
 from typing import Union, Tuple, Optional
-from simple_playgrounds.common.position_samplers import CoordinateSampler, Trajectory, InitCoord
+from simple_playgrounds.common.timer import Timer
+from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate
 from simple_playgrounds.configs import parse_configuration
 from simple_playgrounds.definitions import CollisionTypes
 
@@ -22,12 +23,17 @@ class TeleportElement(SceneElement, ABC):
     """ Base Class for Teleport Entities"""
     def __init__(
         self,
-        target: Union[InitCoord, SceneElement],
+        config_key,
+        destination: Union[Coordinate, CoordinateSampler, SceneElement],
         **entity_params,
     ):
 
+        default_config = parse_configuration('element_teleport', config_key)
+        entity_params = {**default_config, **entity_params}
+
         super().__init__(**entity_params)
-        self.target = target
+
+        self.destination = destination
 
     @abstractmethod
     def energize(self, agent: Agent):
@@ -86,7 +92,7 @@ class InteractiveElement(SceneElement, ABC):
         self._reward = rew
 
     @abstractmethod
-    def activate(self, *args):
+    def activate(self, activator: Union[Agent, GemElement, Timer]):
         self.activated = True
 
     @property

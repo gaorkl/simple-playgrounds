@@ -2,12 +2,12 @@ import random
 
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
-from simple_playgrounds.playgrounds.scene_elements import (
+from simple_playgrounds.elements. import (
     Basic,
     DeathZone,
     GoalZone,
 )
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.common.position_utils import CoordinateSampler
 
 
 @PlaygroundRegister.register('navigation', 'endgoal_cue')

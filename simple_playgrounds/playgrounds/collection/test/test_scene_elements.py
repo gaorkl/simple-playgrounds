@@ -1,16 +1,17 @@
 import math
 
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.elements.collection.basic import Physical, Traversable
+from simple_playgrounds.playgrounds.layouts import SingleRoom, GridRooms
+from simple_playgrounds.elements.collection.basic import Physical, Traversable, Door
 from simple_playgrounds.elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy
 from simple_playgrounds.elements.collection.zone import GoalZone, DeathZone, HealingZone, ToxicZone
 from simple_playgrounds.elements.collection.edible import Apple, RottenApple
-from simple_playgrounds.elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation
+from simple_playgrounds.elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation, OpenCloseSwitch, TimerSwitch, Lock
 from simple_playgrounds.elements.collection.gem import Key, Coin
 from simple_playgrounds.elements.collection.conditioning import RewardFlipper
-from simple_playgrounds.common.position_samplers import CoordinateSampler
+from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.common.timer import Timer
+
 
 @PlaygroundRegister.register('test', 'basic')
 class Basics(SingleRoom):
@@ -317,65 +318,71 @@ class Conditioning(SingleRoom):
         timer = Timer([100, 50])
         self.add_timer(timer, light_02)
 
-#
-# @PlaygroundRegister.register('test', 'doors')
-# class Doors(SingleRoom):
-#
-#     def __init__(self, size=(300, 300), **playground_params):
-#
-#         super().__init__(size=size, **playground_params)
-#
-#         door_1 = Door()
-#         self.add_scene_element(door_1, [(100, 150), math.pi/2])
-#         switch_1 = OpenCloseSwitch(door=door_1)
-#         self.add_scene_element(switch_1, [(100, 50), 0])
-#
-#         door_2 = Door()
-#         self.add_scene_element(door_2, [(150, 150), math.pi/2])
-#
-#         timerswitch = TimerSwitch(door=door_2, time_open=20)
-#         self.add_scene_element(timerswitch, [(150, 90), 0])
-#
-#         door_3 = Door()
-#         self.add_scene_element(door_3, [(200, 150), math.pi / 2])
-#
-#         pushbutton = PushButton(door=door_3)
-#         self.add_scene_element(pushbutton, [(200, 90), 0])
-#
-#         door_4 = Door()
-#         key = Key(graspable=True, interaction_range=5, mass=10)
-#         lock = Lock(door=door_4, key=key)
-#
-#         self.add_scene_element(door_4, [(250, 150), math.pi / 2])
-#         self.add_scene_element(key, [(250, 60), math.pi/2])
-#         self.add_scene_element(lock, [(250, 90), 0])
-#
-#
-# @PlaygroundRegister.register('test', 'teleports')
-# class Teleports(SingleRoom):
-#
-#     def __init__(self, size=(300, 300), **playground_params):
-#
-#         super().__init__(size=size, **playground_params)
-#
-#         teleport_1 = Teleport(radius=10, physical_shape='circle')
-#         target_1 = Traversable(radius=10, config_key='circle')
-#         teleport_1.add_target(target_1)
-#         self.add_scene_element(teleport_1, [(50, 50), 0])
-#         self.add_scene_element(target_1, [(250, 50), 0])
-#
-#         teleport_2 = Teleport(radius=10, physical_shape='circle')
-#         target_2 = Basic(radius=20, config_key='circle')
-#         teleport_2.add_target(target_2)
-#         self.add_scene_element(teleport_2, [(50, 150), 0])
-#         self.add_scene_element(target_2, [(250, 150), 0])
-#
-#         teleport_3 = Teleport(radius=10, physical_shape='circle')
-#         teleport_4 = Teleport(radius=10, physical_shape='circle')
-#         teleport_3.add_target(teleport_4)
-#         teleport_4.add_target(teleport_3)
-#         self.add_scene_element(teleport_3, [(50, 250), 0])
-#         self.add_scene_element(teleport_4, [(250, 250), 0])
+
+@PlaygroundRegister.register('test', 'doors')
+class Doors(GridRooms):
+
+    def __init__(self, size=(300, 300), **playground_params):
+
+        super().__init__(size=size, room_layout=(2, 2),
+                         doorstep_size=40, **playground_params)
+
+        doorstep_1 = self.grid_rooms[0][0].doorstep_right
+        door_1 = doorstep_1.generate_door()
+        self.add_element(door_1)
+
+        switch_1 = OpenCloseSwitch(door=door_1)
+        self.add_element(switch_1, self.grid_rooms[0][0].get_random_position_on_wall('right', switch_1))
+
+        doorstep_2 = self.grid_rooms[0][0].doorstep_down
+        door_2 = doorstep_2.generate_door()
+        self.add_element(door_2)
+
+        timer = Timer(durations=100)
+        switch_2 = TimerSwitch(door=door_2, timer=timer)
+        self.add_element(switch_2, self.grid_rooms[0][0].get_random_position_on_wall('down', switch_2))
+        self.add_timer(timer, switch_2)
+
+        doorstep_3 = self.grid_rooms[0][1].doorstep_right
+        door_3 = doorstep_3.generate_door()
+        self.add_element(door_3)
+
+        lock = Lock(door=door_3)
+        self.add_element(lock, self.grid_rooms[0][1].get_random_position_on_wall('left', lock))
+
+        key = Key(locked_elem=lock)
+        center, size = self.grid_rooms[0][1].get_partial_area('left-down')
+        area_sampler = CoordinateSampler(center=center, size=size, area_shape='rectangle')
+        self.add_element(key, area_sampler)
+
+
+
+
+@PlaygroundRegister.register('test', 'teleports')
+class Teleports(SingleRoom):
+
+    def __init__(self, size=(300, 300), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        teleport_1 = Teleport(radius=10, physical_shape='circle')
+        target_1 = Traversable(radius=10, config_key='circle')
+        teleport_1.add_target(target_1)
+        self.add_scene_element(teleport_1, [(50, 50), 0])
+        self.add_scene_element(target_1, [(250, 50), 0])
+
+        teleport_2 = Teleport(radius=10, physical_shape='circle')
+        target_2 = Basic(radius=20, config_key='circle')
+        teleport_2.add_target(target_2)
+        self.add_scene_element(teleport_2, [(50, 150), 0])
+        self.add_scene_element(target_2, [(250, 150), 0])
+
+        teleport_3 = Teleport(radius=10, physical_shape='circle')
+        teleport_4 = Teleport(radius=10, physical_shape='circle')
+        teleport_3.add_target(teleport_4)
+        teleport_4.add_target(teleport_3)
+        self.add_scene_element(teleport_3, [(50, 250), 0])
+        self.add_scene_element(teleport_4, [(250, 250), 0])
 #
 #
 # @PlaygroundRegister.register('test', 'xteleports')

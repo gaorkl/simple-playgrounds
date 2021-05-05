@@ -1,8 +1,94 @@
 """
 Teleport can be used to teleport an agent.
 """
-from simple_playgrounds.scene_elements.element import SceneElement
-from simple_playgrounds.definitions import CollisionTypes
+from typing import Union, List, Optional, Tuple
+from abc import ABC
+
+from simple_playgrounds.elements.element import TeleportElement, SceneElement
+from simple_playgrounds.definitions import CollisionTypes, ElementTypes
+from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate
+from simple_playgrounds.agents import Agent
+
+
+class TeleportToCoordinates(TeleportElement, ABC):
+
+    def __init__(self,
+                 destination: Union[CoordinateSampler, Coordinate],
+                 **kwargs):
+
+        super().__init__(destination, config_key=ElementTypes.BEAM, **kwargs)
+
+        if not isinstance(destination, CoordinateSampler):
+            assert len(destination) == 2 and len(destination[0]) == 2
+
+    def energize(self, agent: Agent):
+
+        if isinstance(self.destination, CoordinateSampler):
+            return self.destination.sample()
+
+        return self.destination
+
+
+class InvisibleBeam(TeleportToCoordinates):
+
+    def __init__(self,
+                 destination: Union[CoordinateSampler, Coordinate],
+                 **kwargs):
+
+        super().__init__(destination,
+                         visible_shape=False,
+                         invisible_shape=True,
+                         config_key=ElementTypes.BEAM,
+                         **kwargs)
+
+    def _set_shape_collision(self):
+        self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
+
+
+class VisibleBeam(TeleportToCoordinates):
+
+    def __init__(self,
+                 destination: Union[CoordinateSampler, Coordinate],
+                 **kwargs):
+
+        super().__init__(destination,
+                         visible_shape=True,
+                         invisible_shape=False,
+                         config_key=ElementTypes.BEAM,
+                         **kwargs)
+
+    def _set_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.TELEPORT
+
+
+class TeleportToElement(TeleportElement, ABC):
+
+    def __init__(self,
+                 destination: SceneElement,
+                 config_key,
+                 relative: bool = False,
+                 **kwargs):
+
+        super().__init__(destination, visible_shape=True, invisible_shape=False, config_key=config_key, **kwargs)
+
+        self._relative = relative
+
+    def energize(self, agent: Agent):
+
+         if self._relative:
+
+             # teleport relative to destination angle
+
+         else:
+
+             # teleport is absolute, keep world orientation.
+
+        return self.beam_coordinates
+
+    def _set_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.TELEPORT
+
+
 
 
 # pylint: disable=line-too-long
