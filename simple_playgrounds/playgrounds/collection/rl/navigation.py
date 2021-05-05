@@ -61,6 +61,8 @@ class EndgoalRoomCue(SingleRoom):
         self.time_limit = time_limit
         self.time_limit_reached_reward = reward_reached_time_limit
 
+        self.create_entity_types_map([Basic])
+
     def _set_goal(self):
 
         index_goal = random.randint(0, 3)
@@ -115,4 +117,4 @@ class Endgoal9Rooms(ConnectedRooms2D):
 
         self.time_limit = time_limit
 
-
+        self.create_entity_types_map()

@@ -5,8 +5,8 @@ from simple_playgrounds.utils.position_utils import (CoordinateSampler,
                                                      Trajectory)
 
 
-@PlaygroundRegister.register('foraging', 'candy_collect')
-class CandyCollectEnv(SingleRoom):
+@PlaygroundRegister.register('foraging', 'candy_poison')
+class CandyPoisonEnv(SingleRoom):
     def __init__(self):
         super().__init__(size=(200, 200))
 
@@ -17,6 +17,7 @@ class CandyCollectEnv(SingleRoom):
                                        width_length=(100, 100))
         self.agent_starting_area = area_start
 
+        additional_types = set()
         for loc in ["down-left", "up-right"]:
             area_center, size_area = self.get_area((0, 0), loc)
             area = CoordinateSampler(center=area_center,
@@ -27,15 +28,19 @@ class CandyCollectEnv(SingleRoom):
                                          probability=0.01,
                                          limit=2)
             self.add_scene_element(field)
+            additional_types.add(field.entity_produced)
 
             field = scene_elements.Field(entity_produced=scene_elements.Poison,
                                          production_area=area,
                                          probability=0.01,
                                          limit=2)
             self.add_scene_element(field)
+            additional_types.add(field.entity_produced)
 
         self.time_limit = 2000
         self.time_limit_reached_reward = -1
+
+        self.create_entity_types_map(additional_types)
 
 
 @PlaygroundRegister.register('foraging', 'candy_fireballs')
@@ -49,6 +54,8 @@ class CandyFireballs(SingleRoom):
             'size_tiles': 4
         }
 
+        additional_types = set()
+
         # First Fireball
         text_1 = {'color_min': [220, 0, 200], 'color_max': [255, 100, 220]}
         trajectory = Trajectory('waypoints',
@@ -60,6 +67,7 @@ class CandyFireballs(SingleRoom):
             **text_1
         })
         self.add_scene_element(fireball, trajectory)
+        additional_types.add(type(fireball))
 
         # Second Fireball
         text_2 = {'color_min': [180, 0, 0], 'color_max': [220, 100, 0]}
@@ -92,5 +100,8 @@ class CandyFireballs(SingleRoom):
                                      production_area=area_prod,
                                      probability=probability_production)
         self.add_scene_element(field)
+        additional_types.add(field.entity_produced)
 
         self.time_limit = time_limit
+
+        self.create_entity_types_map(additional_types)

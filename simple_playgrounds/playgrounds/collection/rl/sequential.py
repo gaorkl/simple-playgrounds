@@ -72,6 +72,8 @@ class DispenserEnv(ConnectedRooms2D):
             allow_overlapping=False)
         self.add_scene_element(self.dispenser, self.area_dispenser)
 
+        self.create_entity_types_map([self.dispenser.entity_produced])
+
     def reset(self):
         self.remove_scene_element(self.dispenser)
 
@@ -148,3 +150,5 @@ class DoorDispenserCoin(ConnectedRooms2D):
                                        area_shape='rectangle',
                                        width_length=area_start_shape)
         self.initial_agent_coordinates = area_start
+
+        self.create_entity_types_map([dispenser.entity_produced])
