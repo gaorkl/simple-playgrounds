@@ -90,6 +90,12 @@ class Entity(ABC):
         # Texture random generator can be set
         self.texture_rng = entity_params.get('')
         self.texture_surface = self._create_texture(entity_params['texture'])
+        if 'color' in entity_params['texture']:
+            self.base_color = entity_params['texture']['color']
+        else:
+            self.base_color = [(a + b) / 2 for a, b in
+                               zip(entity_params['texture']['color_min'],
+                                   entity_params['texture']['color_max'])]
 
         self.trajectory = None
 
