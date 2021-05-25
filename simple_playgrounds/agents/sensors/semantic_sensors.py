@@ -9,7 +9,7 @@ import math
 from operator import attrgetter
 
 import numpy as np
-from skimage.draw import line, circle_perimeter
+from skimage.draw import line, disk
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
 from simple_playgrounds.utils.definitions import Detection, SensorTypes
@@ -107,8 +107,8 @@ class SemanticRay(RayCollisionSensor):
             rr, cc = line(int(width / 2), int(width / 2), pos_x, pos_y)
             img[rr, cc] = (0.5, 0.1, 0.3)
 
-            rr, cc = circle_perimeter(pos_x, pos_y, 3)
-            img[rr, cc] = (0.5, 0.1, 0.3)
+            rr, cc = disk((pos_x, pos_y), 3)
+            img[rr, cc] = [c / 255 for c in detection.entity.base_color[::-1]]
 
         return img
 
