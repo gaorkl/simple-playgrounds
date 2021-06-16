@@ -14,6 +14,12 @@ ARM_MAX_FORCE = 500
 MAX_GRASP_FORCE = 600
 
 
+class Color(Enum):
+
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+
 
 class PartTypes(IntEnum):
 
@@ -67,8 +73,7 @@ class ElementTypes(IntEnum):
     # Teleport
     BEAM = auto()
     BEAM_HOMING = auto()
-    PORTAL_RED = auto()
-    PORTAL_BLUE = auto()
+    PORTAL = auto()
 
     FIELD = auto()
 

@@ -4,7 +4,7 @@ Contact entities interact upon touching an agent
 from abc import ABC
 
 from ..element import ContactElement
-from simple_playgrounds.definitions import ElementTypes
+from simple_playgrounds.common.definitions import ElementTypes
 from simple_playgrounds.configs import parse_configuration
 
 # pylint: disable=line-too-long
@@ -34,7 +34,7 @@ class TerminationContact(ContactElement, ABC):
     def terminate_upon_activation(self):
         return True
 
-    def activate(self):
+    def activate(self, activator):
         return None, None
 
 
@@ -76,7 +76,7 @@ class Absorbable(ContactElement, ABC):
 
         super().__init__(**entity_params)
 
-    def activate(self):
+    def activate(self, activator):
 
         list_add = None
         list_remove = [self]

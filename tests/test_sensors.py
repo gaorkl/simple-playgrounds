@@ -2,10 +2,10 @@ from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import HeadAgent
 from simple_playgrounds.agents.sensors import RgbCamera
 from simple_playgrounds import Engine
-from simple_playgrounds.playgrounds.collection import Basics, Teleports, Interactives, ExtraTeleports
+from simple_playgrounds.playgrounds.collection import Teleports
 
 
-def test_sensor_without_params(any_sensor):
+def test_sensor_without_params(any_sensor, pg_cls):
 
     agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
@@ -18,25 +18,20 @@ def test_sensor_without_params(any_sensor):
     agent.add_sensor(
         RgbCamera(
             anchor=agent.base_platform,
-            min_range=agent.base_platform._radius,
+            min_range=agent.base_platform.radius,
         ))
 
-    for pg_class in [
-            Basics,
-            Teleports,
-            Interactives,
-    ]:
-        playground = pg_class()
-        playground.add_agent(agent)
+    playground = pg_cls()
+    playground.add_agent(agent)
 
-        engine = Engine(playground, time_limit=100)
-        engine.run()
+    engine = Engine(playground, time_limit=100)
+    engine.run()
 
-        playground.remove_agent(agent)
-        playground.reset()
+    playground.remove_agent(agent)
+    playground.reset()
 
 
-def test_ray_sensors(ray_sensor, resolution, fov, obs_range):
+def test_ray_sensors(ray_sensor, resolution, fov, obs_range, pg_cls):
 
     agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
@@ -49,24 +44,19 @@ def test_ray_sensors(ray_sensor, resolution, fov, obs_range):
 
     agent.add_sensor(
         ray_sensor(anchor=agent.head,
-                   min_range=agent.base_platform._radius,
+                   min_range=agent.base_platform.radius,
                    fov=fov,
                    resolution=resolution,
                    max_range=obs_range))
 
-    for pg_class in [
-            Basics,
-            Teleports,
-            Interactives,
-    ]:
-        playground = pg_class()
-        playground.add_agent(agent)
+    playground = pg_cls()
+    playground.add_agent(agent)
 
-        engine = Engine(playground, time_limit=100)
-        engine.run()
+    engine = Engine(playground, time_limit=100)
+    engine.run()
 
-        playground.remove_agent(agent)
-        playground.reset()
+    playground.remove_agent(agent)
+    playground.reset()
 
 
 def test_rgb_on_teleports(base_forward_agent):
@@ -82,10 +72,10 @@ def test_rgb_on_teleports(base_forward_agent):
     agent.add_sensor(
         RgbCamera(
             anchor=agent.base_platform,
-            min_range=agent.base_platform._radius,
+            min_range=agent.base_platform.radius,
         ))
 
-    playground = ExtraTeleports()
+    playground = Teleports()
     playground.add_agent(agent)
 
     engine = Engine(playground, time_limit=10000)

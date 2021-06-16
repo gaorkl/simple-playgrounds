@@ -2,7 +2,7 @@ import math
 
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom, GridRooms
-from simple_playgrounds.elements.collection.basic import Physical, Traversable, Door
+from simple_playgrounds.elements.collection.basic import Physical, Traversable
 from simple_playgrounds.elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy
 from simple_playgrounds.elements.collection.zone import GoalZone, DeathZone, HealingZone, ToxicZone
 from simple_playgrounds.elements.collection.edible import Apple, RottenApple
@@ -11,7 +11,8 @@ from simple_playgrounds.elements.collection.gem import Key, Coin
 from simple_playgrounds.elements.collection.conditioning import RewardFlipper
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.common.timer import Timer
-
+from simple_playgrounds.elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal
+from simple_playgrounds.common.definitions import Color
 
 @PlaygroundRegister.register('test', 'basic')
 class Basics(SingleRoom):
@@ -174,8 +175,8 @@ class Dispensers(SingleRoom):
 
         # Dispenser on Area
         area = CoordinateSampler(area_shape='rectangle',
-                                 center=[x_area, 50],
-                                 size=[20, 60],
+                                 center=(x_area, 50),
+                                 size=(20, 60),
                                  angle=math.pi / 3)
         dispenser = Dispenser(
             element_produced=Poison,
@@ -187,7 +188,7 @@ class Dispensers(SingleRoom):
 
         # Dispenser on Area
         area = CoordinateSampler(area_shape='circle',
-                                 center=[x_area, 100],
+                                 center=(x_area, 100),
                                  radius=30)
         dispenser = Dispenser(
             element_produced=Poison,
@@ -198,7 +199,7 @@ class Dispensers(SingleRoom):
 
         # Dispenser on Area
         area = CoordinateSampler(area_shape='circle',
-                                 center=[x_area, 150],
+                                 center=(x_area, 150),
                                  radius=50,
                                  min_radius=30)
         dispenser = Dispenser(
@@ -210,7 +211,7 @@ class Dispensers(SingleRoom):
 
         # Dispenser on Area
         area = CoordinateSampler(area_shape='gaussian',
-                                 center=[x_area, 200],
+                                 center=(x_area, 200),
                                  std=30,
                                  radius=60)
         dispenser = Dispenser(
@@ -222,7 +223,7 @@ class Dispensers(SingleRoom):
 
         # Dispenser on Area
         area = CoordinateSampler(area_shape='gaussian',
-                                 center=[x_area, 250],
+                                 center=(x_area, 250),
                                  std=40,
                                  radius=60,
                                  min_radius=20)
@@ -270,8 +271,7 @@ class Gems(SingleRoom):
                       size=[20, 50])
         self.add_element(chest, ((x_activable, 50), 0))
 
-        key_chest = Key(graspable=True,
-                        mass=10,
+        key_chest = Key(mass=10,
                         locked_elem=chest,
                         )
         self.add_element(key_chest, ((x_gem, 50), 0))
@@ -356,33 +356,61 @@ class Doors(GridRooms):
         self.add_element(key, area_sampler)
 
 
-
-
 @PlaygroundRegister.register('test', 'teleports')
 class Teleports(SingleRoom):
 
-    def __init__(self, size=(300, 300), **playground_params):
+    def __init__(self, size=(300, 700), **playground_params):
 
         super().__init__(size=size, **playground_params)
 
-        teleport_1 = Teleport(radius=10, physical_shape='circle')
-        target_1 = Traversable(radius=10, config_key='circle')
-        teleport_1.add_target(target_1)
-        self.add_scene_element(teleport_1, [(50, 50), 0])
-        self.add_scene_element(target_1, [(250, 50), 0])
+        pos_left = (100, 100)
+        pos_right = (200, 100)
+        vis_beam = InvisibleBeam(destination=(pos_right, math.pi))
+        self.add_element(vis_beam, (pos_left, 0))
 
-        teleport_2 = Teleport(radius=10, physical_shape='circle')
-        target_2 = Basic(radius=20, config_key='circle')
-        teleport_2.add_target(target_2)
-        self.add_scene_element(teleport_2, [(50, 150), 0])
-        self.add_scene_element(target_2, [(250, 150), 0])
+        pos_left = pos_left[0], pos_left[1] + 100
+        pos_right = pos_right[0], pos_right[1] + 100
+        coord_sampler = CoordinateSampler(pos_right, area_shape='circle', radius=20)
+        vis_beam = InvisibleBeam(destination=coord_sampler, keep_inertia=False)
+        self.add_element(vis_beam, (pos_left, 0))
 
-        teleport_3 = Teleport(radius=10, physical_shape='circle')
-        teleport_4 = Teleport(radius=10, physical_shape='circle')
-        teleport_3.add_target(teleport_4)
-        teleport_4.add_target(teleport_3)
-        self.add_scene_element(teleport_3, [(50, 250), 0])
-        self.add_scene_element(teleport_4, [(250, 250), 0])
+        pos_left = pos_left[0], pos_left[1] + 100
+        pos_right = pos_right[0], pos_right[1] + 100
+        target = Physical(config_key='circle', radius=5)
+        self.add_element(target, (pos_right, 0))
+        homing = VisibleBeamHoming(destination=target, keep_inertia=True, relative_teleport=False)
+        self.add_element(homing, (pos_left, math.pi))
+
+        pos_left = pos_left[0], pos_left[1] + 100
+        pos_right = pos_right[0], pos_right[1] + 100
+        target = Physical(config_key='circle', radius=5)
+        self.add_element(target, (pos_right, math.pi/2))
+        homing = VisibleBeamHoming(destination=target, relative_teleport=True, keep_inertia=False)
+        self.add_element(homing, (pos_left, 0))
+
+        pos_left = pos_left[0], pos_left[1] + 100
+        pos_right = pos_right[0], pos_right[1] + 100
+        target = Traversable(config_key='circle', radius=10)
+        self.add_element(target, (pos_right, math.pi / 2))
+        homing = VisibleBeamHoming(destination=target, relative_teleport=True, keep_inertia=False)
+        self.add_element(homing, (pos_left, 0))
+
+        pos_left = pos_left[0]-90, pos_left[1] + 100
+        pos_right = pos_right[0]+90, pos_right[1] + 100
+        portal_red = Portal(color=Color.RED)
+        self.add_element(portal_red, (pos_left, 0))
+        portal_blue = Portal(color=Color.BLUE)
+        self.add_element(portal_blue, (pos_right, math.pi))
+
+        portal_red.destination = portal_blue
+        portal_blue.destination = portal_red
+
+        # circle_01 = Traversable(config_key='circle',
+        #                         movable=False,
+        #                         mass=100,
+        #                         texture=[150, 150, 150])
+
+
 #
 #
 # @PlaygroundRegister.register('test', 'xteleports')

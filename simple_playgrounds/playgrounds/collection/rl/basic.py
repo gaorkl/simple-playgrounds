@@ -5,7 +5,7 @@ import random
 
 from ...playground import PlaygroundRegister
 from ...layouts import SingleRoom
-# from ....elements.collection.interactive import VendingMachine
+from ....elements.collection.activable import VendingMachine
 from ....elements.collection.gem import Coin
 from ....elements.field import Field
 
@@ -27,7 +27,7 @@ class CoinMaster(SingleRoom):
 
         self.vending_machine = VendingMachine(allow_overlapping=False,
                                               reward=1)
-        self.add_scene_element(self.vending_machine, self.area_vending)
+        self.add_element(self.vending_machine, self.area_vending)
 
         self.field = Field(Coin,
                            self.area_prod,
@@ -38,7 +38,7 @@ class CoinMaster(SingleRoom):
                                'vending_machine': self.vending_machine,
                                'reward': 1
                            })
-        self.add_scene_element(self.field)
+        self.add_field(self.field)
 
         self.time_limit = 2000
 
@@ -51,7 +51,7 @@ class CoinMaster(SingleRoom):
         area_start_center = list_coord.pop()
         area_start = CoordinateSampler(center=area_start_center,
                                        area_shape='rectangle',
-                                       width_length=[80, 80])
+                                       size=(80, 80))
 
         agent_starting_area = area_start
 
@@ -61,10 +61,10 @@ class CoinMaster(SingleRoom):
 
         area_prod = CoordinateSampler(center=prod_center,
                                       area_shape='rectangle',
-                                      width_length=[80, 80])
+                                      size=(80, 80))
         area_vm = CoordinateSampler(center=vm_center,
                                     area_shape='rectangle',
-                                    width_length=[80, 80])
+                                    size=(80, 80))
 
         return agent_starting_area, area_prod, area_vm
 

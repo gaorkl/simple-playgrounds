@@ -16,7 +16,7 @@ from operator import attrgetter
 import pymunk
 import numpy as np
 
-from simple_playgrounds.definitions import SensorTypes
+from simple_playgrounds.common.definitions import SensorTypes
 from simple_playgrounds.common.entity import Entity
 from simple_playgrounds.configs import parse_configuration
 

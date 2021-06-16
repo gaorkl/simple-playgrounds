@@ -1,11 +1,15 @@
 """
 Teleport can be used to teleport an agent.
 """
-from typing import Union, List, Optional, Tuple
+from typing import Union, Optional
 from abc import ABC
+from math import pi
+
+from pymunk import Vec2d
 
 from simple_playgrounds.elements.element import TeleportElement, SceneElement
-from simple_playgrounds.definitions import CollisionTypes, ElementTypes
+from simple_playgrounds.elements.collection.basic import Traversable
+from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes, Color
 from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate
 from simple_playgrounds.agents import Agent
 
@@ -16,7 +20,7 @@ class TeleportToCoordinates(TeleportElement, ABC):
                  destination: Union[CoordinateSampler, Coordinate],
                  **kwargs):
 
-        super().__init__(destination, config_key=ElementTypes.BEAM, **kwargs)
+        super().__init__(destination=destination, config_key=ElementTypes.BEAM, **kwargs)
 
         if not isinstance(destination, CoordinateSampler):
             assert len(destination) == 2 and len(destination[0]) == 2
@@ -38,7 +42,6 @@ class InvisibleBeam(TeleportToCoordinates):
         super().__init__(destination,
                          visible_shape=False,
                          invisible_shape=True,
-                         config_key=ElementTypes.BEAM,
                          **kwargs)
 
     def _set_shape_collision(self):
@@ -53,42 +56,116 @@ class VisibleBeam(TeleportToCoordinates):
 
         super().__init__(destination,
                          visible_shape=True,
-                         invisible_shape=False,
-                         config_key=ElementTypes.BEAM,
+                         invisible_shape=True,
                          **kwargs)
 
     def _set_shape_collision(self):
-        self.pm_visible_shape.collision_type = CollisionTypes.TELEPORT
+        self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
 
 
 class TeleportToElement(TeleportElement, ABC):
 
     def __init__(self,
-                 destination: SceneElement,
-                 config_key,
-                 relative: bool = False,
+                 destination: Optional[SceneElement],
+                 config_key: ElementTypes,
+                 relative_teleport: bool = True,
                  **kwargs):
 
-        super().__init__(destination, visible_shape=True, invisible_shape=False, config_key=config_key, **kwargs)
+        super().__init__(destination=destination, config_key=config_key, **kwargs)
 
-        self._relative = relative
+        self.relative_teleport = relative_teleport
 
     def energize(self, agent: Agent):
 
-         if self._relative:
+        relative_position = Vec2d(*agent.position) - self.position
 
-             # teleport relative to destination angle
+        if not self.destination:
+            raise ValueError("Destination should be set")
 
-         else:
+        assert isinstance(self.destination, SceneElement)
 
-             # teleport is absolute, keep world orientation.
+        # How far from center?
+        if not isinstance(self.destination, Traversable):
+            distance = self.destination.radius + agent.base_platform.radius + 2
+        else:
+            distance = 0
 
-        return self.beam_coordinates
+        if self.relative_teleport:
+            new_pos = self.destination.position \
+                      + relative_position.rotated(self.destination.angle).normalized()*distance
+            new_orientation = agent.angle - self.angle + self.destination.angle + pi
+
+        else:
+            new_pos = Vec2d(*self.destination.position) + relative_position.rotated(pi).normalized()*distance
+            new_orientation = agent.angle
+
+        return tuple(new_pos), new_orientation
+
+
+class VisibleBeamHoming(TeleportToElement):
+
+    def __init__(self,
+                 destination: Optional[SceneElement],
+                 **kwargs,
+                 ):
+
+        super().__init__(destination=destination,
+                         visible_shape=True,
+                         invisible_shape=True,
+                         config_key=ElementTypes.BEAM_HOMING,
+                         **kwargs,
+                         )
 
     def _set_shape_collision(self):
-        self.pm_visible_shape.collision_type = CollisionTypes.TELEPORT
+        self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
 
 
+class InvisibleBeamHoming(TeleportToElement):
+
+    def __init__(self,
+                 destination: Optional[SceneElement],
+                 **kwargs,
+                 ):
+
+        super().__init__(destination=destination,
+                         visible_shape=False,
+                         invisible_shape=True,
+                         config_key=ElementTypes.BEAM_HOMING,
+                         **kwargs,
+                         )
+
+    def _set_shape_collision(self):
+        self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
+
+
+class Portal(TeleportElement):
+
+    def __init__(self,
+                 color: Color):
+
+        super().__init__(destination=None,
+                         visible_shape=True,
+                         invisible_shape=True,
+                         config_key=ElementTypes.PORTAL,
+                         texture=color.value)
+
+    def _set_shape_collision(self):
+        self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
+
+    def energize(self, agent: Agent):
+
+        relative_position = Vec2d(*agent.position) - self.position
+
+        if not self.destination:
+            raise ValueError("Destination should be set")
+
+        assert isinstance(self.destination, Portal)
+
+        new_pos = self.destination.position \
+                  + relative_position.rotated(self.destination.angle - self.angle)
+        new_orientation = agent.angle - self.angle + self.destination.angle + pi
+
+        return tuple(new_pos), new_orientation
 
 
 # pylint: disable=line-too-long
@@ -123,17 +200,17 @@ class TeleportToElement(TeleportElement, ABC):
 #
 #     agent.coordinates = sampler.sample()
 #
-
-
-class TeleportElement(SceneElement, ABC):
-    def __init__(self, texture=(0, 100, 100), **kwargs):
-        super().__init__(texture=texture, **kwargs)
-        self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
-
-        self.reward = 0
-        self.reward_provided = False
-
-        self.target = None
-
-    def add_target(self, target):
-        self.target = target
+#
+#
+# class TeleportElement(SceneElement, ABC):
+#     def __init__(self, texture=(0, 100, 100), **kwargs):
+#         super().__init__(texture=texture, **kwargs)
+#         self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
+#
+#         self.reward = 0
+#         self.reward_provided = False
+#
+#         self.target = None
+#
+#     def add_target(self, target):
+#         self.target = target

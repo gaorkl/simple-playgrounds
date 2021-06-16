@@ -4,7 +4,7 @@ Gem interacts with other SceneElements.
 """
 from typing import Union
 
-from simple_playgrounds.definitions import ElementTypes
+from simple_playgrounds.common.definitions import ElementTypes
 from ..element import GemElement
 from .activable import Lock, Chest
 
@@ -16,7 +16,8 @@ class Coin(GemElement):
 
         super().__init__(config_key=ElementTypes.COIN,
                          elem_activated=vending_machine,
-                         **kwargs)
+                         **kwargs,
+                         )
 
 
 class Key(GemElement):
@@ -26,5 +27,5 @@ class Key(GemElement):
 
         super().__init__(config_key=ElementTypes.KEY,
                          elem_activated=locked_elem,
-                         graspable=True,
-                         **kwargs)
+                         **kwargs,
+                         )

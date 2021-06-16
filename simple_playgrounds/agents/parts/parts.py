@@ -13,7 +13,7 @@ import math
 import pymunk
 
 from simple_playgrounds.common.entity import Entity
-from simple_playgrounds.definitions import PartTypes, CollisionTypes, ARM_MAX_FORCE
+from simple_playgrounds.common.definitions import PartTypes, CollisionTypes, ARM_MAX_FORCE
 from simple_playgrounds.configs import parse_configuration
 
 # pylint: disable=line-too-long

@@ -2,11 +2,8 @@ import random
 
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
-from simple_playgrounds.elements. import (
-    Basic,
-    DeathZone,
-    GoalZone,
-)
+from simple_playgrounds.elements.collection.basic import Physical
+from simple_playgrounds.elements.collection.zone import DeathZone, GoalZone
 from simple_playgrounds.common.position_utils import CoordinateSampler
 
 
@@ -32,21 +29,21 @@ class EndgoalRoomCue(SingleRoom):
         area_center, _ = self.area_rooms[(0, 0)]
         area_start = CoordinateSampler(center=area_center,
                                        area_shape='rectangle',
-                                       width_length=(100, 100))
+                                       size=(100, 100))
         self.initial_agent_coordinates = area_start
 
         # Visual Cues for the agent to orient itself.
-        obstacle_1 = Basic(default_config_key='pentagon', radius=9)
+        obstacle_1 = Physical(default_config_key='pentagon', radius=9)
         self.add_scene_element(obstacle_1, ((60, 30), 0.34))
 
-        obstacle_2 = Basic(default_config_key='rectangle',
+        obstacle_2 = Physical(default_config_key='rectangle',
                            width_length=[8, 12])
         self.add_scene_element(obstacle_2, ((130, 150), 1.7))
 
-        obstacle_3 = Basic(default_config_key='square', radius=8)
+        obstacle_3 = Physical(default_config_key='square', radius=8)
         self.add_scene_element(obstacle_3, ((40, 140), 0.4))
 
-        obstacle_4 = Basic(physical_shape='triangle',
+        obstacle_4 = Physical(physical_shape='triangle',
                            radius=14,
                            texture=(150, 200, 200))
         self.add_scene_element(obstacle_4, ((160, 60), 0))
@@ -77,7 +74,7 @@ class EndgoalRoomCue(SingleRoom):
             self._remove_element_from_playground(self.goal)
             self._remove_element_from_playground(self.cue)
 
-        self.cue = Basic(physical_shape='circle',
+        self.cue = Physical(physical_shape='circle',
                          radius=10,
                          texture=col,
                          is_temporary_entity=True)

@@ -19,7 +19,7 @@ import pygame
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
 from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
-from simple_playgrounds.definitions import CollisionTypes, PhysicalShapes
+from simple_playgrounds.common.definitions import CollisionTypes, PhysicalShapes
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes

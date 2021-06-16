@@ -20,7 +20,7 @@ from pygame.locals import *  # pylint: disable=wildcard-import
 
 from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts.parts import Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
-from simple_playgrounds.definitions import KeyTypes
+from simple_playgrounds.common.definitions import KeyTypes
 from simple_playgrounds.agents.parts.actuators import AngularVelocity, LongitudinalForce, LateralForce, Grasp, Activate, AngularRelativeVelocity
 
 # pylint: disable=undefined-variable

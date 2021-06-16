@@ -9,7 +9,7 @@ from simple_playgrounds.elements.element import InteractiveElement, SceneElement
 from simple_playgrounds.agents import Agent
 from simple_playgrounds.common.timer import Timer
 from simple_playgrounds.elements.collection.basic import Door
-from simple_playgrounds.definitions import CollisionTypes, ElementTypes
+from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.configs import parse_configuration
 

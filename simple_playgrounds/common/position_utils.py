@@ -2,7 +2,7 @@
 Module containing classes to generate random positions and trajectories
 
 """
-from typing import Tuple, Optional, Union, List
+from typing import Tuple, Optional, Union
 
 import pymunk
 import random
@@ -11,7 +11,7 @@ from collections.abc import Generator
 
 import numpy as np
 
-from simple_playgrounds.definitions import geometric_shapes
+from simple_playgrounds.common.definitions import geometric_shapes
 
 Coordinate = Tuple[Tuple[float, float], float]
 

@@ -12,7 +12,7 @@ from skimage.transform import resize
 import pymunk
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
-from simple_playgrounds.definitions import SensorTypes
+from simple_playgrounds.common.definitions import SensorTypes
 
 # pylint: disable=no-member
 

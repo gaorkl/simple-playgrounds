@@ -10,7 +10,7 @@ from skimage import draw
 import pygame
 
 from simple_playgrounds.agents.sensors.sensor import Sensor
-from simple_playgrounds.definitions import SensorTypes
+from simple_playgrounds.common.definitions import SensorTypes
 from simple_playgrounds.configs import parse_configuration
 
 # pylint: disable=no-member
@@ -115,8 +115,9 @@ class TopdownSensor(Sensor):
         cropped = pygame.Surface(
             (2 * self._max_range + 1, 2 * self._max_range + 1))
 
-        pos_x = playground.length - (self.anchor.position[0] + self._max_range)
-        pos_y = playground.length - (self.anchor.position[1] + self._max_range)
+        # Check that this is correct:
+        pos_x = playground.size[1] - (self.anchor.position[0] + self._max_range)
+        pos_y = playground.size[1] - (self.anchor.position[1] + self._max_range)
         cropped.blit(sensor_surface, (pos_x, pos_y))
 
         img_cropped = pygame.surfarray.pixels3d(cropped).astype(float)
@@ -258,7 +259,7 @@ class FullPlaygroundSensor(Sensor):
 
         full_image = self.get_sensor_image(playground, sensor_surface)
         if self._scale is None:
-            self.set_scale(playground._size)
+            self.set_scale(playground.size)
 
         self.sensor_values = resize(full_image,
                                     (self._scale[0], self._scale[1]),

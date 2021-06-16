@@ -94,114 +94,107 @@ def test_engine_run(base_forward_agent):
 
 
 # Run all test playgrounds with basic non-interactive agent
-def test_all_test_playgrounds(base_forward_agent):
+def test_all_test_playgrounds(base_forward_agent, pg_cls):
 
     agent = base_forward_agent
 
-    for _, pg_class in PlaygroundRegister.playgrounds['test'].items():
-        playground = pg_class()
+    playground = pg_cls()
 
-        playground.add_agent(agent, allow_overlapping=False)
+    playground.add_agent(agent, allow_overlapping=False)
 
-        print('Starting testing of ', pg_class.__name__)
+    print('Starting testing of ', pg_cls.__name__)
 
-        engine = Engine(playground, time_limit=10000)
-        engine.run()
-        assert 0 < agent.position[0] < playground.size[0]
-        assert 0 < agent.position[1] < playground.size[1]
+    engine = Engine(playground, time_limit=10000)
+    engine.run()
+    assert 0 < agent.position[0] < playground.size[0]
+    assert 0 < agent.position[1] < playground.size[1]
 
-        engine.terminate()
-        playground.remove_agent(agent)
+    engine.terminate()
+    playground.remove_agent(agent)
 
 
 # Run all test playgrounds with basic interactive agent
-def test_all_test_playgrounds_interactive(base_forward_agent):
+def test_all_test_playgrounds_interactive(base_forward_agent, pg_cls):
 
     agent = base_forward_agent
 
-    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
-        playground = pg_class()
+    playground = pg_cls()
 
-        playground.add_agent(agent, allow_overlapping=False)
+    playground.add_agent(agent, allow_overlapping=False)
 
-        print('Starting testing of ', pg_class.__name__)
+    print('Starting testing of ', pg_cls.__name__)
 
-        engine = Engine(playground, time_limit=10000)
-        engine.run()
-        assert 0 < agent.position[0] < playground.size[0]
-        assert 0 < agent.position[1] < playground.size[1]
+    engine = Engine(playground, time_limit=10000)
+    engine.run()
+    assert 0 < agent.position[0] < playground.size[0]
+    assert 0 < agent.position[1] < playground.size[1]
 
-        engine.terminate()
-        playground.remove_agent(agent)
+    engine.terminate()
+    playground.remove_agent(agent)
 
 
 # Run all test playgrounds with 100 agents
-def test_multiagents(base_forward_agent):
+def test_multiagents(base_forward_agent, pg_cls):
 
-    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
+    playground = pg_cls()
 
-        playground = pg_class()
-        print('Starting Multiagent testing of ', pg_class.__name__)
-        center, shape = playground.initial_agent_coordinates
-        pos_area_sampler = CoordinateSampler(center=center,
-                                             area_shape='rectangle',
-                                             size=shape)
+    print('Starting Multiagent testing of ', pg_cls.__name__)
 
-        for _ in range(100):
-            agent = BaseAgent(controller=RandomContinuous(), interactive=True)
-            playground.add_agent(agent, pos_area_sampler)
+    pos_area_sampler = playground.initial_agent_coordinates
 
-        assert len(playground.agents) == 100
+    for _ in range(100):
+        agent = BaseAgent(controller=RandomContinuous(), interactive=True)
+        playground.add_agent(agent, pos_area_sampler)
 
-        engine = Engine(playground, time_limit=100, screen=False)
-        engine.run(update_screen=False)
-        engine.terminate()
+    assert len(playground.agents) == 100
+
+    engine = Engine(playground, time_limit=100, screen=False)
+    engine.run(update_screen=False)
+    engine.terminate()
 
 
-# Run all test playgrounds with 10 agents
-def test_multiagents_no_overlapping(base_forward_agent):
+# Run all test playgrounds with 4 agents
+def test_multiagents_no_overlapping(base_forward_agent, pg_cls):
 
-    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
+    playground = pg_cls()
 
-        playground = pg_class()
-        print('Starting Multiagent testing of ', pg_class.__name__)
+    print('Starting Multiagent testing of ', pg_cls.__name__)
 
-        for _ in range(2):
-            agent = BaseAgent(controller=RandomContinuous(), interactive=True)
-            playground.add_agent(agent, playground.initial_agent_coordinates)
+    for _ in range(4):
+        agent = BaseAgent(controller=RandomContinuous(), interactive=True)
+        playground.add_agent(agent, allow_overlapping=False)
 
-        assert len(playground.agents) == 2
+    assert len(playground.agents) == 4
 
-        engine = Engine(playground, time_limit=100, screen=False)
-        engine.run(update_screen=False)
+    engine = Engine(playground, time_limit=100, screen=False)
+    engine.run(update_screen=False)
 
 
 # Run all test playgrounds with 10 agents
-def test_multisteps(base_forward_agent):
+def test_multisteps(base_forward_agent, pg_cls):
 
     agent = base_forward_agent
     sensor = Touch(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(sensor)
 
-    for pg_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
 
-        playground = pg_class()
-        print('Starting Multistep testing of ', pg_class.__name__)
-        playground.add_agent(agent)
+    playground = pg_cls()
+    print('Starting Multistep testing of ', pg_cls.__name__)
+    playground.add_agent(agent)
 
-        engine = Engine(playground, time_limit=10000, screen=False)
+    engine = Engine(playground, time_limit=10000, screen=False)
 
-        while engine.game_on:
+    while engine.game_on:
 
-            actions = {}
-            for agent in engine.agents:
-                actions[agent] = agent.controller.generate_actions()
+        actions = {}
+        for agent in engine.agents:
+            actions[agent] = agent.controller.generate_actions()
 
-            engine.multiple_steps(actions, n_steps=3)
-            engine.update_observations()
+        engine.multiple_steps(actions, n_steps=3)
+        engine.update_observations()
 
-        engine.terminate()
-        playground.remove_agent(agent)
+    engine.terminate()
+    playground.remove_agent(agent)
 
 
 def test_agent_in_different_environments(base_forward_agent):

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pymunk
 
-from simple_playgrounds.definitions import ActionSpaces, LINEAR_FORCE, ANGULAR_VELOCITY
+from simple_playgrounds.common.definitions import ActionSpaces, LINEAR_FORCE, ANGULAR_VELOCITY
 
 
 class Actuator(ABC):

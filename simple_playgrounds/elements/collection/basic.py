@@ -1,15 +1,13 @@
 """
 Module for Basic SceneElements
 """
-import random
-from typing import Union, Optional, List, Dict, Tuple
+from typing import Union, Optional
 
 import pymunk
 
 from simple_playgrounds.elements.element import SceneElement
 from simple_playgrounds.configs import parse_configuration
-from simple_playgrounds.definitions import ElementTypes
-from simple_playgrounds.common.texture import Texture, ColorTexture, TextureGenerator
+from simple_playgrounds.common.definitions import ElementTypes
 
 
 class Physical(SceneElement):

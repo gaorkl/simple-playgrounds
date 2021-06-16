@@ -24,7 +24,7 @@ class Basics(SingleRoom):
 
 def test_new_object():
 
-    pg = PlaygroundRegister.playgrounds['test_test']['basic']()
+    pg = Basics()
     assert pg.my_obj.radius == 22
 
 

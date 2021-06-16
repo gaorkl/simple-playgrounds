@@ -7,7 +7,7 @@ from typing import Optional
 from abc import ABC
 
 from simple_playgrounds.elements.element import ZoneElement
-from simple_playgrounds.definitions import ElementTypes
+from simple_playgrounds.common.definitions import ElementTypes
 from simple_playgrounds.configs import parse_configuration
 
 

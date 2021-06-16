@@ -31,7 +31,7 @@ from pymunk import pygame_util
 
 from skimage.transform import rescale
 
-from simple_playgrounds.definitions import SensorTypes, SIMULATION_STEPS
+from simple_playgrounds.common.definitions import SensorTypes, SIMULATION_STEPS
 from simple_playgrounds.agents.parts.actuators import Activate
 
 _BORDER_IMAGE = 5

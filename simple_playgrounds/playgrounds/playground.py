@@ -15,7 +15,7 @@ from typing import Tuple, Union, List, Dict, Optional
 from abc import ABC
 import pymunk
 
-from simple_playgrounds.definitions import SPACE_DAMPING, CollisionTypes
+from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes
 
 from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts import Part
@@ -161,6 +161,8 @@ class Playground(ABC):
         # reset timers
         for timer in self._timers:
             timer.reset()
+
+        self._teleported = []
 
         self.done = False
 
@@ -451,6 +453,13 @@ class Playground(ABC):
 
         if isinstance(entity, Agent):
 
+            agent_parts = [part for part in entity.parts]
+
+            if not entity_filter:
+                entity_filter = agent_parts
+            else:
+                entity_filter += agent_parts
+
             for part in entity.parts:
                 if self._overlaps(part, entity_filter=entity_filter):
                     return True
@@ -461,6 +470,7 @@ class Playground(ABC):
             assert entity.pm_visible_shape
 
         if entity_2 and entity_2.pm_visible_shape:
+
             return entity.pm_visible_shape.shapes_collide(
                 entity_2.pm_visible_shape)
 
@@ -628,13 +638,22 @@ class Playground(ABC):
 
         assert isinstance(teleport, TeleportElement)
 
-        if (agent, teleport) in self._teleported or agent.is_teleporting:
+        if ((agent, teleport) in self._teleported) or agent.is_teleporting:
             return True
 
-        if isinstance(teleport.target, TeleportElement):
-            self._teleported.append((agent, teleport.target))
+        if isinstance(teleport.destination, TeleportElement):
+            self._teleported.append((agent, teleport.destination))
 
-        agent.coordinates = teleport.energize(agent)
+        new_position, new_angle = teleport.energize(agent)
+
+        delta_angle = agent.angle - new_angle
+
+        agent.position, agent.angle = new_position, new_angle
+
+        if teleport.keep_inertia:
+            agent.velocity = pymunk.Vec2d(*agent.velocity).rotated(-delta_angle)
+        else:
+            agent.velocity = (0, 0)
 
         agent.is_teleporting = True
 
@@ -653,12 +672,14 @@ class Playground(ABC):
         self.add_interaction(CollisionTypes.GEM,
                              CollisionTypes.ACTIVABLE_BY_GEM,
                              self._gem_activates_element)
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
+        self.add_interaction(CollisionTypes.PART,
+                             CollisionTypes.TELEPORT,
                              self._agent_teleports)
 
     def add_interaction(self, collision_type_1: CollisionTypes,
                         collision_type_2: CollisionTypes,
-                        interaction_function):
+                        interaction_function,
+                        ):
         """
 
         Args:

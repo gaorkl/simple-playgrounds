@@ -7,7 +7,7 @@ import random
 
 from simple_playgrounds.elements.element import InteractiveElement
 from simple_playgrounds.configs import parse_configuration
-from simple_playgrounds.definitions import ElementTypes, CollisionTypes
+from simple_playgrounds.common.definitions import ElementTypes, CollisionTypes
 from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
 
 
@@ -62,7 +62,7 @@ class ColorChanging(InteractiveElement):
         self._texture_surface = self.texture.surface
         self._texture_changed = True
 
-    def activate(self):
+    def activate(self, _):
         """
         When timer finishes, changes texture.
 
@@ -123,9 +123,9 @@ class RewardFlipper(ColorChanging):
         super().__init__(textures=textures, mode=mode, activable_by_agent=activable_by_agent, **kwargs)
         assert len(self.textures) == 2
 
-    def activate(self):
+    def activate(self, _):
 
-        super().activate()
+        super().activate(None)
 
         if self.state == 0:
             self.element_flipped.reward = abs(self.element_flipped.reward)

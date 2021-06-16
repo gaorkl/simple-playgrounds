@@ -12,7 +12,7 @@ import numpy as np
 from skimage.draw import line, circle_perimeter
 
 from simple_playgrounds.agents.sensors.sensor import RayCollisionSensor
-from simple_playgrounds.definitions import Detection, SensorTypes
+from simple_playgrounds.common.definitions import Detection, SensorTypes
 from simple_playgrounds.configs import parse_configuration
 
 

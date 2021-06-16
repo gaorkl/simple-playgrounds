@@ -3,7 +3,7 @@ Module for Edible SceneElement
 """
 
 from abc import ABC
-from simple_playgrounds.definitions import CollisionTypes, ElementTypes
+from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
 from simple_playgrounds.configs import parse_configuration
 from simple_playgrounds.elements.element import InteractiveElement
 

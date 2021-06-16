@@ -2,11 +2,11 @@
 Module that defines Base Class SceneElement
 """
 
-from typing import Union, Tuple, Optional
+from typing import Union, Optional
 from simple_playgrounds.common.timer import Timer
 from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate
 from simple_playgrounds.configs import parse_configuration
-from simple_playgrounds.definitions import CollisionTypes
+from simple_playgrounds.common.definitions import CollisionTypes
 
 from abc import ABC, abstractmethod
 
@@ -24,7 +24,8 @@ class TeleportElement(SceneElement, ABC):
     def __init__(
         self,
         config_key,
-        destination: Union[Coordinate, CoordinateSampler, SceneElement],
+        destination: Optional[Union[Coordinate, CoordinateSampler, SceneElement]],
+        keep_inertia: bool = True,
         **entity_params,
     ):
 
@@ -33,11 +34,25 @@ class TeleportElement(SceneElement, ABC):
 
         super().__init__(**entity_params)
 
-        self.destination = destination
+        self._destination = destination
+        self.keep_inertia = keep_inertia
 
     @abstractmethod
     def energize(self, agent: Agent):
         pass
+
+    @property
+    def destination(self):
+
+        if not self._destination:
+            raise ValueError("Destination not set")
+
+        return self._destination
+
+    @destination.setter
+    def destination(self, destination):
+
+        self._destination = destination
 
 
 class GemElement(SceneElement, ABC):

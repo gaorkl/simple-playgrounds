@@ -12,7 +12,7 @@ import random
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from simple_playgrounds.definitions import ActionSpaces
+from simple_playgrounds.common.definitions import ActionSpaces
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.agents.parts.actuators import Grasp
 
@@ -176,6 +176,11 @@ class Agent(ABC):
             else:
                 part.set_relative_coordinates()
 
+    def reindex_shapes(self):
+
+        for part in self.parts:
+            part.pm_body.space.reindex_shapes_for_body(part.pm_body)
+
     @property
     def position(self):
         """
@@ -213,6 +218,19 @@ class Agent(ABC):
     def velocity(self, velocity):
         for part in self.parts:
             part.velocity = velocity
+
+    @property
+    def angular_velocity(self):
+        """
+        Velocity of the agent.
+        In case of an Agent with multiple Parts, its velocity is the velocity of the base_platform.
+        """
+        return self.base_platform.angular_velocity
+
+    @angular_velocity.setter
+    def angular_velocity(self, angular_velocity):
+        for part in self.parts:
+            part.angular_velocity = angular_velocity
 
     # SENSORS
 
