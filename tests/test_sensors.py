@@ -1,8 +1,8 @@
-from simple_playgrounds.agents.parts.controllers import RandomContinuous
-from simple_playgrounds.agents.agents import HeadAgent
-from simple_playgrounds.agents.sensors import RgbCamera
-from simple_playgrounds import Engine
-from simple_playgrounds.playgrounds.collection import Teleports
+from src.simple_playgrounds import RandomContinuous
+from src.simple_playgrounds import HeadAgent
+from src.simple_playgrounds import RgbCamera
+from src.simple_playgrounds import Engine
+from src.simple_playgrounds import Teleports
 
 
 def test_sensor_without_params(any_sensor, pg_cls):

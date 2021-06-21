@@ -2,15 +2,15 @@
 # from simple_playgrounds.playgrounds.collection.rl.foraging import CandyFireballs
 # from simple_playgrounds.playgrounds.collection.rl.sequential import DispenserEnv, DoorDispenserCoin
 
-from simple_playgrounds.playgrounds.collection.test.test_playgrounds import *
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from src.simple_playgrounds import *
+from src.simple_playgrounds import PlaygroundRegister
 
 # from simple_playgrounds.playgrounds import SingleRoom, GridRooms
 
-from simple_playgrounds.engine import Engine
-from simple_playgrounds.agents.parts.controllers import Keyboard, RandomContinuous, RandomDiscrete
-from simple_playgrounds.agents.agents import HeadAgent
-from simple_playgrounds.agents.sensors import *
+from src.simple_playgrounds import Engine
+from src.simple_playgrounds import Keyboard
+from src.simple_playgrounds import HeadAgent
+from src.simple_playgrounds import *
 import cv2
 import time
 
@@ -18,7 +18,7 @@ import time
 # my_playground = GridRooms(size=(300, 400), room_layout=(2, 3), doorstep_size=50, wall_depth=5)#, playground_seed=12)
 
 print(PlaygroundRegister.playgrounds)
-my_playground = Teleports()
+my_playground = Trajectories()
 
 # d = my_playground.grid_rooms[0][0].doorstep_right.generate_door()
 # my_playground.add_element(d)
@@ -45,15 +45,15 @@ my_agent.add_sensor(rgb)
 # rgb = RgbCamera(my_agent.base_platform, fov=180, resolution=64, max_range=500)
 # my_agent.add_sensor(rgb)
 
-# rgb = RgbCamera(my_agent.base_platform, min_range=my_agent.base_platform.radius, fov=180, resolution=64, max_range=500)
-# my_agent.add_sensor(rgb)
+rgb = RgbCamera(my_agent.base_platform, min_range=my_agent.base_platform.radius + 1, fov=180, resolution=64, max_range=500)
+my_agent.add_sensor(rgb)
 
-# grey = GreyCamera(my_agent.base_platform, invisible_elements=my_agent.parts, fov=180, resolution=64, max_range=500)
-# my_agent.add_sensor(grey)
+grey = GreyCamera(my_agent.base_platform, invisible_elements=my_agent.parts, fov=180, resolution=64, max_range=500)
+my_agent.add_sensor(grey)
 # # #
 # # # # ----------------------------------------------------------
-# lidar = Lidar(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=180, resolution=128, max_range=400)
-# my_agent.add_sensor(lidar)
+lidar = Lidar(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=180, resolution=128, max_range=400)
+my_agent.add_sensor(lidar)
 # # # # #
 # depth = Proximity(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=100, resolution=64, max_range=400)
 # my_agent.add_sensor(depth)
@@ -62,8 +62,8 @@ my_agent.add_sensor(rgb)
 # my_agent.add_sensor(touch)
 # #
 # # # ----------------------------------------------------------
-# sem_ray = SemanticRay(my_agent.base_platform, invisible_elements=my_agent.parts, remove_duplicates=False, fov=90)
-# my_agent.add_sensor(sem_ray)
+sem_ray = SemanticRay(my_agent.base_platform, invisible_elements=my_agent.parts, remove_duplicates=False, fov=90)
+my_agent.add_sensor(sem_ray)
 # # #
 # sem_cones = SemanticCones(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, remove_duplicates=False)
 # my_agent.add_sensor(sem_cones)
@@ -107,6 +107,8 @@ my_playground.add_agent(my_agent, allow_overlapping=False)
 # we use the option screen=True to use a keyboard controlled agent later on.
 engine = Engine(playground=my_playground, screen=True, debug=False)
 
+my_playground.remove_agent(my_agent)
+
 # Run all
 t_start = time.time()
 engine.run(update_screen=True, print_rewards=True)
@@ -117,11 +119,11 @@ print(10000 / (t_stop - t_start))
 # rgb = RgbCamera(my_agent.base_platform, invisible_elements=my_agent.parts, resolution=64, max_range=500)
 # my_agent.add_sensor(rgb)
 # my_playground.add_agent(my_agent)
-
-for i in range(5):
-    # Run step by step and display
-    engine.reset()
-    engine.run(update_screen=True)
+#
+# for i in range(5):
+#     # Run step by step and display
+#     engine.reset()
+#     engine.run(update_screen=True)
 
 engine.reset()
 

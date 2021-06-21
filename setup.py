@@ -8,9 +8,7 @@ setup(name='simple_playgrounds',
       description='Simulator for Embedded Learning',
       author='Michael Garcia Ortiz',
       author_email='michael.garcia-ortiz@city.ac.uk',
-      packages=[
-          package for package in find_packages()
-          if package.startswith('simple_playgrounds')
-      ],
+      packages=find_packages(where="src"),
+      package_dir={"": "src"},
       include_package_data=True,
       install_requires=requirements)

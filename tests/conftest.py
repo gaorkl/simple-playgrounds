@@ -1,7 +1,7 @@
 import pytest
 
 from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
-                                              HeadEyeAgent)
+                                              HeadEyeAgent, FullAgent)
 from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
@@ -10,8 +10,6 @@ from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
                                                SemanticRay, SemanticCones)
 
 ### Agent Body
-
-agent_classes = [BaseAgent, HeadAgent, HeadEyeAgent]
 
 
 @pytest.fixture(scope="module", params=[RandomDiscrete, RandomContinuous])
@@ -39,8 +37,13 @@ def random_controller(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=agent_classes)
-def agent_cls(request):
+@pytest.fixture(scope="module", params=[BaseAgent, HeadAgent, HeadEyeAgent])
+def simple_agent_cls(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[BaseAgent, HeadAgent, HeadEyeAgent, FullAgent])
+def all_agent_cls(request):
     return request.param
 
 
@@ -97,3 +100,4 @@ def pg_cls(request):
 def pg_rl_cls(request):
     _, pg_class = request.param
     return pg_class
+
