@@ -4,8 +4,8 @@ InteractiveSceneElements can be activated by an agent.
 from typing import Dict, Optional, Union, List, Type
 from abc import ABC
 
-from src.simple_playgrounds.elements.element import InteractiveElement, SceneElement, GemElement
-from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
+from ...elements.element import InteractiveElement, SceneElement, GemElement
+from ...common.definitions import CollisionTypes, ElementTypes
 
 from ...agents.agent import Agent
 from ...common.timer import Timer

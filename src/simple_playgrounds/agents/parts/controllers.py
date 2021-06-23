@@ -14,7 +14,7 @@ class Controller(ABC):
     def __init__(self):
 
         self.require_key_mapping = False
-        self.controlled_actuators = []
+        self._controlled_actuators = []
 
     @abstractmethod
     def generate_actions(self):
@@ -32,6 +32,14 @@ class Controller(ABC):
             commands[actuator] = actuator.default_value
 
         return commands
+
+    @property
+    def controlled_actuators(self):
+        return self._controlled_actuators
+
+    @controlled_actuators.setter
+    def controlled_actuators(self, contr):
+        self._controlled_actuators = contr
 
 
 class External(Controller):
@@ -182,4 +190,11 @@ class Keyboard(Controller):
 
         return commands
 
+    @property
+    def controlled_actuators(self):
+        return self._controlled_actuators
 
+    @controlled_actuators.setter
+    def controlled_actuators(self, contr):
+        self.controlled_actuators = contr
+        self.discover_key_mapping()

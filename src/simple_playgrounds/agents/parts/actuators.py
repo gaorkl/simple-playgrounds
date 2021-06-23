@@ -1,11 +1,10 @@
-from typing import Tuple
+from typing import Tuple, Optional, Dict
 from abc import ABC, abstractmethod
 import numpy as np
 import pymunk
 from PIL import ImageFont, ImageDraw
 
-from ...common.definitions import LINEAR_FORCE, ANGULAR_VELOCITY
-from simple_playgrounds.common.definitions import KeyTypes, ActionSpaces
+from ...common.definitions import LINEAR_FORCE, ANGULAR_VELOCITY, KeyTypes, ActionSpaces
 from .parts import Part
 
 
@@ -17,21 +16,41 @@ class Actuator(ABC):
         - interactive actions (eat, grasp, ...)
     """
 
-    action_space = None
+    action_space: Optional[ActionSpaces] = None
 
     def __init__(self,
                  part: Part,
-                 ):
+                 noise_params: Optional[Dict] = None):
         """
 
         Args:
             part (Part): part that the Actuator is controlling.
+            noise_params: Dictionary of noise parameters.
+                Noise is applied to the actuator, before action.
+
+        Noise Parameters:
+            type: 'gaussian'
+            mean: mean of gaussian noise (default 0)
+            scale: scale / std of gaussian noise (default 1)
         """
 
         self.part = part
-        self.current_value = 0
-        self.has_key_mapping = False
-        self.key_map = {}
+        self.current_value: float = 0
+        self.has_key_mapping: bool = False
+        self.key_map: Dict = {}
+
+        # Motor noise
+        self._noise = False
+        if noise_params is not None:
+            self._noise = True
+            self._noise_type = noise_params.get('type', 'gaussian')
+
+            if self._noise_type == 'gaussian':
+                self._noise_mean = noise_params.get('mean', 0)
+                self._noise_scale = noise_params.get('scale', 1)
+
+            else:
+                raise ValueError('Noise type not implemented')
 
     def assign_key(self,
                    key: int,
@@ -78,6 +97,35 @@ class Actuator(ABC):
     def max(self):
         pass
 
+    #
+    # def _apply_noise(self, actions_dict):
+    #
+    #     noisy_actions = {}
+    #
+    #     if self._noise_type == 'gaussian':
+    #
+    #         for actuator, value in actions_dict.items():
+    #
+    #             if actuator.action_space is ActionSpaces.CONTINUOUS:
+    #
+    #                 additive_noise = random.gauss(self._noise_mean,
+    #                                               self._noise_scale)
+    #
+    #                 new_value = additive_noise + value
+    #                 new_value = new_value if new_value > actuator.min else actuator.min
+    #                 new_value = new_value if new_value < actuator.max else actuator.max
+    #
+    #                 noisy_actions[actuator] = new_value
+    #
+    #             else:
+    #
+    #                 noisy_actions[actuator] = value
+    #
+    #     else:
+    #         raise ValueError('Noise type not implemented')
+    #
+    #     return noisy_actions
+
 
 # DISCRETE ACTUATORS
 
@@ -109,6 +157,9 @@ class DiscreteActuator(Actuator, ABC):
     def _pre_step(self, action_index):
         assert action_index in range(self.range)
         self.current_value = action_index
+
+    def reset(self):
+        self.current_value = 0
 
     @abstractmethod
     def apply_action(self,
@@ -181,19 +232,31 @@ class InteractionActuator(DiscreteActuator, ABC):
 
 
 class Activate(InteractionActuator):
+
+    def __init__(self, part):
+        super().__init__(part)
+        self.is_activating = 0
+
     def apply_action(self, action_index):
 
         self._pre_step(action_index)
-        self.part.is_activating = self.actuator_values[action_index]
+        self.is_activating = self.actuator_values[action_index]
 
 
 class Grasp(InteractionActuator):
+
+    def __init__(self, part):
+        super().__init__(part)
+        self.is_grasping = 0
+        self.is_holding = False
+        self.grasped = []
+
     def apply_action(self, action_index):
         self._pre_step(action_index)
-        self.part.is_grasping = self.actuator_values[action_index]
+        self.is_grasping = self.actuator_values[action_index]
 
-        if self.part.is_holding and not self.part.is_grasping:
-            self.part.is_holding = False
+        if self.is_holding and not self.is_grasping:
+            self.is_holding = False
 
 
 # CONTINUOUS ACTUATORS

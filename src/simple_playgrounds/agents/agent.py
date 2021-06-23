@@ -5,16 +5,24 @@ It is possible to define custom Agent with
 body parts, sensors and corresponding Keyboard commands.
 
 Examples can be found in simple_playgrounds/agents/agents.py
-"""
-from abc import ABC
 
-import random
+"""
+from __future__ import annotations
+from typing import List, Optional, Dict, Union, TYPE_CHECKING
+if TYPE_CHECKING:
+    from .sensors.sensor import Sensor
+    from .parts.parts import Part
+    from .parts.actuators import Actuator
+    from .parts.controllers import Controller
+    from pymunk import Shape
+    from pygame import Surface
+    from ..common.entity import Entity
+
+from abc import ABC
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from ..common.position_utils import CoordinateSampler
-from .parts.actuators import Grasp
-from simple_playgrounds.common.definitions import ActionSpaces
+from ..common.position_utils import CoordinateSampler, Coordinate
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -31,11 +39,20 @@ class Agent(ABC):
 
     Attributes:
         name: name of the agent. Either provided by the user or generated using internal counter.
+        base_platform: Main part of the agent. Can be mobile or fixed.
+        parts: Different parts attached to the base or to other parts.
+        actuators:
+        sensors:
+        initial_coordinates:
+
 
     """
-    _index_agent = 0
+    _index_agent: int = 0
 
-    def __init__(self, base_platform, name=None, noise_params=None):
+    def __init__(self,
+                 base_platform: Part,
+                 name: Optional[str] = None,
+                 ):
         """
         Base class for agents.
 
@@ -43,13 +60,7 @@ class Agent(ABC):
             base_platform: Platform object, required to initialize an agent.
                 All agents have a Platform.
             name: Name of the agent. If not provide, a name will be added by default.
-            noise_params: Dictionary of noise parameters.
-                Noise is applied to the actuator, before action.
 
-        Noise Parameters:
-            type: 'gaussian'
-            mean: mean of gaussian noise (default 0)
-            scale: scale / std of gaussian noise (default 1)
         """
 
         self.name: str
@@ -60,54 +71,33 @@ class Agent(ABC):
         Agent._index_agent += 1
 
         # List of sensors
-        self.sensors = []
+        self.sensors: List[Sensor] = []
 
         # Body parts
-        self.base_platform = base_platform
-        self.parts = [self.base_platform]
+        self.base_platform: Part = base_platform
+        self.parts: List[Part] = [self.base_platform]
 
         # Default starting position
-        self.initial_coordinates = None
-
-        # Information about sensor types
-        self.has_geometric_sensor = False
-        self.has_visual_sensor = False
-
-        # Replaced when agent is put in playground
-        self.size_playground = (0, 0)
+        self.initial_coordinates: Optional[Union[Coordinate, CoordinateSampler]] = None
 
         # Keep track of the actions for display
-        self.current_actions = None
+        self._current_actions = None
 
         # Actuators
-        self._actuators = []
+        self.actuators: List[Actuator] = []
 
-        # Motor noise
-        self._noise = False
-        if noise_params is not None:
-            self._noise = True
-            self._noise_type = noise_params.get('type', 'gaussian')
-
-            if self._noise_type == 'gaussian':
-                self._noise_mean = noise_params.get('mean', 0)
-                self._noise_scale = noise_params.get('scale', 1)
-
-            else:
-                raise ValueError('Noise type not implemented')
-
-        self._controller = None
+        self._controller: Optional[Controller] = None
 
         # Reward
-        self.reward = 0
+        self.reward: float = 0
 
         # Teleport
-        self.is_teleporting = False
+        self.is_teleporting: bool = False
 
         # Used to set an element which is not supposed to overlap
-        self._allow_overlapping = False
-        self._overlapping_strategy_set = False
-        self._max_attempts = 100
-        self._error_if_fails = False
+        self._allow_overlapping: bool = False
+        self._overlapping_strategy_set: bool = False
+        self._max_attempts: int = 100
 
     # CONTROLLER
     @property
@@ -118,31 +108,22 @@ class Agent(ABC):
         return self._controller
 
     @controller.setter
-    def controller(self, controller):
+    def controller(self,
+                   controller: Controller):
 
         self._controller = controller
+        self._controller.controlled_actuators = self.actuators
+        self._current_actions = controller.generate_null_actions()
 
-        self._controller.controlled_actuators = self._actuators
-
-        if self._controller.require_key_mapping:
-            self._controller.discover_key_mapping()
-
-        self.current_actions = controller.generate_null_actions()
-
-    def add_actuator(self, actuator):
-
-        self._actuators.append(actuator)
-        if isinstance(actuator, Grasp):
-            actuator.part.can_grasp = True
+    def add_actuator(self, actuator: Actuator):
+        self.actuators.append(actuator)
 
     # OVERLAPPING STRATEGY
     @property
     def overlapping_strategy(self):
         if self._overlapping_strategy_set:
             return self._allow_overlapping, self._max_attempts
-
-        else:
-            return None
+        return None
 
     @overlapping_strategy.setter
     def overlapping_strategy(self, strategy):
@@ -156,23 +137,24 @@ class Agent(ABC):
         Initial position can be fixed (tuple) or a PositionAreaSampler.
         """
 
-        if isinstance(self._initial_position_angle, tuple):
-            return self._initial_position_angle
-        if isinstance(self._initial_position_angle, CoordinateSampler):
-            return self._initial_position_angle.sample()
+        if isinstance(self._initial_coordinates, tuple):
+            return self._initial_coordinates
+        if isinstance(self._initial_coordinates, CoordinateSampler):
+            return self._initial_coordinates.sample()
 
-        return self._initial_position_angle
+        return self._initial_coordinates
 
     @initial_coordinates.setter
-    def initial_coordinates(self, coordinates):
-        self._initial_position_angle = coordinates
+    def initial_coordinates(self,
+                            coordinates: Union[Coordinate, CoordinateSampler]):
+        self._initial_coordinates = coordinates
 
     @property
     def coordinates(self):
         return self.base_platform.position, self.base_platform.angle
 
     @coordinates.setter
-    def coordinates(self, coord):
+    def coordinates(self, coord: Coordinate):
 
         position, angle = coord
 
@@ -209,7 +191,7 @@ class Agent(ABC):
         return self.base_platform.angle
 
     @angle.setter
-    def angle(self, theta):
+    def angle(self, theta: float):
         self.coordinates = self.position, theta
 
     @property
@@ -221,7 +203,7 @@ class Agent(ABC):
         return self.base_platform.velocity
 
     @velocity.setter
-    def velocity(self, velocity):
+    def velocity(self, velocity: float):
         for part in self.parts:
             part.velocity = velocity
 
@@ -234,13 +216,15 @@ class Agent(ABC):
         return self.base_platform.angular_velocity
 
     @angular_velocity.setter
-    def angular_velocity(self, angular_velocity):
+    def angular_velocity(self,
+                         angular_velocity: float,
+                         ):
         for part in self.parts:
             part.angular_velocity = angular_velocity
 
     # SENSORS
 
-    def add_sensor(self, new_sensor):
+    def add_sensor(self, new_sensor: Sensor):
         """
         Add a Sensor to an agent.
         Should be done outside of a playground.
@@ -258,22 +242,21 @@ class Agent(ABC):
         self.sensors.append(new_sensor)
 
     @property
-    def in_playground(self):
+    def in_playground(self) -> bool:
 
-        if self.base_platform.pm_body:
+        if self.base_platform.pm_body.space:
             return True
 
         return False
-
 
     @property
     def observations(self):
         return {sensor: sensor.sensor_values for sensor in self.sensors}
 
     def generate_sensor_image(self,
-                              width_sensor=200,
-                              height_sensor=30,
-                              plt_mode=False):
+                              width_sensor: int = 200,
+                              height_sensor: int = 30,
+                              plt_mode: bool = False):
         """
         Generate a full image containing all the sensor representations of an Agent.
         Args:
@@ -308,7 +291,7 @@ class Agent(ABC):
 
     # BODY PARTS
 
-    def add_body_part(self, part):
+    def add_body_part(self, part: Part):
         """
         Add a Part to the agent
         Args:
@@ -317,7 +300,7 @@ class Agent(ABC):
         """
         self.parts.append(part)
 
-    def apply_actions_to_actuators(self, actions_dict):
+    def apply_actions_to_actuators(self, actions_dict: Dict[Actuator:float]):
         """
         Apply actions to each body part of the agent.
 
@@ -325,43 +308,12 @@ class Agent(ABC):
             actions_dict: dictionary of body_part_name, Action.
         """
 
-        if self._noise:
-            self.current_actions = self._apply_noise(actions_dict)
-        else:
-            self.current_actions = actions_dict
+        self._current_actions = actions_dict
 
         for actuator, value in actions_dict.items():
             actuator.apply_action(value)
 
-    def _apply_noise(self, actions_dict):
-
-        noisy_actions = {}
-
-        if self._noise_type == 'gaussian':
-
-            for actuator, value in actions_dict.items():
-
-                if actuator.action_space is ActionSpaces.CONTINUOUS:
-
-                    additive_noise = random.gauss(self._noise_mean,
-                                                  self._noise_scale)
-
-                    new_value = additive_noise + value
-                    new_value = new_value if new_value > actuator.min else actuator.min
-                    new_value = new_value if new_value < actuator.max else actuator.max
-
-                    noisy_actions[actuator] = new_value
-
-                else:
-
-                    noisy_actions[actuator] = value
-
-        else:
-            raise ValueError('Noise type not implemented')
-
-        return noisy_actions
-
-    def owns_shape(self, pm_shape):
+    def owns_shape(self, pm_shape: Shape):
         """
         Verifies if a pm_shape belongs to an agent.
 
@@ -376,7 +328,7 @@ class Agent(ABC):
             return True
         return False
 
-    def get_part_from_shape(self, pm_shape):
+    def get_part_from_shape(self, pm_shape: Shape):
         """
         Returns the body part that correspond to particular Pymunk shape.
 
@@ -411,7 +363,9 @@ class Agent(ABC):
         for part in self.parts:
             part.reset()
 
-    def draw(self, surface, excluded=None):
+    def draw(self,
+             surface: Surface,
+             excluded: Optional[Union[List[Entity]]] = None):
         """
         Draw the agent on a pygame surface.
 
@@ -420,8 +374,10 @@ class Agent(ABC):
             excluded: parts that should not be drawn on the surface.
         """
 
-        if excluded is None:
+        if not excluded:
             list_excluded = []
+        elif not isinstance(excluded, list):
+            list_excluded = [excluded]
         else:
             list_excluded = excluded
 
@@ -448,7 +404,7 @@ class Agent(ABC):
         # pylint: disable=too-many-locals
 
         number_parts_with_actions = len(self.parts)
-        count_all_actions = len(self.current_actions)
+        count_all_actions = len(self._current_actions)
 
         total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \
                                + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
@@ -482,7 +438,7 @@ class Agent(ABC):
 
             all_action_parts = [
                 (action, value)
-                for action, value in self.current_actions.items()
+                for action, value in self._current_actions.items()
                 if action.part.name == part.name
             ]
 

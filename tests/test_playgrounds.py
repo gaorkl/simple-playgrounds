@@ -175,7 +175,6 @@ def test_multisteps(base_forward_agent, pg_cls):
     sensor = Touch(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(sensor)
 
-
     playground = pg_cls()
     print('Starting Multistep testing of ', pg_cls.__name__)
     playground.add_agent(agent)

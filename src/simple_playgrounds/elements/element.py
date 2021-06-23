@@ -2,13 +2,13 @@
 Module that defines Base Class SceneElement
 """
 from typing import Union, Optional
+from abc import ABC, abstractmethod
 
 from simple_playgrounds.common.definitions import CollisionTypes
 
 from ..common.position_utils import CoordinateSampler, Coordinate
 from ..configs.parser import parse_configuration
 
-from abc import ABC, abstractmethod
 
 from ..common.entity import Entity
 from ..agents.agent import Agent

@@ -47,7 +47,7 @@ class BaseAgent(Agent):
         Args:
             controller: controller of the agent.
             platform: Platform (FixedPlatform or MobilePlatform)
-            interactive: if interactive, can eat/grasp/activate/absorb
+            interactive: if interactive, can grasp/activate/absorb
             **kwargs: additional kwargs for the base
 
         Keyword Args:

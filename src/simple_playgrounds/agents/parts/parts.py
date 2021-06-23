@@ -14,8 +14,7 @@ from enum import IntEnum, auto
 import pymunk
 
 from ...common.entity import Entity
-from ...common.definitions import ARM_MAX_FORCE
-from simple_playgrounds.common.definitions import CollisionTypes
+from ...common.definitions import ARM_MAX_FORCE, CollisionTypes
 from ...configs.parser import parse_configuration
 
 # pylint: disable=line-too-long
@@ -65,16 +64,6 @@ class Part(Entity, ABC):
 
         self.can_absorb = can_absorb
 
-        # Interactive parts
-        self.is_activating = False
-
-        self.can_grasp = False
-        self.is_grasping = False
-        self.is_holding = False
-        self.grasped = []
-
-        self.is_eating = False
-
         # For parts attached
         self.anchor = anchor
         self.angle_offset = angle_offset
@@ -119,19 +108,7 @@ class Part(Entity, ABC):
         self.pm_body.angle = self.anchor.pm_body.angle + self.angle_offset
 
     def reset(self):
-
-        # super().reset()
-
-        self.is_activating = False
-        self.is_eating = False
-        self.is_grasping = False
-        self.grasped = []
-        self.is_holding = False
-
-    def pre_step(self):
-        super().pre_step()
-        self.is_activating = False
-
+        pass
 
 # Platforms
 

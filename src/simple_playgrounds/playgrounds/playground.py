@@ -15,13 +15,13 @@ from typing import Tuple, Union, List, Dict, Optional
 from abc import ABC
 import pymunk
 
-from ..common.definitions import SPACE_DAMPING
+from ..common.definitions import SPACE_DAMPING, CollisionTypes
 
 from ..agents.agent import Agent
 from ..agents.parts.parts import Part
+from ..agents.parts.actuators import Actuator, Grasp
 from ..common.entity import Entity
 from ..elements.element import SceneElement, InteractiveElement, TeleportElement, GemElement
-from simple_playgrounds.common.definitions import CollisionTypes
 from ..elements.field import Field
 from ..elements.collection.activable import Dispenser
 from ..common.position_utils import InitCoord
@@ -78,7 +78,7 @@ class Playground(ABC):
 
         # Private attributes for managing interactions in playground
         self._disappeared_scene_elements: List[SceneElement] = []
-        self._grasped_elements: Dict[SceneElement, Part] = {}
+        self._grasped_elements: Dict[SceneElement, Actuator] = {}
         self._teleported: List[Tuple[Agent, SceneElement]] = []
 
         # Timers to handle periodic events
@@ -417,15 +417,15 @@ class Playground(ABC):
 
         for agent in self.agents:
 
-            for part in agent.parts:
-                if not part.is_holding and part.can_grasp:
+            for actuator in agent.actuators:
+                if isinstance(actuator, Grasp):
 
-                    for joint in part.grasped:
+                    for joint in actuator.grasped:
                         self.space.remove(joint)
-                    part.grasped = []
+                    actuator.grasped = []
 
-        for element_grasped, part in self._grasped_elements.copy().items():
-            if not part.grasped:
+        for element_grasped, actuator in self._grasped_elements.copy().items():
+            if not actuator.grasped:
                 self._grasped_elements.pop(element_grasped)
 
     def _check_teleports(self):
@@ -584,23 +584,27 @@ class Playground(ABC):
 
         assert isinstance(grasped_element, SceneElement)
 
-        if part.is_grasping and not part.is_holding:
-            part.is_holding = True
+        for actuator in agent.actuators:
 
-            j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                  (0, 0), (0, 20))
-            j_2 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                  (0, 0), (0, -20))
+            if actuator.part is part and isinstance(actuator, Grasp):
 
-            j_3 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                  (0, 20), (0, 0))
-            j_4 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                  (0, -20), (0, 0))
+                if actuator.is_grasping and not actuator.is_holding:
+                    actuator.is_holding = True
 
-            self.space.add(j_1, j_2, j_3, j_4)
-            part.grasped = [j_1, j_2, j_3, j_4]
+                    j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                          (0, 0), (0, 20))
+                    j_2 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                          (0, 0), (0, -20))
 
-            self._grasped_elements[grasped_element] = part
+                    j_3 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                          (0, 20), (0, 0))
+                    j_4 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
+                                          (0, -20), (0, 0))
+
+                    self.space.add(j_1, j_2, j_3, j_4)
+                    actuator.grasped = [j_1, j_2, j_3, j_4]
+
+                    self._grasped_elements[grasped_element] = actuator
 
         return True
 
