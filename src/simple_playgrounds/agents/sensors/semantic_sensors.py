@@ -4,6 +4,7 @@ These artificial sensors return semantic information about the detected entities
 They return the actual instance of the entity detected, which allow to access their attributes.
 E.g. position, velocity, mass, shape can be accessed.
 """
+from typing import List, Optional, Dict, Union
 
 import math
 from operator import attrgetter
@@ -12,8 +13,10 @@ import numpy as np
 from skimage.draw import line, circle_perimeter
 
 from .sensor import RayCollisionSensor
-from simple_playgrounds.common.definitions import SensorTypes, Detection
+from ...common.definitions import SensorTypes, Detection
 from ...configs import parse_configuration
+from ...common.entity import Entity
+from ..parts.parts import Part
 
 
 class SemanticRay(RayCollisionSensor):
@@ -24,17 +27,15 @@ class SemanticRay(RayCollisionSensor):
     entity can be accessed.
     """
 
-    sensor_type = SensorTypes.SEMANTIC_RAY
-
     def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 remove_duplicates=True,
+                 anchor: Part,
+                 invisible_elements: Optional[Union[List[Entity], Entity]] = None,
+                 normalize: bool = True,
+                 noise_params: Optional[Dict] = None,
+                 remove_duplicates: bool = True,
                  **kwargs):
 
-        default_config = parse_configuration('agent_sensors', self.sensor_type)
+        default_config = parse_configuration('agent_sensors', SensorTypes.SEMANTIC_RAY)
         kwargs = {**default_config, **kwargs}
 
         super().__init__(anchor=anchor,
@@ -133,8 +134,6 @@ class SemanticCones(SemanticRay):
     maximum angle of cones should be
     """
 
-    sensor_type = SensorTypes.SEMANTIC_CONE
-
     def __init__(self,
                  anchor,
                  invisible_elements=None,
@@ -156,7 +155,7 @@ class SemanticCones(SemanticRay):
             fov: field of view
             range: range of the rays.
         """
-        default_config = parse_configuration('agent_sensors', self.sensor_type)
+        default_config = parse_configuration('agent_sensors', SensorTypes.SEMANTIC_CONE)
         kwargs = {**default_config, **kwargs}
 
         self.number_cones = kwargs['n_cones']

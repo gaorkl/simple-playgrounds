@@ -55,10 +55,14 @@ class Entity(ABC):
     ):
 
         # Internal counter to assign identity number and name to each entity
-        self.name = name
+        self.name : str
+
         if not name:
             self.name = self.__class__.__name__ + '_' + str(
                 Entity.index_entity)
+        else:
+            assert isinstance(name, str)
+            self.name = name
         Entity.index_entity += 1
 
         # Physical properties of the entity

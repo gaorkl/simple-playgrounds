@@ -24,10 +24,8 @@ import pygame.locals
 import pygame.color
 
 from pymunk import pygame_util
-# import gym
 
 from skimage.transform import rescale
-
 
 from .playgrounds.playground import Playground
 from .agents.agent import Agent

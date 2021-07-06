@@ -13,23 +13,10 @@ ARM_MAX_FORCE = 500
 MAX_GRASP_FORCE = 600
 
 
-class ControllerTypes(Enum):
-
-    KEYBOARD = 1
-    RANDOM = 2
-    EXTERNAL = 3
-
-
 class KeyTypes(IntEnum):
 
     PRESS_HOLD = auto()
     PRESS_ONCE = auto()
-
-
-class ActionSpaces(IntEnum):
-
-    DISCRETE = auto()
-    CONTINUOUS = auto()
 
 
 FRICTION_ENTITY = 0.8

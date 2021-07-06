@@ -2,6 +2,8 @@
 Module that defines TopDown Sensors.
 Topdown sensors are based computed using the image provided by the environment.
 """
+from typing import Tuple, List, Union
+
 import math
 import numpy as np
 
@@ -9,10 +11,11 @@ from skimage.transform import resize, rotate
 from skimage import draw
 import pygame
 
-from .sensor import Sensor
-from simple_playgrounds.common.definitions import SensorTypes
-from ...configs.parser import parse_configuration
 
+from .sensor import Sensor
+from ...common.definitions import SensorTypes
+from ...configs.parser import parse_configuration
+from ...playgrounds.playground import Playground
 # pylint: disable=no-member
 
 
@@ -104,7 +107,7 @@ class TopdownSensor(Sensor):
                            ) -> bool:
         return False
 
-    def get_local_sensor_image(self, playground, sensor_surface):
+    def _get_sensor_image(self, playground: Playground, sensor_surface: pygame.Surface):
 
         for agent in playground.agents:
             for part in agent.parts:
@@ -127,9 +130,9 @@ class TopdownSensor(Sensor):
 
         return img_cropped
 
-    def _compute_raw_sensor(self, playground, sensor_surface):
+    def _compute_raw_sensor(self, playground:Playground, sensor_surface: pygame.Surface):
 
-        cropped_img = self.get_local_sensor_image(playground, sensor_surface)
+        cropped_img = self._get_sensor_image(playground, sensor_surface)
 
         small_img = resize(cropped_img, (self._resolution, self._resolution),
                            order=0,
@@ -246,7 +249,7 @@ class FullPlaygroundSensor(Sensor):
 
         return False
 
-    def get_sensor_image(self, playground, sensor_surface):
+    def _get_sensor_image(self, playground: Playground, sensor_surface: pygame.Surface):
 
         for agent in playground.agents:
             for part in agent.parts:
@@ -262,22 +265,22 @@ class FullPlaygroundSensor(Sensor):
         np_image = np_image[::-1, :, ::-1]
         return np_image
 
-    def _compute_raw_sensor(self, playground, sensor_surface):
+    def _compute_raw_sensor(self, playground: Playground, sensor_surface: pygame.Surface):
 
-        full_image = self.get_sensor_image(playground, sensor_surface)
+        full_image = self._get_sensor_image(playground, sensor_surface)
         if self._scale is None:
-            self.set_scale(playground.size)
+            self._scale = self.set_scale(playground.size)
 
         self.sensor_values = resize(full_image,
                                     (self._scale[0], self._scale[1]),
                                     order=0,
                                     preserve_range=True)
 
-    def set_scale(self, size_playground):
+    def set_scale(self, size_playground: Union[List[float], Tuple[float, float]]):
 
         max_size = max(size_playground)
-        self._scale = (int(self._resolution * size_playground[1] / max_size),
-                       int(self._resolution * size_playground[0] / max_size))
+        return (int(self._resolution * size_playground[1] / max_size),
+                int(self._resolution * size_playground[0] / max_size))
 
     def _apply_normalization(self):
         self.sensor_values /= self._sensor_max_value

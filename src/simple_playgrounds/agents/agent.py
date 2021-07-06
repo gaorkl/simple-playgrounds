@@ -8,10 +8,9 @@ Examples can be found in simple_playgrounds/agents/agents.py
 
 """
 from __future__ import annotations
-from typing import List, Optional, Dict, Union, TYPE_CHECKING
+from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
 if TYPE_CHECKING:
     from .sensors.sensor import Sensor
-    from .parts.parts import Part
     from .parts.actuators import Actuator
     from .parts.controllers import Controller
     from pymunk import Shape
@@ -23,6 +22,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from ..common.position_utils import CoordinateSampler, Coordinate
+from .parts.parts import Part, Platform, AnchoredPart
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -81,7 +81,7 @@ class Agent(ABC):
         self.initial_coordinates: Optional[Union[Coordinate, CoordinateSampler]] = None
 
         # Keep track of the actions for display
-        self._current_actions = None
+        self._current_actions: Optional[Dict[Actuator, float]] = None
 
         # Actuators
         self.actuators: List[Actuator] = []
@@ -126,7 +126,9 @@ class Agent(ABC):
         return None
 
     @overlapping_strategy.setter
-    def overlapping_strategy(self, strategy):
+    def overlapping_strategy(self,
+                             strategy: Tuple[bool, int],
+                             ):
         self._allow_overlapping, self._max_attempts = strategy
         self._overlapping_strategy_set = True
 
@@ -159,10 +161,12 @@ class Agent(ABC):
         position, angle = coord
 
         for part in self.parts:
-            if part is self.base_platform:
+            if isinstance(part, Platform):
                 part.position, part.angle = position, angle
-            else:
+            elif isinstance(part, AnchoredPart):
                 part.set_relative_coordinates()
+            else:
+                raise ValueError("Part type not implemented")
 
     def reindex_shapes(self):
 
@@ -178,7 +182,7 @@ class Agent(ABC):
         return self.base_platform.position
 
     @position.setter
-    def position(self, pos):
+    def position(self, pos: Tuple[float, float]):
         self.coordinates = pos, self.angle
 
     @property
@@ -203,7 +207,7 @@ class Agent(ABC):
         return self.base_platform.velocity
 
     @velocity.setter
-    def velocity(self, velocity: float):
+    def velocity(self, velocity: Tuple[float, float]):
         for part in self.parts:
             part.velocity = velocity
 
@@ -300,7 +304,7 @@ class Agent(ABC):
         """
         self.parts.append(part)
 
-    def apply_actions_to_actuators(self, actions_dict: Dict[Actuator:float]):
+    def apply_actions_to_actuators(self, actions_dict: Dict[Actuator, float]):
         """
         Apply actions to each body part of the agent.
 
@@ -365,7 +369,7 @@ class Agent(ABC):
 
     def draw(self,
              surface: Surface,
-             excluded: Optional[Union[List[Entity]]] = None):
+             excluded: Optional[Union[List[Entity], Entity]] = None):
         """
         Draw the agent on a pygame surface.
 
@@ -386,9 +390,9 @@ class Agent(ABC):
                 part.draw(surface, )
 
     def generate_actions_image(self,
-                               width_action=100,
-                               height_action=30,
-                               plt_mode=False):
+                               width_action: int = 100,
+                               height_action: int = 30,
+                               plt_mode: bool = False):
         """
         Function that draws all action values of the agent.
 
@@ -404,6 +408,8 @@ class Agent(ABC):
         # pylint: disable=too-many-locals
 
         number_parts_with_actions = len(self.parts)
+
+        assert isinstance(self._current_actions, dict)
         count_all_actions = len(self._current_actions)
 
         total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \

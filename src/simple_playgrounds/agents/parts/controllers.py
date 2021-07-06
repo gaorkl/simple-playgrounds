@@ -1,11 +1,14 @@
 """ Module implementing Controllers.
 Controllers are used to generate commands to control the actuators of an agent.
 """
+from typing import List, Dict
+
 from abc import ABC, abstractmethod
 import random
 
 import pygame
-from simple_playgrounds.common.definitions import KeyTypes, ActionSpaces
+from ...common.definitions import KeyTypes
+from .actuators import Actuator, DiscreteActuator, ContinuousActuator
 
 
 class Controller(ABC):
@@ -13,16 +16,16 @@ class Controller(ABC):
     """
     def __init__(self):
 
-        self.require_key_mapping = False
-        self._controlled_actuators = []
+        self.require_key_mapping: bool = False
+        self._controlled_actuators: List[Actuator] = []
 
     @abstractmethod
-    def generate_actions(self):
+    def generate_actions(self) -> Dict[Actuator, float]:
         """ Generate actions for each actuator of an agent,
         Returns a dictionary of actuators and associated action value.
         """
 
-    def generate_null_actions(self):
+    def generate_null_actions(self) -> Dict[Actuator, float]:
         """
         Generate dictionary of actuators and null actions.
         All actions are set to zero.
@@ -34,12 +37,12 @@ class Controller(ABC):
         return commands
 
     @property
-    def controlled_actuators(self):
+    def controlled_actuators(self) -> List[Actuator]:
         return self._controlled_actuators
 
     @controlled_actuators.setter
-    def controlled_actuators(self, contr):
-        self._controlled_actuators = contr
+    def controlled_actuators(self, actuators: List[Actuator]):
+        self._controlled_actuators = actuators
 
 
 class External(Controller):
@@ -74,17 +77,18 @@ class RandomDiscrete(Controller):
 
         for actuator in self.controlled_actuators:
 
-            act_value = actuator.default_value
-
-            if actuator.action_space == ActionSpaces.DISCRETE:
+            if isinstance(actuator, DiscreteActuator):
                 act_value = random.choice([0, 1])
 
-            elif actuator.action_space == ActionSpaces.CONTINUOUS:
+            elif isinstance(actuator, ContinuousActuator):
 
                 if actuator.centered:
                     act_value = random.choice([-1, 0, 1])
                 else:
                     act_value = random.choice([0, 1])
+
+            else:
+                raise ValueError("Actuator type not recognized")
 
             commands[actuator] = act_value
 
@@ -105,15 +109,18 @@ class RandomContinuous(Controller):
 
             act_value = actuator.default_value
 
-            if actuator.action_space == ActionSpaces.DISCRETE:
+            if isinstance(actuator, DiscreteActuator):
                 act_value = random.choice([0, 1])
 
-            elif actuator.action_space == ActionSpaces.CONTINUOUS:
+            elif isinstance(actuator, ContinuousActuator):
 
                 if actuator.centered:
                     act_value = random.uniform(-1, 1)
                 else:
                     act_value = random.uniform(0, 1)
+
+            else:
+                raise ValueError("Actuator type not recognized")
 
             commands[actuator] = act_value
 

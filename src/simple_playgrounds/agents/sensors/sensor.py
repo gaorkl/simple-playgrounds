@@ -49,7 +49,7 @@ class Sensor(ABC):
                  max_range: float,
                  min_range: float,
                  normalize: bool,
-                 noise_params: Dict,
+                 noise_params: Optional[Dict] = None,
                  invisible_elements: Optional[Union[List[Entity], Entity]] = None,
                  name: Optional[str] = None,
                  **_kwargs):
@@ -142,25 +142,18 @@ class Sensor(ABC):
             raise ValueError('minimum range must be more than 0')
 
         # Sensor max value is used for noise and normalization calculation
-        self._sensor_max_value = 0
+        self._sensor_max_value: float = 0.
 
     @abstractmethod
     def apply_shape_filter(self,
-                           sensor_collision_index,
-                           ) -> bool :
+                           sensor_collision_index: int,
+                           ) -> bool:
         ...
 
-    def update(self, playground, sensor_surface):
-        """
-        Updates the attribute sensor_values.
-        Applies normalization and noise if necessary.
+    def update(self,
+               playground: Playground,
+               sensor_surface: Surface):
 
-        Args:
-            **kwargs: either playground, or playground
-
-        Returns:
-
-        """
         self._compute_raw_sensor(playground, sensor_surface)
 
         if self._noise:
@@ -254,7 +247,8 @@ class RayCollisionSensor(Sensor, ABC):
         return True
 
     @staticmethod
-    def _remove_duplicate_collisions(collisions_by_angle: Dict):
+    def _remove_duplicate_collisions(
+            collisions_by_angle: Dict[float, Optional[pymunk.SegmentQueryInfo]]):
 
         all_shapes = list(
             set(col.shape for angle, col in collisions_by_angle.items()
@@ -282,7 +276,7 @@ class RayCollisionSensor(Sensor, ABC):
     def _compute_collision(self,
                            playground: Playground,
                            sensor_angle: float,
-                           ):
+                           ) -> Optional[pymunk.SegmentQueryInfo]:
 
         position_body = self.anchor.pm_body.position
         angle = self.anchor.pm_body.angle + sensor_angle
@@ -299,12 +293,11 @@ class RayCollisionSensor(Sensor, ABC):
 
     def _compute_points(self,
                         playground: Playground,
-                        ):
+                        ) -> Dict[float, Optional[pymunk.SegmentQueryInfo]]:
 
         points = {}
 
         for sensor_angle in self._ray_angles:
-
             collision = self._compute_collision(playground, sensor_angle)
             points[sensor_angle] = collision
 
@@ -316,13 +309,11 @@ class RayCollisionSensor(Sensor, ABC):
     def _apply_noise(self):
 
         if self._noise_type == 'gaussian':
-
             additive_noise = np.random.normal(self._noise_mean,
                                               self._noise_scale,
                                               size=self.shape)
 
         elif self._noise_type == 'salt_pepper':
-
             prob = [
                 self._noise_probability / 2, 1 - self._noise_probability,
                 self._noise_probability / 2
@@ -340,5 +331,3 @@ class RayCollisionSensor(Sensor, ABC):
         self.sensor_values[self.sensor_values < 0] = 0
         self.sensor_values[self.sensor_values >
                            self._sensor_max_value] = self._sensor_max_value
-
-
