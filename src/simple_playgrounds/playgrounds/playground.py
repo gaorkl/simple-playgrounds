@@ -10,7 +10,7 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 
-from typing import Tuple, Union, List, Dict, Optional
+from typing import Tuple, Union, List, Dict, Optional, Type
 
 from abc import ABC
 import pymunk
@@ -19,7 +19,7 @@ from ..common.definitions import SPACE_DAMPING, CollisionTypes
 
 from ..agents.agent import Agent
 from ..agents.parts.parts import Part
-from ..agents.parts.actuators import Actuator, Grasp
+from ..agents.parts.actuators import Actuator, Grasp, Activate
 from ..common.entity import Entity
 from ..elements.element import SceneElement, InteractiveElement, TeleportElement, GemElement
 from ..elements.field import Field
@@ -221,7 +221,7 @@ class Playground(ABC):
             self.space.remove(*part.pm_elements)
 
         self.agents.remove(agent)
-        agent.in_a_playground = False
+        assert not agent.in_playground
 
     def add_field(self, field: Field):
 
@@ -418,7 +418,7 @@ class Playground(ABC):
         for agent in self.agents:
 
             for actuator in agent.actuators:
-                if isinstance(actuator, Grasp):
+                if isinstance(actuator, Grasp) and not actuator.is_holding:
 
                     for joint in actuator.grasped:
                         self.space.remove(joint)
@@ -559,17 +559,20 @@ class Playground(ABC):
         assert isinstance(activable_element, InteractiveElement)
 
         # Note: later, should handle the case where two agents activate simultaneously.
-        if part.is_activating and not activable_element.activated:
+        for actuator in agent.actuators:
+            if actuator.part is part and isinstance(actuator, Activate):
 
-            agent.reward += activable_element.reward
+                if actuator.is_activating and not activable_element.activated:
 
-            elems_remove, elems_add = activable_element.activate(agent)
-            self._add_remove_within(elems_remove, elems_add)
+                    agent.reward += activable_element.reward
 
-            if activable_element.terminate_upon_activation:
-                self.done = True
+                    elems_remove, elems_add = activable_element.activate(agent)
+                    self._add_remove_within(elems_remove, elems_add)
 
-            part.is_activating = False
+                    if activable_element.terminate_upon_activation:
+                        self.done = True
+
+                    actuator.is_activating = False
 
         return True
 
@@ -589,6 +592,7 @@ class Playground(ABC):
             if actuator.part is part and isinstance(actuator, Grasp):
 
                 if actuator.is_grasping and not actuator.is_holding:
+
                     actuator.is_holding = True
 
                     j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
@@ -703,7 +707,7 @@ class PlaygroundRegister:
     Class to register Playgrounds.
     """
 
-    playgrounds: Dict[str, Dict[str, Playground]] = {}
+    playgrounds: Dict[str, Dict[str, Type[Playground]]] = {}
 
     @classmethod
     def register(

@@ -250,7 +250,6 @@ class Agent(ABC):
 
         if self.base_platform.pm_body.space:
             return True
-
         return False
 
     @property

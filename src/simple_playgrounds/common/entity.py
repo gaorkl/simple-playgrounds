@@ -55,7 +55,7 @@ class Entity(ABC):
     ):
 
         # Internal counter to assign identity number and name to each entity
-        self.name : str
+        self.name: str
 
         if not name:
             self.name = self.__class__.__name__ + '_' + str(

@@ -203,5 +203,5 @@ class Keyboard(Controller):
 
     @controlled_actuators.setter
     def controlled_actuators(self, contr):
-        self.controlled_actuators = contr
+        self._controlled_actuators = contr
         self.discover_key_mapping()

@@ -234,17 +234,27 @@ class RayCollisionSensor(Sensor, ABC):
                 for n in range(self._resolution)
             ]
 
+        self._shape_filter_applied = False
+
     def apply_shape_filter(self,
                            sensor_collision_index,
                            ):
 
-        for elem in self.invisible_elements:
-            elem.assign_shape_filter(sensor_collision_index)
+        if not self._shape_filter_applied:
 
-        self.invisible_filter = pymunk.ShapeFilter(
-            categories=2 ** sensor_collision_index)
+            for elem in self.invisible_elements:
+                elem.assign_shape_filter(sensor_collision_index)
 
-        return True
+            self.invisible_filter = pymunk.ShapeFilter(
+                categories=2 ** sensor_collision_index)
+
+            self._shape_filter_applied = True
+
+            return True
+
+        else:
+
+            return False
 
     @staticmethod
     def _remove_duplicate_collisions(
