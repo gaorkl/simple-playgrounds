@@ -261,7 +261,7 @@ class CenteredRandomTilesTexture(RandomTexture):
 
 
 @TextureGenerator.register_subclass('list_centered_random_tiles')
-class ListCenteredRandomTiles(RandomTexture):
+class ListCenteredRandomTilesTexture(RandomTexture):
     def __init__(
         self,
         size,
@@ -310,17 +310,23 @@ class ListCenteredRandomTiles(RandomTexture):
         self._surface = surf
         return surf
 
-
 #
 # @TextureGenerator.register_subclass('unique_random_tiles')
-# class UniqueRandomTilesTexture(Texture):
+# class UniqueRandomTilesTexture(ListCenteredRandomTilesTexture):
 #
-#     def __init__(self, n_colors=10, delta_uniform=5, size_tiles=4,
-#                  color_min=(0, 0, 0), color_max=(255, 255, 255), **kwargs):
+#     def __init__(self,
+#                  size,
+#                  number_of_colors=10,
+#                  range_unique_color=5,
+#                  size_tiles=4,
+#                  color_min=(0, 0, 0),
+#                  color_max=(255, 255, 255),
+#                  rng=None):
 #
-#         super().__init__(**kwargs)
-#         self.n_colors = n_colors
-#         self.delta_uniform = delta_uniform
+#         super().__init__(size, rng)
+#
+#         self.n_colors = number_of_colors
+#         self.range_unique_color = range_unique_color
 #         self.size_tiles = size_tiles
 #         self.color_min = color_min
 #         self.color_max = color_max
@@ -359,7 +365,7 @@ class ListCenteredRandomTiles(RandomTexture):
 #         random_image = resize(random_image, (self._size, self._size), order=0, preserve_range=True)
 #         surf = surfarray.make_surface(random_image)
 #         return surf
-#
+# #
 #
 # @TextureGenerator.register_subclass('polar_stripes')
 # class PolarStripesTexture(Texture):

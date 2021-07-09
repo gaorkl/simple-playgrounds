@@ -9,6 +9,7 @@ Examples can be found in :
     - simple_playgrounds/agents/parts
     - simple_playgrounds/playgrounds/scene_elements
 """
+import numbers
 from enum import IntEnum, auto
 from typing import Union, Tuple, Dict, List, Optional
 
@@ -97,7 +98,7 @@ class Entity(ABC):
             self._radius_invisible = self._radius_visible + self._invisible_range
 
         else:
-            raise ValueError("size or radius should be set.")
+            raise ValueError("Either size or radius should be set (not both).")
 
         self.pm_body = self._create_pm_body(movable)
         self.pm_elements = [self.pm_body]
@@ -182,7 +183,9 @@ class Entity(ABC):
     def _set_shape_collision(self):
         pass
 
-    def assign_shape_filter(self, category_index):
+    def assign_shape_filter(self,
+                            category_index: int,
+                            ):
         """
         Used to define collisions between entities.
         Used for sensors.
@@ -204,10 +207,14 @@ class Entity(ABC):
 
     # BODY AND SHAPE
 
-    def _create_pm_body(self, movable):
+    def _create_pm_body(self,
+                        movable: bool,
+                        ):
 
         if not movable:
             return pymunk.Body(body_type=pymunk.Body.STATIC)
+
+        assert isinstance(self.mass, (float, int))
 
         if self.physical_shape == PhysicalShapes.CIRCLE:
             moment = pymunk.moment_for_circle(self.mass, 0,

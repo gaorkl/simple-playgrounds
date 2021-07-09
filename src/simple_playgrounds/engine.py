@@ -107,6 +107,8 @@ class Engine:
         self.game_on = True
         self.elapsed_time = 0
 
+        self.reset()
+
     # STEP
 
     def multiple_steps(self,

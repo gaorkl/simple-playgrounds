@@ -94,10 +94,10 @@ class GridRooms(Playground):
 
         rooms: List[List[RectangleRoom]] = []
 
-        doorstep_down: Optional[Doorstep] = None
-        doorstep_up: Optional[Doorstep] = None
-        doorstep_left: Optional[Doorstep] = None
-        doorstep_right: Optional[Doorstep] = None
+        doorstep_down: Optional[Doorstep]
+        doorstep_up: Optional[Doorstep]
+        doorstep_left: Optional[Doorstep]
+        doorstep_right: Optional[Doorstep]
 
         for c in range(room_layout[0]):
 

@@ -145,7 +145,7 @@ class RectangleRoom:
 
         if area_location not in [
                 'center', 'up', 'down', 'right', 'left', 'up-right', 'up-left',
-                'down-right', 'down-left', 'left-up', 'right-up', 'left-down', 'bottom-dowm'
+                'down-right', 'down-left', 'left-up', 'right-up', 'left-down', 'right-down'
         ]:
 
             raise ValueError('area_location not correct')

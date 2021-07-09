@@ -58,7 +58,7 @@ class Playground(ABC):
 
     def __init__(
         self,
-        size: Union[List[float], Tuple[float, float]],
+        size: Tuple[int, int],
     ):
 
         # Generate Scene

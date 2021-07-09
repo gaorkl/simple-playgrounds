@@ -95,7 +95,7 @@ class CoordinateSampler:
             raise ValueError('area shape not implemented')
 
     def sample(self,
-               coordinates: Optional[Coordinate] = None):
+               coordinates: Optional[Coordinate] = None) -> Coordinate:
 
         x, y, theta = 0., 0., 0.
 
