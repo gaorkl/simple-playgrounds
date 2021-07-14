@@ -172,6 +172,10 @@ class Entity(ABC):
         return self.texture.get_pixel(relative_pos)
 
     @property
+    def base_color(self):
+        return self.texture.base_color
+
+    @property
     def radius(self):
         return self._radius_visible
 

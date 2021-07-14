@@ -48,6 +48,17 @@ class Texture(ABC):
     def generate(self):
         """ Generates a pygame surface at the correct dimension"""
 
+    @property
+    @abstractmethod
+    def base_color(self):
+        """
+        Base color for display.
+
+        Returns: tuple of colors
+
+        """
+        ...
+
     def get_pixel(self, rel_pos):
 
         x = int(rel_pos[0] + (self._size[0]-1)/2)
@@ -109,6 +120,10 @@ class ColorTexture(Texture):
     def generate(self):
         self._surface.fill(self._color)
         return self._surface
+
+    @property
+    def base_color(self):
+        return self._color
 
 
 @TextureGenerator.register_subclass('unique_centered_stripe')
@@ -189,6 +204,10 @@ class MultipleCenteredStripesTexture(Texture):
         surf = surfarray.make_surface(img)
         return surf
 
+    @property
+    def base_color(self):
+        return self._color_1
+
 
 class RandomTexture(Texture, ABC):
     def __init__(
@@ -232,6 +251,13 @@ class RandomUniformTexture(RandomTexture):
         self._surface = surf
         return surf
 
+    @property
+    def base_color(self):
+
+        mean_color = [(a+b)/2 for a, b in zip(self._min, self._max)]
+
+        return mean_color
+
 
 @TextureGenerator.register_subclass('random_tiles')
 class RandomTilesTexture(RandomTexture):
@@ -268,6 +294,12 @@ class RandomTilesTexture(RandomTexture):
         surf = surfarray.make_surface(random_image)
         self._surface = surf
         return surf
+
+    @property
+    def base_color(self):
+        mean_color = [(a + b) / 2 for a, b in zip(self._min, self._max)]
+
+        return mean_color
 
 
 @TextureGenerator.register_subclass('centered_random_tiles')
@@ -318,6 +350,13 @@ class CenteredRandomTilesTexture(RandomTexture):
         surf = surfarray.make_surface(img)
         self._surface = surf
         return surf
+
+    @property
+    def base_color(self):
+
+        mean_color = [(a + b) / 2 for a, b in zip(self._min, self._max)]
+
+        return mean_color
 
 
 @TextureGenerator.register_subclass('list_centered_random_tiles')
@@ -370,6 +409,10 @@ class ListCenteredRandomTilesTexture(RandomTexture):
         self._surface = surf
         return surf
 
+    @property
+    def base_color(self):
+        return 125, 25, 90
+
 
 @TextureGenerator.register_subclass('unique_random_tiles')
 class UniqueRandomTilesTexture:
@@ -417,6 +460,10 @@ class UniqueRandomTilesTexture:
 
         text = self.rng.choice(self.all_textures)
         return text.generate()
+
+    @property
+    def base_color(self):
+        return 125, 25, 90
 
 
 

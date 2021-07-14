@@ -123,7 +123,7 @@ class SemanticRay(RayCollisionSensor):
             rr, cc = line(int(width / 2), int(width / 2), pos_x, pos_y)
             img[rr, cc] = (0.5, 0.1, 0.3)
 
-            rr, cc = disk((pos_x, pos_y), 3)
+            rr, cc = disk((pos_x, pos_y), 2)
             img[rr, cc] = [c / 255 for c in detection.entity.base_color[::-1]]
 
         return img

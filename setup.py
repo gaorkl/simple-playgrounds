@@ -4,8 +4,8 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(name='simple_playgrounds',
-      version='0.9.27',
-      description='Simulator for Embedded Learning',
+      version='0.9.30',
+      description='Simulator for Reinforcement Learning',
       author='Michael Garcia Ortiz',
       author_email='michael.garcia-ortiz@city.ac.uk',
       packages=find_packages(where="src"),
