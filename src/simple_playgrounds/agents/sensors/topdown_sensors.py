@@ -102,7 +102,7 @@ class TopdownSensor(Sensor):
 
         self._sensor_max_value = 255
 
-        self.require_surface = True
+        self.requires_surface = True
 
     def apply_shape_filter(self,
                            sensor_collision_index,
@@ -245,7 +245,8 @@ class FullPlaygroundSensor(Sensor):
 
         self._sensor_max_value = 255
 
-        self.require_surface = True
+        self.requires_surface = True
+        self.requires_scale = True
 
     def apply_shape_filter(self,
                            sensor_collision_index,
@@ -272,8 +273,6 @@ class FullPlaygroundSensor(Sensor):
     def _compute_raw_sensor(self, playground: Playground, sensor_surface: pygame.Surface):
 
         full_image = self._get_sensor_image(playground, sensor_surface)
-        if self._scale is None:
-            self._scale = self.set_scale(playground.size)
 
         self.sensor_values = resize(full_image,
                                     (self._scale[0], self._scale[1]),
@@ -283,8 +282,8 @@ class FullPlaygroundSensor(Sensor):
     def set_scale(self, size_playground: Union[List[float], Tuple[float, float]]):
 
         max_size = max(size_playground)
-        return (int(self._resolution * size_playground[1] / max_size),
-                int(self._resolution * size_playground[0] / max_size))
+        self._scale = (int(self._resolution * size_playground[1] / max_size),
+                       int(self._resolution * size_playground[0] / max_size))
 
     def _apply_normalization(self):
         self.sensor_values /= self._sensor_max_value

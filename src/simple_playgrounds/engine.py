@@ -347,7 +347,7 @@ class Engine:
 
             for sensor in agent.sensors:
 
-                if sensor.require_surface:
+                if sensor.requires_surface:
                     self._update_surface_background()
                     self._surface_buffer.blit(self._surface_background, (0, 0))
 

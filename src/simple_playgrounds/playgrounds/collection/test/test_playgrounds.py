@@ -264,7 +264,7 @@ class Dispensers(SingleRoom):
 
 @PlaygroundRegister.register('test', 'gems')
 class Gems(SingleRoom):
-    def __init__(self, size=(200, 400), **playground_params):
+    def __init__(self, size=(200, 200), **playground_params):
         super().__init__(size=size, **playground_params)
 
         x_gem = 50
@@ -293,10 +293,10 @@ class Gems(SingleRoom):
         self.add_element(coin, ((x_gem, 120), 0))
 
         coin = Coin(graspable=True, vending_machine=vending)
-        self.add_element(coin, ((x_gem, 80), 0))
+        self.add_element(coin, ((x_gem, 140), 0))
 
         coin = Coin(graspable=True, vending_machine=vending)
-        self.add_element(coin, ((x_gem, 60), 0))
+        self.add_element(coin, ((x_gem, 160), 0))
 
 
 @PlaygroundRegister.register('test', 'conditioning')
@@ -472,14 +472,14 @@ class Trajectories(SingleRoom):
 @PlaygroundRegister.register('test', 'xteleports')
 class ExtraTeleports(SingleRoom):
 
-    def __init__(self, size=(300, 300), **playground_params):
+    def __init__(self, size=(400, 400), **playground_params):
 
         super().__init__(size=size, **playground_params)
 
-        for x in range(50, 250, 50):
-            for y in range(50, 250, 50):
+        for x in range(50, 350, 100):
+            for y in range(50, 350, 100):
 
                 target = Traversable(config_key='circle', radius=10)
-                self.add_element(target, ((x+25, y+25), 0))
+                self.add_element(target, ((300 - x+50, 300 - y+50), 0))
                 homing = VisibleBeamHoming(radius=10, destination=target, relative_teleport=True, keep_inertia=False)
                 self.add_element(homing, ((x, y), 0))

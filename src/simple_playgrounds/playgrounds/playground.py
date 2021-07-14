@@ -302,6 +302,9 @@ class Playground(ABC):
                         'Too many sensors using invisible shapes. Pymunk limits them to 32.'
                     )
 
+            if sensor.requires_scale:
+                sensor.set_scale(self.size)
+
     # Private methods for Elements
 
     def _add_element_to_playground(self, element: SceneElement):

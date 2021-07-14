@@ -145,7 +145,8 @@ class Sensor(ABC):
         self._sensor_max_value: float = 0.
 
         # Used for sensors that request an updated sensor surface
-        self.require_surface = False
+        self.requires_surface = False
+        self.requires_scale = False
 
     @abstractmethod
     def apply_shape_filter(self,
@@ -202,6 +203,9 @@ class Sensor(ABC):
 
         """
         return None
+
+    def set_scale(self, size_playground):
+        pass
 
 
 class RayCollisionSensor(Sensor, ABC):
