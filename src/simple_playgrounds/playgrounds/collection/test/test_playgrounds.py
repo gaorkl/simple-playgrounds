@@ -279,6 +279,7 @@ class Gems(SingleRoom):
 
         key_chest = Key(mass=10,
                         locked_elem=chest,
+                        graspable=True,
                         )
         self.add_element(key_chest, ((x_gem, 50), 0))
 

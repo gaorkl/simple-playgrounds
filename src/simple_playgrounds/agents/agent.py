@@ -414,7 +414,7 @@ class Agent(ABC):
         total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \
                                + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
 
-        img_actions = Image.new("RGB", (total_height_actions, width_action),
+        img_actions = Image.new("RGB", (width_action, total_height_actions),
                                 (255, 255, 255))
         drawer_action_image = ImageDraw.Draw(img_actions)
 

@@ -102,6 +102,8 @@ class TopdownSensor(Sensor):
 
         self._sensor_max_value = 255
 
+        self.require_surface = True
+
     def apply_shape_filter(self,
                            sensor_collision_index,
                            ) -> bool:
@@ -242,6 +244,8 @@ class FullPlaygroundSensor(Sensor):
         self._scale = None
 
         self._sensor_max_value = 255
+
+        self.require_surface = True
 
     def apply_shape_filter(self,
                            sensor_collision_index,

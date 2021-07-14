@@ -49,9 +49,9 @@ class Edible(InteractiveElement, ABC):
         self._shrink_ratio = shrink_ratio
         self._min_reward = min_reward
 
-    def activate(self):
+    def activate(self, _):
 
-        super().activate()
+        super().activate(_)
         """" Change size, reward, and appearance."""
 
         # Change reward, size and mass

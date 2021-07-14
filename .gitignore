@@ -6,6 +6,6 @@ test.ipynb
 demo.ipynb
 wrappers/
 test.py
-scripts/run_test_environments.py
+scripts/run_all_environments.py
 /Untitled.ipynb
 tests/test_rl.py

@@ -1,6 +1,6 @@
 # Platform
 platform_texture : &platform-texture
-  texture_type: unique_polar_stripe
+  texture_type: unique_centered_stripe
   color: [0, 150, 150]
   color_stripe: [0, 20, 240]
   size_stripe: 4
@@ -16,7 +16,7 @@ platform: &platform
 
 #Head
 head_texture : &head-texture
-  texture_type: unique_polar_stripe
+  texture_type: unique_centered_stripe
   color: [0, 180, 150]
   color_stripe: [0, 100, 200]
   size_stripe: 4
@@ -29,7 +29,7 @@ head: &head
 
 #Eye
 eye_texture : &eye-texture
-  texture_type: unique_polar_stripe
+  texture_type: unique_centered_stripe
   color: [100, 120, 180]
   color_stripe: [150, 100, 200]
   size_stripe: 3

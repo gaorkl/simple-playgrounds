@@ -144,6 +144,9 @@ class Sensor(ABC):
         # Sensor max value is used for noise and normalization calculation
         self._sensor_max_value: float = 0.
 
+        # Used for sensors that request an updated sensor surface
+        self.require_surface = False
+
     @abstractmethod
     def apply_shape_filter(self,
                            sensor_collision_index: int,

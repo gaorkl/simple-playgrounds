@@ -3,10 +3,11 @@ Module for Texture of SceneElements and Parts of Agents.
 Documentation is incomplete/missing. Refer to the tutorials for now.
 """
 
-from typing import Union, Tuple, List, Dict, Callable
+from typing import Union, Tuple, Dict, Callable, Optional
 
 from abc import ABC, abstractmethod
 import math
+import itertools
 
 import numpy as np
 from pygame import Surface, draw
@@ -22,11 +23,21 @@ class Texture(ABC):
     ):
 
         if isinstance(size, (tuple, list)):
+
             assert len(size) == 2
-            self._size = int(size[1]) + 5, int(size[0]) + 5
+
+            # make sure size is even
+            w = int(size[1]/2)*2 + 5
+            h = int(size[0]/2)*2 + 5
+
+            self._size = w, h
 
         elif isinstance(size, (float, int)):
-            self._size = (int(size + 5), int(size + 5))
+
+            # convert radius into w/l
+            w = 2*int(size * math.sqrt(2)) + 5
+
+            self._size = w, w
 
         else:
             raise ValueError('Texture size not compatible')
@@ -39,8 +50,8 @@ class Texture(ABC):
 
     def get_pixel(self, rel_pos):
 
-        x = int(rel_pos[0] + self._size[0])
-        y = int(rel_pos[1] + self._size[1])
+        x = int(rel_pos[0] + (self._size[0]-1)/2)
+        y = int(rel_pos[1] + (self._size[1]-1)/2)
 
         x = min(max(0, x), self._size[0] - 1)
         y = min(max(0, y), self._size[1] - 1)
@@ -100,7 +111,7 @@ class ColorTexture(Texture):
         return self._surface
 
 
-@TextureGenerator.register_subclass('unique_polar_stripe')
+@TextureGenerator.register_subclass('unique_centered_stripe')
 class UniqueCenteredStripeTexture(ColorTexture):
     def __init__(
         self,
@@ -128,6 +139,55 @@ class UniqueCenteredStripeTexture(ColorTexture):
         )
 
         return self._surface
+
+
+@TextureGenerator.register_subclass('multiple_centered_stripes')
+class MultipleCenteredStripesTexture(Texture):
+
+    def __init__(
+            self,
+            size,
+            color_1: Tuple[int, int, int],
+            color_2: Tuple[int, int, int],
+            n_stripes: int,
+            ):
+
+        super().__init__(size)
+
+        assert len(color_1) == 3
+        self._color_1 = color_1
+
+        assert len(color_2) == 3
+        self._color_2 = color_2
+
+        assert n_stripes > 1
+        self.n_stripes = n_stripes
+
+    def generate(self):
+        """
+        Generate a pygame Surface with pixels following a circular striped pattern from the center of the parent entity
+        :param width: the width of the generated surface
+        :param height: the height of the generated surface
+        :return: the pygame Surface
+        """
+
+        img = np.zeros((*self._size, 3))
+
+        x = (self._size[0] - 1) / 2
+        y = (self._size[1] - 1) / 2
+
+        for i in range(self._size[0]):
+            for j in range(self._size[1]):
+
+                angle = (np.arctan2( j - y, i - x) - math.pi/self.n_stripes/2.) % (2*math.pi/self.n_stripes)
+
+                if angle > math.pi/self.n_stripes :
+                    img[i, j, :] = self._color_1
+                else:
+                    img[i, j, :] = self._color_2
+
+        surf = surfarray.make_surface(img)
+        return surf
 
 
 class RandomTexture(Texture, ABC):
@@ -310,103 +370,54 @@ class ListCenteredRandomTilesTexture(RandomTexture):
         self._surface = surf
         return surf
 
-#
-# @TextureGenerator.register_subclass('unique_random_tiles')
-# class UniqueRandomTilesTexture(ListCenteredRandomTilesTexture):
-#
-#     def __init__(self,
-#                  size,
-#                  number_of_colors=10,
-#                  range_unique_color=5,
-#                  size_tiles=4,
-#                  color_min=(0, 0, 0),
-#                  color_max=(255, 255, 255),
-#                  rng=None):
-#
-#         super().__init__(size, rng)
-#
-#         self.n_colors = number_of_colors
-#         self.range_unique_color = range_unique_color
-#         self.size_tiles = size_tiles
-#         self.color_min = color_min
-#         self.color_max = color_max
-#
-#         n_r_splits = n_colors #int( n_colors ** (1/3) )
-#         n_g_splits = n_colors #int( n_colors ** (1/3))
-#         n_b_splits = n_colors #n_colors - 2*int(n_colors ** (1/3))
-#
-#         r_list = [ color_min[0] + n_r * (color_max[0] - color_min[0] )/ (n_r_splits-1) for n_r in range(0, n_r_splits) ]
-#         g_list = [ color_min[1] + n_g * (color_max[1] - color_min[1] ) / (n_g_splits-1) for n_g in range(0, n_g_splits) ]
-#         b_list = [ color_min[2] + n_b * (color_max[2] - color_min[2] ) / (n_b_splits-1) for n_b in range(0, n_b_splits) ]
-#
-#         self.list_rgb_colors = []
-#
-#         for r in r_list:
-#             for g in g_list:
-#                 for b in b_list:
-#                     self.list_rgb_colors.append([r,b,g])
-#
-#         self.rng_texture = kwargs.get('rng_texture', np.random.default_rng() )
-#         self.rng_texture.shuffle(self.list_rgb_colors)
-#
-#     def generate(self):
-#         """
-#         Generate a pygame Surface with pixels following a uniform density
-#         :param width: the width of the generated Surface
-#         :param height: the height of the generated Surface
-#         :return: the pygame Surface
-#         """
-#
-#         color = self.list_rgb_colors.pop()
-#         min_color = [ max(0, x - self.delta_uniform) for x in color]
-#         max_color = [ min(255, x + self.delta_uniform) for x in color]
-#
-#         random_image = self.rng_texture.uniform(min_color, max_color, (int(self._size * 1.0 / self.size_tiles), int(self._size * 1.0 / self.size_tiles), 3)).astype('int')
-#         random_image = resize(random_image, (self._size, self._size), order=0, preserve_range=True)
-#         surf = surfarray.make_surface(random_image)
-#         return surf
-# #
-#
-# @TextureGenerator.register_subclass('polar_stripes')
-# class PolarStripesTexture(Texture):
-#
-#     def __init__(self, **params):
-#         super().__init__(**params)
-#         self.color_1 = params['color_1']
-#         self.color_2 = params['color_2']
-#         self.n_stripes = params['n_stripes']
-#         self.rng_texture = params.get('rng_texture', np.random.default_rng() )
-#
-#
-#
-#     def generate(self):
-#         """
-#         Generate a pygame Surface with pixels following a circular striped pattern from the center of the parent entity
-#         :param width: the width of the generated surface
-#         :param height: the height of the generated surface
-#         :return: the pygame Surface
-#         """
-#
-#         img = np.zeros((self._size, self._size , 3))
-#
-#         x = (self._size - 1) / 2
-#         y = (self._size - 1) / 2
-#
-#         for i in range(self._size):
-#             for j in range(self._size):
-#
-#                 angle = np.arctan2( j - y, i - x)  % (2*math.pi/self.n_stripes)
-#
-#                 if angle > math.pi/(self.n_stripes) :
-#                     img[i, j, :] = self.color_1
-#                 else:
-#                     img[i, j, :] = self.color_2
-#
-#         surf = surfarray.make_surface(img)
-#         return surf
-#
-#
-#
-#
 
-#
+@TextureGenerator.register_subclass('unique_random_tiles')
+class UniqueRandomTilesTexture:
+
+    def __init__(self,
+                 size,
+                 n_colors=10,
+                 range_unique_color=5,
+                 size_tiles=4,
+                 color_min=(0, 0, 0),
+                 color_max=(255, 255, 255),
+                 rng: Union[np.random.Generator, None] = None):
+
+        # Compute colors
+        n_color_splits = int(n_colors ** (1/3))
+
+        r_list = [color_min[0] + n_r * (color_max[0] - color_min[0]) / (n_color_splits - 1)
+                  for n_r in range(n_color_splits)]
+        g_list = [color_min[1] + n_g * (color_max[1] - color_min[1]) / (n_color_splits - 1)
+                  for n_g in range(n_color_splits)]
+        b_list = [color_min[2] + n_b * (color_max[2] - color_min[2]) / (n_color_splits - 1)
+                  for n_b in range(n_color_splits)]
+
+        list_all_colors = itertools.product(r_list, g_list, b_list)
+
+        self.all_textures = []
+
+        self.rng = rng
+
+        for color in list_all_colors:
+
+            color_min = tuple([int(c) - int(range_unique_color/2.) for c in color])
+            color_max = tuple([int(c) + int(range_unique_color/2.) for c in color])
+
+            text = RandomTilesTexture(size, size_tiles=size_tiles, color_min=color_min, color_max=color_max, rng=rng)
+            self.all_textures.append(text)
+
+    def generate(self):
+        """
+        Generate a pygame Surface with pixels following a uniform density
+        :param width: the width of the generated Surface
+        :param height: the height of the generated Surface
+        :return: the pygame Surface
+        """
+
+        text = self.rng.choice(self.all_textures)
+        return text.generate()
+
+
+
+

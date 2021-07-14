@@ -346,22 +346,12 @@ class Engine:
         for agent in self.agents:
 
             for sensor in agent.sensors:
-                sensor.update(playground=self.playground, sensor_surface=self._surface_buffer)
 
-                # if sensor.sensor_modality is SensorTypes.VISUAL:
-                #
-                #
-                #     self._update_surface_background()
-                #     self._surface_buffer.blit(self._surface_background, (0, 0))
-                #     sensor.update(playground=self.playground,
-                #                   sensor_surface=self._surface_buffer)
-                #
-                # elif sensor.sensor_modality is SensorTypes.ROBOTIC \
-                #         or sensor.sensor_modality is SensorTypes.SEMANTIC:
-                #     sensor.update(playground=self.playground)
-                #
-                # else:
-                #     raise ValueError("Sensor Modality not recognized")
+                if sensor.require_surface:
+                    self._update_surface_background()
+                    self._surface_buffer.blit(self._surface_background, (0, 0))
+
+                sensor.update(playground=self.playground, sensor_surface=self._surface_buffer)
 
     def generate_agent_image(self,
                              agent,
