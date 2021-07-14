@@ -1,0 +1,86 @@
+
+# circle
+cicrle_texture: &circle-texture
+  texture_type: color
+  color: [100, 220, 170]
+
+circle:
+  texture: *circle-texture
+  physical_shape: circle
+  radius: 16
+
+# triangle
+triangle_texture: &triangle-texture
+  texture_type: color
+  color: [50, 220, 200]
+
+triangle:
+  texture: *triangle-texture
+  physical_shape: triangle
+  radius: 16
+
+# square
+square_texture: &square-texture
+  texture_type: random_uniform
+  color_min: [125, 100, 150]
+  color_max: [150, 120, 170]
+
+square:
+  texture: *square-texture
+  physical_shape: square
+  radius: 20
+
+# rectangle
+rectangle_texture: &rectangle-texture
+  texture_type: random_tiles
+  color_min: [205, 100, 50]
+  color_max: [250, 140, 80]
+  size_tiles: 6
+
+rectangle:
+  texture: *rectangle-texture
+  physical_shape: rectangle
+  size: [20, 60]
+
+# pentagon
+pentagon_texture: &pentagon-texture
+  texture_type: centered_random_tiles
+  color_min: [100, 200, 130]
+  color_max: [150, 250, 170]
+  size_tiles: 6
+
+pentagon:
+  texture: *pentagon-texture
+  physical_shape: pentagon
+  radius: 20
+
+# hexagon
+hexagon_texture: &hexagon-texture
+  texture_type: list_centered_random_tiles
+  colors: [[125, 100, 150],[125, 80, 160],[220, 120, 150],[135, 200, 155]]
+  size_tiles: 6
+
+hexagon:
+  texture: *hexagon-texture
+  physical_shape: hexagon
+  radius: 20
+
+# Doors
+
+door_texture : &door-texture
+  texture_type: random_tiles
+  color_min: [150, 170, 220]
+  color_max: [180, 190, 240]
+  size_tiles : 4
+
+door : &door
+  physical_shape: rectangle
+  width_length: [10, 80]
+  texture: *door-texture
+
+# Walls
+
+wall:
+  entity_type: basic
+  physical_shape: rectangle
+  depth: 10

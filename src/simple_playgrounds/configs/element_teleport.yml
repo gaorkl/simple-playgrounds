@@ -1,0 +1,25 @@
+# beam
+beam_texture: &beam-texture
+  texture_type: color
+  color: [100, 220, 170]
+
+beam:
+  texture: *beam-texture
+  physical_shape: circle
+  radius: 16
+
+
+# beam-homing
+beam_homing_texture: &beam-homing-texture
+  texture_type: color
+  color: [110, 210, 170]
+
+beam_homing:
+  texture: *beam-homing-texture
+  physical_shape: circle
+  radius: 10
+
+# portal
+portal:
+  physical_shape: rectangle
+  size: [ 3, 20 ]

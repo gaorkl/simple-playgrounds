@@ -1,0 +1,26 @@
+# Walls
+classic :
+  texture_type: random_tiles
+  color_min: [140, 140, 0]
+  color_max: [160, 160, 0]
+  size_tiles: 4
+
+light :
+  texture_type: random_tiles
+  color_min: [200, 240, 230]
+  color_max: [220, 255, 250]
+  size_tiles: 4
+
+dark :
+  texture_type: random_tiles
+  color_min: [0, 40, 30]
+  color_max: [20, 55, 50]
+  size_tiles: 4
+
+colorful :
+  texture_type: unique_random_tiles
+  n_colors: 20
+  delta_uniform: 10
+  size_tiles : 10
+  color_min : [ 100, 100, 100 ]
+  color_max: [250, 250, 250 ]

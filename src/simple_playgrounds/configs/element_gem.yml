@@ -1,0 +1,25 @@
+
+key_texture : &key-texture
+  texture_type: centered_random_tiles
+  color_min: [110, 110, 110]
+  color_max: [140, 140, 140]
+  size_tiles : 6
+
+key : &key
+  physical_shape: hexagon
+  radius: 8
+  texture: *key-texture
+  mass: 5
+
+
+# VendingMachine
+
+coin_texture : &coin-texture
+  texture_type: color
+  color: [200, 200, 0]
+
+coin:
+  texture: *coin-texture
+  physical_shape: circle
+  radius: 5
+  mass: 5

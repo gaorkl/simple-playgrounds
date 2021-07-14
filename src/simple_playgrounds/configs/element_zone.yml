@@ -1,0 +1,42 @@
+# Default Configuration file for Zones
+
+# Termination Zones
+
+deathzone_texture : &deathzone-texture
+  texture_type: color
+  color: [225, 10, 10]
+
+death_zone :
+  physical_shape: rectangle
+  size: [ 15, 15 ]
+  texture: *deathzone-texture
+
+goalzone_texture : &goalzone-texture
+  texture_type: color
+  color: [10, 255, 10]
+
+goal_zone :
+  physical_shape: rectangle
+  size: [ 15, 15 ]
+  texture: *goalzone-texture
+
+
+# Reward Zones
+
+toxiczone_texture : &toxiczone-texture
+  texture_type: color
+  color: [250, 250, 0]
+
+toxic_zone :
+  physical_shape: rectangle
+  size: [ 15, 15 ]
+  texture: *toxiczone-texture
+
+healingzone_texture : &healingzone-texture
+  texture_type: color
+  color: [0, 250, 250]
+
+healing_zone :
+  physical_shape: rectangle
+  size: [ 15, 15 ]
+  texture: *healingzone-texture

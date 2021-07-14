@@ -1,4 +1,4 @@
-from simple_playgrounds import Engine
+from simple_playgrounds.engine import Engine
 
 
 def test_all_test_playgrounds_interactive(base_forward_agent, pg_rl_cls):

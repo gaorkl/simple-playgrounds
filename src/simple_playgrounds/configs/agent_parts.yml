@@ -1,0 +1,64 @@
+# Platform
+platform_texture : &platform-texture
+  texture_type: unique_centered_stripe
+  color: [0, 150, 150]
+  color_stripe: [0, 20, 240]
+  size_stripe: 4
+
+platform: &platform
+  physical_shape: circle
+  texture:  *platform-texture
+  radius: 16
+  mass: 10
+  max_linear_force: 0.5
+  max_angular_velocity: 0.25
+  max_longitudinal_velocity: 1.0
+
+#Head
+head_texture : &head-texture
+  texture_type: unique_centered_stripe
+  color: [0, 180, 150]
+  color_stripe: [0, 100, 200]
+  size_stripe: 4
+
+head: &head
+  texture:  *head-texture
+  physical_shape: circle
+  mass: 5
+  radius: 12
+
+#Eye
+eye_texture : &eye-texture
+  texture_type: unique_centered_stripe
+  color: [100, 120, 180]
+  color_stripe: [150, 100, 200]
+  size_stripe: 3
+
+eye: &eye
+  texture:  *eye-texture
+  physical_shape: circle
+  mass: 5
+  radius: 6
+
+#Arm
+arm_texture : &arm-texture
+  texture_type: color
+  color: [100, 180, 180]
+
+arm: &arm
+  texture:  *arm-texture
+  physical_shape: rectangle
+  mass: 2
+  size : [3, 30]
+
+# Hand
+hand_texture : &hand-texture
+  texture_type: color
+  color: [150, 180, 130]
+
+hand: &hand
+  texture:  *hand-texture
+  physical_shape: circle
+  mass: 5
+  radius: 6
+

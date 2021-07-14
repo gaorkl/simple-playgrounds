@@ -1,0 +1,49 @@
+
+
+# Termination on Contact
+visible_endgoal_texture : &visible_endgoal_texture
+  texture_type: random_uniform
+  color_min: [10, 200, 50]
+  color_max: [20, 250, 70]
+
+
+visible_endgoal:
+  physical_shape: rectangle
+  size: [ 15, 15 ]
+  'texture': *visible_endgoal_texture
+
+visible_deathtrap_texture : &visible_deathtrap_texture
+  texture_type: random_uniform
+  color_min: [230, 0, 50]
+  color_max: [240, 50, 70]
+
+
+visible_deathtrap:
+  physical_shape: rectangle
+  size: [ 15, 15 ]
+  'texture': *visible_deathtrap_texture
+
+# Reward On contact: Absorbable
+
+candy_texture: &candy-texture
+    texture_type: color
+    color: [100, 100, 250]
+
+candy:
+  physical_shape: triangle
+  radius: 4
+  mass: 5
+  texture: *candy-texture
+  movable: True
+
+
+poison_texture: &poison-texture
+    texture_type: color
+    color: [250, 100, 150]
+
+poison:
+  physical_shape: pentagon
+  radius: 4
+  mass: 5
+  texture: *poison-texture
+  movable: True

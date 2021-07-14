@@ -1,0 +1,177 @@
+# Edibles
+apple_texture : &apple-texture
+  texture_type: centered_random_tiles
+  color_min: [40, 220, 150]
+  color_max: [80, 250, 190]
+  size_tiles : 10
+
+apple :
+  physical_shape: circle
+  radius: 10
+  mass: 10
+  texture: *apple-texture
+  invisible_range: 10
+
+rotten_apple_texture : &rotten-apple-texture
+  texture_type: centered_random_tiles
+  color_min: [150, 150, 20]
+  color_max: [180, 180, 40]
+  size_tiles : 5
+
+rotten_apple :
+  physical_shape: circle
+  radius: 10
+  mass: 10
+  texture: *rotten-apple-texture
+  invisible_range: 10
+
+# Reward_on_activation
+
+roa_texture : &roa-texture
+  texture_type: centered_random_tiles
+  color_min: [100, 80, 180]
+  color_max: [140, 120, 220]
+  size_tiles : 10
+
+reward_on_activation :
+  physical_shape: hexagon
+  radius: 15
+  texture: *roa-texture
+  invisible_range: 10
+  mass : 10
+
+# Dispenser
+
+dispenser_texture : &dispenser-texture
+  texture_type: centered_random_tiles
+  color_min: [200, 80, 180]
+  color_max: [240, 120, 220]
+  size_tiles : 10
+
+dispenser :
+  physical_shape: circle
+  radius: 15
+  texture: *dispenser-texture
+  mass : 10
+
+# Chest
+
+chest_texture : &chest-texture
+  texture_type: random_tiles
+  color_min: [140, 110, 210]
+  color_max: [160, 130, 230]
+  size_tiles : 6
+
+chest:
+  texture: *chest-texture
+  physical_shape: rectangle
+  width_length: [20, 30]
+  invisible_range : 10
+
+vendingmachine_texture : &vendingmachine-texture
+  texture_type: random_tiles
+  color_min: [240, 110, 10]
+  color_max: [250, 130, 30]
+  size_tiles : 6
+
+vending_machine:
+  texture: *vendingmachine-texture
+  physical_shape: rectangle
+  size: [20, 20]
+  interaction_range : 10
+  reward: 10
+
+# Switches
+
+switch_texture : &switch-texture
+  texture_type: random_tiles
+  color_min: [150, 130, 160]
+  color_max: [180, 150, 190]
+  size_tiles : 3
+
+switch : &switch
+  physical_shape: rectangle
+  size: [10,10]
+  texture: *switch-texture
+  invisible_range : 10
+
+
+lock_texture : &lock-texture
+  texture_type: random_tiles
+  color_min: [110, 150, 110]
+  color_max: [140, 170, 140]
+  size_tiles : 3
+
+lock : &lock
+  physical_shape: rectangle
+  size: [10,10]
+  texture: *lock-texture
+  invisible_range : 10
+
+#switch_door_timer :
+#  'entity_type': 'switch_door_timer',
+#  'physical_shape': 'circle'
+#  'radius': 15
+#  'interaction_range': 10,
+#  'time_open': 50
+#  'door': *door,
+#  'texture': *switch-texture
+#
+#key_texture : &key-texture
+#    'texture_type': 'color'
+#    'color': (50, 120, 110)
+#
+#lock_texture : &lock-texture
+#    'texture_type': 'color',
+#    'color': (50, 160, 120)
+#
+#key: &key
+#  'entity_type': 'gem',
+#  'physical_shape': 'circle',
+#  'radius': 5
+#  'mass': 10
+#  'texture': *key-texture
+#  'movable': True
+#  'graspable': True
+#  'interaction_range': 10,
+#
+#
+#lock_door:
+#  'entity_type': 'lock_door'
+#  'physical_shape': 'circle'
+#  'radius': 15
+#  'texture': *lock-texture
+#  'movable': False,
+#  'interaction_range': 10,
+#  'door': *door
+#  'key': *key
+#
+#
+#key_chest_texture: &key-chest-texture
+#  'type': 'color'
+#  'color': (130, 100, 150)
+#
+#
+#key_chest: &key-chest
+#  'entity_type': 'gem'
+#  'physical_shape': 'pentagon'
+#  'radius': 10
+#  'mass': 10
+#  'texture': *key-chest-texture
+#  'movable': True
+#  'graspable': True
+#  'interaction_range': 10
+#
+#chest_texture: &chest-texture
+#    'type': 'color',
+#    'color': (70, 180, 200)
+#
+#chest:
+#  'entity_type': 'chest'
+#  'physical_shape': 'square'
+#  'radius': 20
+#  'movable': False
+#  'interaction_range': 10
+#  'texture': *chest-texture
+#  'reward': 50
+#  'key': *key-chest

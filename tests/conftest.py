@@ -1,18 +1,16 @@
 import pytest
 
 from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
-                                              HeadEyeAgent)
+                                              HeadEyeAgent, FullAgent)
 from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous
-from simple_playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar, Proximity,
-                                               Touch, TopdownSensor,
+from simple_playgrounds.playgrounds.collection import *
+
+from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
+                                               Proximity, Touch, TopdownSensor,
                                                FullPlaygroundSensor,
                                                SemanticRay, SemanticCones)
 
-
 ### Agent Body
-
-agent_classes = [BaseAgent, HeadAgent, HeadEyeAgent]
 
 
 @pytest.fixture(scope="module", params=[RandomDiscrete, RandomContinuous])
@@ -40,31 +38,37 @@ def random_controller(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=agent_classes)
-def agent_cls(request):
+@pytest.fixture(scope="module", params=[BaseAgent, HeadAgent, HeadEyeAgent])
+def simple_agent_cls(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[BaseAgent, HeadAgent, HeadEyeAgent, FullAgent])
+def all_agent_cls(request):
     return request.param
 
 
 @pytest.fixture(scope="function")
 def base_forward_agent():
-    agent = BaseAgent(controller=RandomDiscrete(),
-                      interactive=False,
-                      )
+    agent = BaseAgent(
+        controller=RandomDiscrete(),
+        interactive=False,
+    )
     return agent
 
 
 # Agent Sensor
-@pytest.fixture(scope="module", params=[RgbCamera, GreyCamera, Lidar,
-                                       Touch, Proximity,
-                                       TopdownSensor,
-                                       FullPlaygroundSensor,
-                                       SemanticRay, SemanticCones])
+@pytest.fixture(scope="module",
+                params=[
+                    RgbCamera, GreyCamera, Lidar, Touch, Proximity,
+                    TopdownSensor, FullPlaygroundSensor, SemanticRay,
+                    SemanticCones
+                ])
 def any_sensor(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[RgbCamera,
-                                       SemanticRay, SemanticCones])
+@pytest.fixture(scope="module", params=[RgbCamera, SemanticRay, SemanticCones])
 def ray_sensor(request):
     return request.param
 
@@ -97,3 +101,4 @@ def pg_cls(request):
 def pg_rl_cls(request):
     _, pg_class = request.param
     return pg_class
+
