@@ -229,10 +229,17 @@ class RectangleRoom:
             middle_1 = start + (end-start).normalized()*(doorstep.position - doorstep.size/2 - element.radius)
             middle_2 = start + (end-start).normalized()*(doorstep.position + doorstep.size/2 + element.radius)
 
-            pos_1 = self._rng.uniform(start, middle_1)
-            pos_2 = self._rng.uniform(middle_2, end)
+            if middle_1 - start < (0, 0):
+                pos = self._rng.uniform(middle_2, end)
 
-            pos = self._rng.choice( [pos_1, pos_2])
+            elif end - middle_2 < (0, 0):
+                pos = self._rng.uniform(start, middle_1)
+
+            else:
+                pos_1 = self._rng.uniform(start, middle_1)
+                pos_2 = self._rng.uniform(middle_2, end)
+
+                pos = self._rng.choice( [pos_1, pos_2])
 
         return self.center + pos, (start - end).angle
 
