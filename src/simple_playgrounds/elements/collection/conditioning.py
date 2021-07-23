@@ -6,8 +6,8 @@ from typing import List, Union, Dict, Tuple
 import random
 
 from ..element import InteractiveElement
-from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
 from ...configs.parser import parse_configuration
+from ...common.definitions import CollisionTypes, ElementTypes
 from ...common.texture import Texture, TextureGenerator, ColorTexture
 
 

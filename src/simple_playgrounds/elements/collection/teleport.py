@@ -2,23 +2,62 @@
 Teleport can be used to teleport an agent.
 """
 from typing import Union, Optional
-from abc import ABC
+from abc import ABC, abstractmethod
 from math import pi
 from enum import Enum
 
 from pymunk import Vec2d
 
-from ..element import TeleportElement, SceneElement
-from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
-from .basic import Traversable
+from ...common.definitions import CollisionTypes, ElementTypes
 from ...common.position_utils import CoordinateSampler, Coordinate
+from ...configs.parser import parse_configuration
+
+from ..element import SceneElement
+from .basic import Traversable
 from ...agents.agent import Agent
+
 
 class PortalColor(Enum):
 
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
+
+
+class TeleportElement(SceneElement, ABC):
+    """ Base Class for Teleport Entities"""
+    def __init__(
+        self,
+        destination: Optional[Union[Coordinate, CoordinateSampler, SceneElement]],
+        config_key: Optional[Union[ElementTypes, str]] = None,
+        keep_inertia: bool = True,
+        **entity_params,
+    ):
+
+        default_config = parse_configuration('element_teleport', config_key)
+        entity_params = {**default_config, **entity_params}
+
+        super().__init__(**entity_params)
+
+        self._destination = destination
+        self.keep_inertia = keep_inertia
+
+    @abstractmethod
+    def energize(self, agent: Agent):
+        pass
+
+    @property
+    def destination(self):
+
+        if not self._destination:
+            raise ValueError("Destination not set")
+
+        return self._destination
+
+    @destination.setter
+    def destination(self, destination):
+
+        self._destination = destination
 
 
 class TeleportToCoordinates(TeleportElement, ABC):
@@ -173,51 +212,3 @@ class Portal(TeleportElement):
         new_orientation = agent.angle - self.angle + self.destination.angle + pi
 
         return tuple(new_pos), new_orientation
-
-
-# pylint: disable=line-too-long
-
-# TELEPORT ELEMENTS
-
-#
-# if teleport.target.traversable:
-#     agent.position = teleport.target.position
-#
-# else:
-#     area_shape = teleport.target.physical_shape
-#     if area_shape == 'rectangle':
-#         width = teleport.target.width + agent.base_platform.radius * 2 + 1
-#         length = teleport.target.length + agent.base_platform.radius * 2 + 1
-#         angle = teleport.target.angle
-#         sampler = CoordinateSampler(
-#             center=teleport.target.position,
-#             area_shape=area_shape,
-#             angle=angle,
-#             width_length=[width + 2, length + 2],
-#             excl_width_length=[width, length],
-#         )
-#     else:
-#         radius = teleport.target.radius + agent.base_platform.radius + 1
-#         sampler = CoordinateSampler(
-#             center=teleport.target.position,
-#             area_shape='circle',
-#             radius=radius,
-#             excl_radius=radius,
-#         )
-#
-#     agent.coordinates = sampler.sample()
-#
-#
-#
-# class TeleportElement(SceneElement, ABC):
-#     def __init__(self, texture=(0, 100, 100), **kwargs):
-#         super().__init__(texture=texture, **kwargs)
-#         self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
-#
-#         self.reward = 0
-#         self.reward_provided = False
-#
-#         self.target = None
-#
-#     def add_target(self, target):
-#         self.target = target

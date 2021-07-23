@@ -1,11 +1,11 @@
 """
 Module for Edible SceneElement
 """
-
+from typing import Optional, Union
 from abc import ABC
 
 from ..element import InteractiveElement
-from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
+from ...common.definitions import ElementTypes, CollisionTypes
 from ...configs.parser import parse_configuration
 
 
@@ -20,8 +20,12 @@ class Edible(InteractiveElement, ABC):
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, config_key, reward: float, shrink_ratio: float,
-                 min_reward: float, **entity_params):
+    def __init__(self,
+                 reward: float,
+                 shrink_ratio: float,
+                 min_reward: float,
+                 config_key: Optional[Union[ElementTypes, str]] = None,
+                 **entity_params):
         """
         Edible entity provides a reward to the agent that eats it, then shrinks in size, mass, and available reward.
 

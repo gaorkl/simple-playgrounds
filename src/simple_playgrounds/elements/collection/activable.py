@@ -1,24 +1,29 @@
 """
 InteractiveSceneElements can be activated by an agent.
 """
-from typing import Dict, Optional, Union, List, Type
+from __future__ import annotations
+from typing import Dict, Optional, Union, List, Type, TYPE_CHECKING
+if TYPE_CHECKING:
+    from ...elements.collection.gem import GemElement
+
 from abc import ABC
 
-from ...elements.element import InteractiveElement, SceneElement, GemElement
 from ...common.definitions import CollisionTypes, ElementTypes
-
-from ...agents.agent import Agent
 from ...common.timer import Timer
-from .basic import Door
 from ...common.position_utils import CoordinateSampler
 from ...configs.parser import parse_configuration
+
+from ...agents.agent import Agent
+from .basic import Door
+from ...elements.element import SceneElement, InteractiveElement
+
 
 # pylint: disable=line-too-long
 
 
 class ActivableElement(InteractiveElement, ABC):
     def __init__(self,
-                 config_key: ElementTypes,
+                 config_key: Optional[Union[ElementTypes, str]] = None,
                  **kwargs):
 
         default_config = parse_configuration('element_activable', config_key)
@@ -34,6 +39,11 @@ class ActivableElement(InteractiveElement, ABC):
     @property
     def terminate_upon_activation(self):
         return False
+
+
+class ActivableByGem(ActivableElement, ABC):
+    def _set_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.ACTIVABLE_BY_GEM
 
 
 class Dispenser(ActivableElement):
@@ -253,11 +263,6 @@ class TimerSwitch(OpenCloseSwitch):
         return elem_remove, elem_add
 
 
-class ActivableByGem(ActivableElement, ABC):
-    def _set_shape_collision(self):
-        self.pm_visible_shape.collision_type = CollisionTypes.ACTIVABLE_BY_GEM
-
-
 class VendingMachine(ActivableByGem):
     """
     When in contact with a coin, provide a reward to the agent closest to the coin.
@@ -380,8 +385,6 @@ class Lock(ActivableByGem):
         if activating.elem_activated is self:
 
             self.door.open()
-            list_remove = [activating, self]
+            list_remove = [self.door, activating, self]
 
         return list_remove, None
-
-

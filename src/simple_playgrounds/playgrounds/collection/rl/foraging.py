@@ -1,6 +1,6 @@
 from ...playground import PlaygroundRegister
 from ...layouts import SingleRoom
-from ....elements.collection.proximity import Fireball
+from ....elements.collection.aura import Fireball
 from ....elements.collection.contact import Candy
 from ....elements.field import Field
 from ....common.position_utils import CoordinateSampler, Trajectory

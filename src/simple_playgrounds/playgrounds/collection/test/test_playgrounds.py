@@ -8,9 +8,9 @@ from ....elements.collection.edible import Apple, RottenApple
 from ....elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation, OpenCloseSwitch, TimerSwitch, Lock
 from ....elements.collection.gem import Key, Coin
 from ....elements.collection.conditioning import RewardFlipper
-from ....elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy
+from ....elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy, ContactSwitch
 from ....elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
-from ....elements.collection.proximity import Fairy, Fireball
+from ....elements.collection.aura import Fairy, Fireball
 
 
 from ....common.position_utils import CoordinateSampler, Trajectory
@@ -357,10 +357,17 @@ class Doors(GridRooms):
         lock = Lock(door=door_3)
         self.add_element(lock, self.grid_rooms[0][1].get_random_position_on_wall('left', lock))
 
-        key = Key(locked_elem=lock)
+        key = Key(locked_elem=lock, graspable=True, mass=5)
         center, size = self.grid_rooms[0][1].get_partial_area('left-down')
         area_sampler = CoordinateSampler(center=center, size=size, area_shape='rectangle')
         self.add_element(key, area_sampler)
+
+        doorstep_4 = self.grid_rooms[1][1].doorstep_up
+        door_4 = doorstep_4.generate_door()
+        self.add_element(door_4)
+
+        switch_4 = ContactSwitch(door=door_4)
+        self.add_element(switch_4, self.grid_rooms[1][1].get_random_position_on_wall('up', switch_4))
 
 
 @PlaygroundRegister.register('test', 'teleports')
@@ -420,10 +427,10 @@ class Proximals(SingleRoom):
 
         super().__init__(size=size, **playground_params)
 
-        fairy = Fairy(reward=20, limit = 200)
+        fairy = Fairy(reward=20, limit=200)
         self.add_element(fairy, ((80, 150), 0))
 
-        fireball = Fireball(reward = -10)
+        fireball = Fireball(reward=-10)
         self.add_element(fireball, ((150, 80), 0))
 
 

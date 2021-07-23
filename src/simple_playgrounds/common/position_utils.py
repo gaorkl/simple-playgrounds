@@ -150,9 +150,9 @@ class CoordinateSampler:
             raise ValueError('Not implemented')
 
         rel_pos = pymunk.Vec2d(x, y).rotated(self._angle)
-        pos = tuple(rel_pos + center)
+        pos = rel_pos + center
 
-        return pos, theta
+        return (pos.x, pos.y), theta
 
 
 class Trajectory(Generator):
@@ -164,10 +164,10 @@ class Trajectory(Generator):
 
     """
     def __init__(self,
-                 trajectory_type,
-                 trajectory_duration,
-                 n_rotations=0,
-                 index_start=0,
+                 trajectory_type: str,
+                 trajectory_duration: int,
+                 n_rotations: int = 0,
+                 index_start: int = 0,
                  **kwargs):
         """ Trajectory follows waypoints or shape.
 
@@ -333,31 +333,6 @@ class Trajectory(Generator):
 InitCoord = Union[Coordinate, CoordinateSampler,
                   Trajectory, ]
 
-
-#
-# def get_relative_position_of_entities(entity_1, entity_2):
-#     """
-#     Calculates the relative position of entity_2 wrt entity_1.
-#
-#     Args:
-#         entity_1 (:obj: Entity): reference Entity.
-#         entity_2 (:obj: Entity):
-#
-#     Returns:
-#
-#     """
-#
-#     entity_1_x, entity_1_y, entity_1_angle = entity_1.position
-#     entity_2_x, entity_2_y, entity_2_angle = entity_2.position
-#
-#     relative_angle = (entity_2_angle - entity_1_angle)%(2*math.pi)
-#
-#     relative_x = (entity_2_x - entity_1_x)*math.cos(-entity_1_angle) \
-#                  - (entity_2_y - entity_1_y)*math.sin(-entity_1_angle)
-#     relative_y = (entity_2_x - entity_1_x)*math.sin(-entity_1_angle) \
-#                  + (entity_2_y - entity_1_y)*math.cos(-entity_1_angle)
-#
-#     return relative_x, relative_y, relative_angle
 geometric_shapes = {
     'line': 2,
     'circle': 60,

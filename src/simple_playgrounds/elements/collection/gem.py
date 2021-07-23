@@ -2,11 +2,37 @@
 Module for Gem SceneElements.
 Gem interacts with other SceneElements.
 """
-from typing import Union
+from typing import Union, Optional
+from abc import ABC
 
-from ..element import GemElement
-from simple_playgrounds.common.definitions import ElementTypes
-from .activable import Lock, Chest
+from ...common.definitions import ElementTypes, CollisionTypes
+from ...configs.parser import parse_configuration
+
+from ..element import SceneElement
+from .activable import Lock, Chest, ActivableByGem
+
+
+class GemElement(SceneElement, ABC):
+    """
+    A Gem interacts with other SceneElements.
+    """
+    def __init__(self,
+                 elem_activated: ActivableByGem,
+                 config_key: Optional[Union[ElementTypes, str]] = None,
+                 **entity_params):
+
+        default_config = parse_configuration('element_gem', config_key)
+        entity_params = {**default_config, **entity_params}
+
+        SceneElement.__init__(self,
+                              visible_shape=True,
+                              invisible_shape=False,
+                              **entity_params)
+
+        self.elem_activated = elem_activated
+
+    def _set_shape_collision(self):
+        self.pm_visible_shape.collision_type = CollisionTypes.GEM
 
 
 class Coin(GemElement):

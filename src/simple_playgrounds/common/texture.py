@@ -59,7 +59,7 @@ class Texture(ABC):
         """
         ...
 
-    def get_pixel(self, rel_pos):
+    def get_pixel(self, rel_pos: Tuple[float, float]):
 
         x = int(rel_pos[0] + (self._size[0]-1)/2)
         y = int(rel_pos[1] + (self._size[1]-1)/2)

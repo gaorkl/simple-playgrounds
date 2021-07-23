@@ -1,17 +1,21 @@
-from typing import Optional
+from typing import Optional, Union
 
 from abc import ABC
+
 from ..element import InteractiveElement
-from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
+from ...common.definitions import ElementTypes, CollisionTypes
 from ...configs.parser import parse_configuration
 
 
-class VisibleRewardZone(InteractiveElement, ABC):
+class AuraElement(InteractiveElement, ABC):
     """
     Base class for entities that provide reward to an agent in its proximity.
     """
 
-    def __init__(self, config_key: ElementTypes, reward: float, limit: Optional[float]=None,
+    def __init__(self,
+                 reward: float,
+                 total_reward: Optional[float] = None,
+                 config_key: Optional[Union[ElementTypes, str]] = None,
                  **entity_params):
         """
         VisibleRewardZone entities provide a reward to the agent
@@ -30,7 +34,7 @@ class VisibleRewardZone(InteractiveElement, ABC):
 
         super().__init__(visible_shape=True, invisible_shape=True, reward=reward, **entity_params)
 
-        self._limit = limit
+        self._limit = total_reward
         self._total_reward_provided = 0
 
     @property
@@ -62,7 +66,7 @@ class VisibleRewardZone(InteractiveElement, ABC):
         self.pm_invisible_shape.collision_type = CollisionTypes.CONTACT
 
 
-class Fairy(VisibleRewardZone):
+class Fairy(AuraElement):
     """
     Fairy entities provide a reward to an agent which is in proximity.
 
@@ -74,10 +78,10 @@ class Fairy(VisibleRewardZone):
     def __init__(self,  reward: float, limit: Optional[float]=None,
                  **entity_params):
 
-        super().__init__(config_key=ElementTypes.FAIRY, reward = reward, limit=limit, **entity_params)
+        super().__init__(config_key=ElementTypes.FAIRY, reward=reward, total_reward=limit, **entity_params)
 
 
-class Fireball(VisibleRewardZone):
+class Fireball(AuraElement):
     """
     Fireball entities provide a negative reward to an agent which is in proximity.
 
@@ -88,4 +92,4 @@ class Fireball(VisibleRewardZone):
 
     def __init__(self, reward: float, limit: Optional[float] = None,
                  **entity_params):
-        super().__init__(config_key=ElementTypes.FIREBALL, reward=reward, limit=limit, **entity_params)
+        super().__init__(config_key=ElementTypes.FIREBALL, reward=reward, total_reward=limit, **entity_params)

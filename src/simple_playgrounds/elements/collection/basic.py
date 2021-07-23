@@ -1,12 +1,12 @@
 """
 Module for Basic SceneElements
 """
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 
 import pymunk
 
 from ..element import SceneElement
-from simple_playgrounds.common.definitions import ElementTypes
+from ...common.definitions import ElementTypes
 from ...configs.parser import parse_configuration
 
 
@@ -61,7 +61,11 @@ class Traversable(SceneElement):
 
 class Wall(Physical):
     """ Wall class"""
-    def __init__(self, start_point, end_point, wall_depth, **entity_params):
+    def __init__(self,
+                 start_point: Union[Tuple[float, float], pymunk.Vec2d],
+                 end_point: Union[Tuple[float, float], pymunk.Vec2d],
+                 wall_depth: float,
+                 **entity_params):
 
         start_point = pymunk.Vec2d(*start_point)
         end_point = pymunk.Vec2d(*end_point)
@@ -82,7 +86,12 @@ class Door(Physical):
     Properties:
         opened: True if the door is opened.
     """
-    def __init__(self, start_point, end_point, door_depth, **entity_params):
+    def __init__(self,
+                 start_point: Union[Tuple[float, float], pymunk.Vec2d],
+                 end_point: Union[Tuple[float, float], pymunk.Vec2d],
+                 door_depth: float,
+                 **entity_params):
+
         start_point = pymunk.Vec2d(*start_point)
         end_point = pymunk.Vec2d(*end_point)
 
@@ -112,5 +121,3 @@ class Door(Physical):
     def reset(self):
         self.close()
         super().reset()
-
-

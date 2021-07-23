@@ -141,9 +141,9 @@ class Engine:
                 if isinstance(actuator, Activate):
                     hold_actions[agent_name][actuator] = 0
 
-        cumulated_rewards = {}
+        cumulated_rewards: Dict[Agent, float] = {}
         for agent in actions:
-            cumulated_rewards[agent] = 0
+            cumulated_rewards[agent] = 0.
 
         step = 0
 

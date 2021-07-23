@@ -20,11 +20,11 @@ class GridRooms(Playground):
     """
     def __init__(
         self,
-        size: Union[List[float], Tuple[float, float]],
+        size: Tuple[int, int],
         room_layout: Union[List[int], Tuple[int, int]],
         doorstep_size: float,
         random_doorstep_position: bool = True,
-        wall_type='classic',
+        wall_type: str = 'classic',
         wall_depth: float = 10,
         playground_seed: Optional[int] = None,
         **wall_params,
@@ -77,16 +77,17 @@ class GridRooms(Playground):
         first_room = self.grid_rooms[0][0]
         assert isinstance(first_room, RectangleRoom)
 
-        center, size = first_room.center, (first_room.width, first_room.length)
+        center_first_room = first_room.center
+        size_first_room = first_room.width - wall_depth, first_room.length - wall_depth
         self.initial_agent_coordinates = CoordinateSampler(
-            center=center, area_shape='rectangle', size=size)
+            center=center_first_room, area_shape='rectangle', size=size_first_room)
 
     def _generate_rooms(
         self,
-        room_layout,
+        room_layout: Union[List[int], Tuple[int, int]],
         random_doorstep_position: bool,
         doorstep_size: float,
-    ):
+    ) -> List[List[RectangleRoom]]:
 
         width_room = self.size[0] / room_layout[0] - self._wall_depth
         length_room = self.size[1] / room_layout[1] - self._wall_depth
@@ -203,7 +204,7 @@ class SingleRoom(GridRooms):
         size,
         wall_type='classic',
         wall_depth=10,
-        playground_seed: Union[int, None] = None,
+        playground_seed: Optional[int] = None,
         **wall_params,
     ):
 

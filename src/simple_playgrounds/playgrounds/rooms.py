@@ -5,6 +5,7 @@ import pymunk
 from ..common.texture import Texture
 from ..elements.collection.basic import Wall, Door
 from ..elements.element import SceneElement
+from ..common.position_utils import Coordinate
 
 import numpy as np
 
@@ -130,7 +131,7 @@ class RectangleRoom:
     def get_partial_area(
         self,
         area_location: str,
-    ):
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]]:
         """
         Get particular area in a room.
 
@@ -174,12 +175,14 @@ class RectangleRoom:
             length /= 2.
             width /= 2.
 
-        return self.center + (delta_x, delta_y), (width, length)
+        center = self.center + (delta_x, delta_y)
+
+        return (center.x, center.y), (width, length)
 
     def get_random_position_on_wall(self,
                                     wall_location: str,
                                     element: SceneElement,
-                                    ):
+                                    ) -> Coordinate:
 
         """
 

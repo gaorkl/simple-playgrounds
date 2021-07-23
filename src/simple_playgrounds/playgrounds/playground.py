@@ -19,9 +19,10 @@ from ..common.definitions import SPACE_DAMPING, CollisionTypes
 
 from ..agents.agent import Agent
 from ..agents.parts.parts import Part
-from ..agents.parts.actuators import Actuator, Grasp, Activate
-from ..common.entity import Entity
-from ..elements.element import SceneElement, InteractiveElement, TeleportElement, GemElement
+from ..agents.parts.actuators import Grasp, Activate
+from ..elements.element import SceneElement, InteractiveElement
+from ..elements.collection.teleport import TeleportElement
+from ..elements.collection.gem import GemElement
 from ..elements.field import Field
 from ..elements.collection.activable import Dispenser
 from ..common.position_utils import InitCoord
@@ -78,7 +79,7 @@ class Playground(ABC):
 
         # Private attributes for managing interactions in playground
         self._disappeared_scene_elements: List[SceneElement] = []
-        self._grasped_elements: Dict[SceneElement, Actuator] = {}
+        self._grasped_elements: Dict[SceneElement, Grasp] = {}
         self._teleported: List[Tuple[Agent, SceneElement]] = []
 
         # Timers to handle periodic events
@@ -284,7 +285,6 @@ class Playground(ABC):
     def _add_agent_to_playground(self, agent: Agent):
 
         self.agents.append(agent)
-        agent.in_a_playground = True
 
         for body_part in agent.parts:
             self.space.add(*body_part.pm_elements)
@@ -375,9 +375,9 @@ class Playground(ABC):
                 field.produced_entities.remove(element)
 
         if element in self._grasped_elements.keys():
-            body_part = self._grasped_elements[element]
-            self.space.remove(*body_part.grasped)
-            body_part.grasped = []
+            actuator = self._grasped_elements[element]
+            self.space.remove(*actuator.grasped)
+            actuator.grasped = []
 
         return True
 
@@ -445,7 +445,7 @@ class Playground(ABC):
         self,
         entity: Union[Agent, Part, SceneElement],
         entity_2: Optional[Union[Part, SceneElement]] = None,
-        entity_filter: Optional[List[Entity]] = None,
+        entity_filter: Optional[List[Union[Part, SceneElement]]] = None,
     ) -> bool:
 
         filter_shapes = []
@@ -454,12 +454,10 @@ class Playground(ABC):
 
         if isinstance(entity, Agent):
 
-            agent_parts = [part for part in entity.parts]
-
             if not entity_filter:
-                entity_filter = agent_parts
+                entity_filter = entity.parts# type: ignore
             else:
-                entity_filter += agent_parts
+                entity_filter += entity.parts
 
             for part in entity.parts:
                 if self._overlaps(part, entity_filter=entity_filter):
@@ -472,8 +470,12 @@ class Playground(ABC):
 
         if entity_2 and entity_2.pm_visible_shape:
 
-            return entity.pm_visible_shape.shapes_collide(
+            collisions = entity.pm_visible_shape.shapes_collide(
                 entity_2.pm_visible_shape)
+
+            if collisions:
+                return True
+            return False
 
         shape_queries = self.space.shape_query(entity.pm_visible_shape)
         overlapping_shapes = [shape_q.shape for shape_q in shape_queries]
@@ -519,7 +521,7 @@ class Playground(ABC):
         for agent in self.agents:
 
             part = agent.get_part_from_shape(pm_shape)
-            if part is not None:
+            if part:
                 return part
 
         return None

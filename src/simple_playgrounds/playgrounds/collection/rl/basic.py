@@ -31,8 +31,8 @@ class CoinMaster(SingleRoom):
 
         self.field = Field(Coin,
                            self.area_prod,
-                           limit=5,
-                           total_limit=1000,
+                           max_elements_in_playground=5,
+                           production_limit=1000,
                            entity_produced_params={
                                'graspable': True,
                                'vending_machine': self.vending_machine,

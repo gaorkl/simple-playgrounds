@@ -1,3 +1,5 @@
+from typing import Union, Optional
+
 import random
 
 from ...playground import PlaygroundRegister
@@ -20,13 +22,13 @@ class EndgoalRoomCue(SingleRoom):
         reward_reached_time_limit=-10,
         reward_reached_endgoal=10,
         reward_reached_deathtrap=-10,
-        wall_texture_seed=None,
+        playground_seed: Optional[int] = None,
     ):
 
-        super().__init__(size=(200, 200), wall_texture_seed=wall_texture_seed)
+        super().__init__(size=(200, 200), playground_seed=playground_seed)
 
         # Starting area of the agent
-        area_center, _ = self.area_rooms[(0, 0)]
+        area_center = self.grid_rooms[0][0].center
         area_start = CoordinateSampler(center=area_center,
                                        area_shape='rectangle',
                                        size=(100, 100))
@@ -34,19 +36,19 @@ class EndgoalRoomCue(SingleRoom):
 
         # Visual Cues for the agent to orient itself.
         obstacle_1 = Physical(default_config_key='pentagon', radius=9)
-        self.add_scene_element(obstacle_1, ((60, 30), 0.34))
+        self.add_element(obstacle_1, ((60, 30), 0.34))
 
         obstacle_2 = Physical(default_config_key='rectangle',
                            width_length=[8, 12])
-        self.add_scene_element(obstacle_2, ((130, 150), 1.7))
+        self.add_element(obstacle_2, ((130, 150), 1.7))
 
         obstacle_3 = Physical(default_config_key='square', radius=8)
-        self.add_scene_element(obstacle_3, ((40, 140), 0.4))
+        self.add_element(obstacle_3, ((40, 140), 0.4))
 
         obstacle_4 = Physical(physical_shape='triangle',
                            radius=14,
                            texture=(150, 200, 200))
-        self.add_scene_element(obstacle_4, ((160, 60), 0))
+        self.add_element(obstacle_4, ((160, 60), 0))
 
         self.goal = None
         self.cue = None
@@ -78,7 +80,7 @@ class EndgoalRoomCue(SingleRoom):
                          radius=10,
                          texture=col,
                          is_temporary_entity=True)
-        self.add_scene_element(self.cue, ((100, 100), 0))
+        self.add_element(self.cue, ((100, 100), 0))
 
         self.goal = GoalZone(reward=self.reward_goal, is_temporary_entity=True)
         self.add_scene_element(self.goal, loc)
@@ -88,7 +90,7 @@ class EndgoalRoomCue(SingleRoom):
                 loc = self.goal_locations[i]
                 other_goal = DeathZone(reward=self.reward_deathtrap,
                                        is_temporary_entity=True)
-                self.add_scene_element(other_goal, loc)
+                self.add_element(other_goal, loc)
 
     def reset(self):
         super().reset()
@@ -102,21 +104,25 @@ class Endgoal9Rooms(GridRooms):
     The agent must reach the invisible goal in the left-down corner.
     Each wall has a different color.
     """
-    def __init__(self, time_limit=1000, wall_texture_seed=None):
+    def __init__(self,
+                 time_limit=1000,
+                 playground_seed: Optional[int] = None,
+                 ):
 
         super().__init__(size=(450, 450),
                          room_layout=(3, 3),
                          wall_type='colorful',
-                         wall_texture_seed=wall_texture_seed)
+                         playground_seed=playground_seed,
+                         doorstep_size=60)
 
         # Starting area of the agent
         area_start = CoordinateSampler(center=(225, 225),
                                        area_shape='rectangle',
-                                       width_length=(450, 450))
+                                       size=(450, 450))
         self.initial_agent_coordinates = area_start
 
         # invisible endzone at one corner of the game
         invisible_endzone = GoalZone(reward=10)
-        self.add_scene_element(invisible_endzone, ((20, 20), 0))
+        self.add_element(invisible_endzone, ((20, 20), 0))
 
         self.time_limit = time_limit

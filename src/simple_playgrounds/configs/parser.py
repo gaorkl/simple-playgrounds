@@ -1,14 +1,22 @@
+from __future__ import annotations
+from typing import Union, Optional, TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..common.definitions import ElementTypes, SensorTypes
+    from ..agents.parts.parts import PartTypes
+
 import os
 import yaml
 
 
-def parse_configuration(file_name, config_key):
+def parse_configuration(file_name: str,
+                        config_key: Optional[Union[PartTypes, ElementTypes, SensorTypes, str]] = None,
+                        ):
     """
     Method to parse yaml configuration file.
 
     Args:
         file_name: name of the config file
-        config_key: SceneElementType or str
+        config_key: PartTypes, ElementTypes or str
 
     Returns:
         Dictionary containing the default configuration of the body part.
@@ -21,10 +29,11 @@ def parse_configuration(file_name, config_key):
               'r') as yaml_file:
         default_config = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
+    # Hacky but there are circular dependencies
     if hasattr(config_key, 'name'):
-        config_key = config_key.name.lower()
+        key_name = config_key.name.lower() # type: ignore
 
-    if config_key not in default_config:
-        return {}
+    elif isinstance(config_key, str):
+        key_name = config_key
 
-    return default_config[config_key]
+    return default_config.get(key_name, {})
