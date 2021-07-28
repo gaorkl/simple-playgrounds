@@ -10,12 +10,12 @@ from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
                                                FullPlaygroundSensor,
                                                SemanticRay, SemanticCones)
 
-### Agent Body
+from simple_playgrounds.elements.collection.basic import Physical
 
 
-@pytest.fixture(scope="module", params=[RandomDiscrete, RandomContinuous])
-def random_control(request):
-    return request.param
+###########################
+# AGENT BODY
+###########################
 
 
 @pytest.fixture(scope="module", params=[True, False])
@@ -38,11 +38,6 @@ def random_controller(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[BaseAgent, HeadAgent, HeadEyeAgent])
-def simple_agent_cls(request):
-    return request.param
-
-
 @pytest.fixture(scope="module", params=[BaseAgent, HeadAgent, HeadEyeAgent, FullAgent])
 def all_agent_cls(request):
     return request.param
@@ -57,7 +52,10 @@ def base_forward_agent():
     return agent
 
 
-# Agent Sensor
+###########################
+# AGENT BODY
+###########################
+
 @pytest.fixture(scope="module",
                 params=[
                     RgbCamera, GreyCamera, Lidar, Touch, Proximity,
@@ -88,17 +86,59 @@ def resolution(request):
     return request.param
 
 
+###########################
 # Playgrounds
+###########################
+
 @pytest.fixture(scope="module",
                 params=PlaygroundRegister.playgrounds['test'].items())
-def pg_cls(request):
+def pg_test_class(request):
     _, pg_class = request.param
     return pg_class
 
 
 @pytest.fixture(scope="module",
                 params=PlaygroundRegister.playgrounds['basic_rl'].items())
-def pg_rl_cls(request):
+def pg_rl_class(request):
     _, pg_class = request.param
     return pg_class
 
+
+@pytest.fixture(scope="function")
+def empty_playground():
+    pg = SingleRoom(
+        size=(100, 100)
+    )
+    return pg
+
+
+###########################
+# Elements
+###########################
+
+@pytest.fixture(scope="module", params=[True, False])
+def movable(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[2, 10, 15])
+def radius(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=['square', 'rectangle', 'circle', 'pentagon', 'triangle', 'hexagon'])
+def basic_element(request, movable, radius):
+
+    if request.param == 'rectangle':
+        return Physical(config_key=request.param, movable=movable, mass=10, size=(radius, radius))
+    else:
+        return Physical(config_key=request.param, movable=movable, mass=10, radius=radius)
+
+
+####################
+# Others
+####################
+
+@pytest.fixture(scope="module", params=[5, [5, 10], (5, 10)])
+def periods(request):
+    return request.param

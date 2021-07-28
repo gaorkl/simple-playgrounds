@@ -2,14 +2,14 @@ import pytest
 
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
-from simple_playgrounds.common.position_utils import CoordinateSampler
+from simple_playgrounds.elements.collection.basic import Physical
 
 
 def run_engine(base_agent, pg_class, **pg_params):
     playground = pg_class(**pg_params)
     playground.add_agent(base_agent, allow_overlapping=False)
 
-    engine = Engine(playground, time_limit=100)
+    engine = Engine(playground, time_limit=1000)
     engine.run()
 
     assert 0 < base_agent.position[0] < playground.size[0]
@@ -18,7 +18,7 @@ def run_engine(base_agent, pg_class, **pg_params):
     playground.remove_agent(base_agent)
 
 
-def test_agents_in_empty_room(is_interactive, going_backward, moving_laterally, pg_cls,
+def test_agents_in_empty_room(is_interactive, going_backward, moving_laterally,
                               all_agent_cls, random_controller):
 
     agent = all_agent_cls(
@@ -28,7 +28,7 @@ def test_agents_in_empty_room(is_interactive, going_backward, moving_laterally, 
         lateral=moving_laterally,
     )
 
-    run_engine(agent, SingleRoom, size = (300,300))
+    run_engine(agent, SingleRoom, size=(300, 300))
 
 
 @pytest.mark.parametrize(
@@ -36,35 +36,42 @@ def test_agents_in_empty_room(is_interactive, going_backward, moving_laterally, 
     [(SingleRoom((300, 300)), (300, 300)),
      (GridRooms((400, 400), (2, 2), doorstep_size=60), (200, 200))],
 )
-def test_agent_initial_position1(base_forward_agent, pg, limits):
+def test_agent_initial_position(base_forward_agent, pg, limits):
+
+    # When position is not set
     agent = base_forward_agent
     pg.add_agent(agent)
+    assert 0 < agent.position[0] < limits[0]
+    assert 0 < agent.position[1] < limits[1]
+    pg.remove_agent(agent)
 
+    # When position is fixed
+    pg.add_agent(agent, ((50, 50), 0))
+    assert agent.position == (50, 50)
+    pg.remove_agent(agent)
+
+    # When position is from area of room
+    position_sampler = pg.grid_rooms[0][0].get_area_sampler()
+    pg.add_agent(agent, position_sampler)
     assert 0 < agent.position[0] < limits[0]
     assert 0 < agent.position[1] < limits[1]
 
 
-def test_agent_initial_position2(base_forward_agent):
-    agent = base_forward_agent
-    # Modifying initial position in playground
-    playground = SingleRoom((300, 300))
-    playground.initial_agent_coordinates = ((50, 50), 0)
-    playground.add_agent(agent)
-    assert agent.position == (50, 50)
-    playground.remove_agent(agent)
+def test_agent_overlapping(base_forward_agent, empty_playground):
 
+    elem = Physical(config_key='square')
+    empty_playground.add_element(elem, ((50, 50), 0))
+    empty_playground.add_agent(base_forward_agent, ((50, 50), 0))
 
-def test_agent_initial_position3(base_forward_agent):
-    agent = base_forward_agent
-    # Setting initial position in playground as PositionAreaSampler
-    playground = SingleRoom((300, 300))
-    first_room = playground.grid_rooms[0][0]
-    center, shape = first_room.center, first_room.size
-    playground.initial_agent_coordinates = CoordinateSampler(
-        center, area_shape='rectangle', size=shape)
-    playground.add_agent(agent)
-    pos_1 = agent.position
-    playground.remove_agent(agent)
-    playground.add_agent(agent)
-    assert agent.position != pos_1
-    playground.remove_agent(agent)
+    assert empty_playground._overlaps(base_forward_agent)
+    assert empty_playground._overlaps(base_forward_agent, elem)
+
+    empty_playground.remove_agent(base_forward_agent)
+
+    with pytest.raises(ValueError):
+        empty_playground.add_agent(base_forward_agent, ((50, 50), 0),
+                                   allow_overlapping=False)
+
+    with pytest.raises(ValueError):
+        empty_playground.add_agent(base_forward_agent)
+        empty_playground.add_agent(base_forward_agent)

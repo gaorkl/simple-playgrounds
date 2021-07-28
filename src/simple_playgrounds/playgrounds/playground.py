@@ -331,10 +331,10 @@ class Playground(ABC):
         attempt = 0
         success = False
 
-        while (not success) or (attempt > max_attempts):
+        while (not success) and (attempt < max_attempts):
             entity.coordinates = entity.initial_coordinates
-            success = not (self._overlaps(entity)
-                           or self._out_of_playground(entity))
+            success = not ((self._overlaps(entity)
+                           or self._out_of_playground(entity)))
             attempt += 1
 
         if success:

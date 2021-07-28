@@ -2,6 +2,8 @@ from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 from simple_playgrounds.elements.collection.basic import Physical
 
+from simple_playgrounds.common.timer import CountDown, PeriodicTics
+
 
 @PlaygroundRegister.register('test_test', 'basic')
 class Basics(SingleRoom):
@@ -28,4 +30,70 @@ def test_new_object():
     assert pg.my_obj.radius == 22
 
 
-# TODO: add test add element without overlapping
+# Test Timers
+
+def test_countdown():
+
+    countdown = CountDown(6)
+    assert not countdown.countdown_reached
+
+    #################
+    countdown.start()
+
+    for i in range(5):
+        countdown.step()
+        assert not countdown.countdown_reached
+
+    countdown.step()
+    assert countdown.countdown_reached
+
+    for i in range(10):
+        countdown.step()
+        assert not countdown.countdown_reached
+
+    ################
+    countdown.reset()
+    countdown.start()
+
+    for i in range(5):
+        countdown.step()
+        assert not countdown.countdown_reached
+
+    countdown.step()
+    assert countdown.countdown_reached
+
+    countdown.step()
+    assert not countdown.countdown_reached
+
+
+def test_periodic_tics(periods):
+
+    if isinstance(periods, int):
+        periods = [periods]
+
+    periodic_tics = PeriodicTics(durations=periods)
+
+    for p in periods:
+
+        for i in range(p-1):
+            periodic_tics.step()
+            assert not periodic_tics.tic
+
+        periodic_tics.step()
+        assert periodic_tics.tic
+
+    for p in periods:
+
+        for i in range(p - 1):
+            periodic_tics.step()
+            assert not periodic_tics.tic
+
+        periodic_tics.step()
+        assert periodic_tics.tic
+
+
+
+
+
+
+

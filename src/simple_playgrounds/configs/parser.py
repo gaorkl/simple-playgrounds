@@ -36,4 +36,7 @@ def parse_configuration(file_name: str,
     elif isinstance(config_key, str):
         key_name = config_key
 
+    else:
+        key_name = None
+
     return default_config.get(key_name, {})

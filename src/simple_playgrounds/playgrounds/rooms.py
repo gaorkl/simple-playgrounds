@@ -5,7 +5,7 @@ import pymunk
 from ..common.texture import Texture
 from ..elements.collection.basic import Wall, Door
 from ..elements.element import SceneElement
-from ..common.position_utils import Coordinate
+from ..common.position_utils import Coordinate, CoordinateSampler
 
 import numpy as np
 
@@ -128,6 +128,15 @@ class RectangleRoom:
                         texture=self._wall_texture_params)
             yield wall
 
+
+    def get_area_sampler(self):
+
+        width, length = self.size
+        width -= self._wall_depth
+        length -= self._wall_depth
+
+        return CoordinateSampler(center=self.center, area_shape='rectangle', size=(width, length))
+
     def get_partial_area(
         self,
         area_location: str,
@@ -151,9 +160,12 @@ class RectangleRoom:
 
             raise ValueError('area_location not correct')
 
-        delta_x = 0.
-        delta_y = 0.
+        delta_x = self._wall_depth/2
+        delta_y = self._wall_depth/2
+
         width, length = self.size
+        width -= self._wall_depth
+        length -= self._wall_depth
 
         if 'up' in area_location:
             delta_y = -self.size[1] / 4.

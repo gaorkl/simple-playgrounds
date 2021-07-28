@@ -69,6 +69,11 @@ class BaseAgent(Agent):
         super().__init__(base_platform=base, name=name)
 
         actuator: Actuator
+        self.longitudinal_force: Optional[Actuator] = None
+        self.lateral_force: Optional[Actuator] = None
+        self.rotation_velocity: Optional[Actuator] = None
+        self.grasp: Optional[Actuator] = None
+        self.activate: Optional[Actuator] = None
 
         if forward:
 
@@ -81,27 +86,32 @@ class BaseAgent(Agent):
                 actuator.assign_key(K_UP, KeyTypes.PRESS_HOLD, 1)
 
             self.add_actuator(actuator)
+            self.longitudinal_force = actuator
 
         if lateral:
             actuator = LateralForce(base)
             actuator.assign_key(K_v, KeyTypes.PRESS_HOLD, -1)
             actuator.assign_key(K_b, KeyTypes.PRESS_HOLD, 1)
             self.add_actuator(actuator)
+            self.lateral_force = actuator
 
         if rotate:
             actuator = AngularVelocity(base)
             actuator.assign_key(K_RIGHT, KeyTypes.PRESS_HOLD, 1)
             actuator.assign_key(K_LEFT, KeyTypes.PRESS_HOLD, -1)
             self.add_actuator(actuator)
+            self.rotation_velocity = actuator
 
         if interactive:
             grasp_actuator = Grasp(base)
             grasp_actuator.assign_key(K_g, KeyTypes.PRESS_HOLD, 1)
             self.add_actuator(grasp_actuator)
+            self.grasp = grasp_actuator
 
             activate_actuator = Activate(base)
             activate_actuator.assign_key(K_a, KeyTypes.PRESS_ONCE, 1)
             self.add_actuator(activate_actuator)
+            self.activate = activate_actuator
 
         # Assign controller once all body parts are declared
         self.controller = controller
