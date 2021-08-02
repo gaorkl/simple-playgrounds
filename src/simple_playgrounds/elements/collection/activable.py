@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 from abc import ABC
 
 from ...common.definitions import CollisionTypes, ElementTypes
-from ...common.timer import Timer
+from ...common.timer import Timer, CountDownTimer
 from ...common.position_utils import CoordinateSampler
 from ...configs.parser import parse_configuration
 
@@ -224,7 +224,7 @@ class TimerSwitch(OpenCloseSwitch):
     """
 
     def __init__(self, door: Door,
-                 timer: Timer,
+                 timer: CountDownTimer,
                  **kwargs,
                  ):
         """ Switch used to open a door for a certain duration.
@@ -246,14 +246,21 @@ class TimerSwitch(OpenCloseSwitch):
         elem_remove = None
         elem_add = None
 
-        self._timer.reset()
-
         if isinstance(activator, Timer):
+
+            assert activator is self._timer
+
+            self._timer.stop()
+            self._timer.reset()
+
             if self.door.opened:
                 self.door.close()
                 elem_add = [(self.door, None)]
 
         elif isinstance(activator, Agent):
+
+            self._timer.reset()
+            self._timer.start()
             if not self.door.opened:
                 self.door.open()
                 elem_remove = [self.door]
@@ -290,7 +297,6 @@ class VendingMachine(ActivableByGem):
         list_remove = None
 
         if activating.elem_activated:
-            self.activated = True
             list_remove = [activating]
 
         return list_remove, None
@@ -346,7 +352,6 @@ class Chest(ActivableByGem):
         elem_add = None
 
         if activating.elem_activated is self:
-
             list_remove = [activating, self]
             elem_add = [(self.treasure, self.coordinates)]
 
@@ -383,8 +388,7 @@ class Lock(ActivableByGem):
         list_remove = None
 
         if activating.elem_activated is self:
-
             self.door.open()
-            list_remove = [self.door, activating, self]
+            list_remove = [self.door, self, activating]
 
         return list_remove, None

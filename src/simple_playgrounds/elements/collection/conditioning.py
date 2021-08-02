@@ -9,6 +9,9 @@ from ..element import InteractiveElement
 from ...configs.parser import parse_configuration
 from ...common.definitions import CollisionTypes, ElementTypes
 from ...common.texture import Texture, TextureGenerator, ColorTexture
+from ...common.timer import Timer
+
+from ...agents.agent import Agent
 
 
 class ColorChanging(InteractiveElement):
@@ -60,12 +63,12 @@ class ColorChanging(InteractiveElement):
         self._texture_surface = self.texture.surface
         self._texture_changed = True
 
-    def activate(self, _):
+    def activate(self, activating: Union[Agent, Timer]):
         """
         When timer finishes, changes texture.
 
         Args:
-            activating_entity: must be Playground.
+            activating:
         """
 
         if self._mode == 'loop':
@@ -105,29 +108,34 @@ class ColorChanging(InteractiveElement):
         return False
 
 
-class RewardFlipper(ColorChanging):
+class FlipReward(ColorChanging):
     """
-    Flips the reward of an SceneElement based ColorChanging Element
+    Changes the reward of an SceneElement based ColorChanging Element.
     """
     def __init__(self,
-                 element_flipped: InteractiveElement,
+                 element_changed: InteractiveElement,
                  textures: List[Union[Texture, Dict, Tuple[int, int, int]]],
                  mode: str = 'loop',
                  activable_by_agent: bool = False,
                  **kwargs,
                  ):
 
-        self.element_flipped = element_flipped
+        self.element_changed = element_changed
         super().__init__(textures=textures, mode=mode, activable_by_agent=activable_by_agent, **kwargs)
+
         assert len(self.textures) == 2
+
+        self._initial_reward = element_changed._reward
 
     def activate(self, _):
 
-        super().activate(None)
+        super().activate(_)
 
-        if self.state == 0:
-            self.element_flipped.reward = abs(self.element_flipped.reward)
-        else:
-            self.element_flipped.reward = -abs(self.element_flipped.reward)
+        self.element_changed._reward = -self.element_changed._reward
 
         return None, None
+
+    def reset(self):
+
+        super().reset()
+        self.element_changed._reward = self._initial_reward

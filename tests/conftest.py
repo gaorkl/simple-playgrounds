@@ -2,7 +2,7 @@ import pytest
 
 from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
                                               HeadEyeAgent, FullAgent)
-from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous
+from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous, External
 from simple_playgrounds.playgrounds.collection import *
 
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
@@ -44,12 +44,22 @@ def all_agent_cls(request):
 
 
 @pytest.fixture(scope="function")
-def base_forward_agent():
+def base_forward_agent_random():
     agent = BaseAgent(
         controller=RandomDiscrete(),
         interactive=False,
     )
     return agent
+
+
+@pytest.fixture(scope="function")
+def base_forward_interactive_agent_external():
+    agent = BaseAgent(
+        controller=External(),
+        interactive=True,
+    )
+    return agent
+
 
 
 ###########################
@@ -141,4 +151,9 @@ def basic_element(request, movable, radius):
 
 @pytest.fixture(scope="module", params=[5, [5, 10], (5, 10)])
 def periods(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[-5, 0, 5])
+def reward(request):
     return request.param

@@ -7,14 +7,14 @@ from ....elements.collection.zone import DeathZone, GoalZone, HealingZone, Toxic
 from ....elements.collection.edible import Apple, RottenApple
 from ....elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation, OpenCloseSwitch, TimerSwitch, Lock
 from ....elements.collection.gem import Key, Coin
-from ....elements.collection.conditioning import RewardFlipper
+from ....elements.collection.conditioning import FlipReward
 from ....elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy, ContactSwitch
 from ....elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
 from ....elements.collection.aura import Fairy, Fireball
 
 
 from ....common.position_utils import CoordinateSampler, Trajectory
-from ....common.timer import Timer
+from ....common.timer import CountDownTimer, PeriodicTimer
 
 from ....elements.field import Field
 
@@ -309,20 +309,20 @@ class Conditioning(SingleRoom):
         roa = RewardOnActivation(reward=10)
         self.add_element(roa, ((50, 50), 0))
 
-        light_01 = RewardFlipper(element_flipped=roa,
-                                 textures=[(100, 200, 0), (200, 100, 200)],
-                                 activable_by_agent=True)
+        light_01 = FlipReward(element_changed=roa,
+                                    textures=[(100, 200, 0), (200, 100, 200)],
+                                    activable_by_agent=True)
         self.add_element(light_01, ((100, 50), 0))
 
         roa = RewardOnActivation(reward=10)
         self.add_element(roa, ((50, 150), 0))
 
-        light_02 = RewardFlipper(element_flipped=roa,
-                                 textures=[(100, 200, 0), (200, 100, 200)],
-                                 activable_by_agent=True)
+        light_02 = FlipReward(element_changed=roa,
+                                    textures=[(100, 200, 0), (200, 100, 200)],
+                                    activable_by_agent=True)
         self.add_element(light_02, ((100, 150), 0))
 
-        timer = Timer([100, 50])
+        timer = PeriodicTimer([100, 50])
         self.add_timer(timer, light_02)
 
 
@@ -345,7 +345,7 @@ class Doors(GridRooms):
         door_2 = doorstep_2.generate_door()
         self.add_element(door_2)
 
-        timer = Timer(durations=100)
+        timer = CountDownTimer(duration=100)
         switch_2 = TimerSwitch(door=door_2, timer=timer)
         self.add_element(switch_2, self.grid_rooms[0][0].get_random_position_on_wall('down', switch_2))
         self.add_timer(timer, switch_2)

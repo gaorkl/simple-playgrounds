@@ -9,6 +9,11 @@ class Timer(ABC):
 
         self._running = False
         self._time = 0
+        self._tic = False
+
+    @property
+    def tic(self):
+        return self._tic
 
     def start(self):
         self._running = True
@@ -25,30 +30,25 @@ class Timer(ABC):
         self._time = 0
 
 
-class CountDown(Timer):
+class CountDownTimer(Timer):
 
     def __init__(self, duration: int):
 
         super().__init__()
         self._duration = duration
-        self._countdown_reached = False
-
-    @property
-    def countdown_reached(self):
-        return self._countdown_reached
 
     def step(self):
         super().step()
 
-        if self._countdown_reached:
-            self._countdown_reached = False
+        if self._tic:
+            self._tic = False
 
         if self._time == self._duration:
             self.reset()
-            self._countdown_reached = True
+            self._tic = True
 
 
-class PeriodicTics(Timer):
+class PeriodicTimer(Timer):
 
     def __init__(self,
                  durations: Union[List[int], int, Tuple[int, ...]]):
@@ -64,18 +64,12 @@ class PeriodicTics(Timer):
 
         super().__init__()
 
-        self.start()
-        self._tic = False
-
-    @property
-    def tic(self):
-        return self._tic
-
     def reset(self):
         super().reset()
         self._index_duration = 0
         self._current_duration = self._durations[0]
         self._tic = False
+        self.start()
 
     def step(self):
 

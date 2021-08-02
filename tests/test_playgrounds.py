@@ -92,15 +92,15 @@ def test_engine_run(base_forward_agent):
 
 
 # Run all test playgrounds with basic non-interactive agent
-def test_all_test_playgrounds(base_forward_agent, pg_cls):
+def test_all_test_playgrounds(base_forward_agent, pg_test_class):
 
     agent = base_forward_agent
 
-    playground = pg_cls()
+    playground = pg_test_class()
 
     playground.add_agent(agent, allow_overlapping=False)
 
-    print('Starting testing of ', pg_cls.__name__)
+    print('Starting testing of ', pg_test_class.__name__)
 
     engine = Engine(playground, time_limit=10000)
     engine.run()
@@ -112,15 +112,15 @@ def test_all_test_playgrounds(base_forward_agent, pg_cls):
 
 
 # Run all test playgrounds with basic interactive agent
-def test_all_test_playgrounds_interactive(base_forward_agent, pg_cls):
+def test_all_test_playgrounds_interactive(base_forward_agent, pg_test_class):
 
     agent = base_forward_agent
 
-    playground = pg_cls()
+    playground = pg_test_class()
 
     playground.add_agent(agent, allow_overlapping=False)
 
-    print('Starting testing of ', pg_cls.__name__)
+    print('Starting testing of ', pg_test_class.__name__)
 
     engine = Engine(playground, time_limit=10000)
     engine.run()
@@ -132,11 +132,11 @@ def test_all_test_playgrounds_interactive(base_forward_agent, pg_cls):
 
 
 # Run all test playgrounds with 100 agents
-def test_multiagents(base_forward_agent, pg_cls):
+def test_multiagents(base_forward_agent, pg_test_class):
 
-    playground = pg_cls()
+    playground = pg_test_class()
 
-    print('Starting Multiagent testing of ', pg_cls.__name__)
+    print('Starting Multiagent testing of ', pg_test_class.__name__)
 
     pos_area_sampler = playground.initial_agent_coordinates
 
@@ -152,11 +152,11 @@ def test_multiagents(base_forward_agent, pg_cls):
 
 
 # Run all test playgrounds with 4 agents
-def test_multiagents_no_overlapping(base_forward_agent, pg_cls):
+def test_multiagents_no_overlapping(base_forward_agent, pg_test_class):
 
-    playground = pg_cls()
+    playground = pg_test_class()
 
-    print('Starting Multiagent testing of ', pg_cls.__name__)
+    print('Starting Multiagent testing of ', pg_test_class.__name__)
 
     for _ in range(4):
         agent = BaseAgent(controller=RandomContinuous(), interactive=True)
@@ -169,14 +169,14 @@ def test_multiagents_no_overlapping(base_forward_agent, pg_cls):
 
 
 # Run all test playgrounds with 10 agents
-def test_multisteps(base_forward_agent, pg_cls):
+def test_multisteps(base_forward_agent, pg_test_class):
 
     agent = base_forward_agent
     sensor = Touch(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(sensor)
 
-    playground = pg_cls()
-    print('Starting Multistep testing of ', pg_cls.__name__)
+    playground = pg_test_class()
+    print('Starting Multistep testing of ', pg_test_class.__name__)
     playground.add_agent(agent)
 
     engine = Engine(playground, time_limit=10000, screen=False)

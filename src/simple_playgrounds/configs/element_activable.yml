@@ -65,7 +65,7 @@ chest_texture : &chest-texture
 chest:
   texture: *chest-texture
   physical_shape: rectangle
-  width_length: [20, 30]
+  size: [20, 30]
   invisible_range : 10
 
 vendingmachine_texture : &vendingmachine-texture

@@ -78,7 +78,7 @@ class Playground(ABC):
         self.agents: List[Agent] = []
 
         # Private attributes for managing interactions in playground
-        self._disappeared_scene_elements: List[SceneElement] = []
+        self._disappeared_elements: List[SceneElement] = []
         self._grasped_elements: Dict[SceneElement, Grasp] = {}
         self._teleported: List[Tuple[Agent, SceneElement]] = []
 
@@ -115,6 +115,10 @@ class Playground(ABC):
 
         """
 
+        self._fields_produce()
+        self._release_grasps()
+        self._check_teleports()
+
         for agent in self.agents:
             agent.pre_step()
 
@@ -126,10 +130,7 @@ class Playground(ABC):
         for _ in range(steps):
             self.space.step(1. / steps)
 
-        self._fields_produce()
         self._update_timers()
-        self._release_grasps()
-        self._check_teleports()
 
     def reset(self):
         """
@@ -145,7 +146,7 @@ class Playground(ABC):
                 self._move_to_initial_position(element)
 
         # reset and replace entities that are not temporary
-        for element in self._disappeared_scene_elements.copy():
+        for element in self._disappeared_elements.copy():
             element.reset()
             self._add_element_to_playground(element)
             self._move_to_initial_position(element)
@@ -312,8 +313,8 @@ class Playground(ABC):
         if element in self.elements:
             raise ValueError('Scene element already in Playground')
 
-        if element in self._disappeared_scene_elements:
-            self._disappeared_scene_elements.remove(element)
+        if element in self._disappeared_elements:
+            self._disappeared_elements.remove(element)
 
         self.space.add(*element.pm_elements)
         self.elements.append(element)
@@ -360,7 +361,7 @@ class Playground(ABC):
         self.elements.remove(element)
 
         if not element.temporary:
-            self._disappeared_scene_elements.append(element)
+            self._disappeared_elements.append(element)
 
         dispensers = [
             elem for elem in self.elements if isinstance(elem, Dispenser)
@@ -381,7 +382,7 @@ class Playground(ABC):
 
         return True
 
-    def _add_remove_within(
+    def _remove_add_within(
         self,
         elems_remove: Optional[List[SceneElement]],
         elems_add: Optional[List[Tuple[SceneElement, InitCoord]]],
@@ -412,9 +413,9 @@ class Playground(ABC):
         for timer, element in self._timers.items():
 
             timer.step()
-            if timer.timer_done:
+            if timer.tic:
                 elems_remove, elems_add = element.activate(timer)
-                self._add_remove_within(elems_remove, elems_add)
+                self._remove_add_within(elems_remove, elems_add)
 
     def _release_grasps(self):
 
@@ -545,7 +546,7 @@ class Playground(ABC):
         agent.reward += touched_element.reward
 
         elems_remove, elems_add = touched_element.activate(agent)
-        self._add_remove_within(elems_remove, elems_add)
+        self._remove_add_within(elems_remove, elems_add)
 
         if touched_element.terminate_upon_activation:
             self.done = True
@@ -572,7 +573,7 @@ class Playground(ABC):
                     agent.reward += activable_element.reward
 
                     elems_remove, elems_add = activable_element.activate(agent)
-                    self._add_remove_within(elems_remove, elems_add)
+                    self._remove_add_within(elems_remove, elems_add)
 
                     if activable_element.terminate_upon_activation:
                         self.done = True
@@ -631,14 +632,15 @@ class Playground(ABC):
 
         assert isinstance(gem, GemElement)
 
-        elems_remove, elems_add = activable_element.activate(gem)
-        self._add_remove_within(elems_remove, elems_add)
+        if not activable_element.activated:
 
-        if activable_element.activated:
+            elems_remove, elems_add = activable_element.activate(gem)
+            self._remove_add_within(elems_remove, elems_add)
+
             agent.reward += activable_element.reward
 
-        if activable_element.terminate_upon_activation:
-            self.done = True
+            if activable_element.terminate_upon_activation:
+                self.done = True
 
         return True
 

@@ -316,6 +316,7 @@ class Agent(ABC):
         for actuator, value in actions_dict.items():
             actuator.apply_action(value)
 
+
     def owns_shape(self, pm_shape: Shape):
         """
         Verifies if a pm_shape belongs to an agent.

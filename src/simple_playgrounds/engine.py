@@ -15,7 +15,7 @@ Typical Usage:
     engine.terminate()
 """
 
-from typing import Union, Dict
+from typing import Union, Dict, Optional
 
 import numpy as np
 
@@ -171,7 +171,9 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
-    def step(self, actions: Dict[Agent, Dict[Actuator, float]]):
+    def step(self,
+             actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+             ):
         """
         Runs a single step of the game, with the same actions for the agents.
 
@@ -189,10 +191,16 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
-    def _engine_step(self, actions: Dict[Agent, Dict[Actuator, float]]):
+    def _engine_step(self,
+                     actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+                     ):
 
-        for agent in actions:
-            agent.apply_actions_to_actuators(actions[agent])
+        if not actions:
+            actions = {}
+
+        for agent in self.agents:
+            action_dict = {**agent.controller.generate_null_actions(), **actions.get(agent, {})}
+            agent.apply_actions_to_actuators(action_dict)
 
         self.playground.update(SIMULATION_STEPS)
 
@@ -217,7 +225,7 @@ class Engine:
         if not self._time_limit:
             return False
 
-        if self.elapsed_time >= self._time_limit - 1:
+        if self.elapsed_time >= self._time_limit:
             return True
 
         return False

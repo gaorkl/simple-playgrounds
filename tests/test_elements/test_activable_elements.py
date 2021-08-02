@@ -1,26 +1,18 @@
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.agents.agents import BaseAgent
-from simple_playgrounds.agents.parts.controllers import External
 
 from simple_playgrounds.elements.collection.activable import Dispenser, RewardOnActivation, OpenCloseSwitch, TimerSwitch
 from simple_playgrounds.elements.collection.contact import Candy
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.elements.collection.basic import Door
 
-from simple_playgrounds.common.timer import Timer
+from simple_playgrounds.common.timer import CountDownTimer
 
 
-def test_dispenser():
+def test_dispenser(base_forward_interactive_agent_external):
     playground = SingleRoom(size=(200, 200))
 
-    agent = BaseAgent(
-        controller=External(),
-        interactive=True,
-        rotate=False,
-        lateral=False,
-        backward=True,
-    )
+    agent = base_forward_interactive_agent_external
 
     dispenser = Dispenser(element_produced=Candy,
                           production_area=CoordinateSampler(center=(50, 100), area_shape='circle', radius=1),
@@ -46,16 +38,10 @@ def test_dispenser():
     assert total_rew > 0
 
 
-def test_dispenser_limit():
+def test_dispenser_limit(base_forward_interactive_agent_external):
     playground = SingleRoom(size=(200, 200))
 
-    agent = BaseAgent(
-        controller=External(),
-        interactive=True,
-        rotate=False,
-        lateral=False,
-        backward=True,
-    )
+    agent = base_forward_interactive_agent_external
 
     dispenser = Dispenser(element_produced=Candy,
                           production_area=CoordinateSampler(center=(50, 100), area_shape='circle', radius=1),
@@ -83,16 +69,10 @@ def test_dispenser_limit():
     assert total_rew == 4
 
 
-def test_reward_on_activation():
+def test_reward_on_activation(base_forward_interactive_agent_external):
     playground = SingleRoom(size=(200, 200))
 
-    agent = BaseAgent(
-        controller=External(),
-        interactive=True,
-        rotate=False,
-        lateral=False,
-        backward=True,
-    )
+    agent = base_forward_interactive_agent_external
 
     roa = RewardOnActivation(reward=5, quantity_rewards=10, invisible_range=40)
 
@@ -112,16 +92,10 @@ def test_reward_on_activation():
     assert total_rew == 50
 
 
-def test_openclose_switch():
+def test_openclose_switch(base_forward_interactive_agent_external):
     playground = SingleRoom(size=(200, 200))
 
-    agent = BaseAgent(
-        controller=External(),
-        interactive=True,
-        rotate=False,
-        lateral=False,
-        backward=True,
-    )
+    agent = base_forward_interactive_agent_external
 
     door = Door(start_point=(180, 180), end_point=(160, 160), door_depth=5)
     playground.add_element(door, ((150, 150), 0))
@@ -147,37 +121,58 @@ def test_openclose_switch():
     assert door in playground.elements
 
 
-def test_timer_switch():
+def test_timer_switch(base_forward_interactive_agent_external):
     playground = SingleRoom(size=(200, 200))
 
-    agent = BaseAgent(
-        controller=External(),
-        interactive=True,
-        rotate=False,
-        lateral=False,
-        backward=True,
-    )
+    agent = base_forward_interactive_agent_external
 
     door = Door(start_point=(180, 180), end_point=(160, 160), door_depth=5)
     playground.add_element(door, ((150, 150), 0))
 
-    switch_1 = TimerSwitch(door=door, invisible_range=40, timer=Timer(durations=5))
+    timer = CountDownTimer(duration=10)
+    switch_1 = TimerSwitch(door=door, invisible_range=40, timer=timer)
     playground.add_element(switch_1, ((140, 100), 0))
+    playground.add_timer(timer, switch_1)
 
     playground.add_agent(agent, ((100, 100), 0))
 
     engine = Engine(playground, time_limit=100)
     actions = {agent: {agent.activate: 1}}
 
+    assert door in playground.elements
+
+    # Open a first time
     engine.step(actions)
     assert door not in playground.elements
 
-    engine.step(actions)
+    for i in range(8):
+        engine.step()
+        assert door not in playground.elements
+
+    engine.step()
     assert door in playground.elements
 
+    # Open a second time
     engine.step(actions)
     assert door not in playground.elements
 
-    engine.step(actions)
+    for i in range(8):
+        engine.step()
+        assert door not in playground.elements
+
+    engine.step()
     assert door in playground.elements
 
+    # Open multiple time time
+    engine.step(actions)
+    engine.step(actions)
+    engine.step(actions)
+    engine.step(actions)
+    assert door not in playground.elements
+
+    for i in range(8):
+        engine.step()
+        assert door not in playground.elements
+
+    engine.step()
+    assert door in playground.elements
