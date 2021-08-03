@@ -67,10 +67,10 @@ class Edible(InteractiveElement, ABC):
 
         continue_eating = False
 
-        if self._reward > 0 and new_reward > self._min_reward:
+        if self._reward > 0 and new_reward >= self._min_reward:
             continue_eating = True
 
-        if self._reward < 0 and new_reward < self._min_reward:
+        if self._reward < 0 and new_reward <= self._min_reward:
             continue_eating = True
 
         if continue_eating:
@@ -119,7 +119,7 @@ class Apple(Edible):
         **entity_params,
     ):
 
-        assert reward > min_reward > 0
+        assert reward >= min_reward >= 0
 
         super().__init__(config_key=ElementTypes.APPLE,
                          reward=reward,
@@ -141,7 +141,7 @@ class RottenApple(Edible):
         shrink_ratio: float = 0.9,
         **entity_params,
     ):
-        assert reward < min_reward < 0
+        assert reward <= min_reward <= 0
 
         super().__init__(config_key=ElementTypes.ROTTEN_APPLE,
                          reward=reward,

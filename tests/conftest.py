@@ -157,3 +157,10 @@ def periods(request):
 @pytest.fixture(scope="module", params=[-5, 0, 5])
 def reward(request):
     return request.param
+
+
+@pytest.fixture(scope="module", params=[0, 1, 10])
+def pos_reward(request):
+    return request.param
+
+

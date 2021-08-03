@@ -57,8 +57,11 @@ class RewardZone(ZoneElement, ABC):
     def reward(self):
         rew = super().reward
 
-        if self._limit and self._total_reward_provided > self._limit:
-            return 0
+        if self._limit:
+            reward_left = self._limit - self._total_reward_provided
+
+            if abs(rew) > abs(reward_left):
+                rew = reward_left
 
         self._total_reward_provided += rew
         return rew

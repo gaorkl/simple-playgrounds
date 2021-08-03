@@ -2,6 +2,7 @@ from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 
 from simple_playgrounds.elements.collection.activable import Dispenser, RewardOnActivation, OpenCloseSwitch, TimerSwitch
+from simple_playgrounds.elements.collection.edible import Apple
 from simple_playgrounds.elements.collection.contact import Candy
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.elements.collection.basic import Door
@@ -176,3 +177,38 @@ def test_timer_switch(base_forward_interactive_agent_external):
 
     engine.step()
     assert door in playground.elements
+
+
+def test_edible_apple(base_forward_interactive_agent_external):
+    playground = SingleRoom(size=(200, 200))
+
+    agent = base_forward_interactive_agent_external
+
+    apple = Apple(reward=16, shrink_ratio=0.5, invisible_range=30*16, min_reward=1)
+
+    playground.add_agent(agent, ((100, 100), 0))
+    playground.add_element(apple, ((140, 100), 0))
+
+    engine = Engine(playground, time_limit=100)
+
+    actions = {agent: {agent.activate: 1}}
+
+    for rew in [16, 8, 4, 2, 1]:
+
+        engine.step(actions)
+        assert agent.reward == rew
+
+    engine.step(actions)
+    assert agent.reward == 0
+    assert apple not in playground.elements
+
+    engine.reset()
+
+    for rew in [16, 8, 4, 2, 1]:
+        engine.step(actions)
+        assert agent.reward == rew
+
+    engine.step(actions)
+    assert agent.reward == 0
+    assert apple not in playground.elements
+

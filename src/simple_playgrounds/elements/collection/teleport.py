@@ -1,7 +1,7 @@
 """
 Teleport can be used to teleport an agent.
 """
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 from abc import ABC, abstractmethod
 from math import pi
 from enum import Enum
@@ -187,13 +187,19 @@ class InvisibleBeamHoming(TeleportToElement):
 class Portal(TeleportElement):
 
     def __init__(self,
-                 color: PortalColor):
+                 color: Union[PortalColor, Tuple[int, int, int]],
+                 ):
+
+        if isinstance(color, PortalColor):
+            color = color.value
+
+        assert len(color) == 3
 
         super().__init__(destination=None,
                          visible_shape=True,
                          invisible_shape=True,
                          config_key=ElementTypes.PORTAL,
-                         texture=color.value)
+                         texture=color)
 
     def _set_shape_collision(self):
         self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
