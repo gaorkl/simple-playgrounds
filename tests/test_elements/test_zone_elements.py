@@ -24,24 +24,22 @@ def test_reward_zone(base_forward_interactive_agent_external):
     assert total_rew == 31
 
 
-# def test_termination_zone(base_forward_interactive_agent_external):
-#     playground = SingleRoom(size=(200, 200))
-#
-#     agent = base_forward_interactive_agent_external
-#
-#     goal = VisibleEndGoal(reward=100)
-#     playground.add_agent(agent, ((100, 100), 0))
-#     playground.add_element(goal, ((140, 100), 0))
-#
-#     engine = Engine(playground, time_limit=100)
-#
-#     total_rew = 0
-#     actions = {agent: {agent.longitudinal_force: 1}}
-#
-#     while engine.game_on:
-#         engine.step(actions)
-#         total_rew += agent.reward
-#
-#     assert total_rew > 0
-#     assert playground.done
-#
+def test_termination_zone(base_forward_interactive_agent_external):
+    playground = SingleRoom(size=(200, 200))
+
+    agent = base_forward_interactive_agent_external
+
+    goal = GoalZone(reward=100, size=(5,5))
+    playground.add_agent(agent, ((100, 100), 0))
+    playground.add_element(goal, ((140, 100), 0))
+
+    engine = Engine(playground, time_limit=100)
+
+    actions = {agent: {agent.longitudinal_force: 1}}
+
+    while engine.game_on:
+        engine.step(actions)
+
+    assert agent.reward > 0
+    assert playground.done
+
