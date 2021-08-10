@@ -175,6 +175,8 @@ class Dispensers(SingleRoom):
 
         super().__init__(size=size, **playground_params)
 
+        self.initial_agent_coordinates = ((100, 50), 3.14)
+
         x_dispenser = 50
         x_area = 150
 

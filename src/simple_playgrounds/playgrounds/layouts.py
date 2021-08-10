@@ -87,7 +87,8 @@ class GridRooms(Playground):
         assert isinstance(first_room, RectangleRoom)
 
         center_first_room = first_room.center
-        size_first_room = first_room.width - wall_depth, first_room.length - wall_depth
+        size_first_room = first_room.width - 2*wall_depth, first_room.length - 2*wall_depth
+
         self.initial_agent_coordinates = CoordinateSampler(
             center=center_first_room, area_shape='rectangle', size=size_first_room)
 

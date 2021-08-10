@@ -474,12 +474,12 @@ class AngularRelativeVelocity(MotorActuator):
 
         # Do not set the motor if the limb is close to limit
         if (angle_centered <
-            -self.part.rotation_range / 2 + np.pi / 20) and value > 0:
+            -self.part.rotation_range / 2 + np.pi / 20) and value < 0:
             self.part.motor.rate = 0
 
         elif (angle_centered >
-              self.part.rotation_range / 2 - np.pi / 20) and value < 0:
+              self.part.rotation_range / 2 - np.pi / 20) and value > 0:
             self.part.motor.rate = 0
 
         else:
-            self.part.motor.rate = value * ANGULAR_VELOCITY * self._action_range
+            self.part.motor.rate = - value * ANGULAR_VELOCITY * self._action_range
