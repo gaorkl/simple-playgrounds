@@ -2,7 +2,9 @@
 InteractiveSceneElements can be activated by an agent.
 """
 from __future__ import annotations
+
 from typing import Dict, Optional, Union, List, Type, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from ...elements.collection.gem import GemElement
 
@@ -29,9 +31,7 @@ class ActivableElement(InteractiveElement, ABC):
         default_config = parse_configuration('element_activable', config_key)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(visible_shape=True,
-                         invisible_shape=True,
-                         **kwargs)
+        super().__init__(visible_shape=True, invisible_shape=True, **kwargs)
 
     def _set_shape_collision(self):
         self.pm_invisible_shape.collision_type = CollisionTypes.ACTIVABLE
@@ -137,14 +137,16 @@ class Dispenser(ActivableElement):
 
 class RewardOnActivation(ActivableElement):
     """Fountain provides a reward when activated."""
+    def __init__(
+        self,
+        reward: float,
+        quantity_rewards: Optional[int] = None,
+        **kwargs,
+    ):
 
-    def __init__(self,
-                 reward: float,
-                 quantity_rewards: Optional[int] = None,
-                 **kwargs,
-                 ):
-
-        super().__init__(reward=reward, config_key=ElementTypes.REWARD_ON_ACTIVATION, **kwargs)
+        super().__init__(reward=reward,
+                         config_key=ElementTypes.REWARD_ON_ACTIVATION,
+                         **kwargs)
 
         self._quantity_rewards = quantity_rewards
         self._count_rewards = 0
@@ -172,15 +174,14 @@ class RewardOnActivation(ActivableElement):
 
 
 class OpenCloseSwitch(ActivableElement):
-
     """
     Opens or close a door when activated by an agent.
     """
-
-    def __init__(self,
-                 door: Door,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        door: Door,
+        **kwargs,
+    ):
         """ Switch used to open and close a door
 
         Default: Pale brown square of size 10.
@@ -217,16 +218,16 @@ class OpenCloseSwitch(ActivableElement):
 
 
 class TimerSwitch(OpenCloseSwitch):
-
     """
     Opens a door for a certain amount of time when activated by an agent.
     If activated when door is still open, resets the timer.
     """
-
-    def __init__(self, door: Door,
-                 timer: CountDownTimer,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        door: Door,
+        timer: CountDownTimer,
+        **kwargs,
+    ):
         """ Switch used to open a door for a certain duration.
 
         Default: Pale brown square of size 10.
@@ -284,9 +285,7 @@ class VendingMachine(ActivableByGem):
         Default: Orange square of size 20, provides a reward of 10.
         """
 
-        super().__init__(ElementTypes.VENDING_MACHINE,
-                         reward=reward,
-                         **kwargs)
+        super().__init__(ElementTypes.VENDING_MACHINE, reward=reward, **kwargs)
         self._quantity_rewards = quantity_rewards
         self._count_rewards = 0
 
@@ -325,10 +324,11 @@ class Chest(ActivableByGem):
     Chest can be open when in contact with corresponding Key entity, and deliver a treasure.
     When opened, Chest and key disappear, treasure appears.
     """
-    def __init__(self,
-                 treasure: SceneElement,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        treasure: SceneElement,
+        **kwargs,
+    ):
         """ Chest Entity.
         Default: Purple rectangle of size 20x30
 
@@ -362,10 +362,11 @@ class Lock(ActivableByGem):
     """
     Opens a door when in contact with the associated key.
     """
-    def __init__(self,
-                 door: Door,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        door: Door,
+        **kwargs,
+    ):
         """ Lock for a door, opens with a key.
 
         Default: pale green 10x10 square.

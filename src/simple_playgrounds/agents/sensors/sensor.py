@@ -8,16 +8,15 @@ families of sensors and allow very fast computation.
 Apart if specified, all sensors are attached to an anchor.
 They compute sensor-values from the point of view of this anchor.
 """
+import math
+from abc import abstractmethod, ABC
+from operator import attrgetter
 from typing import List, Dict, Optional, Union
 
-from abc import abstractmethod, ABC
-import math
-from operator import attrgetter
-
+import numpy as np
+import pymunk
 from pygame import Surface
 
-import pymunk
-import numpy as np
 from ..parts.parts import Part
 from ...common.entity import Entity
 from ...playgrounds.playground import Playground
@@ -50,7 +49,8 @@ class Sensor(ABC):
                  min_range: float,
                  normalize: bool,
                  noise_params: Optional[Dict] = None,
-                 invisible_elements: Optional[Union[List[Entity], Entity]] = None,
+                 invisible_elements: Optional[Union[List[Entity],
+                                                    Entity]] = None,
                  name: Optional[str] = None,
                  **_kwargs):
         """
@@ -149,14 +149,13 @@ class Sensor(ABC):
         self.requires_scale = False
 
     @abstractmethod
-    def apply_shape_filter(self,
-                           sensor_collision_index: int,
-                           ) -> bool:
+    def apply_shape_filter(
+        self,
+        sensor_collision_index: int,
+    ) -> bool:
         ...
 
-    def update(self,
-               playground: Playground,
-               sensor_surface: Surface):
+    def update(self, playground: Playground, sensor_surface: Surface):
 
         self._compute_raw_sensor(playground, sensor_surface)
 
@@ -167,10 +166,11 @@ class Sensor(ABC):
             self._apply_normalization()
 
     @abstractmethod
-    def _compute_raw_sensor(self,
-                            playground: Playground,
-                            sensor_surface: Surface,
-                            ):
+    def _compute_raw_sensor(
+        self,
+        playground: Playground,
+        sensor_surface: Surface,
+    ):
         pass
 
     @abstractmethod
@@ -187,10 +187,11 @@ class Sensor(ABC):
         return None
 
     @abstractmethod
-    def draw(self,
-             width: int,
-             height: int,
-             ):
+    def draw(
+        self,
+        width: int,
+        height: int,
+    ):
         """
         Function that creates an image for visualizing a sensor.
 
@@ -216,11 +217,11 @@ class RayCollisionSensor(Sensor, ABC):
     Robotic sensors and Semantic sensors inherit from this class.
 
     """
-
-    def __init__(self,
-                 remove_duplicates: bool,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        remove_duplicates: bool,
+        **kwargs,
+    ):
         """
         Args:
             remove_duplicates: If True, removes detections of the same objects on multiple rays.
@@ -243,9 +244,10 @@ class RayCollisionSensor(Sensor, ABC):
 
         self._shape_filter_applied = False
 
-    def apply_shape_filter(self,
-                           sensor_collision_index,
-                           ):
+    def apply_shape_filter(
+        self,
+        sensor_collision_index,
+    ):
 
         if not self._shape_filter_applied:
 
@@ -253,7 +255,7 @@ class RayCollisionSensor(Sensor, ABC):
                 elem.assign_shape_filter(sensor_collision_index)
 
             self.invisible_filter = pymunk.ShapeFilter(
-                categories=2 ** sensor_collision_index)
+                categories=2**sensor_collision_index)
 
             self._shape_filter_applied = True
 
@@ -265,7 +267,8 @@ class RayCollisionSensor(Sensor, ABC):
 
     @staticmethod
     def _remove_duplicate_collisions(
-            collisions_by_angle: Dict[float, Optional[pymunk.SegmentQueryInfo]]):
+            collisions_by_angle: Dict[float,
+                                      Optional[pymunk.SegmentQueryInfo]]):
 
         all_shapes = list(
             set(col.shape for angle, col in collisions_by_angle.items()
@@ -290,10 +293,11 @@ class RayCollisionSensor(Sensor, ABC):
 
         return collisions_by_angle
 
-    def _compute_collision(self,
-                           playground: Playground,
-                           sensor_angle: float,
-                           ) -> Optional[pymunk.SegmentQueryInfo]:
+    def _compute_collision(
+        self,
+        playground: Playground,
+        sensor_angle: float,
+    ) -> Optional[pymunk.SegmentQueryInfo]:
 
         position_body = self.anchor.pm_body.position
         angle = self.anchor.pm_body.angle + sensor_angle
@@ -308,9 +312,10 @@ class RayCollisionSensor(Sensor, ABC):
 
         return collision
 
-    def _compute_points(self,
-                        playground: Playground,
-                        ) -> Dict[float, Optional[pymunk.SegmentQueryInfo]]:
+    def _compute_points(
+        self,
+        playground: Playground,
+    ) -> Dict[float, Optional[pymunk.SegmentQueryInfo]]:
 
         points = {}
 

@@ -9,15 +9,13 @@ Examples can be found in :
     - simple_playgrounds/agents/parts
     - simple_playgrounds/playgrounds/scene_elements
 """
-import numbers
+import math
+from abc import ABC, abstractmethod
 from enum import IntEnum, auto
 from typing import Union, Tuple, Dict, List, Optional
 
-import math
-from abc import ABC, abstractmethod
-
-import pymunk
 import pygame
+import pymunk
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY, CollisionTypes
 
 from .position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
@@ -187,9 +185,10 @@ class Entity(ABC):
     def _set_shape_collision(self):
         pass
 
-    def assign_shape_filter(self,
-                            category_index: int,
-                            ):
+    def assign_shape_filter(
+        self,
+        category_index: int,
+    ):
         """
         Used to define collisions between entities.
         Used for sensors.
@@ -211,9 +210,10 @@ class Entity(ABC):
 
     # BODY AND SHAPE
 
-    def _create_pm_body(self,
-                        movable: bool,
-                        ):
+    def _create_pm_body(
+        self,
+        movable: bool,
+    ):
 
         if not movable:
             return pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -405,7 +405,8 @@ class Entity(ABC):
 
         else:
             if not isinstance(init_coordinates, CoordinateSampler):
-                assert len(init_coordinates) == 2 and len(init_coordinates[0]) == 2
+                assert len(init_coordinates) == 2 and len(
+                    init_coordinates[0]) == 2
             self._initial_coordinates = init_coordinates
 
     @property

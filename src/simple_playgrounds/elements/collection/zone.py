@@ -2,13 +2,12 @@
 Scene elements that interact with an agent when they are in range.
 Passive Scene Elements do not require action from an agent.
 """
+from abc import ABC
 from typing import Optional, Union
 
-from abc import ABC
-
-from ...elements.element import InteractiveElement
 from ...common.definitions import ElementTypes, CollisionTypes
 from ...configs.parser import parse_configuration
+from ...elements.element import InteractiveElement
 
 
 class ZoneElement(InteractiveElement, ABC):

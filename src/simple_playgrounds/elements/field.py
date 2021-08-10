@@ -1,11 +1,11 @@
 """
 Module for Field
 """
-from typing import Optional, Dict, Tuple, Type, List
 import random
+from typing import Optional, Dict, Tuple, Type, List
 
-from ..common.position_utils import CoordinateSampler, Coordinate
 from .element import SceneElement
+from ..common.position_utils import CoordinateSampler, Coordinate
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
@@ -68,8 +68,7 @@ class Field:
 
         return (len(self.produced_entities) < self.limit
                 and self.total_produced < self.total_limit
-                and random.random() < self.probability
-                )
+                and random.random() < self.probability)
 
     def produce(self) -> Tuple[SceneElement, Coordinate]:
         """

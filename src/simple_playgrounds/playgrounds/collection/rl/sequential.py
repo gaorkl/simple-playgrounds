@@ -1,12 +1,12 @@
 import itertools
 import random
 
+from ...layouts import GridRooms, LineRooms
 from ...playground import PlaygroundRegister
-from ...layouts import GridRooms
-from ....elements.collection.gem import Key, Coin
+from ....common.position_utils import CoordinateSampler
 from ....elements.collection.activable import Lock, Dispenser, VendingMachine
 from ....elements.collection.contact import Candy
-from ....common.position_utils import CoordinateSampler
+from ....elements.collection.gem import Key, Coin
 
 
 @PlaygroundRegister.register('basic_rl', 'dispenser_9rooms')
@@ -22,14 +22,16 @@ class DispenserEnv(GridRooms):
         wall_texture_seed=None,
     ):
 
-        super().__init__(size=(450, 300),
-                         room_layout=(3, 2),
-                         doorstep_size=60,
-                         wall_type='colorful',
-                         rng=wall_texture_seed,
-                         )
+        super().__init__(
+            size=(450, 300),
+            room_layout=(3, 2),
+            doorstep_size=60,
+            wall_type='colorful',
+            rng=wall_texture_seed,
+        )
 
-        self.initial_agent_coordinates, self.area_prod, self.area_dispenser = self._assign_areas()
+        self.initial_agent_coordinates, self.area_prod, self.area_dispenser = self._assign_areas(
+        )
 
         self.dispenser = None
         self._place_scene_elements()
@@ -38,9 +40,9 @@ class DispenserEnv(GridRooms):
 
     def _assign_areas(self):
 
-        all_coords = set(itertools.product(range(self.grid_rooms.shape[0]),
-                                           range(self.grid_rooms.shape[1]))
-                         )
+        all_coords = list(
+            itertools.product(range(self.grid_rooms.shape[0]),
+                              range(self.grid_rooms.shape[1])))
 
         coord_agent, coord_disp, coord_prod = random.sample(all_coords, 3)
 
@@ -73,7 +75,8 @@ class DispenserEnv(GridRooms):
         self._place_scene_elements()
 
 
-class DoorDispenserCoin(GridRooms):
+@PlaygroundRegister.register('basic_rl', 'door_dispenser_coin')
+class DoorDispenserCoin(LineRooms):
     def __init__(
         self,
         time_limit=1000,
@@ -81,44 +84,39 @@ class DoorDispenserCoin(GridRooms):
     ):
 
         super().__init__(size=(450, 150),
-                         room_layout=(3, 1),
+                         number_rooms=3,
                          doorstep_size=60,
                          wall_type='colorful',
-                         wall_texture_seed=wall_texture_seed)
+                         rng=wall_texture_seed)
 
         self.time_limit = time_limit
 
-        door = self.add_door(((1, 0), (2, 0)))
+        doorstep_1 = self.grid_rooms[0, 1].doorstep_right
+        door = doorstep_1.generate_door()
+        self.add_element(door)
 
-        area_key_center, area_key_shape = self.area_rooms[(0, 0)]
-        area_key = CoordinateSampler(center=area_key_center,
-                                     area_shape='rectangle',
-                                     size=area_key_shape)
-        key = Key(graspable=True)
-        self.add_scene_element(key, area_key)
-        lock = Lock(door=door, key=key)
-        lock_position = self.random_position_on_wall((1, 0), 'right',
-                                                     lock._radius)
+        lock = Lock(door=door)
+        lock_position = self.grid_rooms[0, 1].get_random_position_on_wall('right', element=lock)
+        self.add_element(lock, lock_position)
 
-        self.add_scene_element(lock, lock_position)
+        area_key = self.grid_rooms[0, 0].get_area_sampler()
+        key = Key(graspable=True, locked_elem=lock)
+        self.add_element(key, area_key, allow_overlapping=False)
 
-        vm_center, vm_shape = self.get_area((2, 0), 'up-right')
+        vm_center, vm_shape = self.grid_rooms[0, 2].get_partial_area('up-right')
         area_vm = CoordinateSampler(center=vm_center,
                                     area_shape='rectangle',
                                     size=vm_shape)
 
-        vm = VendingMachine()
-        self.add_scene_element(vm, area_vm, allow_overlapping=False)
+        vm = VendingMachine(reward=5)
+        self.add_element(vm, area_vm, allow_overlapping=False)
 
-        dispenser_center, dispenser_shape = self.get_area((2, 0), 'down-right')
+        dispenser_center, dispenser_shape = self.grid_rooms[0, 2].get_partial_area('down-right')
         area_dispenser = CoordinateSampler(center=dispenser_center,
                                            area_shape='rectangle',
                                            size=dispenser_shape)
 
-        prod_center, prod_shape = self.area_rooms[(0, 0)]
-        area_prod = CoordinateSampler(center=prod_center,
-                                      area_shape='rectangle',
-                                      size=prod_shape)
+        area_prod = self.grid_rooms[0, 0].get_area_sampler()
 
         dispenser = Dispenser(Coin,
                               production_area=area_prod,
@@ -126,12 +124,9 @@ class DoorDispenserCoin(GridRooms):
                                   'graspable': True,
                                   'vending_machine': vm
                               })
-        self.add_scene_element(dispenser,
-                               area_dispenser,
-                               allow_overlapping=False)
+        self.add_element(dispenser,
+                         area_dispenser,
+                         allow_overlapping=False)
 
-        area_start_center, area_start_shape = self.area_rooms[(1, 0)]
-        area_start = CoordinateSampler(center=area_start_center,
-                                       area_shape='rectangle',
-                                       size=area_start_shape)
-        self.initial_agent_coordinates = area_start
+        self.initial_agent_coordinates = self.grid_rooms[0, 1].get_area_sampler()
+

@@ -3,11 +3,10 @@ Module for Texture of SceneElements and Parts of Agents.
 Documentation is incomplete/missing. Refer to the tutorials for now.
 """
 
-from typing import Union, Tuple, Dict, Callable, Optional
-
-from abc import ABC, abstractmethod
-import math
 import itertools
+import math
+from abc import ABC, abstractmethod
+from typing import Union, Tuple, Dict, Callable, Optional
 
 import numpy as np
 from pygame import Surface, draw
@@ -27,15 +26,15 @@ class Texture(ABC):
             assert len(size) == 2
 
             # make sure size is even
-            w = int(size[1]/2)*2 + 5
-            h = int(size[0]/2)*2 + 5
+            w = int(size[1] / 2) * 2 + 5
+            h = int(size[0] / 2) * 2 + 5
 
             self._size = w, h
 
         elif isinstance(size, (float, int)):
 
             # convert radius into w/l
-            w = 2*int(size * math.sqrt(2)) + 5
+            w = 2 * int(size * math.sqrt(2)) + 5
 
             self._size = w, w
 
@@ -61,8 +60,8 @@ class Texture(ABC):
 
     def get_pixel(self, rel_pos: Tuple[float, float]):
 
-        x = int(rel_pos[0] + (self._size[0]-1)/2)
-        y = int(rel_pos[1] + (self._size[1]-1)/2)
+        x = int(rel_pos[0] + (self._size[0] - 1) / 2)
+        y = int(rel_pos[1] + (self._size[1] - 1) / 2)
 
         x = min(max(0, x), self._size[0] - 1)
         y = min(max(0, y), self._size[1] - 1)
@@ -158,14 +157,13 @@ class UniqueCenteredStripeTexture(ColorTexture):
 
 @TextureGenerator.register_subclass('multiple_centered_stripes')
 class MultipleCenteredStripesTexture(Texture):
-
     def __init__(
-            self,
-            size,
-            color_1: Tuple[int, int, int],
-            color_2: Tuple[int, int, int],
-            n_stripes: int,
-            ):
+        self,
+        size,
+        color_1: Tuple[int, int, int],
+        color_2: Tuple[int, int, int],
+        n_stripes: int,
+    ):
 
         super().__init__(size)
 
@@ -194,9 +192,10 @@ class MultipleCenteredStripesTexture(Texture):
         for i in range(self._size[0]):
             for j in range(self._size[1]):
 
-                angle = (np.arctan2( j - y, i - x) - math.pi/self.n_stripes/2.) % (2*math.pi/self.n_stripes)
+                angle = (np.arctan2(j - y, i - x) - math.pi / self.n_stripes /
+                         2.) % (2 * math.pi / self.n_stripes)
 
-                if angle > math.pi/self.n_stripes :
+                if angle > math.pi / self.n_stripes:
                     img[i, j, :] = self._color_1
                 else:
                     img[i, j, :] = self._color_2
@@ -254,7 +253,7 @@ class RandomUniformTexture(RandomTexture):
     @property
     def base_color(self):
 
-        mean_color = [(a+b)/2 for a, b in zip(self._min, self._max)]
+        mean_color = [(a + b) / 2 for a, b in zip(self._min, self._max)]
 
         return mean_color
 
@@ -278,8 +277,7 @@ class RandomTilesTexture(RandomTexture):
         # assert size_tiles <= self._size[0] and size_tiles <= self._size[1]
 
         self._shape_mini = (max(1, int(self._size[0] * 1.0 / size_tiles)),
-                            max(1, int(self._size[1] * 1.0 / size_tiles)),
-                            3)
+                            max(1, int(self._size[1] * 1.0 / size_tiles)), 3)
 
         self._min = color_min
         self._max = color_max
@@ -417,7 +415,6 @@ class ListCenteredRandomTilesTexture(RandomTexture):
 
 @TextureGenerator.register_subclass('unique_random_tiles')
 class UniqueRandomTilesTexture(RandomTexture):
-
     def __init__(self,
                  size,
                  n_colors=10,
@@ -430,14 +427,20 @@ class UniqueRandomTilesTexture(RandomTexture):
         super().__init__(size, rng=rng)
 
         # Compute colors
-        n_color_splits = int(n_colors ** (1/3))
+        n_color_splits = int(n_colors**(1 / 3))
 
-        r_list = [color_min[0] + n_r * (color_max[0] - color_min[0]) / (n_color_splits - 1)
-                  for n_r in range(n_color_splits)]
-        g_list = [color_min[1] + n_g * (color_max[1] - color_min[1]) / (n_color_splits - 1)
-                  for n_g in range(n_color_splits)]
-        b_list = [color_min[2] + n_b * (color_max[2] - color_min[2]) / (n_color_splits - 1)
-                  for n_b in range(n_color_splits)]
+        r_list = [
+            color_min[0] + n_r * (color_max[0] - color_min[0]) /
+            (n_color_splits - 1) for n_r in range(n_color_splits)
+        ]
+        g_list = [
+            color_min[1] + n_g * (color_max[1] - color_min[1]) /
+            (n_color_splits - 1) for n_g in range(n_color_splits)
+        ]
+        b_list = [
+            color_min[2] + n_b * (color_max[2] - color_min[2]) /
+            (n_color_splits - 1) for n_b in range(n_color_splits)
+        ]
 
         list_all_colors = itertools.product(r_list, g_list, b_list)
 
@@ -445,10 +448,16 @@ class UniqueRandomTilesTexture(RandomTexture):
 
         for color in list_all_colors:
 
-            color_min = tuple([int(c) - int(range_unique_color/2.) for c in color])
-            color_max = tuple([int(c) + int(range_unique_color/2.) for c in color])
+            color_min = tuple(
+                [int(c) - int(range_unique_color / 2.) for c in color])
+            color_max = tuple(
+                [int(c) + int(range_unique_color / 2.) for c in color])
 
-            text = RandomTilesTexture(size, size_tiles=size_tiles, color_min=color_min, color_max=color_max, rng=rng)
+            text = RandomTilesTexture(size,
+                                      size_tiles=size_tiles,
+                                      color_min=color_min,
+                                      color_max=color_max,
+                                      rng=rng)
             self.all_textures.append(text)
 
     def generate(self):
@@ -465,7 +474,3 @@ class UniqueRandomTilesTexture(RandomTexture):
     @property
     def base_color(self):
         return 125, 25, 90
-
-
-
-

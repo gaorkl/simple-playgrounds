@@ -7,15 +7,16 @@ Examples on how to add Parts to an agent can be found
 in simple_playgrounds/agents/agents.py
 """
 from __future__ import annotations
-from typing import Tuple
-from abc import ABC
+
 import math
+from abc import ABC
 from enum import IntEnum, auto
+from typing import Tuple
 
 import pymunk
 
-from ...common.entity import Entity
 from ...common.definitions import ARM_MAX_FORCE, CollisionTypes
+from ...common.entity import Entity
 from ...configs.parser import parse_configuration
 
 
@@ -31,10 +32,10 @@ class Part(Entity, ABC):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(
-            self,
-            can_absorb: bool = False,
-            movable: bool = True,
-            **kwargs,
+        self,
+        can_absorb: bool = False,
+        movable: bool = True,
+        **kwargs,
     ):
         Entity.__init__(self,
                         visible_shape=True,
@@ -59,12 +60,11 @@ class Platform(Part, ABC):
     Base class for Platforms.
     Platform can move in space using force actuators that propels them.
     """
-
     def __init__(
-            self,
-            can_absorb: bool = False,
-            movable: bool = True,
-            **kwargs,
+        self,
+        can_absorb: bool = False,
+        movable: bool = True,
+        **kwargs,
     ):
         default_config = parse_configuration('agent_parts', PartTypes.PLATFORM)
         kwargs = {**default_config, **kwargs}
@@ -77,7 +77,6 @@ class MobilePlatform(Platform):
         Platform that is moving.
 
     """
-
     def __init__(self, can_absorb, **kwargs):
         super().__init__(can_absorb=can_absorb, movable=True, **kwargs)
 
@@ -89,12 +88,12 @@ class FixedPlatform(Platform):
         Refer to the base class Platform.
 
     """
-
     def __init__(self, can_absorb, **kwargs):
         super().__init__(can_absorb=can_absorb, movable=False, **kwargs)
 
 
 # Body parts
+
 
 class AnchoredPart(Part, ABC):
     """
@@ -108,15 +107,15 @@ class AnchoredPart(Part, ABC):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(
-            self,
-            anchor: Part,
-            position_anchor: Tuple[float, float] = (0, 0),
-            position_part: Tuple[float, float] = (0, 0),
-            rotation_range: float = math.pi / 4,
-            angle_offset: float = 0,
-            can_absorb: bool = False,
-            movable: bool = True,
-            **kwargs,
+        self,
+        anchor: Part,
+        position_anchor: Tuple[float, float] = (0, 0),
+        position_part: Tuple[float, float] = (0, 0),
+        rotation_range: float = math.pi / 4,
+        angle_offset: float = 0,
+        can_absorb: bool = False,
+        movable: bool = True,
+        **kwargs,
     ):
         """
 
@@ -180,7 +179,6 @@ class Head(AnchoredPart):
     Not colliding with any Entity or Part.
 
     """
-
     def __init__(self,
                  anchor,
                  position_anchor=(0, 0),
@@ -203,7 +201,6 @@ class Eye(AnchoredPart):
     Not colliding with any Entity or Part
 
     """
-
     def __init__(self,
                  anchor,
                  position_anchor=(0, 0),
@@ -226,7 +223,6 @@ class Hand(AnchoredPart):
     Is colliding with other Entity or Part, except from anchor and other Parts attached to it.
 
     """
-
     def __init__(self,
                  anchor,
                  position_anchor=(0, 0),
@@ -252,7 +248,6 @@ class Arm(AnchoredPart):
         extremity_anchor_point: coordinates of the free extremity, used to attach other Parts.
 
     """
-
     def __init__(self, anchor, position_anchor, angle_offset=0, **kwargs):
         default_config = parse_configuration('agent_parts', PartTypes.ARM)
         body_part_params = {**default_config, **kwargs}

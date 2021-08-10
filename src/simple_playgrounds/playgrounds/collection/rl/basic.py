@@ -3,13 +3,12 @@ Module containing classical RL environments.
 """
 import random
 
-from ...playground import PlaygroundRegister
 from ...layouts import SingleRoom
+from ...playground import PlaygroundRegister
+from ....common.position_utils import CoordinateSampler
 from ....elements.collection.activable import VendingMachine
 from ....elements.collection.gem import Coin
 from ....elements.field import Field
-
-from ....common.position_utils import CoordinateSampler
 
 
 @PlaygroundRegister.register('basic_rl', 'coinmaster_singleroom')

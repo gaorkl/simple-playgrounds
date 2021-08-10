@@ -2,20 +2,19 @@
 Module that defines TopDown Sensors.
 Topdown sensors are based computed using the image provided by the environment.
 """
+import math
 from typing import Tuple, List, Union
 
-import math
 import numpy as np
-
-from skimage.transform import resize, rotate
-from skimage import draw
 import pygame
-
+from skimage import draw
+from skimage.transform import resize, rotate
 
 from .sensor import Sensor
 from ...common.definitions import SensorTypes
 from ...configs.parser import parse_configuration
 from ...playgrounds.playground import Playground
+
 # pylint: disable=no-member
 
 
@@ -24,7 +23,6 @@ class TopdownSensor(Sensor):
     TopdownSensor provides an image from bird's eye view, centered and oriented on the anchor.
     The anchor is, by default, visible to the agent.
     """
-
     def __init__(self,
                  anchor,
                  invisible_elements=None,
@@ -46,7 +44,8 @@ class TopdownSensor(Sensor):
                 Remove what is behind the sensor. Default: False.
         """
 
-        default_config = parse_configuration('agent_sensors', SensorTypes.TOP_DOWN)
+        default_config = parse_configuration('agent_sensors',
+                                             SensorTypes.TOP_DOWN)
         sensor_params = {**default_config, **sensor_params}
 
         super().__init__(anchor=anchor,
@@ -104,12 +103,14 @@ class TopdownSensor(Sensor):
 
         self.requires_surface = True
 
-    def apply_shape_filter(self,
-                           sensor_collision_index,
-                           ) -> bool:
+    def apply_shape_filter(
+        self,
+        sensor_collision_index,
+    ) -> bool:
         return False
 
-    def _get_sensor_image(self, playground: Playground, sensor_surface: pygame.Surface):
+    def _get_sensor_image(self, playground: Playground,
+                          sensor_surface: pygame.Surface):
 
         for agent in playground.agents:
             for part in agent.parts:
@@ -124,15 +125,18 @@ class TopdownSensor(Sensor):
             (2 * self._max_range + 1, 2 * self._max_range + 1))
 
         # Check that this is correct:
-        pos_x = playground.size[1] - (self.anchor.position[0] + self._max_range)
-        pos_y = playground.size[1] - (self.anchor.position[1] + self._max_range)
+        pos_x = playground.size[1] - (self.anchor.position[0] +
+                                      self._max_range)
+        pos_y = playground.size[1] - (self.anchor.position[1] +
+                                      self._max_range)
         cropped.blit(sensor_surface, (pos_x, pos_y))
 
         img_cropped = pygame.surfarray.pixels3d(cropped).astype(float)
 
         return img_cropped
 
-    def _compute_raw_sensor(self, playground:Playground, sensor_surface: pygame.Surface):
+    def _compute_raw_sensor(self, playground: Playground,
+                            sensor_surface: pygame.Surface):
 
         cropped_img = self._get_sensor_image(playground, sensor_surface)
 
@@ -208,7 +212,6 @@ class FullPlaygroundSensor(Sensor):
     FullPlaygroundSensor provides an image from bird's eye view of the full playground.
     There is no anchor.
     """
-
     def __init__(self,
                  anchor,
                  invisible_elements=None,
@@ -227,7 +230,8 @@ class FullPlaygroundSensor(Sensor):
                 Remove what is behind the sensor. Default: False.
         """
 
-        default_config = parse_configuration('agent_sensors', SensorTypes.FULL_PLAYGROUND)
+        default_config = parse_configuration('agent_sensors',
+                                             SensorTypes.FULL_PLAYGROUND)
         kwargs = {**default_config, **kwargs}
 
         super().__init__(anchor=anchor,
@@ -248,13 +252,15 @@ class FullPlaygroundSensor(Sensor):
         self.requires_surface = True
         self.requires_scale = True
 
-    def apply_shape_filter(self,
-                           sensor_collision_index,
-                           ) -> bool:
+    def apply_shape_filter(
+        self,
+        sensor_collision_index,
+    ) -> bool:
 
         return False
 
-    def _get_sensor_image(self, playground: Playground, sensor_surface: pygame.Surface):
+    def _get_sensor_image(self, playground: Playground,
+                          sensor_surface: pygame.Surface):
 
         for agent in playground.agents:
             for part in agent.parts:
@@ -270,7 +276,8 @@ class FullPlaygroundSensor(Sensor):
         np_image = np_image[::-1, :, ::-1]
         return np_image
 
-    def _compute_raw_sensor(self, playground: Playground, sensor_surface: pygame.Surface):
+    def _compute_raw_sensor(self, playground: Playground,
+                            sensor_surface: pygame.Surface):
 
         full_image = self._get_sensor_image(playground, sensor_surface)
 
@@ -279,7 +286,8 @@ class FullPlaygroundSensor(Sensor):
                                     order=0,
                                     preserve_range=True)
 
-    def set_scale(self, size_playground: Union[List[float], Tuple[float, float]]):
+    def set_scale(self, size_playground: Union[List[float], Tuple[float,
+                                                                  float]]):
 
         max_size = max(size_playground)
         self._scale = (int(self._resolution * size_playground[1] / max_size),

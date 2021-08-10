@@ -1,10 +1,8 @@
-from typing import Union, List, Tuple
-
 from abc import ABC
+from typing import Union, List, Tuple
 
 
 class Timer(ABC):
-
     def __init__(self):
 
         self._running = False
@@ -31,7 +29,6 @@ class Timer(ABC):
 
 
 class CountDownTimer(Timer):
-
     def __init__(self, duration: int):
 
         super().__init__()
@@ -49,9 +46,7 @@ class CountDownTimer(Timer):
 
 
 class PeriodicTimer(Timer):
-
-    def __init__(self,
-                 durations: Union[List[int], int, Tuple[int, ...]]):
+    def __init__(self, durations: Union[List[int], int, Tuple[int, ...]]):
 
         if isinstance(durations, int):
             durations = [durations]

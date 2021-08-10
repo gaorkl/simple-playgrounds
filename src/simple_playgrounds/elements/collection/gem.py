@@ -2,14 +2,13 @@
 Module for Gem SceneElements.
 Gem interacts with other SceneElements.
 """
-from typing import Union, Optional
 from abc import ABC
+from typing import Union, Optional
 
+from .activable import Lock, Chest, ActivableByGem
+from ..element import SceneElement
 from ...common.definitions import ElementTypes, CollisionTypes
 from ...configs.parser import parse_configuration
-
-from ..element import SceneElement
-from .activable import Lock, Chest, ActivableByGem
 
 
 class GemElement(SceneElement, ABC):
@@ -40,10 +39,11 @@ class Coin(GemElement):
     A Coin disappears when in contact with its VendingMachine."""
     def __init__(self, vending_machine, **kwargs):
 
-        super().__init__(config_key=ElementTypes.COIN,
-                         elem_activated=vending_machine,
-                         **kwargs,
-                         )
+        super().__init__(
+            config_key=ElementTypes.COIN,
+            elem_activated=vending_machine,
+            **kwargs,
+        )
 
 
 class Key(GemElement):
@@ -51,7 +51,8 @@ class Key(GemElement):
     A Key disappears when in contact with its VendingMachine."""
     def __init__(self, locked_elem: Union[Lock, Chest], **kwargs):
 
-        super().__init__(config_key=ElementTypes.KEY,
-                         elem_activated=locked_elem,
-                         **kwargs,
-                         )
+        super().__init__(
+            config_key=ElementTypes.KEY,
+            elem_activated=locked_elem,
+            **kwargs,
+        )

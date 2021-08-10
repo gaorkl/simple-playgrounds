@@ -13,19 +13,18 @@ Typical Usage:
     my_playground.add_agent(my_agent)
 
 """
-from typing import Optional
 import math
+from typing import Optional
 
-from pygame import K_UP, K_DOWN, K_RIGHT, K_LEFT, K_v, K_b, K_g, K_a, K_n, K_m, K_d, K_f, K_h, K_j,\
+from pygame import K_UP, K_DOWN, K_RIGHT, K_LEFT, K_v, K_b, K_g, K_a, K_n, K_m, K_d, K_f, K_h, K_j, \
     K_r, K_t, K_y, K_u, K_i, K_o, K_l, K_k
 
 from .agent import Agent
-from .parts.parts import Platform, Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
-from .parts.actuators import Actuator, AngularVelocity, LongitudinalForce, LateralForce,\
+from .parts.actuators import Actuator, AngularVelocity, LongitudinalForce, LateralForce, \
     Grasp, Activate, AngularRelativeVelocity
 from .parts.controllers import Controller
+from .parts.parts import Platform, Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
 from ..common.definitions import KeyTypes
-
 
 # pylint: disable=undefined-variable
 
@@ -124,10 +123,11 @@ class HeadAgent(BaseAgent):
     Attributes:
         head: Head of the agent
     """
-    def __init__(self,
-                 controller: Controller,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        controller: Controller,
+        **kwargs,
+    ):
 
         super().__init__(controller, **kwargs)
 
@@ -158,18 +158,16 @@ class HeadEyeAgent(HeadAgent):
         eye_l: Left Eye
         eye_r: Right Eye
     """
-    def __init__(self,
-                 controller: Controller,
-                 **kwargs):
+    def __init__(self, controller: Controller, **kwargs):
 
         super().__init__(controller=controller, **kwargs)
 
-        self.eye_l = Eye(
-            self.head,
-            position_anchor=(self.head.radius / 2, -self.head.radius / 2),
-            angle_offset=-math.pi / 5,
-            rotation_range=2 * math.pi / 3,
-            name='left_eye')
+        self.eye_l = Eye(self.head,
+                         position_anchor=(self.head.radius / 2,
+                                          -self.head.radius / 2),
+                         angle_offset=-math.pi / 5,
+                         rotation_range=2 * math.pi / 3,
+                         name='left_eye')
 
         self.add_body_part(self.eye_l)
 
@@ -178,12 +176,12 @@ class HeadEyeAgent(HeadAgent):
         eye_l_actuator.assign_key(K_f, KeyTypes.PRESS_HOLD, 1)
         self.add_actuator(eye_l_actuator)
 
-        self.eye_r = Eye(
-            self.head,
-            position_anchor=(self.head.radius / 2, self.head.radius / 2),
-            angle_offset=math.pi / 5,
-            rotation_range=2 * math.pi / 3,
-            name='right_eye')
+        self.eye_r = Eye(self.head,
+                         position_anchor=(self.head.radius / 2,
+                                          self.head.radius / 2),
+                         angle_offset=math.pi / 5,
+                         rotation_range=2 * math.pi / 3,
+                         name='right_eye')
         self.add_body_part(self.eye_r)
 
         eye_r_actuator = AngularRelativeVelocity(self.eye_r)
@@ -212,15 +210,14 @@ class FullAgent(HeadEyeAgent):
             if interactive, the agent grasp and activate with hands, and absorb and eats with body.
 
         """
-    def __init__(self,
-                 controller: Controller,
-                 interactive: bool = False,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        controller: Controller,
+        interactive: bool = False,
+        **kwargs,
+    ):
 
-        super().__init__(controller=controller,
-                         interactive=False,
-                         **kwargs)
+        super().__init__(controller=controller, interactive=False, **kwargs)
 
         self.arm_r = Arm(self.base_platform,
                          position_anchor=(0, self.base_platform.radius),
@@ -244,11 +241,12 @@ class FullAgent(HeadEyeAgent):
         arm_r_2_actuator.assign_key(K_u, KeyTypes.PRESS_HOLD, -1)
         self.add_actuator(arm_r_2_actuator)
 
-        self.hand_r = Hand(self.arm_r_2,
-                           position_anchor=self.arm_r_2.extremity_anchor_point,
-                           radius=8,
-                           rotation_range=0,
-                           )
+        self.hand_r = Hand(
+            self.arm_r_2,
+            position_anchor=self.arm_r_2.extremity_anchor_point,
+            radius=8,
+            rotation_range=0,
+        )
         self.add_body_part(self.hand_r)
 
         self.arm_l = Arm(self.base_platform,
@@ -273,11 +271,12 @@ class FullAgent(HeadEyeAgent):
         arm_l_2_actuator.assign_key(K_l, KeyTypes.PRESS_HOLD, -1)
         self.add_actuator(arm_l_2_actuator)
 
-        self.hand_l = Hand(self.arm_l_2,
-                           position_anchor=self.arm_l_2.extremity_anchor_point,
-                           radius=8,
-                           rotation_range=0,
-                           )
+        self.hand_l = Hand(
+            self.arm_l_2,
+            position_anchor=self.arm_l_2.extremity_anchor_point,
+            radius=8,
+            rotation_range=0,
+        )
         self.add_body_part(self.hand_l)
 
         if interactive:

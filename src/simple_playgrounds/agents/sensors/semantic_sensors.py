@@ -4,19 +4,18 @@ These artificial sensors return semantic information about the detected entities
 They return the actual instance of the entity detected, which allow to access their attributes.
 E.g. position, velocity, mass, shape can be accessed.
 """
-from typing import List, Optional, Dict, Union
-
 import math
 from operator import attrgetter
+from typing import List, Optional, Dict, Union
 
 import numpy as np
 from skimage.draw import line, disk
 
 from .sensor import RayCollisionSensor
-from ...common.definitions import SensorTypes, Detection
-from ...configs import parse_configuration
-from ...common.entity import Entity
 from ..parts.parts import Part
+from ...common.definitions import SensorTypes, Detection
+from ...common.entity import Entity
+from ...configs import parse_configuration
 
 
 class SemanticRay(RayCollisionSensor):
@@ -26,16 +25,17 @@ class SemanticRay(RayCollisionSensor):
     All the attributes (position, physical properties, ...) of the returned
     entity can be accessed.
     """
-
     def __init__(self,
                  anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity], Entity]] = None,
+                 invisible_elements: Optional[Union[List[Entity],
+                                                    Entity]] = None,
                  normalize: bool = True,
                  noise_params: Optional[Dict] = None,
                  remove_duplicates: bool = True,
                  **kwargs):
 
-        default_config = parse_configuration('agent_sensors', SensorTypes.SEMANTIC_RAY)
+        default_config = parse_configuration('agent_sensors',
+                                             SensorTypes.SEMANTIC_RAY)
         kwargs = {**default_config, **kwargs}
 
         super().__init__(anchor=anchor,
@@ -133,7 +133,6 @@ class SemanticCones(SemanticRay):
     """
     maximum angle of cones should be
     """
-
     def __init__(self,
                  anchor,
                  invisible_elements=None,
@@ -155,7 +154,8 @@ class SemanticCones(SemanticRay):
             fov: field of view
             range: range of the rays.
         """
-        default_config = parse_configuration('agent_sensors', SensorTypes.SEMANTIC_CONE)
+        default_config = parse_configuration('agent_sensors',
+                                             SensorTypes.SEMANTIC_CONE)
         kwargs = {**default_config, **kwargs}
 
         self.number_cones = kwargs['n_cones']

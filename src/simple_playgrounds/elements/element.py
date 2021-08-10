@@ -1,8 +1,8 @@
 """
 Module that defines Base Class SceneElement
 """
-from typing import List, Optional, Tuple
 from abc import ABC, abstractmethod
+from typing import List, Optional, Tuple
 
 from ..common.entity import Entity
 from ..common.position_utils import InitCoord
@@ -46,9 +46,11 @@ class InteractiveElement(SceneElement, ABC):
         self._reward = rew
 
     @abstractmethod
-    def activate(self,
-                 activator,
-                 ) -> Tuple[Optional[List[SceneElement]], Optional[List[Tuple[SceneElement, InitCoord]]]]:
+    def activate(
+        self,
+        activator,
+    ) -> Tuple[Optional[List[SceneElement]], Optional[List[Tuple[SceneElement,
+                                                                 InitCoord]]]]:
         ...
 
     @property

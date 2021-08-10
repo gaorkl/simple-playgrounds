@@ -1,14 +1,14 @@
 """ Module implementing Controllers.
 Controllers are used to generate commands to control the actuators of an agent.
 """
+import random
+from abc import ABC, abstractmethod
 from typing import List, Dict
 
-from abc import ABC, abstractmethod
-import random
-
 import pygame
-from ...common.definitions import KeyTypes
+
 from .actuators import Actuator, DiscreteActuator, ContinuousActuator
+from ...common.definitions import KeyTypes
 
 
 class Controller(ABC):

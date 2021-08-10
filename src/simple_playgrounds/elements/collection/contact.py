@@ -1,13 +1,14 @@
 """
 Contact entities interact upon touching an agent
 """
-from typing import Optional, Union
 from abc import ABC
+from typing import Optional, Union
 
+from .basic import Door
 from ..element import InteractiveElement
 from ...common.definitions import ElementTypes, CollisionTypes
 from ...configs.parser import parse_configuration
-from .basic import Door
+
 
 # pylint: disable=line-too-long
 # pylint: disable=useless-super-delegation
@@ -133,11 +134,11 @@ class Poison(Absorbable):
 
 class ContactSwitch(ContactElement):
     """Push button used to open a door."""
-
-    def __init__(self,
-                 door: Door,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        door: Door,
+        **kwargs,
+    ):
         """ Switch used to open and close a door
 
         Default: Pale brown square of size 10.
@@ -151,7 +152,8 @@ class ContactSwitch(ContactElement):
             However the behavior is unstable in multiagent setting.
         """
 
-        default_config = parse_configuration('element_activable', ElementTypes.SWITCH)
+        default_config = parse_configuration('element_activable',
+                                             ElementTypes.SWITCH)
         entity_params = {**default_config, **kwargs}
 
         super().__init__(**entity_params)

@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from typing import Union, Optional, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from ..common.definitions import ElementTypes, SensorTypes
     from ..agents.parts.parts import PartTypes
@@ -8,9 +10,11 @@ import os
 import yaml
 
 
-def parse_configuration(file_name: str,
-                        config_key: Optional[Union[PartTypes, ElementTypes, SensorTypes, str]] = None,
-                        ):
+def parse_configuration(
+    file_name: str,
+    config_key: Optional[Union[PartTypes, ElementTypes, SensorTypes,
+                               str]] = None,
+):
     """
     Method to parse yaml configuration file.
 
@@ -31,7 +35,7 @@ def parse_configuration(file_name: str,
 
     # Hacky but there are circular dependencies
     if hasattr(config_key, 'name'):
-        key_name = config_key.name.lower() # type: ignore
+        key_name = config_key.name.lower()  # type: ignore
 
     elif isinstance(config_key, str):
         key_name = config_key

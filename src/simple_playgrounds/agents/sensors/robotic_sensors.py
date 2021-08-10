@@ -4,20 +4,18 @@ These sensors are very close to physical sensors that could be used on real robo
 These sensors can be noisy.
 Importantly, as Simple-Playgrounds is a 2D environments, these sensors are 1D.
 """
+import math
 from typing import List, Optional, Dict, Union
 
-import math
-
 import numpy as np
-from skimage.transform import resize
 import pymunk
+from skimage.transform import resize
 
 from .sensor import RayCollisionSensor
 from ..parts.parts import Part
 from ...common.definitions import SensorTypes
-from ...configs.parser import parse_configuration
 from ...common.entity import Entity
-
+from ...configs.parser import parse_configuration
 
 # pylint: disable=no-member
 
@@ -31,7 +29,8 @@ class RgbCamera(RayCollisionSensor):
 
     def __init__(self,
                  anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity], Entity]] = None,
+                 invisible_elements: Optional[Union[List[Entity],
+                                                    Entity]] = None,
                  normalize: bool = True,
                  noise_params: Optional[Dict] = None,
                  **kwargs):
@@ -153,7 +152,8 @@ class Lidar(RayCollisionSensor):
 
     def __init__(self,
                  anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity], Entity]] = None,
+                 invisible_elements: Optional[Union[List[Entity],
+                                                    Entity]] = None,
                  normalize: bool = True,
                  noise_params: Optional[Dict] = None,
                  **kwargs):

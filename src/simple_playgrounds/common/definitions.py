@@ -3,7 +3,7 @@
 
 # pylint: disable=missing-class-docstring
 from collections import namedtuple
-from enum import Enum, IntEnum, auto
+from enum import IntEnum, auto
 
 SIMULATION_STEPS = 10
 SPACE_DAMPING = 0.9

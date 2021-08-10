@@ -10,24 +10,23 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 
+from abc import ABC
 from typing import Tuple, Union, List, Dict, Optional, Type
 
-from abc import ABC
 import pymunk
 
-from ..common.definitions import SPACE_DAMPING, CollisionTypes
-
 from ..agents.agent import Agent
-from ..agents.parts.parts import Part
 from ..agents.parts.actuators import Grasp, Activate
-from ..elements.element import SceneElement, InteractiveElement
-from ..elements.collection.teleport import TeleportElement
-from ..elements.collection.gem import GemElement
-from ..elements.field import Field
-from ..elements.collection.activable import Dispenser
+from ..agents.parts.parts import Part
+from ..common.definitions import SPACE_DAMPING, CollisionTypes
 from ..common.position_utils import InitCoord
-
 from ..common.timer import Timer
+from ..elements.collection.activable import Dispenser
+from ..elements.collection.gem import GemElement
+from ..elements.collection.teleport import TeleportElement
+from ..elements.element import SceneElement, InteractiveElement
+from ..elements.field import Field
+
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -335,7 +334,7 @@ class Playground(ABC):
         while (not success) and (attempt < max_attempts):
             entity.coordinates = entity.initial_coordinates
             success = not ((self._overlaps(entity)
-                           or self._out_of_playground(entity)))
+                            or self._out_of_playground(entity)))
             attempt += 1
 
         if success:
@@ -456,7 +455,7 @@ class Playground(ABC):
         if isinstance(entity, Agent):
 
             if not entity_filter:
-                entity_filter = entity.parts# type: ignore
+                entity_filter = entity.parts  # type: ignore
             else:
                 entity_filter += entity.parts
 
@@ -601,15 +600,19 @@ class Playground(ABC):
 
                     actuator.is_holding = True
 
-                    j_1 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                          (0, 0), (0, 20))
-                    j_2 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                          (0, 0), (0, -20))
+                    j_1 = pymunk.PinJoint(part.pm_body,
+                                          grasped_element.pm_body, (0, 0),
+                                          (0, 20))
+                    j_2 = pymunk.PinJoint(part.pm_body,
+                                          grasped_element.pm_body, (0, 0),
+                                          (0, -20))
 
-                    j_3 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                          (0, 20), (0, 0))
-                    j_4 = pymunk.PinJoint(part.pm_body, grasped_element.pm_body,
-                                          (0, -20), (0, 0))
+                    j_3 = pymunk.PinJoint(part.pm_body,
+                                          grasped_element.pm_body, (0, 20),
+                                          (0, 0))
+                    j_4 = pymunk.PinJoint(part.pm_body,
+                                          grasped_element.pm_body, (0, -20),
+                                          (0, 0))
 
                     self.space.add(j_1, j_2, j_3, j_4)
                     actuator.grasped = [j_1, j_2, j_3, j_4]
@@ -664,7 +667,8 @@ class Playground(ABC):
         agent.position, agent.angle = new_position, new_angle
 
         if teleport.keep_inertia:
-            agent.velocity = pymunk.Vec2d(*agent.velocity).rotated(-delta_angle)
+            agent.velocity = pymunk.Vec2d(
+                *agent.velocity).rotated(-delta_angle)
         else:
             agent.velocity = (0, 0)
 
@@ -685,14 +689,15 @@ class Playground(ABC):
         self.add_interaction(CollisionTypes.GEM,
                              CollisionTypes.ACTIVABLE_BY_GEM,
                              self._gem_activates_element)
-        self.add_interaction(CollisionTypes.PART,
-                             CollisionTypes.TELEPORT,
+        self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
                              self._agent_teleports)
 
-    def add_interaction(self, collision_type_1: CollisionTypes,
-                        collision_type_2: CollisionTypes,
-                        interaction_function,
-                        ):
+    def add_interaction(
+        self,
+        collision_type_1: CollisionTypes,
+        collision_type_2: CollisionTypes,
+        interaction_function,
+    ):
         """
 
         Args:

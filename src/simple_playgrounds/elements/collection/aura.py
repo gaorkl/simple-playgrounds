@@ -1,6 +1,5 @@
-from typing import Optional, Union
-
 from abc import ABC
+from typing import Optional, Union
 
 from ..element import InteractiveElement
 from ...common.definitions import ElementTypes, CollisionTypes
@@ -11,7 +10,6 @@ class AuraElement(InteractiveElement, ABC):
     """
     Base class for entities that provide reward to an agent in its proximity.
     """
-
     def __init__(self,
                  reward: float,
                  total_reward: Optional[float] = None,
@@ -33,9 +31,12 @@ class AuraElement(InteractiveElement, ABC):
         entity_params = {**default_config, **entity_params}
 
         if total_reward:
-            assert reward*total_reward > 0
+            assert reward * total_reward > 0
 
-        super().__init__(visible_shape=True, invisible_shape=True, reward=reward, **entity_params)
+        super().__init__(visible_shape=True,
+                         invisible_shape=True,
+                         reward=reward,
+                         **entity_params)
 
         self._limit = total_reward
         self._total_reward_provided = 0
@@ -65,7 +66,7 @@ class AuraElement(InteractiveElement, ABC):
     def terminate_upon_activation(self):
         return False
 
-    def activate(self, *args):
+    def activate(self, _):
         return None, None
 
     def _set_shape_collision(self):
@@ -80,11 +81,15 @@ class Fairy(AuraElement):
     Default: Turquoise-blue circle of radius 8, reward 2 and total_reward 200.
 
     """
-
-    def __init__(self,  reward: float, total_reward: Optional[float] = None,
+    def __init__(self,
+                 reward: float,
+                 total_reward: Optional[float] = None,
                  **entity_params):
 
-        super().__init__(config_key=ElementTypes.FAIRY, reward=reward, total_reward=total_reward, **entity_params)
+        super().__init__(config_key=ElementTypes.FAIRY,
+                         reward=reward,
+                         total_reward=total_reward,
+                         **entity_params)
 
 
 class Fireball(AuraElement):
@@ -95,7 +100,11 @@ class Fireball(AuraElement):
     Default: Red circle of radius 8, reward -2 and total_reward -200.
 
     """
-
-    def __init__(self, reward: float, total_reward: Optional[float] = None,
+    def __init__(self,
+                 reward: float,
+                 total_reward: Optional[float] = None,
                  **entity_params):
-        super().__init__(config_key=ElementTypes.FIREBALL, reward=reward, total_reward=total_reward, **entity_params)
+        super().__init__(config_key=ElementTypes.FIREBALL,
+                         reward=reward,
+                         total_reward=total_reward,
+                         **entity_params)

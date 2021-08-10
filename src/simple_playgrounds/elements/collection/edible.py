@@ -1,8 +1,8 @@
 """
 Module for Edible SceneElement
 """
-from typing import Optional, Union
 from abc import ABC
+from typing import Optional, Union
 
 from ..element import InteractiveElement
 from ...common.definitions import ElementTypes, CollisionTypes
@@ -56,7 +56,6 @@ class Edible(InteractiveElement, ABC):
     def activate(self, _):
 
         super().activate(_)
-        """" Change size, reward, and appearance."""
 
         # Change reward, size and mass
         prev_coordinates = self.coordinates

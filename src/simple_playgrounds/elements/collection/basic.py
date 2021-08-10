@@ -61,11 +61,9 @@ class Traversable(SceneElement):
 
 class Wall(Physical):
     """ Wall class"""
-    def __init__(self,
-                 start_point: Union[Tuple[float, float], pymunk.Vec2d],
+    def __init__(self, start_point: Union[Tuple[float, float], pymunk.Vec2d],
                  end_point: Union[Tuple[float, float], pymunk.Vec2d],
-                 wall_depth: float,
-                 **entity_params):
+                 wall_depth: float, **entity_params):
 
         start_point = pymunk.Vec2d(*start_point)
         end_point = pymunk.Vec2d(*end_point)
@@ -86,11 +84,9 @@ class Door(Physical):
     Properties:
         opened: True if the door is opened.
     """
-    def __init__(self,
-                 start_point: Union[Tuple[float, float], pymunk.Vec2d],
+    def __init__(self, start_point: Union[Tuple[float, float], pymunk.Vec2d],
                  end_point: Union[Tuple[float, float], pymunk.Vec2d],
-                 door_depth: float,
-                 **entity_params):
+                 door_depth: float, **entity_params):
 
         start_point = pymunk.Vec2d(*start_point)
         end_point = pymunk.Vec2d(*end_point)

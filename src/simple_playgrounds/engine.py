@@ -18,19 +18,16 @@ Typical Usage:
 from typing import Union, Dict, Optional
 
 import numpy as np
-
 import pygame
-import pygame.locals
 import pygame.color
-
+import pygame.locals
 from pymunk import pygame_util
-
 from skimage.transform import rescale
 
-from .playgrounds.playground import Playground
 from .agents.agent import Agent
 from .agents.parts.actuators import Actuator, Activate
 from .common.definitions import SIMULATION_STEPS
+from .playgrounds.playground import Playground
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
@@ -171,9 +168,10 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
-    def step(self,
-             actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
-             ):
+    def step(
+        self,
+        actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+    ):
         """
         Runs a single step of the game, with the same actions for the agents.
 
@@ -191,15 +189,19 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
-    def _engine_step(self,
-                     actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
-                     ):
+    def _engine_step(
+        self,
+        actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+    ):
 
         if not actions:
             actions = {}
 
         for agent in self.agents:
-            action_dict = {**agent.controller.generate_null_actions(), **actions.get(agent, {})}
+            action_dict = {
+                **agent.controller.generate_null_actions(),
+                **actions.get(agent, {})
+            }
             agent.apply_actions_to_actuators(action_dict)
 
         self.playground.update(SIMULATION_STEPS)
@@ -359,7 +361,8 @@ class Engine:
                     self._update_surface_background()
                     self._surface_buffer.blit(self._surface_background, (0, 0))
 
-                sensor.update(playground=self.playground, sensor_surface=self._surface_buffer)
+                sensor.update(playground=self.playground,
+                              sensor_surface=self._surface_buffer)
 
     def generate_agent_image(self,
                              agent,

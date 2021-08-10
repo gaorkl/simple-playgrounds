@@ -1,20 +1,16 @@
 from typing import Union, Dict, Tuple, Optional, List
 
+import numpy as np
 import pymunk
 
+from ..common.position_utils import Coordinate, CoordinateSampler
 from ..common.texture import Texture
 from ..elements.collection.basic import Wall, Door
 from ..elements.element import SceneElement
-from ..common.position_utils import Coordinate, CoordinateSampler
-
-import numpy as np
 
 
 class Doorstep:
-    def __init__(self,
-                 position: float,
-                 size: float,
-                 depth: float):
+    def __init__(self, position: float, size: float, depth: float):
 
         self.position = position
         self.size = size
@@ -131,10 +127,12 @@ class RectangleRoom:
     def get_area_sampler(self):
 
         width, length = self.size
-        width -= self._wall_depth
-        length -= self._wall_depth
+        width -= 2 * self._wall_depth
+        length -= 2 * self._wall_depth
 
-        return CoordinateSampler(center=self.center, area_shape='rectangle', size=(width, length))
+        return CoordinateSampler(center=self.center,
+                                 area_shape='rectangle',
+                                 size=(width, length))
 
     def get_partial_area(
         self,
@@ -154,13 +152,14 @@ class RectangleRoom:
 
         if area_location not in [
                 'center', 'up', 'down', 'right', 'left', 'up-right', 'up-left',
-                'down-right', 'down-left', 'left-up', 'right-up', 'left-down', 'right-down'
+                'down-right', 'down-left', 'left-up', 'right-up', 'left-down',
+                'right-down'
         ]:
 
             raise ValueError('area_location not correct')
 
-        delta_x = self._wall_depth/2
-        delta_y = self._wall_depth/2
+        delta_x = self._wall_depth / 2
+        delta_y = self._wall_depth / 2
 
         width, length = self.size
         width -= self._wall_depth
@@ -190,11 +189,11 @@ class RectangleRoom:
 
         return (center.x, center.y), (width, length)
 
-    def get_random_position_on_wall(self,
-                                    wall_location: str,
-                                    element: SceneElement,
-                                    ) -> Coordinate:
-
+    def get_random_position_on_wall(
+        self,
+        wall_location: str,
+        element: SceneElement,
+    ) -> Coordinate:
         """
 
         Finds a random position on a particular wall.
@@ -210,23 +209,31 @@ class RectangleRoom:
         """
 
         if wall_location == 'up':
-            start = pymunk.Vec2d(-self.width/2 + self._wall_depth/2, -self.length/2+ self._wall_depth/2)
-            end = pymunk.Vec2d(self.width/2 - self._wall_depth/2, -self.length/2+ self._wall_depth/2)
+            start = pymunk.Vec2d(-self.width / 2 + self._wall_depth / 2,
+                                 -self.length / 2 + self._wall_depth / 2)
+            end = pymunk.Vec2d(self.width / 2 - self._wall_depth / 2,
+                               -self.length / 2 + self._wall_depth / 2)
             doorstep = self.doorstep_up
 
         elif wall_location == 'down':
-            start = pymunk.Vec2d(-self.width / 2+ self._wall_depth/2, self.length / 2 - self._wall_depth/2)
-            end = pymunk.Vec2d(self.width / 2 - self._wall_depth/2, self.length / 2 - self._wall_depth/2)
+            start = pymunk.Vec2d(-self.width / 2 + self._wall_depth / 2,
+                                 self.length / 2 - self._wall_depth / 2)
+            end = pymunk.Vec2d(self.width / 2 - self._wall_depth / 2,
+                               self.length / 2 - self._wall_depth / 2)
             doorstep = self.doorstep_down
 
         elif wall_location == 'left':
-            start = pymunk.Vec2d(-self.width / 2 + self._wall_depth/2, -self.length / 2 + self._wall_depth/2)
-            end = pymunk.Vec2d(-self.width / 2 + self._wall_depth/2, self.length / 2 - self._wall_depth/2)
+            start = pymunk.Vec2d(-self.width / 2 + self._wall_depth / 2,
+                                 -self.length / 2 + self._wall_depth / 2)
+            end = pymunk.Vec2d(-self.width / 2 + self._wall_depth / 2,
+                               self.length / 2 - self._wall_depth / 2)
             doorstep = self.doorstep_left
 
         elif wall_location == 'right':
-            start = pymunk.Vec2d(self.width / 2 - self._wall_depth/2, -self.length / 2 + self._wall_depth/2)
-            end = pymunk.Vec2d(self.width / 2 - self._wall_depth/2, self.length / 2 - self._wall_depth/2)
+            start = pymunk.Vec2d(self.width / 2 - self._wall_depth / 2,
+                                 -self.length / 2 + self._wall_depth / 2)
+            end = pymunk.Vec2d(self.width / 2 - self._wall_depth / 2,
+                               self.length / 2 - self._wall_depth / 2)
             doorstep = self.doorstep_right
 
         else:
@@ -236,12 +243,15 @@ class RectangleRoom:
         end = end - (end - start).normalized() * element.radius
 
         if not doorstep:
-            return self.center + self._rng.uniform(tuple(start), tuple(end)), (start - end).angle
+            return self.center + self._rng.uniform(tuple(start), tuple(end)), (
+                start - end).angle
 
         else:
 
-            middle_1 = start + (end-start).normalized()*(doorstep.position - doorstep.size/2 - element.radius)
-            middle_2 = start + (end-start).normalized()*(doorstep.position + doorstep.size/2 + element.radius)
+            middle_1 = start + (end - start).normalized() * (
+                doorstep.position - doorstep.size / 2 - element.radius)
+            middle_2 = start + (end - start).normalized() * (
+                doorstep.position + doorstep.size / 2 + element.radius)
 
             if middle_1 - start < (0, 0):
                 pos = self._rng.uniform(middle_2, end)
@@ -253,7 +263,6 @@ class RectangleRoom:
                 pos_1 = self._rng.uniform(start, middle_1)
                 pos_2 = self._rng.uniform(middle_2, end)
 
-                pos = self._rng.choice( [pos_1, pos_2])
+                pos = self._rng.choice([pos_1, pos_2])
 
         return self.center + pos, (start - end).angle
-

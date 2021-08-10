@@ -1,20 +1,19 @@
 """
 Teleport can be used to teleport an agent.
 """
-from typing import Union, Optional, Tuple
 from abc import ABC, abstractmethod
-from math import pi
 from enum import Enum
+from math import pi
+from typing import Union, Optional, Tuple
 
 from pymunk import Vec2d
 
+from .basic import Traversable
+from ..element import SceneElement
+from ...agents.agent import Agent
 from ...common.definitions import CollisionTypes, ElementTypes
 from ...common.position_utils import CoordinateSampler, Coordinate
 from ...configs.parser import parse_configuration
-
-from ..element import SceneElement
-from .basic import Traversable
-from ...agents.agent import Agent
 
 
 class PortalColor(Enum):
@@ -28,7 +27,8 @@ class TeleportElement(SceneElement, ABC):
     """ Base Class for Teleport Entities"""
     def __init__(
         self,
-        destination: Optional[Union[Coordinate, CoordinateSampler, SceneElement]],
+        destination: Optional[Union[Coordinate, CoordinateSampler,
+                                    SceneElement]],
         config_key: Optional[Union[ElementTypes, str]] = None,
         keep_inertia: bool = True,
         **entity_params,
@@ -61,12 +61,12 @@ class TeleportElement(SceneElement, ABC):
 
 
 class TeleportToCoordinates(TeleportElement, ABC):
-
-    def __init__(self,
-                 destination: Union[CoordinateSampler, Coordinate],
+    def __init__(self, destination: Union[CoordinateSampler, Coordinate],
                  **kwargs):
 
-        super().__init__(destination=destination, config_key=ElementTypes.BEAM, **kwargs)
+        super().__init__(destination=destination,
+                         config_key=ElementTypes.BEAM,
+                         **kwargs)
 
         if not isinstance(destination, CoordinateSampler):
             assert len(destination) == 2 and len(destination[0]) == 2
@@ -80,9 +80,7 @@ class TeleportToCoordinates(TeleportElement, ABC):
 
 
 class InvisibleBeam(TeleportToCoordinates):
-
-    def __init__(self,
-                 destination: Union[CoordinateSampler, Coordinate],
+    def __init__(self, destination: Union[CoordinateSampler, Coordinate],
                  **kwargs):
 
         super().__init__(destination,
@@ -95,9 +93,7 @@ class InvisibleBeam(TeleportToCoordinates):
 
 
 class VisibleBeam(TeleportToCoordinates):
-
-    def __init__(self,
-                 destination: Union[CoordinateSampler, Coordinate],
+    def __init__(self, destination: Union[CoordinateSampler, Coordinate],
                  **kwargs):
 
         super().__init__(destination,
@@ -110,14 +106,15 @@ class VisibleBeam(TeleportToCoordinates):
 
 
 class TeleportToElement(TeleportElement, ABC):
-
     def __init__(self,
                  destination: Optional[SceneElement],
                  config_key: ElementTypes,
                  relative_teleport: bool = True,
                  **kwargs):
 
-        super().__init__(destination=destination, config_key=config_key, **kwargs)
+        super().__init__(destination=destination,
+                         config_key=config_key,
+                         **kwargs)
 
         self.relative_teleport = relative_teleport
 
@@ -142,53 +139,57 @@ class TeleportToElement(TeleportElement, ABC):
             new_orientation = agent.angle - self.angle + self.destination.angle + pi
 
         else:
-            new_pos = Vec2d(*self.destination.position) + relative_position.rotated(pi).normalized()*distance
+            new_pos = Vec2d(
+                *self.destination.position
+            ) + relative_position.rotated(pi).normalized() * distance
             new_orientation = agent.angle
 
         return tuple(new_pos), new_orientation
 
 
 class VisibleBeamHoming(TeleportToElement):
+    def __init__(
+        self,
+        destination: Optional[SceneElement],
+        **kwargs,
+    ):
 
-    def __init__(self,
-                 destination: Optional[SceneElement],
-                 **kwargs,
-                 ):
-
-        super().__init__(destination=destination,
-                         visible_shape=True,
-                         invisible_shape=True,
-                         config_key=ElementTypes.BEAM_HOMING,
-                         **kwargs,
-                         )
+        super().__init__(
+            destination=destination,
+            visible_shape=True,
+            invisible_shape=True,
+            config_key=ElementTypes.BEAM_HOMING,
+            **kwargs,
+        )
 
     def _set_shape_collision(self):
         self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
 
 
 class InvisibleBeamHoming(TeleportToElement):
+    def __init__(
+        self,
+        destination: Optional[SceneElement],
+        **kwargs,
+    ):
 
-    def __init__(self,
-                 destination: Optional[SceneElement],
-                 **kwargs,
-                 ):
-
-        super().__init__(destination=destination,
-                         visible_shape=False,
-                         invisible_shape=True,
-                         config_key=ElementTypes.BEAM_HOMING,
-                         **kwargs,
-                         )
+        super().__init__(
+            destination=destination,
+            visible_shape=False,
+            invisible_shape=True,
+            config_key=ElementTypes.BEAM_HOMING,
+            **kwargs,
+        )
 
     def _set_shape_collision(self):
         self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
 
 
 class Portal(TeleportElement):
-
-    def __init__(self,
-                 color: Union[PortalColor, Tuple[int, int, int]],
-                 ):
+    def __init__(
+        self,
+        color: Union[PortalColor, Tuple[int, int, int]],
+    ):
 
         if isinstance(color, PortalColor):
             color = color.value

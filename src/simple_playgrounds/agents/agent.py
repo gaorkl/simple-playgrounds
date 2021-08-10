@@ -8,7 +8,9 @@ Examples can be found in simple_playgrounds/agents/agents.py
 
 """
 from __future__ import annotations
+
 from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
+
 if TYPE_CHECKING:
     from .sensors.sensor import Sensor
     from .parts.actuators import Actuator
@@ -49,10 +51,11 @@ class Agent(ABC):
     """
     _index_agent: int = 0
 
-    def __init__(self,
-                 base_platform: Part,
-                 name: Optional[str] = None,
-                 ):
+    def __init__(
+        self,
+        base_platform: Part,
+        name: Optional[str] = None,
+    ):
         """
         Base class for agents.
 
@@ -78,7 +81,8 @@ class Agent(ABC):
         self.parts: List[Part] = [self.base_platform]
 
         # Default starting position
-        self.initial_coordinates: Optional[Union[Coordinate, CoordinateSampler]] = None
+        self.initial_coordinates: Optional[Union[Coordinate,
+                                                 CoordinateSampler]] = None
 
         # Keep track of the actions for display
         self._current_actions: Optional[Dict[Actuator, float]] = None
@@ -108,8 +112,7 @@ class Agent(ABC):
         return self._controller
 
     @controller.setter
-    def controller(self,
-                   controller: Controller):
+    def controller(self, controller: Controller):
 
         self._controller = controller
         self._controller.controlled_actuators = self.actuators
@@ -126,9 +129,10 @@ class Agent(ABC):
         return None
 
     @overlapping_strategy.setter
-    def overlapping_strategy(self,
-                             strategy: Tuple[bool, int],
-                             ):
+    def overlapping_strategy(
+        self,
+        strategy: Tuple[bool, int],
+    ):
         self._allow_overlapping, self._max_attempts = strategy
         self._overlapping_strategy_set = True
 
@@ -147,8 +151,8 @@ class Agent(ABC):
         return self._initial_coordinates
 
     @initial_coordinates.setter
-    def initial_coordinates(self,
-                            coordinates: Union[Coordinate, CoordinateSampler]):
+    def initial_coordinates(self, coordinates: Union[Coordinate,
+                                                     CoordinateSampler]):
         self._initial_coordinates = coordinates
 
     @property
@@ -220,9 +224,10 @@ class Agent(ABC):
         return self.base_platform.angular_velocity
 
     @angular_velocity.setter
-    def angular_velocity(self,
-                         angular_velocity: float,
-                         ):
+    def angular_velocity(
+        self,
+        angular_velocity: float,
+    ):
         for part in self.parts:
             part.angular_velocity = angular_velocity
 
@@ -315,7 +320,6 @@ class Agent(ABC):
 
         for actuator, value in actions_dict.items():
             actuator.apply_action(value)
-
 
     def owns_shape(self, pm_shape: Shape):
         """
@@ -448,10 +452,10 @@ class Agent(ABC):
                 if action.part.name == part.name
             ]
 
-            for actuator, value in all_action_parts:
+            for actuator, _ in all_action_parts:
 
-                actuator.draw(drawer_action_image, width_action, current_height,
-                              height_action, fnt)
+                actuator.draw(drawer_action_image, width_action,
+                              current_height, height_action, fnt)
                 current_height += _BORDER_IMAGE + height_action
 
         img_actions = np.asarray(img_actions) / 255.

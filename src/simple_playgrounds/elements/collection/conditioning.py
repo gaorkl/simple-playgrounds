@@ -1,40 +1,43 @@
 """
 Scene Elements used for conditioning experiments
 """
+import random
 from typing import List, Union, Dict, Tuple
 
-import random
-
 from ..element import InteractiveElement
-from ...configs.parser import parse_configuration
+from ...agents.agent import Agent
 from ...common.definitions import CollisionTypes, ElementTypes
 from ...common.texture import Texture, TextureGenerator, ColorTexture
 from ...common.timer import Timer
-
-from ...agents.agent import Agent
+from ...configs.parser import parse_configuration
 
 
 class ColorChanging(InteractiveElement):
     """ SceneElement that changes its texture when activated."""
+    def __init__(
+        self,
+        textures: List[Union[Texture, Dict, Tuple[int, int, int]]],
+        mode: str = 'loop',
+        activable_by_agent: bool = False,
+        **kwargs,
+    ):
 
-    def __init__(self,
-                 textures: List[Union[Texture, Dict, Tuple[int, int, int]]],
-                 mode: str = 'loop',
-                 activable_by_agent: bool = False,
-                 **kwargs,
-                 ):
-
-        entity_params = parse_configuration('element_conditioning', config_key=ElementTypes.COLOR_CHANGING)
+        entity_params = parse_configuration(
+            'element_conditioning', config_key=ElementTypes.COLOR_CHANGING)
         entity_params = {**kwargs, **entity_params}
 
         self.textures = []
         self._activable_by_agent = activable_by_agent
 
-        super().__init__(visible_shape=True, invisible_shape=activable_by_agent, background=False,texture=(0, 0, 0), **entity_params)
+        super().__init__(visible_shape=True,
+                         invisible_shape=activable_by_agent,
+                         background=False,
+                         texture=(0, 0, 0),
+                         **entity_params)
 
         for texture in textures:
 
-            if isinstance(texture, Dict):
+            if isinstance(texture, dict):
                 texture['size'] = self._size_visible
                 texture = TextureGenerator.create(**texture)
 
@@ -82,10 +85,7 @@ class ColorChanging(InteractiveElement):
 
         return None, None
 
-    def draw(self,
-             surface,
-             draw_invisible=False,
-             force_recompute_mask=False):
+    def draw(self, surface, draw_invisible=False, force_recompute_mask=False):
 
         super().draw(surface,
                      draw_invisible=draw_invisible,
@@ -112,25 +112,31 @@ class FlipReward(ColorChanging):
     """
     Changes the reward of an SceneElement based ColorChanging Element.
     """
-    def __init__(self,
-                 element_changed: InteractiveElement,
-                 textures: List[Union[Texture, Dict, Tuple[int, int, int]]],
-                 mode: str = 'loop',
-                 activable_by_agent: bool = False,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        element_changed: InteractiveElement,
+        textures: List[Union[Texture, Dict, Tuple[int, int, int]]],
+        mode: str = 'loop',
+        activable_by_agent: bool = False,
+        **kwargs,
+    ):
 
         self.element_changed = element_changed
-        super().__init__(textures=textures, mode=mode, activable_by_agent=activable_by_agent, **kwargs)
+        super().__init__(textures=textures,
+                         mode=mode,
+                         activable_by_agent=activable_by_agent,
+                         **kwargs)
 
         assert len(self.textures) == 2
 
+        # pylint: disable=protected-access
         self._initial_reward = element_changed._reward
 
     def activate(self, _):
 
         super().activate(_)
 
+        # pylint: disable=protected-access
         self.element_changed._reward = -self.element_changed._reward
 
         return None, None
@@ -138,4 +144,6 @@ class FlipReward(ColorChanging):
     def reset(self):
 
         super().reset()
+
+        # pylint: disable=protected-access
         self.element_changed._reward = self._initial_reward

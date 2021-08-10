@@ -1,12 +1,11 @@
-from typing import Union, Optional
-
 import random
+from typing import Optional
 
-from ...playground import PlaygroundRegister
 from ...layouts import GridRooms, SingleRoom
+from ...playground import PlaygroundRegister
+from ....common.position_utils import CoordinateSampler
 from ....elements.collection.basic import Physical
 from ....elements.collection.zone import DeathZone, GoalZone
-from ....common.position_utils import CoordinateSampler
 
 
 @PlaygroundRegister.register('basic_rl', 'endgoal_cue')
@@ -38,16 +37,15 @@ class EndgoalRoomCue(SingleRoom):
         obstacle_1 = Physical(config_key='pentagon', radius=9)
         self.add_element(obstacle_1, ((60, 30), 0.34))
 
-        obstacle_2 = Physical(config_key='rectangle',
-                           size=[8, 12])
+        obstacle_2 = Physical(config_key='rectangle', size=[8, 12])
         self.add_element(obstacle_2, ((130, 150), 1.7))
 
         obstacle_3 = Physical(config_key='square', radius=8)
         self.add_element(obstacle_3, ((40, 140), 0.4))
 
         obstacle_4 = Physical(physical_shape='triangle',
-                           radius=14,
-                           texture=(150, 200, 200))
+                              radius=14,
+                              texture=(150, 200, 200))
         self.add_element(obstacle_4, ((160, 60), 0))
 
         self.goal = None
@@ -77,9 +75,9 @@ class EndgoalRoomCue(SingleRoom):
             self._remove_element_from_playground(self.cue)
 
         self.cue = Physical(physical_shape='circle',
-                         radius=10,
-                         texture=col,
-                         is_temporary_entity=True)
+                            radius=10,
+                            texture=col,
+                            is_temporary_entity=True)
         self.add_element(self.cue, ((100, 100), 0))
 
         self.goal = GoalZone(reward=self.reward_goal, is_temporary_entity=True)
@@ -104,10 +102,11 @@ class Endgoal9Rooms(GridRooms):
     The agent must reach the invisible goal in the left-down corner.
     Each wall has a different color.
     """
-    def __init__(self,
-                 time_limit=1000,
-                 playground_seed: Optional[int] = None,
-                 ):
+    def __init__(
+        self,
+        time_limit=1000,
+        playground_seed: Optional[int] = None,
+    ):
 
         super().__init__(size=(450, 450),
                          room_layout=(3, 3),

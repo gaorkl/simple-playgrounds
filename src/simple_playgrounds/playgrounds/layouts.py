@@ -7,9 +7,9 @@ from typing import Union, Tuple, Optional, List
 import numpy as np
 
 from .playground import Playground
+from .rooms import Doorstep, RectangleRoom
 from ..common.position_utils import CoordinateSampler
 from ..configs import parse_configuration
-from .rooms import Doorstep, RectangleRoom
 
 
 class GridRooms(Playground):
@@ -68,10 +68,11 @@ class GridRooms(Playground):
 
         # Wall parameters
         wall_type_params = parse_configuration('playground', wall_type)
-        wall_params = {'rng': self.rng_playground,
-                       **wall_type_params,
-                       **wall_params
-                       }
+        wall_params = {
+            'rng': self.rng_playground,
+            **wall_type_params,
+            **wall_params
+        }
 
         self._wall_texture_params = wall_params
         self._wall_depth = wall_depth
@@ -87,10 +88,12 @@ class GridRooms(Playground):
         assert isinstance(first_room, RectangleRoom)
 
         center_first_room = first_room.center
-        size_first_room = first_room.width - 2*wall_depth, first_room.length - 2*wall_depth
+        size_first_room = first_room.width - 2 * wall_depth, first_room.length - 2 * wall_depth
 
         self.initial_agent_coordinates = CoordinateSampler(
-            center=center_first_room, area_shape='rectangle', size=size_first_room)
+            center=center_first_room,
+            area_shape='rectangle',
+            size=size_first_room)
 
     def _generate_rooms(
         self,
@@ -122,34 +125,36 @@ class GridRooms(Playground):
 
                 if random_doorstep_position:
                     position = self.rng_playground.uniform(
-                        doorstep_size, self.width_room - doorstep_size)
+                        doorstep_size / 2, self.width_room - doorstep_size / 2)
                     doorstep_up = Doorstep(position, doorstep_size,
                                            self._wall_depth)
 
                     position = self.rng_playground.uniform(
-                        doorstep_size, self.width_room - doorstep_size)
+                        doorstep_size / 2, self.width_room - doorstep_size / 2)
                     doorstep_down = Doorstep(position, doorstep_size,
                                              self._wall_depth)
 
                     position = self.rng_playground.uniform(
-                        doorstep_size, self.length_room - doorstep_size)
+                        doorstep_size / 2,
+                        self.length_room - doorstep_size / 2)
                     doorstep_left = Doorstep(position, doorstep_size,
                                              self._wall_depth)
 
                     position = self.rng_playground.uniform(
-                        doorstep_size, self.length_room - doorstep_size)
+                        doorstep_size / 2,
+                        self.length_room - doorstep_size / 2)
                     doorstep_right = Doorstep(position, doorstep_size,
                                               self._wall_depth)
 
                 else:
                     doorstep_up = Doorstep(self.width_room / 2, doorstep_size,
                                            self._wall_depth)
-                    doorstep_down = Doorstep(self.width_room / 2, doorstep_size,
-                                             self._wall_depth)
-                    doorstep_left = Doorstep(self.length_room / 2, doorstep_size,
-                                             self._wall_depth)
-                    doorstep_right = Doorstep(self.length_room / 2, doorstep_size,
-                                              self._wall_depth)
+                    doorstep_down = Doorstep(self.width_room / 2,
+                                             doorstep_size, self._wall_depth)
+                    doorstep_left = Doorstep(self.length_room / 2,
+                                             doorstep_size, self._wall_depth)
+                    doorstep_right = Doorstep(self.length_room / 2,
+                                              doorstep_size, self._wall_depth)
 
                 # If doorstep was already decided by other adjacent room
 

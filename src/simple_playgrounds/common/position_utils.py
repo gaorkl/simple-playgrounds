@@ -2,14 +2,13 @@
 Module containing classes to generate random positions and trajectories
 
 """
+import math
+import random
+from collections.abc import Generator
 from typing import Tuple, Optional, Union
 
-import pymunk
-import random
-import math
-from collections.abc import Generator
-
 import numpy as np
+import pymunk
 
 Coordinate = Tuple[Tuple[float, float], float]
 
@@ -94,8 +93,7 @@ class CoordinateSampler:
         else:
             raise ValueError('area shape not implemented')
 
-    def sample(self,
-               coordinates: Optional[Coordinate] = None) -> Coordinate:
+    def sample(self, coordinates: Optional[Coordinate] = None) -> Coordinate:
 
         x, y, theta = 0., 0., 0.
 
@@ -122,6 +120,7 @@ class CoordinateSampler:
 
         elif self._area_shape == 'circle':
 
+            assert self._radius
             found_position = False
 
             while not found_position:
@@ -330,8 +329,7 @@ class Trajectory(Generator):
         self.current_index = self._index_start
 
 
-InitCoord = Union[Coordinate, CoordinateSampler,
-                  Trajectory, ]
+InitCoord = Union[Coordinate, CoordinateSampler, Trajectory, ]
 
 geometric_shapes = {
     'line': 2,

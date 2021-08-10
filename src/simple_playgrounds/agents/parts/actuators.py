@@ -1,14 +1,13 @@
+import random
+from abc import ABC, abstractmethod
 from typing import Tuple, Optional, Dict
 
-from abc import ABC, abstractmethod
 import numpy as np
-import random
-
 import pymunk
 from PIL import ImageFont, ImageDraw
 
-from ...common.definitions import LINEAR_FORCE, ANGULAR_VELOCITY, KeyTypes
 from .parts import Part, AnchoredPart, Platform
+from ...common.definitions import LINEAR_FORCE, ANGULAR_VELOCITY, KeyTypes
 
 
 class Actuator(ABC):
@@ -18,12 +17,12 @@ class Actuator(ABC):
         - physical actions (movements)
         - interactive actions (eat, grasp, ...)
     """
-
-    def __init__(self,
-                 part,
-                 noise: Optional[str] = None,
-                 noise_params: Optional[Dict[str, float]] = None,
-                 ):
+    def __init__(
+        self,
+        part,
+        noise: Optional[str] = None,
+        noise_params: Optional[Dict[str, float]] = None,
+    ):
         """
 
         Args:
@@ -51,10 +50,7 @@ class Actuator(ABC):
                 raise ValueError('Noise params not set')
             self._parse_noise_params(noise_params)
 
-    def assign_key(self,
-                   key: int,
-                   key_behavior: KeyTypes,
-                   value: float):
+    def assign_key(self, key: int, key_behavior: KeyTypes, value: float):
         """
         Assign keyboard key to a value.
 
@@ -67,14 +63,16 @@ class Actuator(ABC):
         self.has_key_mapping = True
         self.key_map[key] = [key_behavior, value]
 
-    def apply_action(self,
-                     value,
-                     ):
+    def apply_action(
+        self,
+        value,
+    ):
 
         self.command = value
 
         if not self._check_action_value(value):
-            raise ValueError("Value for command {} not compatible".format(value))
+            raise ValueError(
+                "Value for command {} not compatible".format(value))
 
         if self._noise:
             value = self._apply_noise(value)
@@ -90,18 +88,15 @@ class Actuator(ABC):
         ...
 
     @abstractmethod
-    def _parse_noise_params(self,
-                            noise_params: Dict[str, float],
-                            ):
+    def _parse_noise_params(
+        self,
+        noise_params: Dict[str, float],
+    ):
         ...
 
     @abstractmethod
-    def draw(self,
-             drawer_action_image: ImageDraw,
-             img_width: int,
-             position_height: int,
-             height_action: int,
-             fnt: ImageFont):
+    def draw(self, drawer_action_image: ImageDraw, img_width: int,
+             position_height: int, height_action: int, fnt: ImageFont):
         ...
 
     @property
@@ -128,13 +123,13 @@ class DiscreteActuator(Actuator, ABC):
     Discrete Actuators are initialized by providing a list of valid actuator values.
     Then, an action is applied by providing the index of the desired actuator value.
     """
-
-    def __init__(self,
-                 part: Part,
-                 actuator_values: Tuple[float, ...],
-                 noise: Optional[str] = None,
-                 noise_params: Optional[Dict[str, float]] = None,
-                 ):
+    def __init__(
+        self,
+        part: Part,
+        actuator_values: Tuple[float, ...],
+        noise: Optional[str] = None,
+        noise_params: Optional[Dict[str, float]] = None,
+    ):
         """
 
         Args:
@@ -148,9 +143,10 @@ class DiscreteActuator(Actuator, ABC):
 
         self.actuator_values = actuator_values
 
-    def _check_action_value(self,
-                            action_index: int,
-                            ) -> bool:
+    def _check_action_value(
+        self,
+        action_index: int,
+    ) -> bool:
         if action_index in range(self.range):
             return True
         return False
@@ -197,15 +193,20 @@ class InteractionActuator(DiscreteActuator, ABC):
     Base class for Interaction Actuators.
     Interaction Actuators are binary actuators.
     """
-    def __init__(self,
-                 part: Part,
-                 noise: Optional[str] = None,
-                 noise_params: Optional[Dict[str, float]] = None,
-                 ):
+    def __init__(
+        self,
+        part: Part,
+        noise: Optional[str] = None,
+        noise_params: Optional[Dict[str, float]] = None,
+    ):
 
-        super().__init__(part, actuator_values=(0, 1), noise=noise, noise_params=noise_params)
+        super().__init__(part,
+                         actuator_values=(0, 1),
+                         noise=noise,
+                         noise_params=noise_params)
 
-    def draw(self, drawer_action_image, img_width, position_height, height_action, fnt):
+    def draw(self, drawer_action_image, img_width, position_height,
+             height_action, fnt):
 
         if self.value == 1:
             start = (0, position_height)
@@ -220,9 +221,10 @@ class InteractionActuator(DiscreteActuator, ABC):
                                  font=fnt,
                                  fill=(0, 0, 0))
 
-    def _parse_noise_params(self,
-                            noise_params: Dict[str, float],
-                            ):
+    def _parse_noise_params(
+        self,
+        noise_params: Dict[str, float],
+    ):
 
         if self._noise == 'random_flip':
             self._proba_flip: float = noise_params.get('probability', 0)
@@ -230,15 +232,18 @@ class InteractionActuator(DiscreteActuator, ABC):
         else:
             raise ValueError('Noise type not implemented')
 
-    def _apply_noise(self,
-                     action_index: int,
-                     ) -> int:
+    def _apply_noise(
+        self,
+        action_index: int,
+    ) -> int:
 
         if self._noise == 'random_flip':
-            flip = random.choices([True, False], weights=[self._proba_flip, 1 - self._proba_flip])
+            flip = random.choices(
+                [True, False],
+                weights=[self._proba_flip, 1 - self._proba_flip])
 
             if flip:
-                action_index = 1-action_index
+                action_index = 1 - action_index
 
             return action_index
 
@@ -247,7 +252,6 @@ class InteractionActuator(DiscreteActuator, ABC):
 
 
 class Activate(InteractionActuator):
-
     def __init__(self, part):
         super().__init__(part)
         self.is_activating = 0
@@ -259,7 +263,6 @@ class Activate(InteractionActuator):
 
 
 class Grasp(InteractionActuator):
-
     def __init__(self, part):
         super().__init__(part)
         self.is_grasping = 0
@@ -279,14 +282,14 @@ class Grasp(InteractionActuator):
 
 
 class ContinuousActuator(Actuator, ABC):
-
-    def __init__(self,
-                 part,
-                 centered: bool = True,
-                 action_range: float = 1,
-                 noise: Optional[str] = None,
-                 noise_params: Optional[Dict[str, float]] = None,
-                 ):
+    def __init__(
+        self,
+        part,
+        centered: bool = True,
+        action_range: float = 1,
+        noise: Optional[str] = None,
+        noise_params: Optional[Dict[str, float]] = None,
+    ):
         """
 
         Args:
@@ -299,9 +302,10 @@ class ContinuousActuator(Actuator, ABC):
         self._centered = centered
         self._action_range = action_range
 
-    def _check_action_value(self,
-                            value: float,
-                            ) -> bool:
+    def _check_action_value(
+        self,
+        value: float,
+    ) -> bool:
 
         if self.centered:
             if -1 <= value <= 1:
@@ -312,17 +316,16 @@ class ContinuousActuator(Actuator, ABC):
                 return True
             return False
 
-    def draw(self, drawer_action_image, img_width, position_height, height_action, fnt):
+    def draw(self, drawer_action_image, img_width, position_height,
+             height_action, fnt):
 
         if self.centered and self.value != 0:
 
             if self.value < 0:
-                left = int(img_width / 2. +
-                           self.value * img_width / 2.)
+                left = int(img_width / 2. + self.value * img_width / 2.)
                 right = int(img_width / 2.)
             else:
-                right = int(img_width / 2. +
-                            self.value * img_width / 2.)
+                right = int(img_width / 2. + self.value * img_width / 2.)
                 left = int(img_width / 2.)
 
             start = (left, position_height)
@@ -366,9 +369,10 @@ class ContinuousActuator(Actuator, ABC):
     def max(self) -> float:
         return 1
 
-    def _apply_noise(self,
-                     value: float,
-                     ) -> float:
+    def _apply_noise(
+        self,
+        value: float,
+    ) -> float:
 
         if self._noise == 'gaussian':
 
@@ -382,9 +386,10 @@ class ContinuousActuator(Actuator, ABC):
         else:
             raise ValueError('Noise type not implemented')
 
-    def _parse_noise_params(self,
-                            noise_params: Dict[str, float],
-                            ):
+    def _parse_noise_params(
+        self,
+        noise_params: Dict[str, float],
+    ):
 
         if self._noise == 'gaussian':
 
@@ -396,14 +401,14 @@ class ContinuousActuator(Actuator, ABC):
 
 
 class ForceActuator(ContinuousActuator):
-
-    def __init__(self,
-                 part: Platform,
-                 centered: bool = True,
-                 action_range: float = 1,
-                 noise: Optional[str] = None,
-                 noise_params: Optional[Dict[str, float]] = None,
-                 ):
+    def __init__(
+        self,
+        part: Platform,
+        centered: bool = True,
+        action_range: float = 1,
+        noise: Optional[str] = None,
+        noise_params: Optional[Dict[str, float]] = None,
+    ):
 
         super().__init__(part, centered, action_range, noise, noise_params)
 
@@ -411,25 +416,21 @@ class ForceActuator(ContinuousActuator):
 
 
 class LongitudinalForce(ForceActuator):
-
     def apply_action(self, value: float):
 
         super().apply_action(value)
 
         self.part.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(value, 0) * LINEAR_FORCE * self._action_range,
-            (0, 0))
+            pymunk.Vec2d(value, 0) * LINEAR_FORCE * self._action_range, (0, 0))
 
 
 class LateralForce(ForceActuator):
-
     def apply_action(self, value: float):
 
         super().apply_action(value)
 
         self.part.pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(0, value) * self._action_range * LINEAR_FORCE,
-            (0, 0))
+            pymunk.Vec2d(0, value) * self._action_range * LINEAR_FORCE, (0, 0))
 
 
 class AngularVelocity(ForceActuator):
@@ -441,14 +442,14 @@ class AngularVelocity(ForceActuator):
 
 
 class MotorActuator(ContinuousActuator):
-
-    def __init__(self,
-                 part: AnchoredPart,
-                 centered: bool = True,
-                 action_range: float = 1,
-                 noise: Optional[str] = None,
-                 noise_params: Optional[Dict[str, float]] = None,
-                 ):
+    def __init__(
+        self,
+        part: AnchoredPart,
+        centered: bool = True,
+        action_range: float = 1,
+        noise: Optional[str] = None,
+        noise_params: Optional[Dict[str, float]] = None,
+    ):
 
         assert isinstance(part, AnchoredPart)
         self.part: AnchoredPart
@@ -457,7 +458,6 @@ class MotorActuator(ContinuousActuator):
 
 
 class AngularRelativeVelocity(MotorActuator):
-
     def apply_action(self, value: float):
 
         self.part: AnchoredPart
@@ -474,7 +474,7 @@ class AngularRelativeVelocity(MotorActuator):
 
         # Do not set the motor if the limb is close to limit
         if (angle_centered <
-            -self.part.rotation_range / 2 + np.pi / 20) and value < 0:
+                -self.part.rotation_range / 2 + np.pi / 20) and value < 0:
             self.part.motor.rate = 0
 
         elif (angle_centered >
@@ -482,4 +482,4 @@ class AngularRelativeVelocity(MotorActuator):
             self.part.motor.rate = 0
 
         else:
-            self.part.motor.rate = - value * ANGULAR_VELOCITY * self._action_range
+            self.part.motor.rate = -value * ANGULAR_VELOCITY * self._action_range
