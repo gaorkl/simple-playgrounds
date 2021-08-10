@@ -213,12 +213,12 @@ class RandomTexture(Texture, ABC):
     def __init__(
         self,
         size,
-        rng: Union[np.random.Generator, None] = None,
+        rng: Optional[np.random.Generator] = None,
     ):
 
-        self._rng = rng
         if not rng:
-            self._rng = np.random.default_rng()
+            rng = np.random.default_rng()
+        self._rng = rng
 
         super().__init__(size)
 
@@ -275,10 +275,11 @@ class RandomTilesTexture(RandomTexture):
 
         super().__init__(size, rng)
 
-        assert size_tiles <= self._size[0] and size_tiles <= self._size[1]
+        # assert size_tiles <= self._size[0] and size_tiles <= self._size[1]
 
-        self._shape_mini = int(self._size[0] * 1.0 / size_tiles), int(
-            self._size[1] * 1.0 / size_tiles), 3
+        self._shape_mini = (max(1, int(self._size[0] * 1.0 / size_tiles)),
+                            max(1, int(self._size[1] * 1.0 / size_tiles)),
+                            3)
 
         self._min = color_min
         self._max = color_max
@@ -415,7 +416,7 @@ class ListCenteredRandomTilesTexture(RandomTexture):
 
 
 @TextureGenerator.register_subclass('unique_random_tiles')
-class UniqueRandomTilesTexture:
+class UniqueRandomTilesTexture(RandomTexture):
 
     def __init__(self,
                  size,
@@ -424,7 +425,9 @@ class UniqueRandomTilesTexture:
                  size_tiles=4,
                  color_min=(0, 0, 0),
                  color_max=(255, 255, 255),
-                 rng: Union[np.random.Generator, None] = None):
+                 rng: Optional[np.random.Generator] = None):
+
+        super().__init__(size, rng=rng)
 
         # Compute colors
         n_color_splits = int(n_colors ** (1/3))
@@ -439,8 +442,6 @@ class UniqueRandomTilesTexture:
         list_all_colors = itertools.product(r_list, g_list, b_list)
 
         self.all_textures = []
-
-        self.rng = rng
 
         for color in list_all_colors:
 
@@ -458,7 +459,7 @@ class UniqueRandomTilesTexture:
         :return: the pygame Surface
         """
 
-        text = self.rng.choice(self.all_textures)
+        text = self._rng.choice(self.all_textures)
         return text.generate()
 
     @property

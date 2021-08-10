@@ -128,7 +128,6 @@ class RectangleRoom:
                         texture=self._wall_texture_params)
             yield wall
 
-
     def get_area_sampler(self):
 
         width, length = self.size

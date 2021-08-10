@@ -9,7 +9,7 @@ from ....elements.collection.zone import DeathZone, GoalZone
 from ....common.position_utils import CoordinateSampler
 
 
-@PlaygroundRegister.register('navigation', 'endgoal_cue')
+@PlaygroundRegister.register('basic_rl', 'endgoal_cue')
 class EndgoalRoomCue(SingleRoom):
     """
     Squared environment with obstacles.
@@ -35,14 +35,14 @@ class EndgoalRoomCue(SingleRoom):
         self.initial_agent_coordinates = area_start
 
         # Visual Cues for the agent to orient itself.
-        obstacle_1 = Physical(default_config_key='pentagon', radius=9)
+        obstacle_1 = Physical(config_key='pentagon', radius=9)
         self.add_element(obstacle_1, ((60, 30), 0.34))
 
-        obstacle_2 = Physical(default_config_key='rectangle',
-                           width_length=[8, 12])
+        obstacle_2 = Physical(config_key='rectangle',
+                           size=[8, 12])
         self.add_element(obstacle_2, ((130, 150), 1.7))
 
-        obstacle_3 = Physical(default_config_key='square', radius=8)
+        obstacle_3 = Physical(config_key='square', radius=8)
         self.add_element(obstacle_3, ((40, 140), 0.4))
 
         obstacle_4 = Physical(physical_shape='triangle',
@@ -83,7 +83,7 @@ class EndgoalRoomCue(SingleRoom):
         self.add_element(self.cue, ((100, 100), 0))
 
         self.goal = GoalZone(reward=self.reward_goal, is_temporary_entity=True)
-        self.add_scene_element(self.goal, loc)
+        self.add_element(self.goal, loc)
 
         for i in range(4):
             if i != index_goal:

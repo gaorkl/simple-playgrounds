@@ -20,7 +20,7 @@ dark :
 colorful :
   texture_type: unique_random_tiles
   n_colors: 20
-  delta_uniform: 10
+  range_unique_color: 10
   size_tiles : 10
   color_min : [ 100, 100, 100 ]
   color_max: [250, 250, 250 ]

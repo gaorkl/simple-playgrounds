@@ -52,6 +52,14 @@ class GridRooms(Playground):
                and isinstance(room_layout[0], int)\
                and isinstance(room_layout[1], int)
 
+        self.width_room = size[0] / room_layout[1]
+        self.length_room = size[1] / room_layout[0]
+
+        # Check that there is enough space for doorsteps
+        if self.width_room - 2*wall_depth < doorstep_size \
+                or self.length_room - 2*wall_depth < doorstep_size:
+            raise ValueError("Doorstep too large wrt room size")
+
         super().__init__(size=size)
 
         self._size_door = (wall_depth, doorstep_size)
@@ -60,10 +68,11 @@ class GridRooms(Playground):
 
         # Wall parameters
         wall_type_params = parse_configuration('playground', wall_type)
-        wall_params = {
-            **wall_type_params,
-            **wall_params, 'rng': self.rng_playground
-        }
+        wall_params = {'rng': self.rng_playground,
+                       **wall_type_params,
+                       **wall_params
+                       }
+
         self._wall_texture_params = wall_params
         self._wall_depth = wall_depth
 
@@ -74,7 +83,7 @@ class GridRooms(Playground):
                                                doorstep_size)
 
         # By default, an agent starts in a random position of the first room
-        first_room = self.grid_rooms[0][0]
+        first_room = self.grid_rooms[0, 0]
         assert isinstance(first_room, RectangleRoom)
 
         center_first_room = first_room.center
@@ -87,27 +96,24 @@ class GridRooms(Playground):
         room_layout: Union[List[int], Tuple[int, int]],
         random_doorstep_position: bool,
         doorstep_size: float,
-    ) -> List[List[RectangleRoom]]:
+    ):
 
-        width_room = self.size[0] / room_layout[0] - self._wall_depth
-        length_room = self.size[1] / room_layout[1] - self._wall_depth
-        size_room = width_room, length_room
+        size_room = self.width_room, self.length_room
 
-        rooms: List[List[RectangleRoom]] = []
+        rooms = np.empty(room_layout, RectangleRoom)
 
         doorstep_down: Optional[Doorstep]
         doorstep_up: Optional[Doorstep]
         doorstep_left: Optional[Doorstep]
         doorstep_right: Optional[Doorstep]
 
-        for c in range(room_layout[0]):
+        for r in range(room_layout[0]):
 
-            col_rooms: List[RectangleRoom] = []
+            for c in range(room_layout[1]):
 
-            for r in range(room_layout[1]):
-
-                x_center = (self.size[0] / room_layout[0]) * (1 / 2. + c)
-                y_center = (self.size[1] / room_layout[1]) * (1 / 2. + r)
+                # Difference pymunk coord and numpy indexing
+                x_center = self.width_room * (1 / 2. + c)
+                y_center = self.length_room * (1 / 2. + r)
 
                 center = (x_center, y_center)
 
@@ -115,39 +121,39 @@ class GridRooms(Playground):
 
                 if random_doorstep_position:
                     position = self.rng_playground.uniform(
-                        doorstep_size, width_room - doorstep_size)
+                        doorstep_size, self.width_room - doorstep_size)
                     doorstep_up = Doorstep(position, doorstep_size,
                                            self._wall_depth)
 
                     position = self.rng_playground.uniform(
-                        doorstep_size, width_room - doorstep_size)
+                        doorstep_size, self.width_room - doorstep_size)
                     doorstep_down = Doorstep(position, doorstep_size,
                                              self._wall_depth)
 
                     position = self.rng_playground.uniform(
-                        doorstep_size, length_room - doorstep_size)
+                        doorstep_size, self.length_room - doorstep_size)
                     doorstep_left = Doorstep(position, doorstep_size,
                                              self._wall_depth)
 
                     position = self.rng_playground.uniform(
-                        doorstep_size, length_room - doorstep_size)
+                        doorstep_size, self.length_room - doorstep_size)
                     doorstep_right = Doorstep(position, doorstep_size,
                                               self._wall_depth)
 
                 else:
-                    doorstep_up = Doorstep(width_room / 2, doorstep_size,
+                    doorstep_up = Doorstep(self.width_room / 2, doorstep_size,
                                            self._wall_depth)
-                    doorstep_down = Doorstep(width_room / 2, doorstep_size,
+                    doorstep_down = Doorstep(self.width_room / 2, doorstep_size,
                                              self._wall_depth)
-                    doorstep_left = Doorstep(length_room / 2, doorstep_size,
+                    doorstep_left = Doorstep(self.length_room / 2, doorstep_size,
                                              self._wall_depth)
-                    doorstep_right = Doorstep(length_room / 2, doorstep_size,
+                    doorstep_right = Doorstep(self.length_room / 2, doorstep_size,
                                               self._wall_depth)
 
                 # If doorstep was already decided by other adjacent room
 
                 if c > 0:
-                    room_on_left = rooms[c - 1][r]
+                    room_on_left = rooms[r, c - 1]
                     assert isinstance(room_on_left, RectangleRoom)
                     assert isinstance(room_on_left.doorstep_right, Doorstep)
                     position = room_on_left.doorstep_right.position
@@ -155,20 +161,20 @@ class GridRooms(Playground):
                                              self._wall_depth)
 
                 if r > 0:
-                    room_on_top = col_rooms[-1]
+                    room_on_top = rooms[r - 1, c]
                     assert isinstance(room_on_top, RectangleRoom)
                     assert isinstance(room_on_top.doorstep_down, Doorstep)
                     position = room_on_top.doorstep_down.position
                     doorstep_up = Doorstep(position, doorstep_size,
                                            self._wall_depth)
 
-                if r == room_layout[1] - 1:
+                if r == room_layout[0] - 1:
                     doorstep_down = None
 
                 if r == 0:
                     doorstep_up = None
 
-                if c == room_layout[0] - 1:
+                if c == room_layout[1] - 1:
                     doorstep_right = None
 
                 if c == 0:
@@ -188,9 +194,7 @@ class GridRooms(Playground):
                 for wall in room.generate_walls():
                     self.add_element(wall)
 
-                col_rooms.append(room)
-
-            rooms.append(col_rooms)
+                rooms[r, c] = room
 
         return rooms
 
@@ -237,7 +241,7 @@ class LineRooms(GridRooms):
     ):
 
         super().__init__(size=size,
-                         room_layout=(number_rooms, 1),
+                         room_layout=(1, number_rooms),
                          wall_type=wall_type,
                          doorstep_size=doorstep_size,
                          wall_depth=wall_depth,

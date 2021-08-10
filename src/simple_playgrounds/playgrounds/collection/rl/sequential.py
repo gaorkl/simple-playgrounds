@@ -1,3 +1,4 @@
+import itertools
 import random
 
 from ...playground import PlaygroundRegister
@@ -8,7 +9,7 @@ from ....elements.collection.contact import Candy
 from ....common.position_utils import CoordinateSampler
 
 
-@PlaygroundRegister.register('sequential', 'dispenser_9rooms')
+@PlaygroundRegister.register('basic_rl', 'dispenser_9rooms')
 class DispenserEnv(GridRooms):
     """
         Environment composed of 3 rooms (3x1).
@@ -25,10 +26,10 @@ class DispenserEnv(GridRooms):
                          room_layout=(3, 2),
                          doorstep_size=60,
                          wall_type='colorful',
-                         wall_texture_seed=wall_texture_seed)
+                         rng=wall_texture_seed,
+                         )
 
-        self.initial_agent_coordinates, self.area_prod, self.area_dispenser = self._assign_areas(
-        )
+        self.initial_agent_coordinates, self.area_prod, self.area_dispenser = self._assign_areas()
 
         self.dispenser = None
         self._place_scene_elements()
@@ -36,50 +37,37 @@ class DispenserEnv(GridRooms):
         self.time_limit = time_limit
 
     def _assign_areas(self):
-        list_room_coordinates = [
-            room_coord for room_coord, _ in self.area_rooms.items()
-        ]
-        random.shuffle(list_room_coordinates)
 
-        # Starting area of the agent
-        area_start_center, area_start_shape = self.area_rooms[
-            list_room_coordinates.pop()]
-        area_start = CoordinateSampler(center=area_start_center,
-                                       area_shape='rectangle',
-                                       size=area_start_shape)
-        agent_starting_area = area_start
+        all_coords = set(itertools.product(range(self.grid_rooms.shape[0]),
+                                           range(self.grid_rooms.shape[1]))
+                         )
 
-        # invisible endzone at one corner of the game
-        dispenser_center, dispenser_shape = self.area_rooms[
-            list_room_coordinates.pop()]
-        prod_center, prod_shape = self.area_rooms[list_room_coordinates.pop()]
+        coord_agent, coord_disp, coord_prod = random.sample(all_coords, 3)
 
-        area_prod = CoordinateSampler(center=prod_center,
-                                      area_shape='rectangle',
-                                      size=prod_shape)
-        area_dispenser = CoordinateSampler(center=dispenser_center,
-                                           area_shape='rectangle',
-                                           size=dispenser_shape)
+        agent_starting_area = self.grid_rooms[coord_agent].get_area_sampler()
+
+        area_dispenser = self.grid_rooms[coord_disp].get_area_sampler()
+        area_prod = self.grid_rooms[coord_prod].get_area_sampler()
 
         return agent_starting_area, area_prod, area_dispenser
 
     def _place_scene_elements(self):
 
-        self.dispenser = Dispenser(Candy,
+        self.dispenser = Dispenser(element_produced=Candy,
                                    production_area=self.area_prod,
                                    radius=10,
-                                   is_temporary_entity=True,
+                                   temporary=True,
                                    allow_overlapping=False)
-        self.add_scene_element(self.dispenser, self.area_dispenser)
+        self.add_element(self.dispenser, self.area_dispenser)
 
     def reset(self):
         self._remove_element_from_playground(self.dispenser)
 
-        self.agent_starting_area, self.area_prod, self.area_dispenser = self._assign_areas(
+        self.initial_agent_coordinates, self.area_prod, self.area_dispenser = self._assign_areas(
         )
 
         for agent in self.agents:
-            agent.initial_coordinates = self.agent_starting_area
+            agent.initial_coordinates = self.initial_agent_coordinates
         super().reset()
 
         self._place_scene_elements()

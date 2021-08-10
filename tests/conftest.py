@@ -121,6 +121,11 @@ def empty_playground():
     )
     return pg
 
+@pytest.fixture(scope="module", params=['colorful', 'classic', 'light', 'dark'])
+def wall_type(request):
+    return request.param
+
+
 
 ###########################
 # Elements

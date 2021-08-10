@@ -9,19 +9,19 @@ from simple_playgrounds.common.position_utils import CoordinateSampler
 
 
 # Add/remove agent from a playground
-def test_add_remove_agent(base_forward_agent):
+def test_add_remove_agent(base_forward_agent_random):
     playground_1 = SingleRoom(size=(200, 200))
     playground_2 = SingleRoom(size=(200, 200))
-    agent = base_forward_agent
+    agent = base_forward_agent_random
     playground_1.add_agent(agent)
     playground_1.remove_agent(agent)
     assert playground_1.agents == []
     playground_2.add_agent(agent)
 
 
-def test_add_remove_agent_in_area(base_forward_agent):
+def test_add_remove_agent_in_area(base_forward_agent_random):
     playground_1 = SingleRoom((800, 400))
-    agent = base_forward_agent
+    agent = base_forward_agent_random
 
     areas = {
         'up': [0, 800, 0, 200],
@@ -55,9 +55,9 @@ def test_add_remove_agent_in_area(base_forward_agent):
 
 
 # Create an engine then add an agent
-def test_engine(base_forward_agent):
+def test_engine(base_forward_agent_random):
     playground = SingleRoom(size=(200, 200))
-    agent = base_forward_agent
+    agent = base_forward_agent_random
     engine = Engine(playground, time_limit=100)
     playground.add_agent(agent)
     assert len(engine.agents) == 1
@@ -66,9 +66,9 @@ def test_engine(base_forward_agent):
 
 
 # Run the playground, check that position changed
-def test_engine_run(base_forward_agent):
+def test_engine_run(base_forward_agent_random):
     playground = SingleRoom(size=(200, 200))
-    agent = base_forward_agent
+    agent = base_forward_agent_random
     playground.add_agent(agent)
     engine = Engine(playground, time_limit=100)
 
@@ -92,9 +92,9 @@ def test_engine_run(base_forward_agent):
 
 
 # Run all test playgrounds with basic non-interactive agent
-def test_all_test_playgrounds(base_forward_agent, pg_test_class):
+def test_all_test_playgrounds(base_forward_agent_random, pg_test_class):
 
-    agent = base_forward_agent
+    agent = base_forward_agent_random
 
     playground = pg_test_class()
 
@@ -112,9 +112,9 @@ def test_all_test_playgrounds(base_forward_agent, pg_test_class):
 
 
 # Run all test playgrounds with basic interactive agent
-def test_all_test_playgrounds_interactive(base_forward_agent, pg_test_class):
+def test_all_test_playgrounds_interactive(base_forward_agent_random, pg_test_class):
 
-    agent = base_forward_agent
+    agent = base_forward_agent_random
 
     playground = pg_test_class()
 
@@ -132,7 +132,7 @@ def test_all_test_playgrounds_interactive(base_forward_agent, pg_test_class):
 
 
 # Run all test playgrounds with 100 agents
-def test_multiagents(base_forward_agent, pg_test_class):
+def test_multiagents(pg_test_class):
 
     playground = pg_test_class()
 
@@ -152,7 +152,7 @@ def test_multiagents(base_forward_agent, pg_test_class):
 
 
 # Run all test playgrounds with 4 agents
-def test_multiagents_no_overlapping(base_forward_agent, pg_test_class):
+def test_multiagents_no_overlapping(pg_test_class):
 
     playground = pg_test_class()
 
@@ -169,9 +169,9 @@ def test_multiagents_no_overlapping(base_forward_agent, pg_test_class):
 
 
 # Run all test playgrounds with 10 agents
-def test_multisteps(base_forward_agent, pg_test_class):
+def test_multisteps(base_forward_agent_random, pg_test_class):
 
-    agent = base_forward_agent
+    agent = base_forward_agent_random
     sensor = Touch(name='touch_1', anchor=agent.base_platform)
     agent.add_sensor(sensor)
 
@@ -194,11 +194,11 @@ def test_multisteps(base_forward_agent, pg_test_class):
     playground.remove_agent(agent)
 
 
-def test_agent_in_different_environments(base_forward_agent):
+def test_agent_in_different_environments(base_forward_agent_random):
 
     print('Testing of agent moving to different environments')
 
-    agent = base_forward_agent
+    agent = base_forward_agent_random
     pg_1 = SingleRoom((300, 300))
     pg_2 = SingleRoom((100, 100))
 

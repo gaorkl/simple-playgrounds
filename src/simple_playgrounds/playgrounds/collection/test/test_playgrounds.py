@@ -334,40 +334,40 @@ class Doors(GridRooms):
         super().__init__(size=size, room_layout=(2, 2),
                          doorstep_size=40, **playground_params)
 
-        doorstep_1 = self.grid_rooms[0][0].doorstep_right
+        doorstep_1 = self.grid_rooms[0, 0].doorstep_right
         door_1 = doorstep_1.generate_door()
         self.add_element(door_1)
 
         switch_1 = OpenCloseSwitch(door=door_1)
-        self.add_element(switch_1, self.grid_rooms[0][0].get_random_position_on_wall('right', switch_1))
+        self.add_element(switch_1, self.grid_rooms[0, 0].get_random_position_on_wall('right', switch_1))
 
-        doorstep_2 = self.grid_rooms[0][0].doorstep_down
+        doorstep_2 = self.grid_rooms[0, 0].doorstep_down
         door_2 = doorstep_2.generate_door()
         self.add_element(door_2)
 
         timer = CountDownTimer(duration=100)
         switch_2 = TimerSwitch(door=door_2, timer=timer)
-        self.add_element(switch_2, self.grid_rooms[0][0].get_random_position_on_wall('down', switch_2))
+        self.add_element(switch_2, self.grid_rooms[0, 0].get_random_position_on_wall('down', switch_2))
         self.add_timer(timer, switch_2)
 
-        doorstep_3 = self.grid_rooms[0][1].doorstep_right
+        doorstep_3 = self.grid_rooms[1, 0].doorstep_right
         door_3 = doorstep_3.generate_door()
         self.add_element(door_3)
 
         lock = Lock(door=door_3)
-        self.add_element(lock, self.grid_rooms[0][1].get_random_position_on_wall('left', lock))
+        self.add_element(lock, self.grid_rooms[1, 0].get_random_position_on_wall('left', lock))
 
         key = Key(locked_elem=lock, graspable=True, mass=5)
-        center, size = self.grid_rooms[0][1].get_partial_area('left-down')
+        center, size = self.grid_rooms[1, 0].get_partial_area('left-down')
         area_sampler = CoordinateSampler(center=center, size=size, area_shape='rectangle')
         self.add_element(key, area_sampler)
 
-        doorstep_4 = self.grid_rooms[1][1].doorstep_up
+        doorstep_4 = self.grid_rooms[1, 1].doorstep_up
         door_4 = doorstep_4.generate_door()
         self.add_element(door_4)
 
         switch_4 = ContactSwitch(door=door_4)
-        self.add_element(switch_4, self.grid_rooms[1][1].get_random_position_on_wall('up', switch_4))
+        self.add_element(switch_4, self.grid_rooms[1, 1].get_random_position_on_wall('up', switch_4))
 
 
 @PlaygroundRegister.register('test', 'teleports')
