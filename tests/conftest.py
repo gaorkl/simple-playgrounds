@@ -7,7 +7,7 @@ from simple_playgrounds.playgrounds.collection import *
 
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
                                                Proximity, Touch, TopdownSensor,
-                                               FullPlaygroundSensor,
+                                               FullPlaygroundSensor, PerfectLidar,
                                                SemanticRay, SemanticCones)
 
 from simple_playgrounds.elements.collection.basic import Physical
@@ -70,13 +70,13 @@ def base_forward_interactive_agent_external():
                 params=[
                     RgbCamera, GreyCamera, Lidar, Touch, Proximity,
                     TopdownSensor, FullPlaygroundSensor, SemanticRay,
-                    SemanticCones
+                    SemanticCones, PerfectLidar
                 ])
 def any_sensor(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[RgbCamera, SemanticRay, SemanticCones])
+@pytest.fixture(scope="module", params=[RgbCamera, SemanticRay, SemanticCones, PerfectLidar])
 def ray_sensor(request):
     return request.param
 
@@ -104,6 +104,13 @@ def resolution(request):
                 params=PlaygroundRegister.playgrounds['test'].items())
 def pg_test_class(request):
     _, pg_class = request.param
+    return pg_class
+
+
+@pytest.fixture(scope="module",
+                params=[Basics, Zones, Teleports, ExtraTeleports])
+def pg_sensor_class(request):
+    pg_class = request.param
     return pg_class
 
 

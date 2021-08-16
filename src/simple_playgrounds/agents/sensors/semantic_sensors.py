@@ -9,7 +9,9 @@ from operator import attrgetter
 from typing import List, Optional, Dict, Union
 
 import numpy as np
-from skimage.draw import line, disk
+from pymunk import Shape
+from simple_playgrounds.playgrounds.playground import Playground
+from skimage.draw import line, disk, set_color
 
 from .sensor import RayCollisionSensor
 from ..parts.parts import Part
@@ -58,7 +60,6 @@ class SemanticRay(RayCollisionSensor):
 
         self.sensor_values = self._collisions_to_detections(
             playground, collision_points)
-        # class Point just for modifying alpha and replace by distance
 
     def _collisions_to_detections(self, playground, collision_points):
         """
@@ -121,10 +122,11 @@ class SemanticRay(RayCollisionSensor):
             pos_y = int(width / 2 - distance * math.sin(-detection.angle))
 
             rr, cc = line(int(width / 2), int(width / 2), pos_x, pos_y)
-            img[rr, cc] = (0.5, 0.1, 0.3)
+            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
 
             rr, cc = disk((pos_x, pos_y), 2)
-            img[rr, cc] = [c / 255 for c in detection.entity.base_color[::-1]]
+            color = [c / 255 for c in detection.entity.base_color[::-1]]
+            set_color(img, (rr, cc), color)
 
         return img
 
@@ -242,12 +244,94 @@ class SemanticCones(SemanticRay):
             # pylint: disable=no-member
 
             rr, cc = line(int(width / 2), int(width / 2), pos_x_1, pos_y_1)
-            img[rr, cc] = (0.5, 0.1, 0.3)
+            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
 
             rr, cc = line(pos_x_1, pos_y_1, pos_x_2, pos_y_2)
-            img[rr, cc] = (0.5, 0.1, 0.3)
+            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
 
             rr, cc = line(pos_x_2, pos_y_2, int(width / 2), int(width / 2))
-            img[rr, cc] = (0.5, 0.1, 0.3)
+            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
 
         return img
+
+
+class PerfectLidar(SemanticRay):
+    """
+    PerfectLidar detects all elements in the radius of the sensor.
+    """
+    def __init__(self,
+                 anchor,
+                 invisible_elements=None,
+                 normalize=True,
+                 noise_params=None,
+                 **kwargs):
+        """
+        Refer to Sensor Class.
+
+        Args:
+            invisible_elements: elements that the sensor does not perceive.
+                List of Parts of SceneElements.
+            normalize: if true, Sensor values are normalized between 0 and 1.
+                Default: True
+            only_front: Only return the half part of the Playground that the Sensor faces.
+                Remove what is behind the sensor. Default: False.
+        """
+
+        default_config = parse_configuration('agent_sensors',
+                                             SensorTypes.PERFECT_LIDAR)
+        kwargs = {**default_config, **kwargs}
+
+        super().__init__(anchor=anchor,
+                         invisible_elements=invisible_elements,
+                         normalize=normalize,
+                         noise_params=noise_params,
+                         remove_duplicates=False,
+                         **kwargs)
+
+        self.sensor_values: List[Detection]
+
+    def _compute_detections(
+        self,
+        playground: Playground,
+    ) -> List[Detection]:
+
+        position_body = self.anchor.pm_body.position
+        angle_body = self.anchor.pm_body.angle
+
+        points_hit = playground.space.point_query(position_body,
+                                                  self._max_range,
+                                                  shape_filter=self.invisible_filter)
+
+        # Filter points too close
+        points_hit = [pt for pt in points_hit
+                      if pt.distance > self._min_range]
+
+        # Calculate angle
+        detections: List[Detection] = []
+
+        for pt in points_hit:
+            angle = (pt.point - position_body).angle - angle_body
+            angle = angle % (2*math.pi) - math.pi
+            if angle < -self._fov/2 or angle > self._fov/2:
+                continue
+
+            assert isinstance(pt.shape, Shape)
+            element_colliding = playground.get_entity_from_shape(
+                pm_shape=pt.shape)
+            distance = pt.distance
+
+            detection = Detection(entity=element_colliding,
+                                  distance=distance,
+                                  angle=angle)
+            detections.append(detection)
+
+        return detections
+
+    def _compute_raw_sensor(
+        self,
+        playground: Playground,
+        *_,
+    ):
+
+        detections = self._compute_detections(playground)
+        self.sensor_values = detections

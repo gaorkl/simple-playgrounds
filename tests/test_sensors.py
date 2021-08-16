@@ -5,7 +5,7 @@ from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.collection.test.test_playgrounds import Teleports
 
 
-def test_sensor_without_params(any_sensor, pg_test_class):
+def test_sensor_without_params(any_sensor, pg_sensor_class):
 
     agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
@@ -21,17 +21,17 @@ def test_sensor_without_params(any_sensor, pg_test_class):
             min_range=agent.base_platform.radius,
         ))
 
-    playground = pg_test_class()
+    playground = pg_sensor_class()
     playground.add_agent(agent)
 
-    engine = Engine(playground, time_limit=100)
+    engine = Engine(playground, time_limit=1000)
     engine.run()
 
     playground.remove_agent(agent)
     playground.reset()
 
 
-def test_ray_sensors(ray_sensor, resolution, fov, obs_range, pg_test_class):
+def test_ray_sensors(ray_sensor, resolution, fov, obs_range, pg_sensor_class):
 
     agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
@@ -49,7 +49,7 @@ def test_ray_sensors(ray_sensor, resolution, fov, obs_range, pg_test_class):
                    resolution=resolution,
                    max_range=obs_range))
 
-    playground = pg_test_class()
+    playground = pg_sensor_class()
     playground.add_agent(agent)
 
     engine = Engine(playground, time_limit=100)

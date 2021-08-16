@@ -124,6 +124,7 @@ class SensorTypes(IntEnum):
     SEMANTIC_RAY = auto()
     TOP_DOWN = auto()
     FULL_PLAYGROUND = auto()
+    PERFECT_LIDAR = auto()
 
 
 Detection = namedtuple('Detection', 'entity, distance, angle')

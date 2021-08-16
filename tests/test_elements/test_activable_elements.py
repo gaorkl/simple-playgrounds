@@ -45,8 +45,8 @@ def test_dispenser_limit(base_forward_interactive_agent_external):
     agent = base_forward_interactive_agent_external
 
     dispenser = Dispenser(element_produced=Candy,
-                          production_area=CoordinateSampler(center=(50, 100), area_shape='circle', radius=1),
-                          production_limit=4,
+                          production_area=CoordinateSampler(center=(50, 100), area_shape='circle', radius=10),
+                          production_limit=1,
                           invisible_range=40,
                           element_produced_params={'reward': 1})
 
@@ -67,7 +67,7 @@ def test_dispenser_limit(base_forward_interactive_agent_external):
         engine.step(actions)
         total_rew += agent.reward
 
-    assert total_rew == 4
+    assert total_rew == 1
 
 
 def test_reward_on_activation(base_forward_interactive_agent_external):
