@@ -1,6 +1,6 @@
 pyyaml
 pygame
-pymunk
+pymunk>=6.0.0
 numpy
 scikit-image
 pillow

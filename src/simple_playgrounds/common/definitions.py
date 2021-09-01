@@ -128,3 +128,4 @@ class SensorTypes(IntEnum):
 
 
 Detection = namedtuple('Detection', 'entity, distance, angle')
+

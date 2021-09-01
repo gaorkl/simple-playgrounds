@@ -130,6 +130,9 @@ class Playground(ABC):
             self.space.step(1. / steps)
 
         self._update_timers()
+        for agent in self.agents:
+            if agent.can_communicate:
+                agent.update_agents_in_transmission_range(self.agents)
 
     def reset(self):
         """

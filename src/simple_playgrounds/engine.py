@@ -15,7 +15,7 @@ Typical Usage:
     engine.terminate()
 """
 
-from typing import Union, Dict, Optional
+from typing import Union, Dict, Optional, Tuple
 
 import numpy as np
 import pygame
@@ -26,6 +26,7 @@ from skimage.transform import rescale
 
 from .agents.agent import Agent
 from .agents.parts.actuators import Actuator, Activate
+from .agents.agent import Stream, Message
 from .common.definitions import SIMULATION_STEPS
 from .playgrounds.playground import Playground
 
@@ -109,8 +110,10 @@ class Engine:
     # STEP
 
     def multiple_steps(self,
-                       actions: Dict[Agent, Dict[Actuator, float]],
-                       n_steps: int = 1):
+                       n_steps: int = 1,
+                       actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+                       messages: Optional[Dict[Agent, Tuple[Optional[Agent], Message]]] = None,
+                       ):
         """
         Runs multiple steps of the game, with the same actions for the agents.
         The physical actions are performed for n_steps.
@@ -118,6 +121,7 @@ class Engine:
 
         Args:
             actions: Dictionary containing the actions for each agent.
+            messages:
             n_steps: Number of consecutive steps where the same actions will be applied
 
         """
@@ -168,9 +172,13 @@ class Engine:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
 
+        if messages:
+            self._send_messages(messages)
+
     def step(
         self,
         actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+        messages: Optional[Dict[Agent, Tuple[Optional[Agent], Message]]] = None,
     ):
         """
         Runs a single step of the game, with the same actions for the agents.
@@ -178,6 +186,7 @@ class Engine:
         Args:
             actions: Dictionary containing the actions for each agent. keys are agents,
                      values are dictionary of actions.
+            messages:
 
         """
 
@@ -188,6 +197,9 @@ class Engine:
         ) and self.playground.time_limit_reached_reward is not None:
             for agent in self.agents:
                 agent.reward += self.playground.time_limit_reached_reward
+
+        if messages:
+            self._send_messages(messages)
 
     def _engine_step(
         self,
@@ -207,6 +219,26 @@ class Engine:
         self.playground.update(SIMULATION_STEPS)
 
         self.elapsed_time += 1
+
+    # COMMUNICATION
+
+    def _send_messages(self, messages: Dict[Agent, Tuple[Optional[Agent], Message]]):
+
+        for agent, (dest, msg) in messages.items():
+
+            if agent.can_communicate:
+                # Deal with blackout zones, noise, etc...
+                msg = agent.communication.send_message(msg)
+
+            # If message is sent to particular agent
+            if isinstance(dest, Agent) and dest.can_communicate:
+                dest.communication.receive_message(agent, msg)
+
+            # Else it is broadcast to all agents in vicinity
+            else:
+                for receiving_agent in self.agents:
+                    if receiving_agent.can_communicate:
+                        receiving_agent.communication.receive_message(agent, msg)
 
     # TERMINATION CONDITIONS
 

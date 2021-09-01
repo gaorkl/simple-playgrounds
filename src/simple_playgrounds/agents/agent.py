@@ -25,6 +25,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..common.position_utils import CoordinateSampler, Coordinate
 from .parts.parts import Part, Platform, AnchoredPart
+from .communication import Sender, Receiver
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -102,6 +103,49 @@ class Agent(ABC):
         self._allow_overlapping: bool = False
         self._overlapping_strategy_set: bool = False
         self._max_attempts: int = 100
+
+        # Communication
+        self.communication: Optional[Communication] = None
+        self._can_communicate = False
+
+        self.transmission_range = None
+        self._capacity_receiver = None
+        self._agents_in_transmission_range: List[Agent] = []
+        self.stream_received: Optional[Stream] = None
+
+    # COMMUNICATION
+    def add_communications(self,
+                           transmission_range: Optional[float] = None,
+                           capacity_receiver: Optional[int] = None,
+                           ):
+
+        self.transmission_range = transmission_range
+        self._capacity_receiver = capacity_receiver
+        self._can_communicate = True
+
+    @property
+    def can_communicate(self):
+        return self._can_communicate
+
+    def update_agents_in_transmission_range(self, agents: List[Agent]):
+
+        valid_agents = [ag for ag in agents if ag.can_communicate and ag is not self]
+
+        for agent in valid_agents:
+            if self.in_transmission_range(agent):
+                self._agents_in_transmission_range.append(agent)
+
+    @property
+    def agents_in_transmission_range(self):
+        return self._agents_in_transmission_range
+
+    def in_transmission_range(self, agent: Agent):
+        dist = agent.position.get_distance(self.position)
+        if not (agent.transmission_range and self.transmission_range):
+            return True
+        elif dist < agent.transmission_range and dist < self.transmission_range:
+            return True
+        return False
 
     # CONTROLLER
     @property
@@ -464,3 +508,7 @@ class Agent(ABC):
             img_actions = img_actions[:, :, ::-1]
 
         return img_actions
+
+
+Message = Union[List[float], str]
+Stream = Dict[Agent, Message]
