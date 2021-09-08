@@ -9,7 +9,7 @@ It bridges the gap between simple and efficient grid environments, and complex a
 The playgrounds are 2D environments where agents can move around and interact with scene elements.
 The game engine, based on [Pymunk](http://www.pymunk.org) and [Pygame](https://www.pygame.org), deals with simple physics, such as collision and friction.
 Agents can act through continuous movements and discrete interactive actions.
-They perceive the scene with realistic first-person view sensors, top-dow vew sensors, and 
+They perceive the scene with realistic first-person view sensors, top-down view sensors, and 
 semantic sensors.
 
 ![Alt Text](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/assets/spg.gif)
@@ -33,7 +33,7 @@ If you publish your work based on this simulator, please use the following refer
 
 # Installation
 
-Before installing Simplel-Playgrounds, you might need to install libsdl1.2-dev and Pygame manually.
+Before installing Simple-Playgrounds, you might need to install libsdl1.2-dev and Pygame manually.
 
 Once these dependencies are installed, you can install simple-playgrounds using pip.
 A pip package is available and regularly updated:
