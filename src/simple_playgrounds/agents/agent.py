@@ -12,12 +12,13 @@ from __future__ import annotations
 from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
-    from .sensors.sensor import Sensor
+    from .sensors.sensor import SensorDevice
     from .parts.actuators import Actuator
     from .parts.controllers import Controller
     from pymunk import Shape
     from pygame import Surface
     from ..common.entity import Entity
+    from ..agents.communication import CommunicationDevice
 
 from abc import ABC
 import numpy as np
@@ -25,7 +26,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..common.position_utils import CoordinateSampler, Coordinate
 from .parts.parts import Part, Platform, AnchoredPart
-from .communication import Sender, Receiver
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -75,7 +75,7 @@ class Agent(ABC):
         Agent._index_agent += 1
 
         # List of sensors
-        self.sensors: List[Sensor] = []
+        self.sensors: List[SensorDevice] = []
 
         # Body parts
         self.base_platform: Part = base_platform
@@ -105,47 +105,26 @@ class Agent(ABC):
         self._max_attempts: int = 100
 
         # Communication
-        self.communication: Optional[Communication] = None
+        self.communication: Optional[CommunicationDevice] = None
         self._can_communicate = False
 
-        self.transmission_range = None
-        self._capacity_receiver = None
-        self._agents_in_transmission_range: List[Agent] = []
-        self.stream_received: Optional[Stream] = None
-
     # COMMUNICATION
-    def add_communications(self,
-                           transmission_range: Optional[float] = None,
-                           capacity_receiver: Optional[int] = None,
-                           ):
+    def add_communication(self,
+                          communication: CommunicationDevice,
+                          ):
 
-        self.transmission_range = transmission_range
-        self._capacity_receiver = capacity_receiver
+        if self.in_playground:
+            raise ValueError('Add Communication outside of a playground.')
+
+        if self._can_communicate:
+            raise ValueError('Communication Device already added')
+
+        self.communication = communication
         self._can_communicate = True
 
     @property
     def can_communicate(self):
         return self._can_communicate
-
-    def update_agents_in_transmission_range(self, agents: List[Agent]):
-
-        valid_agents = [ag for ag in agents if ag.can_communicate and ag is not self]
-
-        for agent in valid_agents:
-            if self.in_transmission_range(agent):
-                self._agents_in_transmission_range.append(agent)
-
-    @property
-    def agents_in_transmission_range(self):
-        return self._agents_in_transmission_range
-
-    def in_transmission_range(self, agent: Agent):
-        dist = agent.position.get_distance(self.position)
-        if not (agent.transmission_range and self.transmission_range):
-            return True
-        elif dist < agent.transmission_range and dist < self.transmission_range:
-            return True
-        return False
 
     # CONTROLLER
     @property
@@ -277,7 +256,7 @@ class Agent(ABC):
 
     # SENSORS
 
-    def add_sensor(self, new_sensor: Sensor):
+    def add_sensor(self, new_sensor: SensorDevice):
         """
         Add a Sensor to an agent.
         Should be done outside of a playground.
@@ -509,6 +488,3 @@ class Agent(ABC):
 
         return img_actions
 
-
-Message = Union[List[float], str]
-Stream = Dict[Agent, Message]

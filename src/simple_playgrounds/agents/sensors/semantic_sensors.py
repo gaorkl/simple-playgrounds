@@ -10,7 +10,6 @@ from typing import List, Optional, Dict, Union
 
 import numpy as np
 from pymunk import Shape
-from simple_playgrounds.playgrounds.playground import Playground
 from skimage.draw import line, disk, set_color
 
 from .sensor import RayCollisionSensor
@@ -18,6 +17,7 @@ from ..parts.parts import Part
 from ...common.definitions import SensorTypes, Detection
 from ...common.entity import Entity
 from ...configs import parse_configuration
+from ...playgrounds.playground import Playground
 
 
 class SemanticRay(RayCollisionSensor):
@@ -105,6 +105,9 @@ class SemanticRay(RayCollisionSensor):
     def _apply_noise(self):
 
         raise ValueError('Noise not implemented for Semantic sensors')
+
+    def _get_null_sensor(self):
+        return []
 
     def draw(self, width, *_):
 
@@ -295,8 +298,8 @@ class PerfectLidar(SemanticRay):
         playground: Playground,
     ) -> List[Detection]:
 
-        position_body = self.anchor.pm_body.position
-        angle_body = self.anchor.pm_body.angle
+        position_body = self._anchor.pm_body.position
+        angle_body = self._anchor.pm_body.angle
 
         points_hit = playground.space.point_query(position_body,
                                                   self._max_range,
@@ -306,11 +309,15 @@ class PerfectLidar(SemanticRay):
         points_hit = [pt for pt in points_hit
                       if pt.distance > self._min_range]
 
+        # Filter Sensor shapes
+        points_hit = [pt for pt in points_hit
+                      if not pt.shape.sensor]
+
         # Calculate angle
         detections: List[Detection] = []
 
         for pt in points_hit:
-            angle = (pt.point - position_body).angle - angle_body
+            angle = (pt.point - position_body).angle - angle_body - math.pi
             angle = angle % (2*math.pi) - math.pi
             if angle < -self._fov/2 or angle > self._fov/2:
                 continue

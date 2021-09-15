@@ -8,6 +8,7 @@ families of sensors and allow very fast computation.
 Apart if specified, all sensors are attached to an anchor.
 They compute sensor-values from the point of view of this anchor.
 """
+
 import math
 from abc import abstractmethod, ABC
 from operator import attrgetter
@@ -17,12 +18,13 @@ import numpy as np
 import pymunk
 from pygame import Surface
 
+from ...common.devices import Device
 from ..parts.parts import Part
 from ...common.entity import Entity
 from ...playgrounds.playground import Playground
 
 
-class Sensor(ABC):
+class SensorDevice(Device):
     """ Base class Sensor, used as an Interface for all sensors.
 
     Attributes:
@@ -88,16 +90,17 @@ class Sensor(ABC):
              The approach that sets invisible_elements attributes is preferred as it is slightly faster.
         """
 
+        Device.__init__(self, anchor=anchor)
+
         # Sensor name
         # Internal counter to assign number and name to each sensor
         if name is not None:
             self.name = name
         else:
             self.name = self.__class__.__name__.lower() + '_' + str(
-                Sensor._index_sensor)
-            Sensor._index_sensor += 1
+                SensorDevice._index_sensor)
+            SensorDevice._index_sensor += 1
 
-        self.anchor = anchor
         self.sensor_values = None
 
         if not invisible_elements:
@@ -157,13 +160,17 @@ class Sensor(ABC):
 
     def update(self, playground: Playground, sensor_surface: Surface):
 
-        self._compute_raw_sensor(playground, sensor_surface)
+        if self._disabled:
+            self.sensor_values = self._get_null_sensor()
 
-        if self._noise:
-            self._apply_noise()
+        else:
+            self._compute_raw_sensor(playground, sensor_surface)
 
-        if self._normalize:
-            self._apply_normalization()
+            if self._noise:
+                self._apply_noise()
+
+            if self._normalize:
+                self._apply_normalization()
 
     @abstractmethod
     def _compute_raw_sensor(
@@ -180,6 +187,10 @@ class Sensor(ABC):
     @abstractmethod
     def _apply_noise(self):
         pass
+
+    @abstractmethod
+    def _get_null_sensor(self):
+        ...
 
     @property
     def shape(self):
@@ -209,7 +220,7 @@ class Sensor(ABC):
         pass
 
 
-class RayCollisionSensor(Sensor, ABC):
+class RayCollisionSensor(SensorDevice, ABC):
     """
     Base class for Ray Collision sensors.
     Ray collisions are computed using pymunk segment queries.
@@ -299,8 +310,8 @@ class RayCollisionSensor(Sensor, ABC):
         sensor_angle: float,
     ) -> Optional[pymunk.SegmentQueryInfo]:
 
-        position_body = self.anchor.pm_body.position
-        angle = self.anchor.pm_body.angle + sensor_angle
+        position_body = self._anchor.pm_body.position
+        angle = self._anchor.pm_body.angle + sensor_angle
 
         position_start = position_body + pymunk.Vec2d(self._min_range + 1,
                                                       0).rotated(angle)

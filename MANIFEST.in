@@ -12,6 +12,7 @@ include src/simple_playgrounds/configs/element_gem.yml
 include src/simple_playgrounds/configs/element_proximity.yml
 include src/simple_playgrounds/configs/element_teleport.yml
 include src/simple_playgrounds/configs/element_zone.yml
+include src/simple_playgrounds/configs/element_modifier.yml
 include src/simple_playgrounds/configs/playground.yml
 
 

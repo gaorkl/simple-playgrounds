@@ -91,7 +91,7 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['test'].items():
         for agent in engine.agents:
             actions[agent] = agent.controller.generate_actions()
 
-        engine.multiple_steps(actions, 2)
+        engine.multiple_steps(actions=actions, n_steps=2)
         engine.update_observations()
 
         cv2.imshow(

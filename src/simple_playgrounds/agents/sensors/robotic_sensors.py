@@ -64,8 +64,8 @@ class RgbCamera(RayCollisionSensor):
 
                 if collision.alpha == 0.0:
 
-                    angle = self.anchor.pm_body.angle + ray_angle
-                    collision_pt = self.anchor.position + pymunk.Vec2d(
+                    angle = self._anchor.pm_body.angle + ray_angle
+                    collision_pt = self._anchor.position + pymunk.Vec2d(
                         self._min_range + 1, 0).rotated(angle)
 
                 else:
@@ -86,6 +86,9 @@ class RgbCamera(RayCollisionSensor):
 
     def _apply_normalization(self):
         self.sensor_values /= 255.
+
+    def _get_null_sensor(self):
+        return np.zeros(self.shape)
 
     @property
     def shape(self):
@@ -186,6 +189,9 @@ class Lidar(RayCollisionSensor):
 
         self.sensor_values = pixels[:].astype(float).reshape(self.shape)
 
+    def _get_null_sensor(self):
+        return np.zeros(self.shape)
+
     @property
     def shape(self):
         return self._resolution, 1
@@ -244,12 +250,12 @@ class Touch(Lidar):
                          **kwargs)
 
         self._sensor_max_value = self._max_range
-        self._max_range = self.anchor.radius + self._max_range  # pylint: disable=access-member-before-definition
+        self._max_range = self._anchor.radius + self._max_range  # pylint: disable=access-member-before-definition
 
     def _compute_raw_sensor(self, playground, *_):
 
         super()._compute_raw_sensor(playground)
 
-        distance_to_anchor = self.sensor_values - self.anchor.radius
+        distance_to_anchor = self.sensor_values - self._anchor.radius
         distance_to_anchor[distance_to_anchor < 0] = 0
         self.sensor_values = self._sensor_max_value - distance_to_anchor

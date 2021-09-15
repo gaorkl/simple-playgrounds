@@ -179,3 +179,13 @@ def pos_reward(request):
 @pytest.fixture(scope="module", params=[ (0, 10), (10, 0), (5, 10), (10, 10), (10, 5) ])
 def field_limits(request):
     return request.param
+
+####################
+# Communication
+####################
+
+
+@pytest.fixture(scope="module", params=[-1, 0, 50, 150] )
+def comm_radius(request):
+    return request.param
+

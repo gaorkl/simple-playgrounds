@@ -33,6 +33,10 @@ class CollisionTypes(IntEnum):
     ACTIVABLE_BY_GEM = auto()
     TELEPORT = auto()
 
+    DEVICE = auto()
+    MODIFIER = auto()
+
+
 
 def add_custom_collision(collision_types, name):
     """
@@ -103,6 +107,10 @@ class ElementTypes(IntEnum):
     BEAM = auto()
     BEAM_HOMING = auto()
     PORTAL = auto()
+
+    # Modifier Zones
+    SENSOR_BLACKOUT = auto()
+    COMM_BLACKOUT = auto()
 
     FIELD = auto()
 

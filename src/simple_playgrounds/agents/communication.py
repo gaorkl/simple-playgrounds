@@ -1,93 +1,124 @@
-from typing import Optional, Dict, Union, List, Tuple
-from abc import ABC, abstractmethod
-from simple_playgrounds.agents.agent import Agent
+from __future__ import annotations
+from typing import Optional, Any, List, Tuple
+
+import pymunk
+
+from simple_playgrounds.common.entity import Entity
+from simple_playgrounds.common.devices import Device
+from simple_playgrounds.common.definitions import CollisionTypes
 
 
-
-
-class Sender(ABC):
+class CommunicationDevice(Device):
 
     def __init__(self,
-                 agent: Agent,
+                 anchor: Entity,
+                 transmission_range: Optional[float] = None,
+                 receiver_capacity: Optional[int] = None,
                  ):
         """
-        By default, Sender have infinite range.
+        By default, Communication has infinite range and infinite receiver capacity.
+        However, it can only send one message at a time.
+
 
         Args:
+            anchor:
             transmission_range:
+            receiver_capacity:
         """
 
-        self._agent = agent
-        self._agents_in_range: List[Agent] = []
+        super().__init__(anchor=anchor)
+
+        self._transmission_range = transmission_range
+        self._receiver_capacity = receiver_capacity
+
+        self._received_messages: List[Tuple[CommunicationDevice, Message]] = []
+        self._comms_in_range: List[CommunicationDevice] = []
 
     def pre_step(self):
+        super().pre_step()
+        self.reset()
 
-        self._agents_in_range = []
+    def reset(self):
+        self._received_messages = []
+        self._comms_in_range = []
+
+    @property
+    def position(self):
+        return self._anchor.position
+
+    @property
+    def id(self):
+        return self._anchor.name
+
+    @property
+    def transmission_range(self):
+        return self._transmission_range
+
+    @property
+    def received_message(self):
+        return self._received_messages
+
+    def update_list_comms_in_range(self, comms: List[CommunicationDevice]):
+
+        valid_comms = [com for com in comms if com is not self]
+
+        for comm in valid_comms:
+            if self.in_transmission_range(comm):
+                self._comms_in_range.append(comm)
+
+    @property
+    def comms_in_range(self):
+        return self._comms_in_range
+
+    def in_transmission_range(self, comm: CommunicationDevice):
+
+        dist = comm.position.get_distance(self.position)
+
+        # If both have infinite range:
+        if not (comm.transmission_range or self.transmission_range):
+            return True
+
+        # If only one has infinite range:
+        elif (not comm.transmission_range) and self.transmission_range:
+            if dist < self.transmission_range:
+                return True
+
+        elif comm.transmission_range and (not self.transmission_range):
+            if dist < comm.transmission_range:
+                return True
+
+        elif dist < comm.transmission_range and dist < self.transmission_range:
+            return True
+
+        return False
+
+    def send(self,
+             msg: Message,
+             ) -> Optional[Message]:
+
+        if self._disabled:
+            return None
+
+        # Filter and Noise go here
+
+        return msg
+
+    def receive(self, sender, msg):
+
+        if self._disabled:
+            self._received_messages = []
+            return
+
+        assert sender is not self
+
+        if self.in_transmission_range(sender):
+            self._received_messages.append((sender, msg))
+            self._received_messages.sort(key= (lambda s_m: self.position.get_distance(s_m[0].position)))
+
+            if self._receiver_capacity:
+                self._received_messages = self._received_messages[:self._receiver_capacity]
 
 
-    @abstractmethod
-    def send(self, *args) -> Dict[Agent, Message]:
-        ...
-
-
-class TargetedSender(Sender):
-
-    def send(self, target: Agent, msg: Message):
-
-        new_msg = msg.copy()
-
-        if target in self._agents_in_range:
-            return {target, new_msg}
-
-        return {}
-
-
-class BroadcastSender(Sender):
-
-    def send(self, msg: Message):
-
-        new_msg = msg.copy()
-
-        dict_msg = {}
-
-        for agent in self._agents_in_range:
-
-            dict_msg[agent] = new_msg
-
-        return dict_msg
-
-
-class Receiver(ABC):
-
-    def __init__(self,
-                 agent: Agent):
-        self._agent = agent
-
-    @abstractmethod
-    def filter_stream(self,
-                      stream: Stream) -> Stream:
-        ...
-
-    def receive(self, stream: Stream):
-        filtered_stream = self.filter_stream(stream)
-        return filtered_stream
-
-
-class ReceiverClosest(Receiver):
-
-    def __init__(self,
-                 agent: Agent,
-                 receiver_capacity: int):
-
-        super().__init__(agent)
-        self._capacity = receiver_capacity
-
-    def filter_stream(self, stream):
-
-        list_stream = [(agent, msg) for agent, msg in stream.items()]
-        list_stream.sort(key=lambda agent, msg: agent.position.get_distance(self._agent.position))
-        filtered_list_stream = list_stream[:self._capacity]
-
-        filtered_stream = {agent: msg for agent, msg in filtered_list_stream}
-
-        return filtered_stream
+Message = Any
+Communication = Tuple[CommunicationDevice, Message, Optional[CommunicationDevice]]
+Stream = List[Communication]

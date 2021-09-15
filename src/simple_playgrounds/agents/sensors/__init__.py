@@ -1,4 +1,4 @@
 from .robotic_sensors import RgbCamera, Lidar, Touch, Proximity, GreyCamera
 from .semantic_sensors import SemanticRay, SemanticCones
 from .topdown_sensors import TopdownSensor, FullPlaygroundSensor
-from simple_playgrounds.agents.sensors.semantic_sensors import PerfectLidar
+from .semantic_sensors import PerfectLidar

@@ -15,7 +15,7 @@ Typical Usage:
     engine.terminate()
 """
 
-from typing import Union, Dict, Optional, Tuple
+from typing import Union, Dict, Optional
 
 import numpy as np
 import pygame
@@ -26,9 +26,10 @@ from skimage.transform import rescale
 
 from .agents.agent import Agent
 from .agents.parts.actuators import Actuator, Activate
-from .agents.agent import Stream, Message
+from simple_playgrounds.agents.communication import Stream
 from .common.definitions import SIMULATION_STEPS
 from .playgrounds.playground import Playground
+from simple_playgrounds.agents.communication import CommunicationDevice
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
@@ -112,7 +113,7 @@ class Engine:
     def multiple_steps(self,
                        n_steps: int = 1,
                        actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
-                       messages: Optional[Dict[Agent, Tuple[Optional[Agent], Message]]] = None,
+                       messages: Optional[Stream] = None,
                        ):
         """
         Runs multiple steps of the game, with the same actions for the agents.
@@ -173,12 +174,12 @@ class Engine:
                 agent.reward += self.playground.time_limit_reached_reward
 
         if messages:
-            self._send_messages(messages)
+            self._apply_communication(messages)
 
     def step(
         self,
         actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
-        messages: Optional[Dict[Agent, Tuple[Optional[Agent], Message]]] = None,
+        messages: Optional[Stream] = None,
     ):
         """
         Runs a single step of the game, with the same actions for the agents.
@@ -199,7 +200,7 @@ class Engine:
                 agent.reward += self.playground.time_limit_reached_reward
 
         if messages:
-            self._send_messages(messages)
+            self._apply_communication(messages)
 
     def _engine_step(
         self,
@@ -222,23 +223,28 @@ class Engine:
 
     # COMMUNICATION
 
-    def _send_messages(self, messages: Dict[Agent, Tuple[Optional[Agent], Message]]):
+    def _apply_communication(self,
+                             messages: Optional[Stream] = None,
+                             ):
 
-        for agent, (dest, msg) in messages.items():
+        if not messages:
+            return
 
-            if agent.can_communicate:
-                # Deal with blackout zones, noise, etc...
-                msg = agent.communication.send_message(msg)
+        for source, msg, target in messages:
 
-            # If message is sent to particular agent
-            if isinstance(dest, Agent) and dest.can_communicate:
-                dest.communication.receive_message(agent, msg)
+            # Deal with blackout zones, noise, etc...
+            msg = source.send(msg)
 
-            # Else it is broadcast to all agents in vicinity
-            else:
-                for receiving_agent in self.agents:
-                    if receiving_agent.can_communicate:
-                        receiving_agent.communication.receive_message(agent, msg)
+            if msg:
+
+                # If message is sent to particular target
+                if isinstance(target, CommunicationDevice):
+                    target.receive(source, msg)
+
+                # Else it is broadcast to all agents in range
+                else:
+                    for comm in self.playground.communication_devices:
+                        comm.receive(source, msg)
 
     # TERMINATION CONDITIONS
 

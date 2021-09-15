@@ -10,7 +10,7 @@ import pygame
 from skimage import draw
 from skimage.transform import resize, rotate
 
-from .sensor import Sensor
+from .sensor import SensorDevice
 from ...common.definitions import SensorTypes
 from ...configs.parser import parse_configuration
 from ...playgrounds.playground import Playground
@@ -19,7 +19,7 @@ from ...playgrounds.playground import Playground
 # pylint: disable=no-member
 
 
-class TopdownSensor(Sensor):
+class TopdownSensor(SensorDevice):
     """
     TopdownSensor provides an image from bird's eye view, centered and oriented on the anchor.
     The anchor is, by default, visible to the agent.
@@ -126,9 +126,9 @@ class TopdownSensor(Sensor):
             (2 * self._max_range + 1, 2 * self._max_range + 1))
 
         # Check that this is correct:
-        pos_x = playground.size[1] - (self.anchor.position[0] +
+        pos_x = playground.size[1] - (self._anchor.position[0] +
                                       self._max_range)
-        pos_y = playground.size[1] - (self.anchor.position[1] +
+        pos_y = playground.size[1] - (self._anchor.position[1] +
                                       self._max_range)
         cropped.blit(sensor_surface, (pos_x, pos_y))
 
@@ -146,7 +146,7 @@ class TopdownSensor(Sensor):
                            preserve_range=True)
 
         rotated_img = rotate(small_img,
-                             -self.anchor.pm_body.angle * 180 / math.pi + 180)
+                             -self._anchor.pm_body.angle * 180 / math.pi + 180)
 
         masked_img = rotated_img
         masked_img[self.mask_total_fov == 0] = 0
@@ -194,6 +194,9 @@ class TopdownSensor(Sensor):
             return int(self._resolution / 2), self._resolution, 3
         return self._resolution, self._resolution, 3
 
+    def _get_null_sensor(self):
+        return np.zeros(self.shape)
+
     def draw(self, width, *_):
 
         height_display = int(width * self.shape[0] / self.shape[1])
@@ -208,7 +211,7 @@ class TopdownSensor(Sensor):
         return image
 
 
-class FullPlaygroundSensor(Sensor):
+class FullPlaygroundSensor(SensorDevice):
     """
     FullPlaygroundSensor provides an image from bird's eye view of the full playground.
     There is no anchor.
@@ -326,8 +329,10 @@ class FullPlaygroundSensor(Sensor):
 
     @property
     def shape(self):
-
         return self._scale[0], self._scale[1], 3
+
+    def _get_null_sensor(self):
+        return np.zeros(self.shape)
 
     def draw(self, width, *_):
 
