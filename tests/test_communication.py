@@ -90,7 +90,7 @@ def test_transmission_range(range_1, range_2, distance, in_range):
         assert comm_2.received_message == []
 
 
-def test_capacity():
+def test_directed_broadcast():
     playground = SingleRoom(size=(300, 200))
 
     agent_1 = BaseAgent(
@@ -138,18 +138,93 @@ def test_capacity():
     playground.add_agent(agent_3, ((200, 120), 0))
     playground.add_agent(agent_4, ((100, 200), 0))
 
-    assert agent_1.can_communicate
-    assert agent_2.can_communicate
+    engine = Engine(playground)
 
-    assert comm_1.in_transmission_range(comm_2) is in_range
-    assert comm_2.in_transmission_range(comm_1) is in_range
+    # Directed message
+    msg_to_single_agent = [(comm_1, 'test', comm_2)]
+    engine.step(messages=msg_to_single_agent)
+    assert comm_1.received_message == []
+    assert comm_2.received_message == [(comm_1, 'test')]
+    assert comm_3.received_message == []
+    assert comm_4.received_message == []
+
+    # No message, verify receivers are empty
+    engine.step()
+    assert comm_1.received_message == []
+    assert comm_2.received_message == []
+    assert comm_3.received_message == []
+    assert comm_4.received_message == []
+
+    # Broadcast message
+    msg_to_all_agents = [(comm_1, 'test', None)]
+    engine.step(messages=msg_to_all_agents)
+    assert comm_1.received_message == []
+    assert comm_2.received_message == [(comm_1, 'test')]
+    assert comm_3.received_message == [(comm_1, 'test')]
+    assert comm_4.received_message == [(comm_1, 'test')]
+
+
+def test_capacity():
+    playground = SingleRoom(size=(300, 200))
+
+    agent_1 = BaseAgent(
+        controller=External(),
+        interactive=False,
+        rotate=False,
+        lateral=False
+    )
+
+    agent_2 = BaseAgent(
+        controller=External(),
+        interactive=False,
+        rotate=False,
+        lateral=False
+    )
+
+    agent_3 = BaseAgent(
+        controller=External(),
+        interactive=False,
+        rotate=False,
+        lateral=False
+    )
+
+    agent_4 = BaseAgent(
+        controller=External(),
+        interactive=False,
+        rotate=False,
+        lateral=False
+    )
+
+    comm_1 = CommunicationDevice(agent_1.base_platform, receiver_capacity=1)
+    agent_1.add_communication(comm_1)
+
+    comm_2 = CommunicationDevice(agent_2.base_platform, receiver_capacity=2)
+    agent_2.add_communication(comm_2)
+
+    comm_3 = CommunicationDevice(agent_3.base_platform, receiver_capacity=3)
+    agent_3.add_communication(comm_3)
+
+    comm_4 = CommunicationDevice(agent_4.base_platform, receiver_capacity=2)
+    agent_4.add_communication(comm_4)
+
+    playground.add_agent(agent_1, ((100, 100), 0))
+    playground.add_agent(agent_2, ((180, 100), 0))
+    playground.add_agent(agent_3, ((200, 120), 0))
+    playground.add_agent(agent_4, ((100, 200), 0))
 
     engine = Engine(playground)
 
-    messages = [(comm_1, 'test', comm_2)]
-    engine.step(messages=messages)
 
-    if in_range:
-        assert comm_2.received_message == [(comm_1, 'test')]
-    else:
-        assert comm_2.received_message == []
+    # Broadcast message
+    msg_to_all_agents = [(comm_1, 'test_1', None),
+                         (comm_2, 'test_2', None),
+                         (comm_3, 'test_3', None),
+                         (comm_4, 'test_4', None),
+                         ]
+
+    engine.step(messages=msg_to_all_agents)
+    assert comm_1.received_message == [(comm_2, 'test_2')]
+    assert comm_2.received_message == [(comm_3, 'test_3'), (comm_1, 'test_1')]
+    # assert comm_3.received_message == [(comm_2, 'test'), (comm_1, 'test'), (comm_4, 'test')]
+
+

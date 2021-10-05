@@ -105,16 +105,13 @@ class CommunicationDevice(Device):
 
     def receive(self, sender, msg):
 
-        if self._disabled:
+        if self._disabled or sender is self:
             self._received_messages = []
-            return
-
-        assert sender is not self
+            return None
 
         if self.in_transmission_range(sender):
             self._received_messages.append((sender, msg))
             self._received_messages.sort(key= (lambda s_m: self.position.get_distance(s_m[0].position)))
-
             if self._receiver_capacity:
                 self._received_messages = self._received_messages[:self._receiver_capacity]
 

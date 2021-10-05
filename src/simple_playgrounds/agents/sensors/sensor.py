@@ -260,7 +260,10 @@ class RayCollisionSensor(SensorDevice, ABC):
         sensor_collision_index,
     ):
 
-        if not self._shape_filter_applied:
+        if not self.invisible_elements:
+            return False
+
+        elif not self._shape_filter_applied:
 
             for elem in self.invisible_elements:
                 elem.assign_shape_filter(sensor_collision_index)

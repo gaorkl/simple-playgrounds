@@ -1,3 +1,5 @@
+import pytest
+
 from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import HeadAgent
 from simple_playgrounds.agents.sensors import RgbCamera
@@ -86,3 +88,65 @@ def test_rgb_on_teleports(base_forward_agent_random):
 
     playground.remove_agent(agent)
     playground.reset()
+
+
+def test_max_sensors(pg_sensor_class):
+
+    # Test adding multiple sensors to agent
+    agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+    for i in range(29):
+        agent.add_sensor(
+            RgbCamera(anchor=agent.head,
+                      invisible_elements=agent.parts,
+                      )
+        )
+    playground = pg_sensor_class()
+    playground.add_agent(agent)
+
+    # Test adding one too many sensors to agent
+    agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+    for i in range(30):
+        agent.add_sensor(
+            RgbCamera(anchor=agent.head,
+                      invisible_elements=agent.parts,
+                      )
+        )
+    playground = pg_sensor_class()
+
+    with pytest.raises(ValueError):
+        playground.add_agent(agent)
+
+    # Test adding multiple sensors to agent, with min range
+    agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+    for i in range(30):
+        agent.add_sensor(
+            RgbCamera(anchor=agent.head,
+                      min_range=agent.base_platform.radius,
+                      )
+        )
+    playground = pg_sensor_class()
+    playground.add_agent(agent)
+
+    # Test adding multiple agents
+    playground = pg_sensor_class()
+    for i in range(29):
+        agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+        agent.add_sensor(
+            RgbCamera(anchor=agent.head,
+                      invisible_elements=agent.parts,
+                      )
+        )
+
+        playground.add_agent(agent)
+
+    agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+    agent.add_sensor(
+        RgbCamera(anchor=agent.head,
+                  invisible_elements=agent.parts,
+                  )
+    )
+
+    # adding one too many.
+    with pytest.raises(ValueError):
+        playground.add_agent(agent)
+
