@@ -36,6 +36,8 @@ def test_vending_machine(base_forward_interactive_agent_external):
 
     assert total_rew == 10
 
+    assert not agent.grasp.is_holding
+
     # test reset
     engine.reset()
     total_rew = 0

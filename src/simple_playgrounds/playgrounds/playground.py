@@ -438,11 +438,19 @@ class Playground(ABC):
         for agent in self.agents:
 
             for actuator in agent.actuators:
-                if isinstance(actuator, Grasp) and not actuator.is_holding:
 
-                    for joint in actuator.grasped:
-                        self.space.remove(joint)
-                    actuator.grasped = []
+                # if agent is not holding anymore
+                if isinstance(actuator, Grasp):
+
+                    if actuator.is_holding and not actuator.grasped:
+                        actuator.is_holding = False
+
+                    # if agent is not holding anymore
+                    if not actuator.is_holding:
+
+                        for joint in actuator.grasped:
+                            self.space.remove(joint)
+                        actuator.grasped = []
 
         for element_grasped, actuator in self._grasped_elements.copy().items():
             if not actuator.grasped:

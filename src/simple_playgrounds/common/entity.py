@@ -431,7 +431,7 @@ class Entity(ABC):
 
     @property
     def angle(self):
-        return self.pm_body.angle
+        return self.pm_body.angle % (2*math.pi)
 
     @angle.setter
     def angle(self, phi):
