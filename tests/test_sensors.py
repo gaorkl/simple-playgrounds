@@ -2,7 +2,7 @@ import pytest
 
 from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import HeadAgent
-from simple_playgrounds.agents.sensors import RgbCamera
+from simple_playgrounds.agents.sensors import RgbCamera, Lidar, Touch
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.collection.test.test_playgrounds import Teleports
 
@@ -156,11 +156,22 @@ def test_max_sensors(pg_sensor_class):
     for n_agent in range(40):
 
         agent = HeadAgent(controller=RandomContinuous(), interactive=True)
-        for i in range(3):
-            agent.add_sensor(
-                RgbCamera(anchor=agent.head,
-                          min_range=agent.base_platform.radius,
-                          )
-            )
+
+        agent.add_sensor(
+            RgbCamera(anchor=agent.head,
+                      min_range=agent.base_platform.radius,
+                      )
+        )
+        agent.add_sensor(
+            Lidar(anchor=agent.head,
+                  min_range=agent.base_platform.radius,
+                  )
+        )
+        agent.add_sensor(
+            Touch(anchor=agent.head,
+                  min_range=agent.base_platform.radius,
+                  )
+        )
+
         playground.add_agent(agent)
 
