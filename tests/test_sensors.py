@@ -150,3 +150,17 @@ def test_max_sensors(pg_sensor_class):
     with pytest.raises(ValueError):
         playground.add_agent(agent)
 
+    playground = pg_sensor_class()
+
+    # Test adding multiple sensors to multiple agents, with min range
+    for n_agent in range(40):
+
+        agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+        for i in range(3):
+            agent.add_sensor(
+                RgbCamera(anchor=agent.head,
+                          min_range=agent.base_platform.radius,
+                          )
+            )
+        playground.add_agent(agent)
+
