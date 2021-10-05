@@ -242,9 +242,12 @@ class Engine:
                     target.receive(source, msg)
 
                 # Else it is broadcast to all agents in range
-                else:
+                elif target is None:
                     for comm in self.playground.communication_devices:
                         comm.receive(source, msg)
+
+                else:
+                    raise ValueError
 
     # TERMINATION CONDITIONS
 

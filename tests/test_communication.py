@@ -214,7 +214,6 @@ def test_capacity():
 
     engine = Engine(playground)
 
-
     # Broadcast message
     msg_to_all_agents = [(comm_1, 'test_1', None),
                          (comm_2, 'test_2', None),
@@ -223,8 +222,16 @@ def test_capacity():
                          ]
 
     engine.step(messages=msg_to_all_agents)
+
+    # Assert correct message length
+    assert len(comm_1.received_message) == 1
+    assert len(comm_2.received_message) == 2
+    assert len(comm_3.received_message) == 3
+    assert len(comm_4.received_message) == 2
+
+    # Assert priority is given to comm that are closer
     assert comm_1.received_message == [(comm_2, 'test_2')]
     assert comm_2.received_message == [(comm_3, 'test_3'), (comm_1, 'test_1')]
-    # assert comm_3.received_message == [(comm_2, 'test'), (comm_1, 'test'), (comm_4, 'test')]
+    assert comm_3.received_message == [(comm_2, 'test_2'), (comm_1, 'test_1'), (comm_4, 'test_4')]
 
 

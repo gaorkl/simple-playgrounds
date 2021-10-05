@@ -106,7 +106,6 @@ class CommunicationDevice(Device):
     def receive(self, sender, msg):
 
         if self._disabled or sender is self:
-            self._received_messages = []
             return None
 
         if self.in_transmission_range(sender):
