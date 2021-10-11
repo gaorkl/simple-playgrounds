@@ -4,9 +4,13 @@ These artificial sensors return semantic information about the detected entities
 They return the actual instance of the entity detected, which allow to access their attributes.
 E.g. position, velocity, mass, shape can be accessed.
 """
+from __future__ import annotations
+from typing import List, Optional, Dict, Union, TYPE_CHECKING
+if TYPE_CHECKING:
+    from ...playgrounds.playground import Playground
+
 import math
 from operator import attrgetter
-from typing import List, Optional, Dict, Union
 
 import numpy as np
 from pymunk import Shape
@@ -17,7 +21,6 @@ from ..parts.parts import Part
 from ...common.definitions import SensorTypes, Detection
 from ...common.entity import Entity
 from ...configs import parse_configuration
-from ...playgrounds.playground import Playground
 
 
 class SemanticRay(RayCollisionSensor):

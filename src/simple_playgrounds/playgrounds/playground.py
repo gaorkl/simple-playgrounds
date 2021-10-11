@@ -9,26 +9,33 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/empty.py
     - simple_playgrounds/playgrounds/collection
 """
-
+from __future__ import annotations
 from abc import ABC
-from typing import Tuple, Union, List, Dict, Optional, Type
+from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..agents.communication import CommunicationDevice
+    from ..agents.sensors.sensor import SensorDevice
+    from ..agents.communication import CommunicationDevice
+    from ..agents.parts.parts import Part
+    from ..common.position_utils import InitCoord
+    from ..common.timer import Timer
+    from ..elements.collection.activable import Dispenser
+    from ..elements.collection.gem import GemElement
+    from ..elements.collection.teleport import TeleportElement
+    from ..elements.element import InteractiveElement
+    from ..elements.field import Field
 
 import pymunk
 
+from ..common.definitions import SPACE_DAMPING, CollisionTypes
+from ..elements.element import SceneElement
 from ..agents.agent import Agent
 from ..agents.parts.actuators import Grasp, Activate
-from ..agents.parts.parts import Part
-from ..common.definitions import SPACE_DAMPING, CollisionTypes
-from ..common.position_utils import InitCoord
-from ..common.timer import Timer
-from ..elements.collection.activable import Dispenser
-from ..elements.collection.gem import GemElement
-from ..elements.collection.teleport import TeleportElement
-from ..elements.element import SceneElement, InteractiveElement
-from ..elements.field import Field
-from ..agents.communication import CommunicationDevice
+
+from ..elements.collection.modifier import ModifierElement
 from ..common.devices import Device
-# from ..elements.collection.modifier import ModifierElement
+
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -77,7 +84,9 @@ class Playground(ABC):
         self.elements: List[SceneElement] = []
         self.fields: List[Field] = []
         self.agents: List[Agent] = []
-        self.communication_devices: List[CommunicationDevice] = []
+
+        self._communication_devices: List[CommunicationDevice] = []
+        self._sensor_devices: List[SensorDevice] = []
 
         # Private attributes for managing interactions in playground
         self._disappeared_elements: List[SceneElement] = []
@@ -129,7 +138,7 @@ class Playground(ABC):
             if elem.trajectory:
                 self.space.reindex_shapes_for_body(elem.pm_body)
 
-        for comm in self.communication_devices:
+        for comm in self._communication_devices:
             comm.pre_step()
 
         for _ in range(steps):
@@ -138,8 +147,8 @@ class Playground(ABC):
         self._update_timers()
 
         # Update Comms
-        for comm in self.communication_devices:
-            comm.update_list_comms_in_range(self.communication_devices)
+        for comm in self._communication_devices:
+            comm.update_list_comms_in_range(self._communication_devices)
 
     def reset(self):
         """
@@ -174,7 +183,7 @@ class Playground(ABC):
             timer.reset()
 
         # reset communication devices
-        for comm in self.communication_devices:
+        for comm in self._communication_devices:
             comm.reset()
 
         self._teleported = []
@@ -216,11 +225,9 @@ class Playground(ABC):
                 """Agent initial position should be defined in the playground or passed as an argument
                              to the class agent""")
 
-        if agent.can_communicate:
-            self.communication_devices.append(agent.communication)
-
         self._add_agent_to_playground(agent)
-        self._set_sensor_filters(agent)
+        self._add_sensor_devices(agent)
+        self._add_communication_devices(agent)
         self._move_to_initial_position(agent)
 
     def remove_agent(self, agent: Agent):
@@ -237,6 +244,14 @@ class Playground(ABC):
         agent.reset()
         for part in agent.parts:
             self.space.remove(*part.pm_elements)
+
+        if agent.can_communicate:
+            self._communication_devices.remove(agent.communication)
+            self.space.remove(agent.communication.pm_shape)
+
+        for sensor in agent.sensors:
+            self._sensor_devices.remove(sensor)
+            self.space.remove(sensor.pm_shape)
 
         self.agents.remove(agent)
         assert not agent.in_playground
@@ -306,10 +321,19 @@ class Playground(ABC):
         for body_part in agent.parts:
             self.space.add(*body_part.pm_elements)
 
-    def _set_sensor_filters(self, agent: Agent):
+    def _add_communication_devices(self, agent: Agent):
+
+        if agent.can_communicate:
+            self._communication_devices.append(agent.communication)
+            self.space.add(agent.communication.pm_shape)
+
+    def _add_sensor_devices(self, agent: Agent):
 
         # Set the invisible element filters
         for sensor in agent.sensors:
+
+            self._sensor_devices.append(sensor)
+            self.space.add(sensor.pm_shape)
 
             if sensor.apply_shape_filter(self.sensor_collision_index):
                 self.sensor_collision_index += 1
@@ -522,6 +546,25 @@ class Playground(ABC):
             iter([e for e in self.elements if pm_shape in e.pm_elements]),
             None)
 
+    def _get_device_from_shape(
+        self,
+        pm_shape: pymunk.Shape,
+    ) -> Optional[Device]:
+
+        device = next(
+            iter([e for e in self._communication_devices if pm_shape is e.pm_shape]),
+            None)
+        if device:
+            return device
+
+        device = next(
+            iter([e for e in self._sensor_devices if pm_shape is e.pm_shape]),
+            None)
+        if device:
+            return device
+
+        return None
+
     def _get_agent_from_shape(self,
                               pm_shape: pymunk.Shape) -> Union[None, Agent]:
         for agent in self.agents:
@@ -701,15 +744,15 @@ class Playground(ABC):
 
         return True
 
-    def _modifier_modifies(self, arbiter, space, data):
+    def _modifier_modifies_device(self, arbiter, space, data):
 
         modifier = self._get_element_from_shape(arbiter.shapes[0])
-        device = self._get_element_from_shape(arbiter.shapes[1])
+        device = self._get_device_from_shape(arbiter.shapes[1])
 
-        # assert isinstance(modifier, ModifierElement)
-        # assert isinstance(device, Device)
+        assert isinstance(device, Device)
+        assert isinstance(modifier, ModifierElement)
 
-        modifier.activate(device)
+        modifier.modify(device)
 
         return True
 
@@ -729,7 +772,7 @@ class Playground(ABC):
         self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
                              self._agent_teleports)
         self.add_interaction(CollisionTypes.MODIFIER, CollisionTypes.DEVICE,
-                             self._modifier_modifies)
+                             self._modifier_modifies_device)
 
     def add_interaction(
         self,

@@ -37,7 +37,6 @@ class CollisionTypes(IntEnum):
     MODIFIER = auto()
 
 
-
 def add_custom_collision(collision_types, name):
     """
     Function that allows to add new collisions to CollisionTypes.
@@ -109,8 +108,8 @@ class ElementTypes(IntEnum):
     PORTAL = auto()
 
     # Modifier Zones
-    SENSOR_BLACKOUT = auto()
-    COMM_BLACKOUT = auto()
+    SENSOR_DISABLER = auto()
+    COMM_DISABLER = auto()
 
     FIELD = auto()
 

@@ -2,8 +2,12 @@
 Module that defines TopDown Sensors.
 Topdown sensors are based computed using the image provided by the environment.
 """
+from __future__ import annotations
+from typing import Tuple, List, Union, TYPE_CHECKING
+if TYPE_CHECKING:
+    from ...playgrounds.playground import Playground
+
 import math
-from typing import Tuple, List, Union
 
 import numpy as np
 import pygame
@@ -13,7 +17,6 @@ from skimage.transform import resize, rotate
 from .sensor import SensorDevice
 from ...common.definitions import SensorTypes
 from ...configs.parser import parse_configuration
-from ...playgrounds.playground import Playground
 
 
 # pylint: disable=no-member

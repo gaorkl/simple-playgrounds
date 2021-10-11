@@ -8,11 +8,14 @@ families of sensors and allow very fast computation.
 Apart if specified, all sensors are attached to an anchor.
 They compute sensor-values from the point of view of this anchor.
 """
+from __future__ import annotations
+from typing import List, Dict, Optional, Union, TYPE_CHECKING
+if TYPE_CHECKING:
+    from ...playgrounds.playground import Playground
 
 import math
 from abc import abstractmethod, ABC
 from operator import attrgetter
-from typing import List, Dict, Optional, Union
 
 import numpy as np
 import pymunk
@@ -21,7 +24,6 @@ from pygame import Surface
 from ...common.devices import Device
 from ..parts.parts import Part
 from ...common.entity import Entity
-from ...playgrounds.playground import Playground
 
 
 class SensorDevice(Device):

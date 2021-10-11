@@ -1,20 +1,20 @@
 # Default Configuration file for Modifiers
 
-comm_blackout_texture : &comm-blackout-texture
+comm_disabler_texture : &comm-disabler-texture
   texture_type: color
   color: [225, 100, 10]
 
-comm_blackout :
+comm_disabler :
   physical_shape: rectangle
   size: [ 15, 15 ]
-  texture: *comm-blackout-texture
+  texture: *comm-disabler-texture
 
-sensor_blackout_texture : &sensor-blackout-texture
+sensor_disabler_texture : &sensor-disabler-texture
   texture_type: color
   color: [225, 10, 100]
 
-sensor_blackout :
+sensor_disabler :
   physical_shape: rectangle
   size: [ 15, 15 ]
-  texture: *comm-blackout-texture
+  texture: *sensor-disabler-texture
 
