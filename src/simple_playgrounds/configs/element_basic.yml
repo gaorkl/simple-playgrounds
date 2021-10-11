@@ -1,6 +1,20 @@
+# polygon
+polygon_texture: &polygon-texture
+  texture_type: color
+  color: [0, 127, 255]
+
+polygon:
+  texture: *polygon-texture
+  physical_shape: polygon
+  vertices:
+    - [-10, 0]
+    - [0, 10]
+    - [10, 0]
+    - [0, -10]
+    - [-10, 0]
 
 # circle
-cicrle_texture: &circle-texture
+circle_texture: &circle-texture
   texture_type: color
   color: [100, 220, 170]
 

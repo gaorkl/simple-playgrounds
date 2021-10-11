@@ -14,6 +14,7 @@ from abc import ABC, abstractmethod
 from enum import IntEnum, auto
 from typing import Union, Tuple, Dict, List, Optional
 
+import numpy as np
 import pygame
 import pymunk
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY, CollisionTypes
@@ -39,8 +40,6 @@ class Entity(ABC):
         invisible_shape: bool,
         texture: Union[Texture, Dict, Tuple[int, int, int]],
         physical_shape: str,
-        size: Optional[Tuple[float, float]] = None,
-        radius: Optional[float] = None,
         invisible_range: float = 5,
         graspable: bool = False,
         traversable: bool = False,
@@ -50,7 +49,8 @@ class Entity(ABC):
         mass: Optional[float] = None,
         generate_texture: bool = True,
         background: bool = True,
-        **pymunk_attributes,
+        pymunk_attributes: Dict = {},
+        **kwargs,
     ):
 
         # Internal counter to assign identity number and name to each entity
@@ -70,33 +70,61 @@ class Entity(ABC):
 
         if movable:
             assert mass
+
         self.mass = mass
         self.physical_shape = PhysicalShapes[physical_shape.upper()]
+
+        assert self.physical_shape in [i for i in PhysicalShapes]
 
         # Dimensions of the entity
         self._invisible_range = invisible_range
         self._size_visible: Union[Tuple[float, float], List[float]]
 
-        if radius and not size:
-            assert isinstance(radius, (float, int))
+        if self.physical_shape in [
+                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
+                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
+                PhysicalShapes.CIRCLE
+        ]:
+            radius = kwargs.get('radius')
+            assert radius is not None and isinstance(radius, (float, int))
+
             self._radius_visible = radius
             self._size_visible = (2 * radius, 2 * radius)
             self._radius_invisible = radius + self._invisible_range
             self._size_invisible = (2 * self._radius_invisible,
                                     2 * self._radius_invisible)
 
-        elif size and not radius:
-            assert len(size) == 2
+        elif self.physical_shape == PhysicalShapes.RECTANGLE:
+            size = kwargs.get('size')
+            assert size is not None and len(size) == 2
 
             width, length = size
+            self._radius_visible = ((width / 2)**2 + (length / 2)**2)**(1 / 2)
             self._size_visible = size
-            self._radius_visible = ((width / 2.)**2 + (length / 2.)**2)**(1 /
-                                                                          2.)
-            self._size_invisible = width + self._invisible_range, length + self._invisible_range
             self._radius_invisible = self._radius_visible + self._invisible_range
+            self._size_invisible = (width + self._invisible_range,
+                                    length + self._invisible_range)
+
+        elif self.physical_shape == PhysicalShapes.POLYGON:
+            vertices = kwargs.get('vertices')
+            assert vertices is not None and len(vertices) > 1
+
+            vertices = np.array(vertices)
+            width = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
+            length = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
+            size = (width, length)
+
+            self._radius_visible = ((width / 2)**2 + (length / 2)**2)**(1 / 2)
+            self._size_visible = size
+            self._radius_invisible = self._radius_visible + self._invisible_range
+            self._size_invisible = (width + self._invisible_range,
+                                    length + self._invisible_range)
+
+            self._line_width = kwargs.get('line_width', 1)
+            self._vertices = vertices
 
         else:
-            raise ValueError("Either size or radius should be set (not both).")
+            raise ValueError('Wrong physical shape.')
 
         self.pm_body = self._create_pm_body(movable)
         self.pm_elements = [self.pm_body]
@@ -221,17 +249,9 @@ class Entity(ABC):
             moment = pymunk.moment_for_circle(self.mass, 0,
                                               self._radius_visible)
 
-        elif self.physical_shape in [
-                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
-                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
-                PhysicalShapes.RECTANGLE,
-        ]:
-
+        else:
             vertices = self._compute_vertices()
             moment = pymunk.moment_for_poly(self.mass, vertices)
-
-        else:
-            raise ValueError
 
         return pymunk.Body(self.mass, moment)
 
@@ -258,7 +278,10 @@ class Entity(ABC):
 
             return vertices
 
-        else:
+        elif self.physical_shape in [
+                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
+                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
+        ]:
 
             radius = self._radius_visible
             if invisible:
@@ -273,6 +296,15 @@ class Entity(ABC):
                     orig.rotated(n_sides * 2 * math.pi / number_sides +
                                  offset_angle))
 
+        elif self.physical_shape == PhysicalShapes.POLYGON:
+            points = [pymunk.Vec2d(x, y) for x, y in self._vertices]
+            for pt in points:
+                pt_rotated = pt.rotated(offset_angle)
+                vertices.append(pt_rotated)
+
+        else:
+            raise ValueError
+
         return vertices
 
     def _create_pm_shape(self, invisible=False):
@@ -284,18 +316,9 @@ class Entity(ABC):
             else:
                 pm_shape = pymunk.Circle(self.pm_body, self._radius_visible)
 
-        elif self.physical_shape in [
-                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
-                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
-                PhysicalShapes.RECTANGLE
-        ]:
-
-            vertices = self._compute_vertices(invisible=invisible)
-
-            pm_shape = pymunk.Poly(self.pm_body, vertices)
-
         else:
-            raise ValueError
+            vertices = self._compute_vertices(invisible=invisible)
+            pm_shape = pymunk.Poly(self.pm_body, vertices)
 
         if invisible:
             pm_shape.sensor = True
@@ -503,3 +526,4 @@ class PhysicalShapes(IntEnum):
     HEXAGON = 6
     CIRCLE = 60
     RECTANGLE = auto()
+    POLYGON = auto()

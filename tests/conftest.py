@@ -151,21 +151,26 @@ def radius(request):
 @pytest.fixture(
     scope='module',
     params=[
-        'square', 'rectangle', 'circle', 'pentagon', 'triangle', 'hexagon'
+        'square',
+        'rectangle',
+        'circle',
+        'pentagon',
+        'triangle',
+        'hexagon',
+        'polygon',
     ],
 )
 def basic_element(request, movable, radius):
 
     if request.param == 'rectangle':
         kwargs = {'size': (radius, radius)}
+    elif request.param == 'polygon':
+        kwargs = {'vertices': [[-10, 0], [0, 5], [-2, 0], [0, -5], [-10, 0]]}
     else:
         kwargs = {'radius': radius}
 
     return Physical(
-        config_key=request.param,
-        movable=movable,
-        mass=10,
-        **kwargs)
+        config_key=request.param, movable=movable, mass=10, **kwargs)
 
 
 ####################
