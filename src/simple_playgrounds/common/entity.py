@@ -226,15 +226,12 @@ class Entity(ABC):
 
         elif self.physical_shape in [
                 PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
-                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON
+                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
+                PhysicalShapes.RECTANGLE,
         ]:
 
             vertices = self._compute_vertices()
             moment = pymunk.moment_for_poly(self.mass, vertices)
-
-        elif self.physical_shape == PhysicalShapes.RECTANGLE:
-            shape = self._size_visible[1], self._size_visible[0]
-            moment = pymunk.moment_for_box(self.mass, shape)
 
         else:
             raise ValueError
@@ -292,20 +289,14 @@ class Entity(ABC):
 
         elif self.physical_shape in [
                 PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
-                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON
+                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
+                PhysicalShapes.RECTANGLE
         ]:
 
             vertices = self._compute_vertices(invisible=invisible)
+
             pm_shape = pymunk.Poly(self.pm_body, vertices)
 
-        elif self.physical_shape == PhysicalShapes.RECTANGLE:
-
-            if invisible:
-                pm_shape = pymunk.Poly.create_box(self.pm_body,
-                                                  self._size_invisible)
-            else:
-                pm_shape = pymunk.Poly.create_box(self.pm_body,
-                                                  self._size_visible)
         else:
             raise ValueError
 
