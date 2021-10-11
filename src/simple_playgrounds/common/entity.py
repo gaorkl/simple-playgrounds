@@ -210,10 +210,7 @@ class Entity(ABC):
 
     # BODY AND SHAPE
 
-    def _create_pm_body(
-        self,
-        movable: bool,
-    ):
+    def _create_pm_body(self, movable: bool):
 
         if not movable:
             return pymunk.Body(body_type=pymunk.Body.STATIC)
