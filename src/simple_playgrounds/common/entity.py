@@ -81,9 +81,11 @@ class Entity(ABC):
         self._size_visible: Union[Tuple[float, float], List[float]]
 
         if self.physical_shape in [
-                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
-                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
-                PhysicalShapes.CIRCLE
+                PhysicalShapes.TRIANGLE,
+                PhysicalShapes.SQUARE,
+                PhysicalShapes.PENTAGON,
+                PhysicalShapes.HEXAGON,
+                PhysicalShapes.CIRCLE,
         ]:
             radius = kwargs.get('radius')
             assert radius is not None and isinstance(radius, (float, int))
@@ -93,6 +95,9 @@ class Entity(ABC):
             self._radius_invisible = radius + self._invisible_range
             self._size_invisible = (2 * self._radius_invisible,
                                     2 * self._radius_invisible)
+
+            self._center = (radius, radius)
+            self._bbox = (radius * 2, radius * 2)
 
         elif self.physical_shape == PhysicalShapes.RECTANGLE:
             size = kwargs.get('size')
@@ -104,6 +109,9 @@ class Entity(ABC):
             self._radius_invisible = self._radius_visible + self._invisible_range
             self._size_invisible = (width + self._invisible_range,
                                     length + self._invisible_range)
+
+            self._center = (width / 2, length / 2)
+            self._bbox = (width, length)
 
         elif self.physical_shape == PhysicalShapes.POLYGON:
             vertices = kwargs.get('vertices')
@@ -120,8 +128,10 @@ class Entity(ABC):
             self._size_invisible = (width + self._invisible_range,
                                     length + self._invisible_range)
 
-            self._line_width = kwargs.get('line_width', 1)
             self._vertices = vertices
+
+            self._center = (width / 2, length / 2)
+            self._bbox = (width, length)
 
         else:
             raise ValueError('Wrong physical shape.')
@@ -213,10 +223,7 @@ class Entity(ABC):
     def _set_shape_collision(self):
         pass
 
-    def assign_shape_filter(
-        self,
-        category_index: int,
-    ):
+    def assign_shape_filter(self, category_index: int):
         """
         Used to define collisions between entities.
         Used for sensors.
@@ -279,8 +286,10 @@ class Entity(ABC):
             return vertices
 
         elif self.physical_shape in [
-                PhysicalShapes.TRIANGLE, PhysicalShapes.SQUARE,
-                PhysicalShapes.PENTAGON, PhysicalShapes.HEXAGON,
+                PhysicalShapes.TRIANGLE,
+                PhysicalShapes.SQUARE,
+                PhysicalShapes.PENTAGON,
+                PhysicalShapes.HEXAGON,
         ]:
 
             radius = self._radius_visible
@@ -335,8 +344,8 @@ class Entity(ABC):
         # pylint: disable-all
 
         alpha = 255
-        mask_size = (2 * self._radius_visible, 2 * self._radius_visible)
-        center = self._radius_visible, self._radius_visible
+        mask_size = self._bbox[::-1]
+        center = self._center
 
         if invisible:
             alpha = 75
@@ -353,9 +362,10 @@ class Entity(ABC):
             pygame.draw.circle(mask, (255, 255, 255, alpha), center, radius)
 
         else:
-            vert = self._compute_vertices(offset_angle=self.angle,
-                                          invisible=invisible)
-            vertices = [v - v.normalized() + center for v in vert]
+            vert = self._compute_vertices(
+                offset_angle=math.pi / 2, invisible=invisible)
+            vert_min = np.min(vert, axis=0)
+            vertices = [v - vert_min for v in vert]
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
         if invisible:
@@ -364,16 +374,11 @@ class Entity(ABC):
         else:
             texture_surface = self._texture_surface.copy()
 
+        mask.blit(texture_surface, (0, 0), None, pygame.BLEND_MULT)
+
         # Pygame / numpy conversion
         mask_angle = math.pi / 2 - self.angle
-        texture_surface = pygame.transform.rotate(texture_surface,
-                                                  mask_angle * 180 / math.pi)
-        mask_rect = texture_surface.get_rect()
-        mask_rect.center = center
-        if self.physical_shape == PhysicalShapes.RECTANGLE:
-            mask_rect.center = center[0] + 1, center[1] + 1
-        mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
-
+        mask = pygame.transform.rotate(mask, mask_angle * 180 / math.pi)
         return mask
 
     # OVERLAPPING STRATEGY
