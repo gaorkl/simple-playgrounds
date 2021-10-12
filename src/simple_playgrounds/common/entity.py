@@ -49,9 +49,30 @@ class Entity(ABC):
         mass: Optional[float] = None,
         generate_texture: bool = True,
         background: bool = True,
-        pymunk_attributes: Dict = {},
+        pymunk_attributes: Optional[Dict] = None,
         **kwargs,
     ):
+        """
+        Polygon not yet usable: display problem.
+        To be done later.
+
+        Args:
+            visible_shape:
+            invisible_shape:
+            texture:
+            physical_shape:
+            invisible_range:
+            graspable:
+            traversable:
+            movable:
+            temporary:
+            name:
+            mass:
+            generate_texture:
+            background:
+            pymunk_attributes:
+            **kwargs:
+        """
 
         # Internal counter to assign identity number and name to each entity
         self.name: str
@@ -236,9 +257,10 @@ class Entity(ABC):
 
     def _set_pm_attr(self, attr):
 
-        for prop, value in attr.items():
-            for pm_elem in self.pm_elements:
-                setattr(pm_elem, prop, value)
+        if attr:
+            for prop, value in attr.items():
+                for pm_elem in self.pm_elements:
+                    setattr(pm_elem, prop, value)
 
     # BODY AND SHAPE
 
@@ -340,29 +362,28 @@ class Entity(ABC):
 
         # pylint: disable-all
 
+        alpha = 255
+        mask_size = (2 * self._radius_visible, 2 * self._radius_visible)
+        center = self._radius_visible, self._radius_visible
+
         if invisible:
             alpha = 75
             mask_size = (2 * self._radius_invisible,
                          2 * self._radius_invisible)
-        else:
-            alpha = 255
-            mask_size = self._bbox[::-1]
+            center = self._radius_invisible, self._radius_invisible
 
         mask_size = int(mask_size[0]), int(mask_size[1])
         mask = pygame.Surface(mask_size, pygame.SRCALPHA)
         mask.fill((0, 0, 0, 0))
 
         if self.physical_shape == PhysicalShapes.CIRCLE:
-            center = self._bbox[0] // 2
-            radius = center
-            pygame.draw.circle(mask, (255, 255, 255, alpha), (center, center),
-                               radius)
+            radius = center[0]
+            pygame.draw.circle(mask, (255, 255, 255, alpha), center, radius)
 
         else:
-            vert = self._compute_vertices(
-                offset_angle=math.pi / 2, invisible=invisible)
-            vert_min = np.min(vert, axis=0)
-            vertices = [v - vert_min for v in vert]
+            vert = self._compute_vertices(offset_angle=self.angle,
+                                          invisible=invisible)
+            vertices = [v - v.normalized() + center for v in vert]
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
         if invisible:
@@ -371,11 +392,16 @@ class Entity(ABC):
         else:
             texture_surface = self._texture_surface.copy()
 
-        mask.blit(texture_surface, (0, 0), None, pygame.BLEND_MULT)
-
         # Pygame / numpy conversion
         mask_angle = math.pi / 2 - self.angle
-        mask = pygame.transform.rotate(mask, mask_angle * 180 / math.pi)
+        texture_surface = pygame.transform.rotate(texture_surface,
+                                                  mask_angle * 180 / math.pi)
+        mask_rect = texture_surface.get_rect()
+        mask_rect.center = center
+        if self.physical_shape == PhysicalShapes.RECTANGLE:
+            mask_rect.center = center[0] + 1, center[1] + 1
+        mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
+
         return mask
 
     # OVERLAPPING STRATEGY
