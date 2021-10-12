@@ -96,7 +96,6 @@ class Entity(ABC):
             self._size_invisible = (2 * self._radius_invisible,
                                     2 * self._radius_invisible)
 
-            self._center = (radius, radius)
             self._bbox = (radius * 2, radius * 2)
 
         elif self.physical_shape == PhysicalShapes.RECTANGLE:
@@ -110,7 +109,6 @@ class Entity(ABC):
             self._size_invisible = (width + self._invisible_range,
                                     length + self._invisible_range)
 
-            self._center = (width / 2, length / 2)
             self._bbox = (width, length)
 
         elif self.physical_shape == PhysicalShapes.POLYGON:
@@ -130,7 +128,6 @@ class Entity(ABC):
 
             self._vertices = vertices
 
-            self._center = (width / 2, length / 2)
             self._bbox = (width, length)
 
         else:
@@ -343,23 +340,23 @@ class Entity(ABC):
 
         # pylint: disable-all
 
-        alpha = 255
-        mask_size = self._bbox[::-1]
-        center = self._center
-
         if invisible:
             alpha = 75
             mask_size = (2 * self._radius_invisible,
                          2 * self._radius_invisible)
-            center = self._radius_invisible, self._radius_invisible
+        else:
+            alpha = 255
+            mask_size = self._bbox[::-1]
 
         mask_size = int(mask_size[0]), int(mask_size[1])
         mask = pygame.Surface(mask_size, pygame.SRCALPHA)
         mask.fill((0, 0, 0, 0))
 
         if self.physical_shape == PhysicalShapes.CIRCLE:
-            radius = center[0]
-            pygame.draw.circle(mask, (255, 255, 255, alpha), center, radius)
+            center = self._bbox[0] // 2
+            radius = center
+            pygame.draw.circle(mask, (255, 255, 255, alpha), (center, center),
+                               radius)
 
         else:
             vert = self._compute_vertices(
