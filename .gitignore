@@ -9,3 +9,4 @@ test.py
 scripts/run_all_environments.py
 /Untitled.ipynb
 tests/test_rl.py
+tutorials/jupyter/.ipynb_checkpoints
