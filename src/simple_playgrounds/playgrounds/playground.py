@@ -19,22 +19,24 @@ if TYPE_CHECKING:
     from ..agents.communication import CommunicationDevice
     from ..agents.parts.parts import Part
     from ..common.position_utils import InitCoord
-    from ..common.timer import Timer
-    from ..elements.collection.activable import Dispenser
-    from ..elements.collection.gem import GemElement
-    from ..elements.collection.teleport import TeleportElement
-    from ..elements.element import InteractiveElement
-    from ..elements.field import Field
 
 import pymunk
 
 from ..common.definitions import SPACE_DAMPING, CollisionTypes
+from ..common.timer import Timer
+
 from ..elements.element import SceneElement
 from ..agents.agent import Agent
 from ..agents.parts.actuators import Grasp, Activate
+from ..elements.field import Field
+from ..elements.collection.activable import Dispenser
 
 from ..elements.collection.modifier import ModifierElement
 from ..common.devices import Device
+from ..elements.element import InteractiveElement
+
+from ..elements.collection.gem import GemElement
+from ..elements.collection.teleport import TeleportElement
 
 
 # pylint: disable=unused-argument

@@ -187,7 +187,7 @@ def test_multisteps(base_forward_agent_random, pg_test_class):
         for agent in engine.agents:
             actions[agent] = agent.controller.generate_actions()
 
-        engine.multiple_steps(actions, n_steps=3)
+        engine.multiple_steps(actions=actions, n_steps=3)
         engine.update_observations()
 
     engine.terminate()
