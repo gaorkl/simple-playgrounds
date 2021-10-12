@@ -20,6 +20,7 @@ from operator import attrgetter
 import numpy as np
 import pymunk
 from pygame import Surface
+from pymunk import Vec2d
 
 from ...common.devices import Device
 from ..parts.parts import Part
@@ -318,10 +319,16 @@ class RayCollisionSensor(SensorDevice, ABC):
         position_body = self._anchor.pm_body.position
         angle = self._anchor.pm_body.angle + sensor_angle
 
-        position_start = position_body + pymunk.Vec2d(self._min_range + 1,
-                                                      0).rotated(angle)
-        position_end = position_body + pymunk.Vec2d(self._max_range - 1,
-                                                    0).rotated(angle)
+        cos = math.cos(angle)
+        sin = math.sin(angle)
+
+        pt1 = pymunk.Vec2d(self._min_range + 1, 0)
+        pt1_rot = Vec2d(pt1.x * cos - pt1.y * sin, pt1.x * sin + pt1.y * cos)
+        position_start = position_body + pt1_rot
+
+        pt2 = pymunk.Vec2d(self._max_range - 1, 0)
+        pt2_rot = Vec2d(pt2.x * cos - pt2.y * sin, pt2.x * sin + pt2.y * cos)
+        position_end = position_body + pt2_rot
 
         collision = playground.space.segment_query_first(
             position_start, position_end, 1, self.invisible_filter)
