@@ -417,6 +417,7 @@ class Playground(ABC):
             if element in field.produced_entities:
                 field.produced_entities.remove(element)
 
+        element.held_by = None
         if element in self._grasped_elements.keys():
             actuator = self._grasped_elements[element]
             self.space.remove(*actuator.grasped)
@@ -480,6 +481,7 @@ class Playground(ABC):
 
         for element_grasped, actuator in self._grasped_elements.copy().items():
             if not actuator.grasped:
+                element_grasped.held_by = None
                 self._grasped_elements.pop(element_grasped)
 
     def _check_teleports(self):
@@ -688,6 +690,7 @@ class Playground(ABC):
                     actuator.grasped = [j_1, j_2, j_3, j_4]
 
                     self._grasped_elements[grasped_element] = actuator
+                    grasped_element.held_by = agent
 
         return True
 

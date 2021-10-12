@@ -181,6 +181,7 @@ class Entity(ABC):
             self.pm_grasp_shape = self._create_pm_shape(invisible=True)
             self.pm_grasp_shape.collision_type = CollisionTypes.GRASPABLE
             self.pm_elements.append(self.pm_grasp_shape)
+        self.held_by = None
 
         self._set_shape_collision()
 
