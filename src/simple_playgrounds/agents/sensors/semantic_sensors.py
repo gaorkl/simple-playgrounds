@@ -197,29 +197,34 @@ class SemanticCones(SemanticRay):
         super()._compute_raw_sensor(playground)
 
         detections_per_cone = {}
-        for cone_angle in self.angles_cone_center:
-            detections_per_cone[cone_angle] = []
+
+        a = self._fov - self._fov / self.number_cones
+        a_2 = a / 2
+        b = (self.number_cones - 1) / a
 
         for detection in self.sensor_values:
-            # pylint: disable=all
-            cone_angle = min(self.angles_cone_center,
-                             key=lambda x: (x - detection.angle)**2)
-            detections_per_cone[cone_angle].append(detection)
 
-        # detections_per_cone = {k: v for k, v in detections_per_cone.items() if v != []}
+            id_cone = int(b * (detection.angle + a_2) + 0.5)
+            if id_cone >= len(self.angles_cone_center):
+                id_cone = len(self.angles_cone_center) - 1
+
+            cone_angle = self.angles_cone_center[id_cone]
+
+            already_in = cone_angle in detections_per_cone
+            if already_in and detection.distance < detections_per_cone[cone_angle].distance:
+                detections_per_cone[cone_angle] = detection
+            elif not already_in:
+                detections_per_cone[cone_angle] = detection
 
         self.sensor_values = []
 
-        for cone_angle, detections in detections_per_cone.items():
+        for cone_angle, detection in detections_per_cone.items():
 
-            if detections:
-                detection = min(detections, key=attrgetter('distance'))
+            new_detection = Detection(entity=detection.entity,
+                                      distance=detection.distance,
+                                      angle=cone_angle)
 
-                new_detection = Detection(entity=detection.entity,
-                                          distance=detection.distance,
-                                          angle=cone_angle)
-
-                self.sensor_values.append(new_detection)
+            self.sensor_values.append(new_detection)
 
     def draw(self, width, *_):
 
