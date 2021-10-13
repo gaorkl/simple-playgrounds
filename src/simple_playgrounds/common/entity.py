@@ -117,8 +117,6 @@ class Entity(ABC):
             self._size_invisible = (2 * self._radius_invisible,
                                     2 * self._radius_invisible)
 
-            self._bbox = (radius * 2, radius * 2)
-
         elif self.physical_shape == PhysicalShapes.RECTANGLE:
             size = kwargs.get('size')
             assert size is not None and len(size) == 2
@@ -130,15 +128,16 @@ class Entity(ABC):
             self._size_invisible = (width + self._invisible_range,
                                     length + self._invisible_range)
 
-            self._bbox = (width, length)
-
         elif self.physical_shape == PhysicalShapes.POLYGON:
             vertices = kwargs.get('vertices')
             assert vertices is not None and len(vertices) > 1
 
             vertices = np.array(vertices)
-            width = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
-            length = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
+            center = np.mean(vertices, axis=0)
+            self._vertices = vertices - center
+
+            width = np.max(np.abs(vertices[:, 0]))
+            length = np.max(np.abs(vertices[:, 1]))
             size = (width, length)
 
             self._radius_visible = ((width / 2)**2 + (length / 2)**2)**(1 / 2)
@@ -146,10 +145,6 @@ class Entity(ABC):
             self._radius_invisible = self._radius_visible + self._invisible_range
             self._size_invisible = (width + self._invisible_range,
                                     length + self._invisible_range)
-
-            self._vertices = vertices
-
-            self._bbox = (width, length)
 
         else:
             raise ValueError('Wrong physical shape.')
@@ -298,12 +293,6 @@ class Entity(ABC):
                 pymunk.Vec2d(-width / 2., length / 2.)
             ]
 
-            for pt in points:
-                pt_rotated = pt.rotated(offset_angle)
-                vertices.append(pt_rotated)
-
-            return vertices
-
         elif self.physical_shape in [
                 PhysicalShapes.TRIANGLE,
                 PhysicalShapes.SQUARE,
@@ -319,19 +308,20 @@ class Entity(ABC):
 
             orig = pymunk.Vec2d(radius, 0)
 
+            points = []
             for n_sides in range(number_sides):
-                vertices.append(
-                    orig.rotated(n_sides * 2 * math.pi / number_sides +
-                                 offset_angle))
+                points.append(
+                    orig.rotated(n_sides * 2 * math.pi / number_sides))
 
         elif self.physical_shape == PhysicalShapes.POLYGON:
             points = [pymunk.Vec2d(x, y) for x, y in self._vertices]
-            for pt in points:
-                pt_rotated = pt.rotated(offset_angle)
-                vertices.append(pt_rotated)
 
         else:
             raise ValueError
+
+        for pt in points:
+            pt_rotated = pt.rotated(offset_angle)
+            vertices.append(pt_rotated)
 
         return vertices
 
@@ -368,22 +358,24 @@ class Entity(ABC):
 
         if invisible:
             alpha = 75
-            mask_size = (2 * self._radius_invisible,
-                         2 * self._radius_invisible)
-            center = self._radius_invisible, self._radius_invisible
+            mask_radius = self._radius_invisible
+        else:
+            alpha = 255
+            mask_radius = self._radius_visible
 
-        mask_size = int(mask_size[0]), int(mask_size[1])
+        center = (mask_radius, ) * 2
+        mask_size = (int(2 * mask_radius), ) * 2
         mask = pygame.Surface(mask_size, pygame.SRCALPHA)
         mask.fill((0, 0, 0, 0))
 
         if self.physical_shape == PhysicalShapes.CIRCLE:
-            radius = center[0]
-            pygame.draw.circle(mask, (255, 255, 255, alpha), center, radius)
+            pygame.draw.circle(mask, (255, 255, 255, alpha), center,
+                               mask_radius)
 
         else:
-            vert = self._compute_vertices(offset_angle=self.angle,
-                                          invisible=invisible)
-            vertices = [v - v.normalized() + center for v in vert]
+            vert = self._compute_vertices(
+                offset_angle=self.angle, invisible=invisible)
+            vertices = [v + center for v in vert]
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
         if invisible:
@@ -398,8 +390,6 @@ class Entity(ABC):
                                                   mask_angle * 180 / math.pi)
         mask_rect = texture_surface.get_rect()
         mask_rect.center = center
-        if self.physical_shape == PhysicalShapes.RECTANGLE:
-            mask_rect.center = center[0] + 1, center[1] + 1
         mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
 
         return mask
