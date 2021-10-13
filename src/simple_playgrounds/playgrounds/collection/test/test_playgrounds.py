@@ -15,6 +15,9 @@ from ....elements.collection.gem import Key, Coin
 from ....elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
 from ....elements.collection.zone import DeathZone, GoalZone, HealingZone, ToxicZone
 from ....elements.field import Field
+from ....common.texture import RandomTilesTexture
+
+from numpy.random import default_rng
 
 
 @PlaygroundRegister.register('test', 'basic')
@@ -53,6 +56,104 @@ class Basics(SingleRoom):
                           mass=5,
                           radius=20)
         self.add_element(tri_01, ((300, 133), math.pi / 3))
+
+
+@PlaygroundRegister.register('test', 'polygons')
+class Basics(SingleRoom):
+    def __init__(self, size=(400, 400), **playground_params):
+
+        super().__init__(size=size, **playground_params)
+
+        vertices = [
+            (20, 20),
+            (15, 30),
+            (-5, 20),
+            (-10, -20),
+            (0, -20),
+
+        ]
+
+        # First line is classic polygons
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+
+        poly_01 = Physical(physical_shape='polygon', vertices=vertices, texture=texture)
+        self.add_element(poly_01,
+                         initial_coordinates=((100, 100), 0))
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+        poly_02 = Physical(physical_shape='polygon', vertices=vertices, texture=texture)
+        self.add_element(poly_02,
+                         initial_coordinates=((200, 100), math.pi/4))
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+        poly_03 = Physical(physical_shape='polygon', vertices=vertices, texture=texture)
+        self.add_element(poly_03,
+                         initial_coordinates=((300, 100), math.pi/2))
+
+        # Check that it works when polys are offset
+        vertices = [(x+20, y+20) for (x,y) in vertices]
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+
+        poly_04 = Physical(physical_shape='polygon', vertices=vertices, texture=texture)
+        self.add_element(poly_04,
+                         initial_coordinates=((100, 200), 0))
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+        poly_05 = Physical(physical_shape='polygon', vertices=vertices, texture=texture)
+        self.add_element(poly_05,
+                         initial_coordinates=((200, 200), math.pi / 4))
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+        poly_06 = Physical(physical_shape='polygon', vertices=vertices, texture=texture)
+        self.add_element(poly_06,
+                         initial_coordinates=((300, 200), math.pi / 2))
+
+        # Check that it works when polys are movable.
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+
+        poly_07 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, movable=True)
+        self.add_element(poly_07,
+                         initial_coordinates=((100, 300), 0))
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+        poly_08 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, movable=True)
+        self.add_element(poly_08,
+                         initial_coordinates=((200, 300), math.pi / 4))
+
+        texture = RandomTilesTexture(size_tiles=4,
+                                     color_min=(50, 100, 150),
+                                     color_max=(100, 150, 200),
+                                     rng=default_rng(10))
+        poly_09 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, movable=True)
+        self.add_element(poly_09,
+                         initial_coordinates=((300, 300), math.pi / 2))
 
 
 @PlaygroundRegister.register('test', 'grasp')

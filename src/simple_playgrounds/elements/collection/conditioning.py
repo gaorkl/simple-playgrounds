@@ -38,13 +38,13 @@ class ColorChanging(InteractiveElement):
         for texture in textures:
 
             if isinstance(texture, dict):
-                texture['size'] = self._size_visible
                 texture = TextureGenerator.create(**texture)
 
             elif isinstance(texture, tuple):
-                texture = ColorTexture(size=self._size_visible, color=texture)
+                texture = ColorTexture(color=texture)
 
             assert isinstance(texture, Texture)
+            texture.size = self._size_visible
 
             self.textures.append(texture)
             texture.generate()
