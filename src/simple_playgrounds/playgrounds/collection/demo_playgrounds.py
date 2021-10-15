@@ -59,7 +59,7 @@ class Basics(SingleRoom):
 
 
 @PlaygroundRegister.register('demo', 'polygons')
-class Basics(SingleRoom):
+class BasicsPolygons(SingleRoom):
     def __init__(self, size=(400, 400), **playground_params):
 
         super().__init__(size=size, **playground_params)
