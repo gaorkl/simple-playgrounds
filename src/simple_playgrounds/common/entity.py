@@ -47,7 +47,6 @@ class Entity(ABC):
         temporary: bool = False,
         name: Optional[str] = None,
         mass: Optional[float] = None,
-        generate_texture: bool = True,
         background: bool = True,
         pymunk_attributes: Optional[Dict] = None,
         **kwargs,
@@ -68,7 +67,6 @@ class Entity(ABC):
             temporary:
             name:
             mass:
-            generate_texture:
             background:
             pymunk_attributes:
             **kwargs:
@@ -136,15 +134,14 @@ class Entity(ABC):
             center = np.mean(vertices, axis=0)
             self._vertices = vertices - center
 
-            width = np.max(np.abs(vertices[:, 0]))
-            length = np.max(np.abs(vertices[:, 1]))
-            size = (width, length)
+            width = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
+            length = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
 
             self._radius_visible = ((width / 2)**2 + (length / 2)**2)**(1 / 2)
-            self._size_visible = size
+            self._size_visible = (2 * self._radius_visible, 2 * self._radius_visible)
             self._radius_invisible = self._radius_visible + self._invisible_range
-            self._size_invisible = (width + self._invisible_range,
-                                    length + self._invisible_range)
+            self._size_invisible = (2 * self._radius_visible + self._invisible_range,
+                                    2 * self._radius_visible + self._invisible_range)
 
         else:
             raise ValueError('Wrong physical shape.')
@@ -185,19 +182,18 @@ class Entity(ABC):
 
         # Texture random generator can be set
         if isinstance(texture, Dict):
-            texture['size'] = self._size_visible
             texture = TextureGenerator.create(**texture)
 
         elif isinstance(texture, (tuple, list)):
-            texture = ColorTexture(size=self._size_visible, color=texture)
+            texture = ColorTexture(color=texture)
 
         assert isinstance(texture, Texture)
 
+        if not texture.size:
+            texture.size = self._size_visible
+
         self.texture: Texture = texture
-        if generate_texture:
-            self._texture_surface = self.texture.generate()
-        else:
-            self._texture_surface = self.texture.surface
+        self._texture_surface = self.texture.generate()
 
         # Used to set an element which is not supposed to overlap
         self._allow_overlapping = False
@@ -352,9 +348,9 @@ class Entity(ABC):
 
         # pylint: disable-all
 
-        alpha = 255
-        mask_size = (2 * self._radius_visible, 2 * self._radius_visible)
-        center = self._radius_visible, self._radius_visible
+        # alpha = 255
+        # mask_size = (2 * self._radius_visible, 2 * self._radius_visible)
+        # center = self._radius_visible, self._radius_visible
 
         if invisible:
             alpha = 75
