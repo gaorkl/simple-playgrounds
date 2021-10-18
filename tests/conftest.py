@@ -3,7 +3,7 @@ import pytest
 from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
                                               HeadEyeAgent, FullAgent)
 from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous, External
-from simple_playgrounds.playgrounds.collection.demo import Basics, Zones, Teleports, ExtraTeleports
+from simple_playgrounds.playgrounds.collection.demo_playgrounds import Basics, Zones, Teleports, ExtraTeleports
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 
