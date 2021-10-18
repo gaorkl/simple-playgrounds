@@ -287,7 +287,7 @@ class RayCollisionSensor(SensorDevice, ABC):
         position_body = self._anchor.pm_body.position
         angle = self._anchor.pm_body.angle + sensor_angle
 
-        position_end = position_body + pymunk.Vec2d(self._max_range - 1,
+        position_end = position_body + pymunk.Vec2d(self._max_range,
                                                     0).rotated(angle)
 
         if not self._invisible_elements:

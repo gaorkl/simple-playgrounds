@@ -85,7 +85,7 @@ class SemanticRay(RayCollisionSensor):
 
                 element_colliding = playground.get_entity_from_shape(
                     pm_shape=collision.shape)
-                distance = collision.alpha * self._max_range
+                distance = collision.alpha * (self._max_range - self._min_range - 1) + self._min_range + 1
 
                 detection = Detection(entity=element_colliding,
                                       distance=distance,
