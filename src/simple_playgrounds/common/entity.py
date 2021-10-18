@@ -353,10 +353,10 @@ class Entity(ABC):
 
         if invisible:
             alpha = 75
-            mask_radius = self._radius_invisible
+            mask_radius = self._radius_invisible + 1
         else:
             alpha = 255
-            mask_radius = self._radius_visible
+            mask_radius = self._radius_visible + 1
 
         center = (mask_radius, ) * 2
         mask_size = (int(2 * mask_radius), ) * 2

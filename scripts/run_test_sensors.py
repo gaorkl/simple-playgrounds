@@ -81,7 +81,7 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
     pg = pg_class()
     pg.add_agent(my_agent, allow_overlapping=False)
 
-    engine = Engine(playground=pg, screen=True, debug=True)
+    engine = Engine(playground=pg, screen=True, debug=False)
 
     while engine.game_on:
 
