@@ -35,9 +35,6 @@ class SensorDevice(Device):
         sensor_values: current values of the sensor.
         name: Name of the sensor.
 
-    Class Attributes:
-        sensor_type: string that represents the type of sensor (e.g. 'rgb' or 'lidar').
-
     Note:
         The anchor is always invisible to the sensor.
 
@@ -67,11 +64,12 @@ class SensorDevice(Device):
             resolution: Resolution of the sensor (in pixels, or number of rays).
             max_range: maximum range of the sensor (in the same units as the playground distances).
             min_range: minimum range of the sensor (in the same units as the playground distances).
-            invisible_elements: list of elements invisible to the sensor.
+                        Default: 0
+            invisible_elements: Optional list of elements invisible to the sensor.
             normalize: boolean. If True, sensor values are scaled between 0 and 1.
             noise_params: Dictionary of noise parameters.
                 Noise is applied to the raw sensor, before normalization.
-            name: name of the sensor. If not provided, a name will be chosen by default.
+            name: name of the sensor. If not provided, a name will be set by default.
 
         Noise Parameters:
             type: 'gaussian', 'salt_pepper'
@@ -80,15 +78,19 @@ class SensorDevice(Device):
             salt_pepper_probability: probability for a pixel to be turned off or max
 
         Notes:
-             As only 32 invisible groups can be set in pymunk, this limits the number of sensors
-             with invisible_elements to around 30 for each playground. While not a problem in most cases,
-             it can become a limitation for large-scale Multi-agent systems.
+             Three approaches can be used to prevent a sensor from detecting the parts of an agent.
 
-             For SEMANTIC and ROBOTIC sensors, another way to prevent the sensor from detecting its own anchor
-             is to set the min_range of the sensor to a range larger than the radius of its anchor.
-             In this case: min_range = anchor.radius + 1.
+             The first approach consists in not setting min_range and invisible_elements.
+             In this case the min_range will by default be set to the correct value to start detection after
+             the anchor. However this approach might be limited to the case of simple agents with only a base.
+
+             The second approach is to set min_range large enough so that the sensors start at a reasonable distance.
+
+             Finally, another approach, which is slower, is to use the invisible_elements argument to make all parts
+             of the agent invisible.
 
              The sensor values are the same when using invisible_elements or setting a minimum range.
+             If the sensor values are normalized, the values might be slightly different for distance sensors.
              The approach that sets invisible_elements attributes is preferred as it is slightly faster.
         """
 
@@ -302,15 +304,18 @@ class RayCollisionSensor(SensorDevice, ABC):
 
             # Filter Sensor shapes
             all_collisions = [pt for pt in all_collisions
-                          if not pt.shape.sensor]
+                              if not pt.shape.sensor]
 
             # Filter Invisible shapes
             all_collisions = [pt for pt in all_collisions
                               if playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
 
-            all_collisions.sort(key= lambda x: x.alpha)
+            all_collisions.sort(key=lambda x: x.alpha)
 
-            collision = next( iter(col for col in all_collisions if col not in self._invisible_elements and not col.shape.sensor), None)
+            collision = next(iter(col for col in all_collisions
+                                  if col not in self._invisible_elements
+                                  and not col.shape.sensor),
+                             None)
 
         return collision
 
