@@ -180,7 +180,6 @@ class Entity(ABC):
         self._initial_coordinates: Optional[InitCoord] = None
         self.trajectory: Optional[Trajectory] = None
 
-        # Texture random generator can be set
         if isinstance(texture, Dict):
             texture = TextureGenerator.create(**texture)
 

@@ -1,26 +1,26 @@
 import math
 
-from ...layouts import GridRooms, SingleRoom
-from ...playground import PlaygroundRegister
-from ....common.position_utils import CoordinateSampler, Trajectory
-from ....common.timer import CountDownTimer, PeriodicTimer
-from ....elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation, OpenCloseSwitch, \
+from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
+from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory
+from simple_playgrounds.common.timer import CountDownTimer, PeriodicTimer
+from simple_playgrounds.elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation, OpenCloseSwitch, \
     TimerSwitch, Lock
-from ....elements.collection.aura import Fairy, Fireball
-from ....elements.collection.basic import Physical, Traversable
-from ....elements.collection.conditioning import FlipReward
-from ....elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy, ContactSwitch
-from ....elements.collection.edible import Apple, RottenApple
-from ....elements.collection.gem import Key, Coin
-from ....elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
-from ....elements.collection.zone import DeathZone, GoalZone, HealingZone, ToxicZone
-from ....elements.field import Field
-from ....common.texture import RandomTilesTexture
+from simple_playgrounds.elements.collection.aura import Fairy, Fireball
+from simple_playgrounds.elements.collection.basic import Physical, Traversable
+from simple_playgrounds.elements.collection.conditioning import FlipReward
+from simple_playgrounds.elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy, ContactSwitch
+from simple_playgrounds.elements.collection.edible import Apple, RottenApple
+from simple_playgrounds.elements.collection.gem import Key, Coin
+from simple_playgrounds.elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
+from simple_playgrounds.elements.collection.zone import DeathZone, GoalZone, HealingZone, ToxicZone
+from simple_playgrounds.elements.field import Field
+from simple_playgrounds.common.texture import RandomTilesTexture
 
 from numpy.random import default_rng
 
 
-@PlaygroundRegister.register('test', 'basic')
+@PlaygroundRegister.register('demo', 'basic')
 class Basics(SingleRoom):
     def __init__(self, size=(400, 200), **playground_params):
 
@@ -58,7 +58,7 @@ class Basics(SingleRoom):
         self.add_element(tri_01, ((300, 133), math.pi / 3))
 
 
-@PlaygroundRegister.register('test', 'polygons')
+@PlaygroundRegister.register('demo', 'polygons')
 class Basics(SingleRoom):
     def __init__(self, size=(400, 400), **playground_params):
 
@@ -156,7 +156,7 @@ class Basics(SingleRoom):
                          initial_coordinates=((300, 300), math.pi / 2))
 
 
-@PlaygroundRegister.register('test', 'grasp')
+@PlaygroundRegister.register('demo', 'grasp')
 class Graspables(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -186,7 +186,7 @@ class Graspables(SingleRoom):
         self.add_element(hexagon_01, ((100, 100), 0))
 
 
-@PlaygroundRegister.register('test', 'contacts')
+@PlaygroundRegister.register('demo', 'contacts')
 class Contacts(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -224,7 +224,7 @@ class Contacts(SingleRoom):
             self.add_element(candy, outside_area)
 
 
-@PlaygroundRegister.register('test', 'zones')
+@PlaygroundRegister.register('demo', 'zones')
 class Zones(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -249,7 +249,7 @@ class Zones(SingleRoom):
         self.add_element(toxic_1, ((150, 100), 0))
 
 
-@PlaygroundRegister.register('test', 'edibles')
+@PlaygroundRegister.register('demo', 'edibles')
 class Edibles(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -268,7 +268,7 @@ class Edibles(SingleRoom):
         self.add_element(rotten, ((100, 100), 0))
 
 
-@PlaygroundRegister.register('test', 'dispensers')
+@PlaygroundRegister.register('demo', 'dispensers')
 class Dispensers(SingleRoom):
     def __init__(self, size=(200, 400), **playground_params):
 
@@ -363,7 +363,7 @@ class Dispensers(SingleRoom):
         self.add_element(dispenser, ((x_dispenser, 350), 0))
 
 
-@PlaygroundRegister.register('test', 'gems')
+@PlaygroundRegister.register('demo', 'gems')
 class Gems(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
         super().__init__(size=size, **playground_params)
@@ -400,7 +400,7 @@ class Gems(SingleRoom):
         self.add_element(coin, ((x_gem, 160), 0))
 
 
-@PlaygroundRegister.register('test', 'conditioning')
+@PlaygroundRegister.register('demo', 'conditioning')
 class Conditioning(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -426,7 +426,7 @@ class Conditioning(SingleRoom):
         self.add_timer(timer, light_02)
 
 
-@PlaygroundRegister.register('test', 'doors')
+@PlaygroundRegister.register('demo', 'doors')
 class Doors(GridRooms):
     def __init__(self, size=(300, 300), **playground_params):
 
@@ -483,7 +483,7 @@ class Doors(GridRooms):
             self.grid_rooms[1, 1].get_random_position_on_wall('up', switch_4))
 
 
-@PlaygroundRegister.register('test', 'teleports')
+@PlaygroundRegister.register('demo', 'teleports')
 class Teleports(SingleRoom):
     def __init__(self, size=(300, 700), **playground_params):
 
@@ -540,7 +540,7 @@ class Teleports(SingleRoom):
         portal_blue.destination = portal_red
 
 
-@PlaygroundRegister.register('test', 'proximity')
+@PlaygroundRegister.register('demo', 'proximity')
 class Proximals(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -553,7 +553,7 @@ class Proximals(SingleRoom):
         self.add_element(fireball, ((150, 80), 0))
 
 
-@PlaygroundRegister.register('test', 'fields')
+@PlaygroundRegister.register('demo', 'fields')
 class Fields(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -572,7 +572,7 @@ class Fields(SingleRoom):
         self.add_field(field)
 
 
-@PlaygroundRegister.register('test', 'trajectories')
+@PlaygroundRegister.register('demo', 'trajectories')
 class Trajectories(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
@@ -605,7 +605,7 @@ class Trajectories(SingleRoom):
         self.add_element(fireball, trajectory)
 
 
-@PlaygroundRegister.register('test', 'xteleports')
+@PlaygroundRegister.register('demo', 'xteleports')
 class ExtraTeleports(SingleRoom):
     def __init__(self, size=(400, 400), **playground_params):
 

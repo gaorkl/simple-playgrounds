@@ -337,13 +337,13 @@ class Playground(ABC):
             self._sensor_devices.append(sensor)
             self.space.add(sensor.pm_shape)
 
-            if sensor.apply_shape_filter(self.sensor_collision_index):
-                self.sensor_collision_index += 1
-
-                if self.sensor_collision_index == 32:
-                    raise ValueError(
-                        'Too many sensors using invisible shapes. Pymunk limits them to 32.'
-                    )
+            # if sensor.apply_shape_filter(self.sensor_collision_index):
+            #     self.sensor_collision_index += 1
+            #
+            #     if self.sensor_collision_index == 32:
+            #         raise ValueError(
+            #             'Too many sensors using invisible shapes. Pymunk limits them to 32.'
+            #         )
 
             if sensor.requires_scale:
                 sensor.set_scale(self.size)

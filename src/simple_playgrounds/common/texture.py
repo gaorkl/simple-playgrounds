@@ -475,6 +475,8 @@ class UniqueRandomTilesTexture(RandomTexture):
         for text in self.all_textures:
             text.size = size
 
+        self._size = size
+
     def generate(self):
         """
         Generate a pygame Surface with pixels following a uniform density

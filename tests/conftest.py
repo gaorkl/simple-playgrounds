@@ -3,7 +3,9 @@ import pytest
 from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
                                               HeadEyeAgent, FullAgent)
 from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous, External
-from simple_playgrounds.playgrounds.collection import *
+from simple_playgrounds.playgrounds.collection.demo import Basics, Zones, Teleports, ExtraTeleports
+from simple_playgrounds.playgrounds.playground import PlaygroundRegister
+from simple_playgrounds.playgrounds.layouts import SingleRoom
 
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
                                                Proximity, Touch, TopdownSensor,
@@ -101,7 +103,7 @@ def resolution(request):
 ###########################
 
 @pytest.fixture(scope="module",
-                params=PlaygroundRegister.playgrounds['test'].items())
+                params=PlaygroundRegister.playgrounds['demo'].items())
 def pg_test_class(request):
     _, pg_class = request.param
     return pg_class
@@ -127,6 +129,7 @@ def empty_playground():
         size=(100, 100)
     )
     return pg
+
 
 @pytest.fixture(scope="module", params=['colorful', 'classic', 'light', 'dark'])
 def wall_type(request):

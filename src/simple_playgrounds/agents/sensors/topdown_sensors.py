@@ -58,11 +58,6 @@ class TopdownSensor(SensorDevice):
                          noise_params=noise_params,
                          **sensor_params)
 
-        if invisible_elements:
-            self._invisible_elements = invisible_elements
-        else:
-            self._invisible_elements = []
-
         self.only_front = only_front
 
         self._center = (int(self._resolution / 2) - 1,
@@ -107,12 +102,6 @@ class TopdownSensor(SensorDevice):
 
         self.requires_surface = True
 
-    def apply_shape_filter(
-        self,
-        sensor_collision_index,
-    ) -> bool:
-        return False
-
     def _get_sensor_image(self, playground: Playground,
                           sensor_surface: pygame.Surface):
 
@@ -128,11 +117,9 @@ class TopdownSensor(SensorDevice):
         cropped = pygame.Surface(
             (2 * self._max_range + 1, 2 * self._max_range + 1))
 
-        # Check that this is correct:
-        pos_x = playground.size[1] - (self._anchor.position[0] +
-                                      self._max_range)
-        pos_y = playground.size[1] - (self._anchor.position[1] +
-                                      self._max_range)
+        pos_x = -self._anchor.position[0] + self._max_range
+        pos_y = -self._anchor.position[1] + self._max_range
+
         cropped.blit(sensor_surface, (pos_x, pos_y))
 
         img_cropped = pygame.surfarray.pixels3d(cropped).astype(float)
@@ -258,13 +245,6 @@ class FullPlaygroundSensor(SensorDevice):
 
         self.requires_surface = True
         self.requires_scale = True
-
-    def apply_shape_filter(
-        self,
-        sensor_collision_index,
-    ) -> bool:
-
-        return False
 
     def _get_sensor_image(self, playground: Playground,
                           sensor_surface: pygame.Surface):

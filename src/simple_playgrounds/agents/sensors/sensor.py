@@ -50,9 +50,9 @@ class SensorDevice(Device):
                  fov: float,
                  resolution: int,
                  max_range: float,
-                 min_range: float,
                  normalize: bool,
                  noise_params: Optional[Dict] = None,
+                 min_range: Optional[float] = None,
                  invisible_elements: Optional[Union[List[Entity],
                                                     Entity]] = None,
                  name: Optional[str] = None,
@@ -105,15 +105,16 @@ class SensorDevice(Device):
 
         self.sensor_values = None
 
-        if not invisible_elements:
-            self.invisible_elements = []
-        else:
-            if isinstance(invisible_elements, Entity):
-                invisible_elements = [invisible_elements]
+        # Invisible elements
+        if isinstance(invisible_elements, Entity):
+            invisible_elements = [invisible_elements]
+        self._invisible_elements = invisible_elements
 
-            self.invisible_elements = invisible_elements
-
-        self.invisible_filter = pymunk.ShapeFilter()
+        if not invisible_elements and not min_range:
+            min_range = self._anchor.radius + 1
+        elif invisible_elements and not min_range:
+            min_range = 0
+        self._min_range = min_range
 
         self._normalize = normalize
 
@@ -135,7 +136,6 @@ class SensorDevice(Device):
         self._max_range = max_range
         self._fov = fov * math.pi / 180
         self._resolution = resolution
-        self._min_range = min_range
 
         if not self._resolution > 0:
             raise ValueError('resolution must be more than 1')
@@ -152,13 +152,6 @@ class SensorDevice(Device):
         # Used for sensors that request an updated sensor surface
         self.requires_surface = False
         self.requires_scale = False
-
-    @abstractmethod
-    def apply_shape_filter(
-        self,
-        sensor_collision_index: int,
-    ) -> bool:
-        ...
 
     def update(self, playground: Playground, sensor_surface: Surface):
 
@@ -255,32 +248,6 @@ class RayCollisionSensor(SensorDevice, ABC):
                 for n in range(self._resolution)
             ]
 
-        self._shape_filter_applied = False
-
-    def apply_shape_filter(
-        self,
-        sensor_collision_index,
-    ):
-
-        if not self.invisible_elements:
-            return False
-
-        elif not self._shape_filter_applied:
-
-            for elem in self.invisible_elements:
-                elem.assign_shape_filter(sensor_collision_index)
-
-            self.invisible_filter = pymunk.ShapeFilter(
-                categories=2**sensor_collision_index)
-
-            self._shape_filter_applied = True
-
-            return True
-
-        else:
-
-            return False
-
     @staticmethod
     def _remove_duplicate_collisions(
             collisions_by_angle: Dict[float,
@@ -318,13 +285,32 @@ class RayCollisionSensor(SensorDevice, ABC):
         position_body = self._anchor.pm_body.position
         angle = self._anchor.pm_body.angle + sensor_angle
 
-        position_start = position_body + pymunk.Vec2d(self._min_range + 1,
-                                                      0).rotated(angle)
         position_end = position_body + pymunk.Vec2d(self._max_range - 1,
                                                     0).rotated(angle)
 
-        collision = playground.space.segment_query_first(
-            position_start, position_end, 1, self.invisible_filter)
+        if not self._invisible_elements:
+            position_start = position_body + pymunk.Vec2d(self._min_range + 1,
+                                                          0).rotated(angle)
+
+            collision = playground.space.segment_query_first(
+                position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
+
+        else:
+            position_start = position_body
+            all_collisions = playground.space.segment_query(
+                position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
+
+            # Filter Sensor shapes
+            all_collisions = [pt for pt in all_collisions
+                          if not pt.shape.sensor]
+
+            # Filter Invisible shapes
+            all_collisions = [pt for pt in all_collisions
+                              if playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
+
+            all_collisions.sort(key= lambda x: x.alpha)
+
+            collision = next( iter(col for col in all_collisions if col not in self._invisible_elements and not col.shape.sensor), None)
 
         return collision
 

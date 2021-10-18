@@ -1,2 +1,3 @@
 from .rl.basic import *
-from .test.test_playgrounds import *
+from simple_playgrounds.playgrounds.collection.demo_playgrounds import *
+from simple_playgrounds.playgrounds.collection.profiling_playgrounds import *

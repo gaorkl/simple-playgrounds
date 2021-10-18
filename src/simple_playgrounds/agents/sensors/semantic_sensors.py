@@ -13,7 +13,7 @@ import math
 from operator import attrgetter
 
 import numpy as np
-from pymunk import Shape
+from pymunk import Shape, ShapeFilter
 from skimage.draw import line, disk, set_color
 
 from .sensor import RayCollisionSensor
@@ -306,7 +306,7 @@ class PerfectLidar(SemanticRay):
 
         points_hit = playground.space.point_query(position_body,
                                                   self._max_range,
-                                                  shape_filter=self.invisible_filter)
+                                                  shape_filter=ShapeFilter(ShapeFilter.ALL_MASKS()))
 
         # Filter points too close
         points_hit = [pt for pt in points_hit
@@ -315,6 +315,11 @@ class PerfectLidar(SemanticRay):
         # Filter Sensor shapes
         points_hit = [pt for pt in points_hit
                       if not pt.shape.sensor]
+
+        # Filter Invisible shapes
+        if self._invisible_elements:
+            points_hit = [pt for pt in points_hit
+                          if playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
 
         # Calculate angle
         detections: List[Detection] = []
