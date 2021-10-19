@@ -133,11 +133,9 @@ class Entity(ABC):
             vertices = np.array(vertices)
             center = np.mean(vertices, axis=0)
             self._vertices = vertices - center
+            radius = np.max(np.linalg.norm(self._vertices, axis=1))
 
-            width = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
-            length = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
-
-            self._radius_visible = ((width / 2)**2 + (length / 2)**2)**(1 / 2)
+            self._radius_visible = radius
             self._size_visible = (2 * self._radius_visible, 2 * self._radius_visible)
             self._radius_invisible = self._radius_visible + self._invisible_range
             self._size_invisible = (2 * self._radius_visible + self._invisible_range,
@@ -346,10 +344,6 @@ class Entity(ABC):
     def _create_mask(self, invisible=False):
 
         # pylint: disable-all
-
-        # alpha = 255
-        # mask_size = (2 * self._radius_visible, 2 * self._radius_visible)
-        # center = self._radius_visible, self._radius_visible
 
         if invisible:
             alpha = 75
