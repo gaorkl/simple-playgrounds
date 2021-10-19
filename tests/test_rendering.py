@@ -26,8 +26,7 @@ def test_rendering():
         osp.dirname(osp.abspath(__file__)), 'test_rendering.npy')
     ref_img = np.load(ref_location)
 
-    if np.linalg.norm(agent_img - ref_img) == 0.0:
-        pass
-    else:
+    diff = np.linalg.norm(agent_img - ref_img)
+    if diff != 0.0:
         np.save('new_test_rendering', agent_img)
-        raise AssertionError
+        raise AssertionError(f'Diff is not 0.0: {diff}')
