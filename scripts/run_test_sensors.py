@@ -3,29 +3,35 @@ from simple_playgrounds.playgrounds.collection import *
 
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.agents.parts.controllers import Keyboard
-from simple_playgrounds.agents.agents import HeadAgent
+from simple_playgrounds.agents.agents import BaseAgent
 import simple_playgrounds.agents.sensors as sensors
 
 import cv2
 
-my_agent = HeadAgent(controller=Keyboard(), lateral=True, interactive=True)
+my_agent = BaseAgent(controller=Keyboard(), lateral=True, interactive=True)
 
 # ----------------------------------------------------------
-rgb = sensors.RgbCamera(my_agent.head,
+rgb = sensors.RgbCamera(my_agent.base_platform,
                 invisible_elements=my_agent.parts,
                 fov=180,
                 resolution=64,
                 max_range=500)
 my_agent.add_sensor(rgb)
 
-grey = sensors.GreyCamera(my_agent.head, invisible_elements=my_agent.parts, fov=180, resolution=64, max_range=500)
-my_agent.add_sensor(grey)
+rgb = sensors.RgbCamera(my_agent.base_platform,
+                fov=180,
+                resolution=64,
+                max_range=500)
+my_agent.add_sensor(rgb)
+
+# grey = sensors.GreyCamera(my_agent.head, invisible_elements=my_agent.parts, fov=180, resolution=64, max_range=500)
+# my_agent.add_sensor(grey)
 
 lidar = sensors.Lidar(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=180, resolution=128, max_range=400)
 my_agent.add_sensor(lidar)
 
-depth = sensors.Proximity(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=100, resolution=64, max_range=400)
-my_agent.add_sensor(depth)
+# depth = sensors.Proximity(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=100, resolution=64, max_range=400)
+# my_agent.add_sensor(depth)
 
 touch = sensors.Touch(my_agent.base_platform, normalize=True, invisible_elements=my_agent.parts)
 my_agent.add_sensor(touch)
@@ -36,7 +42,7 @@ my_agent.add_sensor(sem_ray)
 sem_cones = sensors.SemanticCones(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, remove_duplicates=False)
 my_agent.add_sensor(sem_cones)
 
-td = sensors.TopdownSensor(my_agent.head, invisible_elements=my_agent.parts, normalize=True, only_front=True, fov=180)
+td = sensors.TopdownSensor(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, only_front=True, fov=180)
 my_agent.add_sensor(td)
 
 fi = sensors.FullPlaygroundSensor(my_agent.base_platform, resolution=64)
@@ -92,7 +98,7 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
             actions[agent] = agent.controller.generate_actions()
 
         engine.multiple_steps(actions=actions, n_steps=2)
-        engine.update_observations()
+        engine.update_observations(grasped_invisible=True)
 
         cv2.imshow(
             'agent',

@@ -26,6 +26,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..common.position_utils import CoordinateSampler, Coordinate
 from .parts.parts import Part, Platform, AnchoredPart
+from .parts.actuators import Grasp
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -143,6 +144,17 @@ class Agent(ABC):
 
     def add_actuator(self, actuator: Actuator):
         self.actuators.append(actuator)
+
+    @property
+    def is_holding(self):
+
+        list_hold = []
+
+        for act in self.actuators:
+            if isinstance(act, Grasp) and act.is_holding:
+                list_hold.append(act.is_holding)
+
+        return list_hold
 
     # OVERLAPPING STRATEGY
     @property

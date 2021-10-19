@@ -112,6 +112,9 @@ class SensorDevice(Device):
             invisible_elements = [invisible_elements]
         self._invisible_elements = invisible_elements
 
+        if not invisible_elements:
+            self._invisible_elements = []
+
         if not invisible_elements and not min_range:
             min_range = self._anchor.radius + 1
         elif invisible_elements and not min_range:
@@ -151,9 +154,14 @@ class SensorDevice(Device):
         # Sensor max value is used for noise and normalization calculation
         self._sensor_max_value: float = 0.
 
-        # Used for sensors that request an updated sensor surface
+        # If it requires a topdown representation of the playground
+        # to compute the sensor values
         self.requires_surface = False
         self.requires_scale = False
+
+        # Temporary invisible to manage elements that are invisible to the agent or sensor.
+        # Manages dynamic invisibility. Elements are invisible some times.
+        self._temporary_invisible: List[Entity] = []
 
     def update(self, playground: Playground, sensor_surface: Surface):
 
@@ -168,6 +176,12 @@ class SensorDevice(Device):
 
             if self._normalize:
                 self._apply_normalization()
+
+    def pre_step(self):
+        self._temporary_invisible = []
+
+    def set_temporary_invisible(self, temporary_invisible: List[Entity]):
+        self._temporary_invisible = temporary_invisible
 
     @abstractmethod
     def _compute_raw_sensor(
@@ -213,7 +227,7 @@ class SensorDevice(Device):
         """
         return None
 
-    def set_scale(self, size_playground):
+    def set_scale(self, size):
         pass
 
 
@@ -290,32 +304,20 @@ class RayCollisionSensor(SensorDevice, ABC):
         position_end = position_body + pymunk.Vec2d(self._max_range - 1,
                                                     0).rotated(angle)
 
-        if not self._invisible_elements:
-            position_start = position_body + pymunk.Vec2d(self._min_range + 1,
-                                                          0).rotated(angle)
+        position_start = position_body + pymunk.Vec2d(self._min_range + 1,
+                                                      0).rotated(angle)
 
-            collision = playground.space.segment_query_first(
-                position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
+        inv_shapes = []
+        for elem in self._invisible_elements + self._temporary_invisible:
+            if elem.pm_visible_shape and not elem.pm_visible_shape.sensor:
+                elem.pm_visible_shape.sensor = True
+                inv_shapes.append(elem.pm_visible_shape)
 
-        else:
-            position_start = position_body
-            all_collisions = playground.space.segment_query(
-                position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
+        collision = playground.space.segment_query_first(
+            position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
 
-            # Filter Sensor shapes
-            all_collisions = [pt for pt in all_collisions
-                              if not pt.shape.sensor]
-
-            # Filter Invisible shapes
-            all_collisions = [pt for pt in all_collisions
-                              if playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
-
-            all_collisions.sort(key=lambda x: x.alpha)
-
-            collision = next(iter(col for col in all_collisions
-                                  if col not in self._invisible_elements
-                                  and not col.shape.sensor),
-                             None)
+        for shape in inv_shapes:
+            shape.sensor = False
 
         return collision
 

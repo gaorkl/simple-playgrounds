@@ -337,14 +337,6 @@ class Playground(ABC):
             self._sensor_devices.append(sensor)
             self.space.add(sensor.pm_shape)
 
-            # if sensor.apply_shape_filter(self.sensor_collision_index):
-            #     self.sensor_collision_index += 1
-            #
-            #     if self.sensor_collision_index == 32:
-            #         raise ValueError(
-            #             'Too many sensors using invisible shapes. Pymunk limits them to 32.'
-            #         )
-
             if sensor.requires_scale:
                 sensor.set_scale(self.size)
 
@@ -668,7 +660,7 @@ class Playground(ABC):
 
                 if actuator.is_grasping and not actuator.is_holding:
 
-                    actuator.is_holding = True
+                    actuator.is_holding = grasped_element
 
                     j_1 = pymunk.PinJoint(part.pm_body,
                                           grasped_element.pm_body, (0, 0),

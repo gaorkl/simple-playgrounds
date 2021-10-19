@@ -388,7 +388,7 @@ class Engine:
             actions[agent] = agent.controller.generate_actions()
         return actions
 
-    def update_observations(self):
+    def update_observations(self, grasped_invisible=False):
         """
         Updates observations of each agent
 
@@ -396,14 +396,22 @@ class Engine:
 
         for agent in self.agents:
 
+            temporary_invisible = []
+            if grasped_invisible:
+                temporary_invisible = agent.is_holding
+
             for sensor in agent.sensors:
+
+                sensor.pre_step()
+                sensor.set_temporary_invisible(temporary_invisible)
 
                 if sensor.requires_surface:
                     self._update_surface_background()
                     self._surface_buffer.blit(self._surface_background, (0, 0))
 
                 sensor.update(playground=self.playground,
-                              sensor_surface=self._surface_buffer)
+                              sensor_surface=self._surface_buffer,
+                              )
 
     def generate_agent_image(self,
                              agent,
