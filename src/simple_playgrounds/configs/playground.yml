@@ -5,6 +5,12 @@ classic :
   color_max: [160, 160, 0]
   size_tiles: 4
 
+single-color :
+  texture_type: random_tiles
+  color_min: [150, 150, 0]
+  color_max: [150, 150, 0]
+  size_tiles: 4
+
 light :
   texture_type: random_tiles
   color_min: [200, 240, 230]

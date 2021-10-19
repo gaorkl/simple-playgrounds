@@ -156,6 +156,74 @@ class BasicsPolygons(SingleRoom):
                          initial_coordinates=((300, 300), math.pi / 2))
 
 
+@PlaygroundRegister.register('demo', 'basic-deterministic')
+class BasicsDeterministic(SingleRoom):
+    def __init__(self, size=(400, 200), **playground_params):
+
+        super().__init__(size=size,
+                         wall_type='single-color',
+                         **playground_params)
+
+        rectangle_01 = Physical(config_key='rectangle',
+                                name='test',
+                                texture=[250, 140, 80])
+        self.add_element(rectangle_01,
+                         initial_coordinates=((150, 160), math.pi / 4))
+
+        circle_01 = Traversable(config_key='circle',
+                                movable=False,
+                                mass=100,
+                                texture=[150, 150, 150])
+        self.add_element(circle_01, ((50, 50), 0))
+
+        square_01 = Physical(config_key='square',
+                             movable=True,
+                             mass=10,
+                             texture=[150, 120, 170])
+        self.add_element(square_01, ((150, 60), 0))
+
+        pentagon_01 = Physical(config_key='pentagon',
+                               radius=15,
+                               texture=[150, 250, 170])
+        self.add_element(pentagon_01, ((50, 160), math.pi / 2))
+
+        tri_01 = Physical(config_key='triangle',
+                          movable=False,
+                          mass=5,
+                          texture=[50, 220, 200])
+        self.add_element(tri_01, ((100, 100), math.pi / 4))
+
+        tri_01 = Physical(config_key='triangle',
+                          movable=False,
+                          mass=5,
+                          radius=20,
+                          texture=[50, 220, 200])
+        self.add_element(tri_01, ((300, 66), 0))
+
+        tri_01 = Physical(config_key='triangle',
+                          movable=False,
+                          mass=5,
+                          radius=20,
+                          texture=[50, 220, 200])
+        self.add_element(tri_01, ((300, 133), math.pi / 3))
+
+        vertices = [
+            [100, 100],
+            [120, 100],
+            [120, 150],
+            [150, 150],
+            [150, 170],
+            [100, 170],
+            [100, 100],
+        ]
+
+        poly_01 = Physical(physical_shape='polygon',
+                           vertices=vertices,
+                           texture=[0, 100, 250])
+        self.add_element(poly_01,
+                         initial_coordinates=((200, 100), math.pi/4))
+
+
 @PlaygroundRegister.register('demo', 'grasp')
 class Graspables(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
