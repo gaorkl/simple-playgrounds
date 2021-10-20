@@ -185,7 +185,7 @@ class Lidar(RayCollisionSensor):
             collision = collision_points[ray_angle]
 
             if collision:
-                pixels[angle_index] = collision.alpha * self._max_range
+                pixels[angle_index] = collision.alpha * (self._max_range - self._min_range - 1) + self._min_range + 1
 
         self.sensor_values = pixels[:].astype(float).reshape(self.shape)
 
