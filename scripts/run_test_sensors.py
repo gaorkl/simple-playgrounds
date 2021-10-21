@@ -48,11 +48,11 @@ my_agent.add_sensor(td)
 fi = sensors.FullPlaygroundSensor(my_agent.base_platform, resolution=64)
 my_agent.add_sensor(fi)
 
-fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectLidar(my_agent.base_platform)
+fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectSemantic(my_agent.base_platform)
 my_agent.add_sensor(fi)
 
 
-fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectLidar(my_agent.base_platform, fov=180)
+fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectSemantic(my_agent.base_platform, fov=180)
 my_agent.add_sensor(fi)
 
 

@@ -261,10 +261,12 @@ class SemanticCones(SemanticRay):
         return img
 
 
-class PerfectLidar(SemanticRay):
+class PerfectSemantic(SemanticRay):
     """
-    PerfectLidar detects all elements in the radius of the sensor.
+    PerfectSemantic detects all elements that are in range of the sensor.
+    Obstructed Elements are also returned.
     """
+
     def __init__(self,
                  anchor,
                  invisible_elements=None,
