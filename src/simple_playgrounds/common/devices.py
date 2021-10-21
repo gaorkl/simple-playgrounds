@@ -27,4 +27,3 @@ class Device:
 
     def disable(self):
         self._disabled = True
-

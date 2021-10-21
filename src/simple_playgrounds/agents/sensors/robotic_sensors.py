@@ -11,7 +11,7 @@ import numpy as np
 import pymunk
 from skimage.transform import resize
 
-from .sensor import RayCollisionSensor
+from .sensor import RayCollisionSensor, SensorDevice
 from ..parts.parts import Part
 from ...common.definitions import SensorTypes
 from ...common.entity import Entity
@@ -259,3 +259,30 @@ class Touch(Lidar):
         distance_to_anchor = self.sensor_values - self._anchor.radius
         distance_to_anchor[distance_to_anchor < 0] = 0
         self.sensor_values = self._sensor_max_value - distance_to_anchor
+
+
+class GPS(SensorDevice):
+    def __init__(self,
+                 anchor,
+                 noise_params=None,
+                 normalize=False,
+                 **kwargs):
+        super().__init__(anchor=anchor,
+                         noise_params=noise_params,
+                         fov=1,
+                         resolution=1,
+                         max_range=1,
+                         normalize=normalize,
+                         **kwargs)
+
+        self._pg_size = None
+
+    def _compute_raw_sensor(self, playground, *_):
+        self.sensor_values = np.array(self._anchor.position)
+
+    def _apply_normalization(self):
+        if self._pg_size is not None:
+            self.sensor_values /= self._pg_size
+
+    def set_scale(self, size):
+        self._pg_size = np.array(size)
