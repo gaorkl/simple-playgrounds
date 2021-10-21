@@ -287,3 +287,23 @@ class GPS(SensorDevice):
 
     def set_scale(self, size):
         self._pg_size = np.array(size)
+
+
+class Velocity(SensorDevice):
+    def __init__(self,
+                 anchor,
+                 noise_params=None,
+                 **kwargs):
+        super().__init__(anchor=anchor,
+                         noise_params=noise_params,
+                         fov=1,
+                         resolution=1,
+                         max_range=1,
+                         normalize=False,
+                         **kwargs)
+
+        self._pg_size = None
+
+    def _compute_raw_sensor(self, playground, *_):
+        self.sensor_values = np.concatenate([np.array(self._anchor.velocity),
+                                             [self._anchor.angular_velocity]])
