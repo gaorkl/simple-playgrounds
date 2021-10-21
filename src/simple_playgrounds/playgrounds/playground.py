@@ -440,7 +440,10 @@ class Playground(ABC):
 
             if field.can_produce():
                 element, position = field.produce()
-                self.add_element(element, position)
+                if isinstance(element, SceneElement):
+                    self.add_element(element, position)
+                elif isinstance(element, Agent):
+                    self.add_agent(element, position)
 
     def _update_timers(self):
 
