@@ -415,13 +415,10 @@ class Engine:
 
     def generate_agent_image(self,
                              agent,
-                             with_pg=True,
                              max_size_pg=200,
                              rotate_pg=False,
-                             with_actions=True,
                              width_action=200,
                              height_action=20,
-                             with_sensors=True,
                              width_sensors=150,
                              height_sensor=20,
                              plt_mode=False,
@@ -431,13 +428,10 @@ class Engine:
 
         Args:
             agent (Agent): Instance of agent.
-            with_pg (bool): Display the playground.
             max_size_pg (int): Maximum size of the playground image ( either width or depth, depending on shape).
             rotate_pg (bool): Rotate the playground. Useful when the playground is a rectangle.
-            with_actions (bool): Display actions.
             width_action (int): Width of the action bars.
             height_action (int): Height of the action bars.
-            with_sensors (bool): Display sensors.
             width_sensors (int): Width of the sensors.
             height_sensor (int): Height of the sensors (when applicable).
             plt_mode (bool): Set to True to return a matplotlib compatible image.
@@ -450,6 +444,7 @@ class Engine:
             horizontally on the right.
             - (('playground', 'sensors'), 'actions') ) will split playground and sensor on the left,
             then display sensors on the right.
+            - ('actions', 'sensors') will put actions on the left, then put sensors on the right.
 
         Returns:
             if plt_mode is False: returns a cv2 compatible image / array, scaled between 0 and 1.
@@ -460,8 +455,27 @@ class Engine:
 
         # pylint: disable=too-many-locals
 
-        images = {}
+        list_type = []
+        for column in layout:
+            if isinstance(column, str):
+                list_type.append(column)
+            elif isinstance(column, tuple):
+                for col in column:
+                    list_type.append(col)
 
+        with_pg = with_actions = with_sensors = False
+        for t in list_type:
+            if t == "playground":
+                with_pg = True
+            elif t == "actions":
+                with_actions = True
+            elif t == "sensors":
+                with_sensors = True
+            else:
+                raise ValueError(
+                    "Warning, the type '{}' is wrong. Choose between 'playground', 'actions' or 'sensors'".format(t))
+
+        images = {}
         if with_pg:
             pg_image = self.generate_playground_image(max_size=max_size_pg)
 
