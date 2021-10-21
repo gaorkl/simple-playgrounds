@@ -278,11 +278,12 @@ class GPS(SensorDevice):
         self._pg_size = None
 
     def _compute_raw_sensor(self, playground, *_):
-        self.sensor_values = np.array(self._anchor.position)
+        self.sensor_values = np.concatenate([np.array(self._anchor.position),
+                                             [self._anchor.angle]])
 
     def _apply_normalization(self):
         if self._pg_size is not None:
-            self.sensor_values /= self._pg_size
+            self.sensor_values[0:2] = self.sensor_values[0:2] / self._pg_size
 
     def set_scale(self, size):
         self._pg_size = np.array(size)
