@@ -55,6 +55,11 @@ my_agent.add_sensor(fi)
 fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectSemantic(my_agent.base_platform, fov=180)
 my_agent.add_sensor(fi)
 
+fi = simple_playgrounds.agents.sensors.GPS(my_agent.base_platform)
+my_agent.add_sensor(fi)
+
+fi = simple_playgrounds.agents.sensors.Velocity(my_agent.base_platform)
+my_agent.add_sensor(fi)
 
 ###### Test noise Sensors
 #

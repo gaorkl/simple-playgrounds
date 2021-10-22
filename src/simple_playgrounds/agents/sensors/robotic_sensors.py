@@ -9,6 +9,7 @@ from typing import List, Optional, Dict, Union
 
 import numpy as np
 import pymunk
+from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
 from .sensor import RayCollisionSensor, SensorDevice
@@ -295,7 +296,19 @@ class PoseSensor(SensorDevice):
         self.sensor_values += additive_noise
 
     def draw(self, width: int, height: int):
-        pass
+        img = Image.new("RGB", (width, height), (255, 255, 255))
+        drawer_image = ImageDraw.Draw(img)
+
+        fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height * 1 / 2))
+        values_str = ", ".join(["%.2f" % e for e in self.sensor_values])
+        w_text, h_text = fnt.getsize(text=values_str)
+        pos_text = ((width - w_text) / 2, (height - h_text) / 2)
+        drawer_image.text(pos_text,
+                          values_str,
+                          font=fnt,
+                          fill=(0, 0, 0))
+
+        return np.asarray(img) / 255
 
 
 class GPS(PoseSensor):
