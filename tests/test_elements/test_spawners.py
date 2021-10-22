@@ -28,7 +28,6 @@ def test_spawner(spawner_limits, entity_counter, entity_type, entity_params):
         probability=1,
         max_elements_in_playground=max_in_pg,
         production_limit=prod_limit,
-        allow_overlapping=True,
     )
     playground.add_spawner(spawner)
 

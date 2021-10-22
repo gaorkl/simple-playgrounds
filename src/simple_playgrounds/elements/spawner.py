@@ -26,7 +26,7 @@ class Spawner:
                  max_elements_in_playground: int = 10,
                  production_limit: int = 30,
                  entity_produced_params: Optional[Dict] = None,
-                 allow_overlapping: bool = False):
+                 allow_overlapping: bool = True):
         """
         Spawner randomly produces a new element in a random part of the Playground.
         The element is temporary, and will disappear upon reset of the Playground.
