@@ -51,7 +51,7 @@ class Playground(ABC):
     Attributes:
         size: size of the scene (width, length).
         elements: list of SceneElements present in the Playground.
-        spawners: list of spawners producing SceneElements in the Playground.
+        spawners: list of spawners producing elements in the Playground.
         agents: list of Agents present in the Playground.
         initial_agent_coordinates: position or PositionAreaSampler,
             Starting position of an agent (single agent).
@@ -444,6 +444,8 @@ class Playground(ABC):
                     self.add_element(element, position)
                 elif isinstance(element, Agent):
                     self.add_agent(element, position)
+                else:
+                    raise ValueError('Spawners can only produce SceneElements or Agents')
 
     def _update_timers(self):
 

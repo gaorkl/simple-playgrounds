@@ -2,8 +2,9 @@
 Module for Spawner
 """
 import random
-from typing import Optional, Dict, Tuple, Type, List
+from typing import Optional, Dict, Tuple, Type, List, Union
 
+from ..agents.agent import Agent
 from .element import SceneElement
 from ..common.position_utils import CoordinateSampler, Coordinate
 
@@ -19,22 +20,22 @@ class Spawner:
     id_number = 0
 
     def __init__(self,
-                 element_produced: Type[SceneElement],
+                 element_produced: Union[Type[SceneElement], Type[Agent]],
                  production_area: CoordinateSampler,
                  probability: float = 0.05,
                  max_elements_in_playground: int = 10,
                  production_limit: int = 30,
                  entity_produced_params: Optional[Dict] = None):
         """
-        Spawner randomly produces a new SceneElement in a random part of the Playground.
-        The SceneElement is temporary, and will disappear upon reset of the Playground.
+        Spawner randomly produces a new element in a random part of the Playground.
+        The element is temporary, and will disappear upon reset of the Playground.
 
         Args:
             element_produced: SceneElement produces.
-            probability: at each step, probability of creating a new SceneElement.
-            max_elements_in_playground: maximum number of SceneElements present in the playground at any given time.
-            production_limit: total number of SceneElements that can be produced.
-            entity_produced_params: Dictionary of parameters of the SceneElement produced.
+            probability: at each step, probability of creating a new element.
+            max_elements_in_playground: maximum number of element present in the playground at any given time.
+            production_limit: total number of elements that can be produced.
+            entity_produced_params: Dictionary of parameters of the element produced.
             production_area: PositionAreaSampler.
 
         """
@@ -50,7 +51,7 @@ class Spawner:
         self.limit = max_elements_in_playground
         self.total_limit = production_limit
         self.total_produced = 0
-        self.produced_entities: List[SceneElement] = []
+        self.produced_entities: Union[List[SceneElement], List[Agent]] = []
 
         # Internal counter to assign identity number to each entity
         self.name = 'spawner_' + str(Spawner.id_number)
@@ -58,11 +59,11 @@ class Spawner:
 
     def can_produce(self) -> bool:
         """
-        Tests if the spawner can produce a new SceneElement.
+        Tests if the spawner can produce a new element.
         Performs random choice and checks that it is not beyond production limit.
 
         Returns:
-            True if it can produce a new SceneElement
+            True if it can produce a new element
 
         """
 
@@ -70,10 +71,10 @@ class Spawner:
                 and self.total_produced < self.total_limit
                 and random.random() < self.probability)
 
-    def produce(self) -> Tuple[SceneElement, Coordinate]:
+    def produce(self) -> Tuple[Union[SceneElement, Agent], Coordinate]:
         """
 
-        Returns: SceneEntity
+        Returns: SceneElement or Agent, initial position
 
         """
 
@@ -89,7 +90,7 @@ class Spawner:
 
     def reset(self):
         """
-        Reset the spawner by resetting the total count of SceneElements produced.
+        Reset the spawner by resetting the total count of elements produced.
         """
 
         self.produced_entities = []
