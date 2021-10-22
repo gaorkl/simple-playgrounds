@@ -1,20 +1,20 @@
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 
-from simple_playgrounds.elements.field import Field
+from simple_playgrounds.elements.spawner import Spawner
 from simple_playgrounds.elements.collection.contact import Candy
 
 
-def test_field(field_limits):
+def test_spawner(spawner_limits):
     playground = SingleRoom(size=(200, 200))
 
-    max_elem, prod_limit = field_limits
-    max_in_pg = min(field_limits)
+    max_elem, prod_limit = spawner_limits
+    max_in_pg = min(spawner_limits)
 
-    field = Field(Candy, playground.grid_rooms[0][0].get_area_sampler(), probability=1,
+    spawner = Spawner(Candy, playground.grid_rooms[0][0].get_area_sampler(), probability=1,
                   max_elements_in_playground=max_in_pg,
                   production_limit=prod_limit)
-    playground.add_field(field)
+    playground.add_spawner(spawner)
 
     engine = Engine(playground, time_limit=100)
 

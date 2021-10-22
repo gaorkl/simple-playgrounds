@@ -196,7 +196,7 @@ def pos_reward(request):
 
 
 @pytest.fixture(scope="module", params=[ (0, 10), (10, 0), (5, 10), (10, 10), (10, 5) ])
-def field_limits(request):
+def spawner_limits(request):
     return request.param
 
 ####################

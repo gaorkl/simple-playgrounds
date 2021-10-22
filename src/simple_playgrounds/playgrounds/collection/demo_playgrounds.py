@@ -14,7 +14,7 @@ from simple_playgrounds.elements.collection.edible import Apple, RottenApple
 from simple_playgrounds.elements.collection.gem import Key, Coin
 from simple_playgrounds.elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
 from simple_playgrounds.elements.collection.zone import DeathZone, GoalZone, HealingZone, ToxicZone
-from simple_playgrounds.elements.field import Field
+from simple_playgrounds.elements.spawner import Spawner
 from simple_playgrounds.common.texture import RandomTilesTexture
 
 from numpy.random import default_rng
@@ -553,8 +553,8 @@ class Proximals(SingleRoom):
         self.add_element(fireball, ((150, 80), 0))
 
 
-@PlaygroundRegister.register('demo', 'fields')
-class Fields(SingleRoom):
+@PlaygroundRegister.register('demo', 'spawners')
+class Spawners(SingleRoom):
     def __init__(self, size=(200, 200), **playground_params):
 
         super().__init__(size=size, **playground_params)
@@ -562,14 +562,14 @@ class Fields(SingleRoom):
         area_1 = CoordinateSampler(area_shape='rectangle',
                                    center=(70, 70),
                                    size=(30, 100))
-        field = Field(Poison, production_area=area_1)
-        self.add_field(field)
+        spawner = Spawner(Poison, production_area=area_1)
+        self.add_spawner(spawner)
 
         area_2 = CoordinateSampler(area_shape='rectangle',
                                    center=(200, 70),
                                    size=(50, 50))
-        field = Field(Candy, production_area=area_2)
-        self.add_field(field)
+        spawner = Spawner(Candy, production_area=area_2)
+        self.add_spawner(spawner)
 
 
 @PlaygroundRegister.register('demo', 'trajectories')
