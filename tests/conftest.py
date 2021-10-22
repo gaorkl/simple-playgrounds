@@ -10,7 +10,7 @@ from simple_playgrounds.playgrounds.layouts import SingleRoom
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
                                                Proximity, Touch, TopdownSensor,
                                                FullPlaygroundSensor, PerfectSemantic,
-                                               SemanticRay, SemanticCones)
+                                               SemanticRay, SemanticCones, GPS, Velocity)
 
 from simple_playgrounds.elements.collection.basic import Physical
 
@@ -72,7 +72,7 @@ def base_forward_interactive_agent_external():
                 params=[
                     RgbCamera, GreyCamera, Lidar, Touch, Proximity,
                     TopdownSensor, FullPlaygroundSensor, SemanticRay,
-                    SemanticCones, PerfectSemantic
+                    SemanticCones, PerfectSemantic, GPS, Velocity
                 ])
 def any_sensor(request):
     return request.param
