@@ -25,7 +25,8 @@ class Spawner:
                  probability: float = 0.05,
                  max_elements_in_playground: int = 10,
                  production_limit: int = 30,
-                 entity_produced_params: Optional[Dict] = None):
+                 entity_produced_params: Optional[Dict] = None,
+                 allow_overlapping: bool = False):
         """
         Spawner randomly produces a new element in a random part of the Playground.
         The element is temporary, and will disappear upon reset of the Playground.
@@ -37,6 +38,7 @@ class Spawner:
             production_limit: total number of elements that can be produced.
             entity_produced_params: Dictionary of parameters of the element produced.
             production_area: PositionAreaSampler.
+            allow_overlapping: allow overlapping for spawned entities.
 
         """
 
@@ -52,6 +54,7 @@ class Spawner:
         self.total_limit = production_limit
         self.total_produced = 0
         self.produced_entities: Union[List[SceneElement], List[Agent]] = []
+        self.allow_overlapping = allow_overlapping
 
         # Internal counter to assign identity number to each entity
         self.name = 'spawner_' + str(Spawner.id_number)

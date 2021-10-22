@@ -440,10 +440,19 @@ class Playground(ABC):
 
             if spawner.can_produce():
                 element, position = spawner.produce()
+                allow_overlapping = spawner.allow_overlapping
                 if isinstance(element, SceneElement):
-                    self.add_element(element, position)
+                    self.add_element(
+                        element,
+                        position,
+                        allow_overlapping=allow_overlapping,
+                    )
                 elif isinstance(element, Agent):
-                    self.add_agent(element, position)
+                    self.add_agent(
+                        element,
+                        position,
+                        allow_overlapping=allow_overlapping,
+                    )
                 else:
                     raise ValueError('Spawners can only produce SceneElements or Agents')
 

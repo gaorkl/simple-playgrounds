@@ -1,19 +1,35 @@
+import pytest
+
+from simple_playgrounds.agents.agents import HeadAgent
+from simple_playgrounds.agents.parts.controllers import RandomContinuous
+from simple_playgrounds.elements.collection.contact import Candy
+from simple_playgrounds.elements.spawner import Spawner
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 
-from simple_playgrounds.elements.spawner import Spawner
-from simple_playgrounds.elements.collection.contact import Candy
 
-
-def test_spawner(spawner_limits):
+@pytest.mark.parametrize(
+    "entity_counter,entity_type,entity_params",
+    (
+        ("elements", Candy, {}),
+        ("agents", HeadAgent, {"controller": RandomContinuous()}),
+    ),
+)
+def test_spawner(spawner_limits, entity_counter, entity_type, entity_params):
     playground = SingleRoom(size=(200, 200))
 
     max_elem, prod_limit = spawner_limits
     max_in_pg = min(spawner_limits)
 
-    spawner = Spawner(Candy, playground.grid_rooms[0][0].get_area_sampler(), probability=1,
-                  max_elements_in_playground=max_in_pg,
-                  production_limit=prod_limit)
+    spawner = Spawner(
+        entity_type,
+        playground.grid_rooms[0][0].get_area_sampler(),
+        entity_produced_params=entity_params,
+        probability=1,
+        max_elements_in_playground=max_in_pg,
+        production_limit=prod_limit,
+        allow_overlapping=True,
+    )
     playground.add_spawner(spawner)
 
     engine = Engine(playground, time_limit=100)
@@ -21,6 +37,12 @@ def test_spawner(spawner_limits):
     while engine.game_on:
         engine.step()
 
-    count = len([elem for elem in playground.elements if isinstance(elem, Candy)])
+    count = len(
+        [
+            elem
+            for elem in getattr(playground, entity_counter)
+            if isinstance(elem, entity_type)
+        ]
+    )
 
     assert count == max_in_pg
