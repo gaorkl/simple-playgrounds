@@ -201,7 +201,7 @@ class SensorDevice(Device):
 
     @abstractmethod
     def _get_null_sensor(self):
-        ...
+        pass
 
     @property
     def shape(self):
@@ -209,11 +209,7 @@ class SensorDevice(Device):
         return None
 
     @abstractmethod
-    def draw(
-        self,
-        width: int,
-        height: int,
-    ):
+    def draw(self, width: int, height: int):
         """
         Function that creates an image for visualizing a sensor.
 

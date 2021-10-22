@@ -261,7 +261,7 @@ class Touch(Lidar):
         self.sensor_values = self._sensor_max_value - distance_to_anchor
 
 
-class GPS(SensorDevice):
+class PoseSensor(SensorDevice):
     def __init__(self,
                  anchor,
                  noise_params=None,
@@ -277,6 +277,28 @@ class GPS(SensorDevice):
 
         self._pg_size = None
 
+    def _get_null_sensor(self):
+        return np.zeros(3)
+
+    def set_scale(self, size):
+        self._pg_size = np.array(size)
+
+    def _apply_noise(self):
+        if self._noise_type == 'gaussian':
+            additive_noise = np.random.normal(self._noise_mean,
+                                              self._noise_scale,
+                                              size=self.shape)
+
+        else:
+            raise ValueError
+
+        self.sensor_values += additive_noise
+
+    def draw(self, width: int, height: int):
+        pass
+
+
+class GPS(PoseSensor):
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.concatenate([np.array(self._anchor.position),
                                              [self._anchor.angle]])
@@ -285,25 +307,11 @@ class GPS(SensorDevice):
         if self._pg_size is not None:
             self.sensor_values[0:2] = self.sensor_values[0:2] / self._pg_size
 
-    def set_scale(self, size):
-        self._pg_size = np.array(size)
 
-
-class Velocity(SensorDevice):
-    def __init__(self,
-                 anchor,
-                 noise_params=None,
-                 **kwargs):
-        super().__init__(anchor=anchor,
-                         noise_params=noise_params,
-                         fov=1,
-                         resolution=1,
-                         max_range=1,
-                         normalize=False,
-                         **kwargs)
-
-        self._pg_size = None
-
+class Velocity(PoseSensor):
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.concatenate([np.array(self._anchor.velocity),
                                              [self._anchor.angular_velocity]])
+
+    def _apply_normalization(self):
+        pass

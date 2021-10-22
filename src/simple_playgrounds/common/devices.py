@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import pymunk
 
@@ -8,7 +8,7 @@ from simple_playgrounds.common.definitions import CollisionTypes
 _RADIUS_DEVICE = 5
 
 
-class Device:
+class Device(ABC):
 
     def __init__(self,
                  anchor: Entity,
