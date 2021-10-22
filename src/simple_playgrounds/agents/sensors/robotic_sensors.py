@@ -311,7 +311,7 @@ class PoseSensor(SensorDevice):
         return np.asarray(img) / 255
 
 
-class GPS(PoseSensor):
+class Position(PoseSensor):
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.concatenate([np.array(self._anchor.position),
                                              [self._anchor.angle]])

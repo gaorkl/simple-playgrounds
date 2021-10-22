@@ -2,7 +2,7 @@ import pytest
 
 from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import HeadAgent, BaseAgent
-from simple_playgrounds.agents.sensors import RgbCamera, Lidar, Touch, GPS, Velocity
+from simple_playgrounds.agents.sensors import RgbCamera, Lidar, Touch, Position, Velocity
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.collection.demo_playgrounds import Teleports
 
@@ -94,7 +94,7 @@ def test_pose_sensors(pg_sensor_class):
 
     agent = HeadAgent(controller=RandomContinuous(), interactive=True)
 
-    agent.add_sensor(GPS(anchor=agent.head))
+    agent.add_sensor(Position(anchor=agent.head))
     agent.add_sensor(Velocity(anchor=agent.head))
 
     playground = pg_sensor_class()
@@ -105,10 +105,10 @@ def test_pose_sensors(pg_sensor_class):
 
     head = agent.head
 
-    gps_values = agent.sensors[0].sensor_values
-    assert head.position[0] == gps_values[0]
-    assert head.position[1] == gps_values[1]
-    assert head.angle == gps_values[2]
+    pos_values = agent.sensors[0].sensor_values
+    assert head.position[0] == pos_values[0]
+    assert head.position[1] == pos_values[1]
+    assert head.angle == pos_values[2]
 
     vel_values = agent.sensors[1].sensor_values
     assert head.velocity[0] == vel_values[0]
