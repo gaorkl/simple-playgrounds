@@ -262,7 +262,7 @@ class Touch(Lidar):
         self.sensor_values = self._sensor_max_value - distance_to_anchor
 
 
-class PoseSensor(SensorDevice):
+class NumericSensor(SensorDevice):
     def __init__(self,
                  anchor,
                  noise_params=None,
@@ -276,13 +276,8 @@ class PoseSensor(SensorDevice):
                          normalize=normalize,
                          **kwargs)
 
-        self._pg_size = None
-
     def _get_null_sensor(self):
-        return np.zeros(3)
-
-    def set_scale(self, size):
-        self._pg_size = np.array(size)
+        return np.zeros(self._n_elems)
 
     def _apply_noise(self):
         if self._noise_type == 'gaussian':
@@ -311,20 +306,33 @@ class PoseSensor(SensorDevice):
         return np.asarray(img) / 255
 
 
-class Position(PoseSensor):
+class Position(NumericSensor):
+    _n_elems = 3
+
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.concatenate([np.array(self._anchor.position),
                                              [self._anchor.angle]])
 
     def _apply_normalization(self):
-        if self._pg_size is not None:
-            self.sensor_values[0:2] = self.sensor_values[0:2] / self._pg_size
+        pass
 
 
-class Velocity(PoseSensor):
+class Velocity(NumericSensor):
+    _n_elems = 3
+
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.concatenate([np.array(self._anchor.velocity),
                                              [self._anchor.angular_velocity]])
+
+    def _apply_normalization(self):
+        pass
+
+
+class Time(NumericSensor):
+    _n_elems = 1
+
+    def _compute_raw_sensor(self, playground, *_):
+        self.sensor_values = np.array(playground.steps)
 
     def _apply_normalization(self):
         pass

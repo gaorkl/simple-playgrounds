@@ -103,6 +103,7 @@ class Playground(ABC):
 
         self._handle_interactions()
         self.sensor_collision_index = 2
+        self.steps = 0
 
     @staticmethod
     def _initialize_space() -> pymunk.Space:
@@ -152,6 +153,8 @@ class Playground(ABC):
         for comm in self._communication_devices:
             comm.update_list_comms_in_range(self._communication_devices)
 
+        self.steps += 1
+
     def reset(self):
         """
         Reset the Playground to its initial state.
@@ -190,6 +193,7 @@ class Playground(ABC):
 
         self._teleported = []
 
+        self.steps = 0
         self.done = False
 
     def add_agent(

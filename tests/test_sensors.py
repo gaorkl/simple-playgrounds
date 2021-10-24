@@ -2,7 +2,7 @@ import pytest
 
 from simple_playgrounds.agents.parts.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import HeadAgent, BaseAgent
-from simple_playgrounds.agents.sensors import RgbCamera, Lidar, Touch, Position, Velocity
+from simple_playgrounds.agents.sensors import RgbCamera, Lidar, Touch, Position, Velocity, Time
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.collection.demo_playgrounds import Teleports
 
@@ -114,6 +114,26 @@ def test_pose_sensors(pg_sensor_class):
     assert head.velocity[0] == vel_values[0]
     assert head.velocity[1] == vel_values[1]
     assert head.angular_velocity == vel_values[2]
+
+    playground.remove_agent(agent)
+    playground.reset()
+
+
+def test_time_sensor(pg_sensor_class):
+
+    agent = HeadAgent(controller=RandomContinuous(), interactive=True)
+
+    agent.add_sensor(Time(anchor=agent.head))
+
+    playground = pg_sensor_class()
+    playground.add_agent(agent)
+
+    engine = Engine(playground, time_limit=100)
+
+    for _ in range(100):
+        engine.run(1)
+        time_value = agent.sensors[0].sensor_values
+        assert engine.elapsed_time == time_value
 
     playground.remove_agent(agent)
     playground.reset()
