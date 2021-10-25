@@ -135,6 +135,11 @@ def test_time_sensor(pg_sensor_class):
         time_value = agent.sensors[0].sensor_values
         assert engine.elapsed_time == time_value
 
+    engine.reset()
+    engine.run(1)
+    time_value = agent.sensors[0].sensor_values
+    assert 1 == time_value
+
     playground.remove_agent(agent)
     playground.reset()
 
