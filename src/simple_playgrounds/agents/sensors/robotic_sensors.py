@@ -314,6 +314,7 @@ class Position(NumericSensor):
     def _apply_normalization(self):
         pass
 
+    @property
     def shape(self):
         return (3,)
 
@@ -326,6 +327,7 @@ class Velocity(NumericSensor):
     def _apply_normalization(self):
         pass
 
+    @property
     def shape(self):
         return (3,)
 
@@ -337,5 +339,6 @@ class Time(NumericSensor):
     def _apply_normalization(self):
         pass
 
+    @property
     def shape(self):
         return (1)
