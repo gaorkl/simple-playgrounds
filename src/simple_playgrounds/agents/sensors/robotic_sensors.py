@@ -277,7 +277,7 @@ class NumericSensor(SensorDevice):
                          **kwargs)
 
     def _get_null_sensor(self):
-        return np.zeros(self._n_elems)
+        return np.zeros(self.shape)
 
     def _apply_noise(self):
         if self._noise_type == 'gaussian':
@@ -307,8 +307,6 @@ class NumericSensor(SensorDevice):
 
 
 class Position(NumericSensor):
-    _n_elems = 3
-
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.concatenate([np.array(self._anchor.position),
                                              [self._anchor.angle]])
@@ -316,10 +314,11 @@ class Position(NumericSensor):
     def _apply_normalization(self):
         pass
 
+    def shape(self):
+        return (3,)
+
 
 class Velocity(NumericSensor):
-    _n_elems = 3
-
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.concatenate([np.array(self._anchor.velocity),
                                              [self._anchor.angular_velocity]])
@@ -327,12 +326,16 @@ class Velocity(NumericSensor):
     def _apply_normalization(self):
         pass
 
+    def shape(self):
+        return (3,)
+
 
 class Time(NumericSensor):
-    _n_elems = 1
-
     def _compute_raw_sensor(self, playground, *_):
         self.sensor_values = np.array(playground.steps)
 
     def _apply_normalization(self):
         pass
+
+    def shape(self):
+        return (1)
