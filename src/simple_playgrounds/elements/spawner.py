@@ -60,7 +60,7 @@ class Spawner:
         self.name = 'spawner_' + str(Spawner.id_number)
         Spawner.id_number += 1
 
-    def can_produce(self) -> bool:
+    def _can_produce(self, step=None) -> bool:
         """
         Tests if the spawner can produce a new element.
         Performs random choice and checks that it is not beyond production limit.
@@ -74,22 +74,25 @@ class Spawner:
                 and self.total_produced < self.total_limit
                 and random.random() < self.probability)
 
-    def produce(self) -> Tuple[Union[SceneElement, Agent], Coordinate]:
+    def produce(self, step=None) -> List[Tuple[Union[SceneElement, Agent], Coordinate]]:
         """
 
-        Returns: SceneElement or Agent, initial position
+        Returns: A list of SceneElement or Agent, initial position
 
         """
 
-        obj = self.entity_produced(**self.entity_produced_params)
-        obj.temporary = True
+        if self._can_produce(step):
+            obj = self.entity_produced(**self.entity_produced_params)
+            obj.temporary = True
 
-        self.total_produced += 1
-        self.produced_entities.append(obj)
+            self.total_produced += 1
+            self.produced_entities.append(obj)
 
-        initial_position = self.location_sampler.sample()
+            initial_position = self.location_sampler.sample()
 
-        return obj, initial_position
+            return [obj, initial_position]
+
+        return []
 
     def reset(self):
         """

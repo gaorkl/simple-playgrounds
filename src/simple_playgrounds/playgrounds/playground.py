@@ -437,9 +437,9 @@ class Playground(ABC):
     def _spawners_produce(self):
 
         for spawner in self.spawners:
+            elem_list = spawner.produce(self.step)
 
-            if spawner.can_produce():
-                element, position = spawner.produce()
+            for element, position in elem_list:
                 allow_overlapping = spawner.allow_overlapping
                 if isinstance(element, SceneElement):
                     self.add_element(
