@@ -1,4 +1,4 @@
-import simple_playgrounds.agents.sensors.semantic_sensors
+import simple_playgrounds.agents.sensors.semantic
 from simple_playgrounds.playgrounds.collection import *
 
 from simple_playgrounds.engine import Engine
@@ -48,11 +48,11 @@ my_agent.add_sensor(td)
 fi = sensors.FullPlaygroundSensor(my_agent.base_platform, resolution=64)
 my_agent.add_sensor(fi)
 
-fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectSemantic(my_agent.base_platform)
+fi = simple_playgrounds.agents.sensors.semantic.PerfectSemantic(my_agent.base_platform)
 my_agent.add_sensor(fi)
 
 
-fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectSemantic(my_agent.base_platform, fov=180)
+fi = simple_playgrounds.agents.sensors.semantic.PerfectSemantic(my_agent.base_platform, fov=180)
 my_agent.add_sensor(fi)
 
 fi = simple_playgrounds.agents.sensors.Position(my_agent.base_platform)

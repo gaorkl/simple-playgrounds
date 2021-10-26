@@ -11,8 +11,8 @@ from simple_playgrounds.agents.parts.controllers import External
 from simple_playgrounds.agents.communication import CommunicationDevice
 from simple_playgrounds.elements.collection.modifier import CommunicationDisabler, SensorDisabler
 
-from simple_playgrounds.agents.sensors.robotic_sensors import Lidar, RgbCamera
-from simple_playgrounds.agents.sensors.semantic_sensors import SemanticRay
+from simple_playgrounds.agents.sensors.robotic import Lidar, RgbCamera
+from simple_playgrounds.agents.sensors.semantic import SemanticRay
 from simple_playgrounds.agents.sensors.sensor import SensorDevice
 
 

@@ -1,4 +1,4 @@
-from .robotic_sensors import RgbCamera, Lidar, Touch, Proximity, GreyCamera, Position, Velocity, Time
-from .semantic_sensors import SemanticRay, SemanticCones
-from .topdown_sensors import TopdownSensor, FullPlaygroundSensor
-from .semantic_sensors import PerfectSemantic
+from .robotic import RgbCamera, Lidar, Touch, Proximity, GreyCamera, Position, Velocity, Time
+from .semantic import SemanticRay, SemanticCones
+from .topdown import TopdownSensor, FullPlaygroundSensor
+from .semantic import PerfectSemantic
