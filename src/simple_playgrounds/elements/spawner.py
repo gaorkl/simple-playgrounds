@@ -90,7 +90,7 @@ class Spawner:
 
             initial_position = self.location_sampler.sample()
 
-            return [obj, initial_position]
+            return [[obj, initial_position]]
 
         return []
 
