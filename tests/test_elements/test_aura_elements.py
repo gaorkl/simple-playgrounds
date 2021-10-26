@@ -10,7 +10,7 @@ def test_fairy(base_forward_interactive_agent_external):
 
     fairy = Fairy(reward=4, total_reward=50)
     playground.add_agent(agent, ((100, 100), 0))
-    playground.add_element(fairy, ((80 + agent.base_platform.radius + fairy.radius + 2, 100), 0))
+    playground.add_element(fairy, ((80 + agent.base_platform.elem_radius + fairy.radius + 2, 100), 0))
 
     engine = Engine(playground, time_limit=100)
     actions = {agent: {agent.activate: 1}}
@@ -52,7 +52,7 @@ def test_fairy_no_limit(base_forward_interactive_agent_external):
 
     fairy = Fairy(reward=4)
     playground.add_agent(agent, ((100, 100), 0))
-    playground.add_element(fairy, ((80 + agent.base_platform.radius + fairy.radius + 2, 100), 0))
+    playground.add_element(fairy, ((80 + agent.base_platform.elem_radius + fairy.radius + 2, 100), 0))
 
     engine = Engine(playground, time_limit=100)
     actions = {agent: {agent.activate: 1}}
@@ -74,7 +74,7 @@ def test_fireball(base_forward_interactive_agent_external):
 
     fairy = Fireball(reward=-2, total_reward=-33)
     playground.add_agent(agent, ((100, 100), 0))
-    playground.add_element(fairy, ((80 + agent.base_platform.radius + fairy.radius + 2, 100), 0))
+    playground.add_element(fairy, ((80 + agent.base_platform.elem_radius + fairy.radius + 2, 100), 0))
 
     engine = Engine(playground, time_limit=100)
     actions = {agent: {agent.activate: 1}}

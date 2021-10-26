@@ -1,7 +1,5 @@
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.agents.agents import BaseAgent
-from simple_playgrounds.agents.parts.controllers import External
 
 from simple_playgrounds.elements.collection.activable import VendingMachine, Chest, Lock
 from simple_playgrounds.elements.collection.gem import Coin, Key
@@ -20,7 +18,7 @@ def test_vending_machine(base_forward_interactive_agent_external):
     playground.add_element(vending, ((140, 100), 0))
 
     coin = Coin(graspable=True, vending_machine=vending, radius=5)
-    playground.add_element(coin, ((80 + agent.base_platform.radius + coin.radius + 2, 100), 0))
+    playground.add_element(coin, ((80 + agent.base_platform.elem_radius + coin.radius + 2, 100), 0))
 
     engine = Engine(playground, time_limit=100)
 
@@ -73,7 +71,7 @@ def test_chest(base_forward_interactive_agent_external):
     playground.add_element(chest, ((140, 100), 0))
 
     key = Key(graspable=True, locked_elem=chest, radius=5)
-    playground.add_element(key, ((80 + agent.base_platform.radius + key.radius + 2, 100), 0))
+    playground.add_element(key, ((80 + agent.base_platform.elem_radius + key.radius + 2, 100), 0))
 
     engine = Engine(playground, time_limit=200)
 
@@ -115,7 +113,7 @@ def test_lock_key_door(base_forward_interactive_agent_external):
     playground.add_element(lock, ((140, 100), 0))
 
     key = Key(graspable=True, locked_elem=lock, radius=5)
-    playground.add_element(key, ((80 + agent.base_platform.radius + key.radius + 2, 100), 0))
+    playground.add_element(key, ((80 + agent.base_platform.elem_radius + key.radius + 2, 100), 0))
 
     engine = Engine(playground, time_limit=200)
 

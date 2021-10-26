@@ -1,5 +1,3 @@
-import pytest
-
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 from simple_playgrounds.agents.agents import BaseAgent
@@ -25,7 +23,7 @@ def test_moving_element(basic_element):
     while engine.game_on:
         engine.step(actions)
 
-    if basic_element.movable:
+    if basic_element.is_movable:
         assert agent.position[0] > 100
         assert basic_element.position[0] > 100
     else:

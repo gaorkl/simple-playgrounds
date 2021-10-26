@@ -2,14 +2,14 @@
 
 This module implements the base class Sensor, that all sensors inherit from.
 It also implements a base class RayCollisionSensor.
-RayCollisionSensor use pymunk collisions with lines to create different
+RayCollisionSensor uses pymunk collisions with lines to create different
 families of sensors and allow very fast computation.
 
-Apart if specified, all sensors are attached to an anchor.
-They compute sensor-values from the point of view of this anchor.
+Except if specified, all sensors are attached to an anchor.
+They compute sensor_values from the point of view of this anchor.
 """
 from __future__ import annotations
-from typing import List, Dict, Optional, Union, TYPE_CHECKING
+from typing import List, Dict, Optional, Union, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
     from ...playgrounds.playground import Playground
 
@@ -55,16 +55,16 @@ class SensorDevice(Device):
                  name: Optional[str] = None,
                  **_kwargs):
         """
-        Sensors are attached to an anchor. They detect every visible Agent Part or Scene Element.
+        Sensors are attached to an anchor.
+        They can detect any visible Part of an Agent or Elements of the Playground.
         If the entity is in invisible elements, it is not detected.
 
         Args:
             anchor: Body Part or Scene Element on which the sensor will be attached.
             fov: Field of view of the sensor (in degrees).
-            resolution: Resolution of the sensor (in pixels, or number of rays).
-            max_range: maximum range of the sensor (in the same units as the playground distances).
-            min_range: minimum range of the sensor (in the same units as the playground distances).
-                        Default: 0
+            resolution: Resolution of the sensor (depends on the sensor).
+            max_range: maximum range of the sensor (in units of distance).
+            min_range: minimum range of the sensor (in units of distance).
             invisible_elements: Optional list of elements invisible to the sensor.
             normalize: boolean. If True, sensor values are scaled between 0 and 1.
             noise_params: Dictionary of noise parameters.
@@ -74,24 +74,24 @@ class SensorDevice(Device):
         Noise Parameters:
             type: 'gaussian', 'salt_pepper'
             mean: mean of gaussian noise (default 0)
-            scale: scale / std of gaussian noise (default 1)
+            scale: scale (or std) of gaussian noise (default 1)
             salt_pepper_probability: probability for a pixel to be turned off or max
 
         Notes:
              Three approaches can be used to prevent a sensor from detecting the parts of an agent.
 
-             The first approach consists in not setting min_range and invisible_elements.
+             (1) Do not set min_range and invisible_elements.
              In this case the min_range will by default be set to the correct value to start detection after
-             the anchor. However this approach might be limited to the case of simple agents with only a base.
+             the anchor.
+             The computation of robotic and semantic sensors is in general faster with this approach.
+             However this approach might be limited to the case of simple agents with only a base.
 
-             The second approach is to set min_range large enough so that the sensors start at a reasonable distance.
+             (2) Set min_range large enough so that the sensors start at a reasonable distance.
 
-             Finally, another approach, which is slower, is to use the invisible_elements argument to make all parts
+             (3) Use the invisible_elements argument to make all parts
              of the agent invisible.
+             This approach is slightly slower but easier to implement and use.
 
-             The sensor values are the same when using invisible_elements or setting a minimum range.
-             If the sensor values are normalized, the values might be slightly different for distance sensors.
-             The approach that sets invisible_elements attributes is preferred as it is slightly faster.
         """
 
         Device.__init__(self, anchor=anchor)
@@ -148,7 +148,7 @@ class SensorDevice(Device):
             raise ValueError('field of view must be more than 1')
         if not self._max_range > 0:
             raise ValueError('maximum range must be more than 1')
-        if not self._min_range >= 0:
+        if self._min_range < 0:
             raise ValueError('minimum range must be more than 0')
 
         # Sensor max value is used for noise and normalization calculation
@@ -156,8 +156,9 @@ class SensorDevice(Device):
 
         # If it requires a topdown representation of the playground
         # to compute the sensor values
-        self.requires_surface = False
-        self.requires_scale = False
+        self.requires_surface: bool = False
+        self.requires_playground_size: bool = False
+        self._pg_size: Optional[Tuple[int, int]] = None
 
         # Temporary invisible to manage elements that are invisible to the agent or sensor.
         # Manages dynamic invisibility. Elements are invisible some times.
@@ -223,7 +224,7 @@ class SensorDevice(Device):
         """
         return None
 
-    def set_scale(self, size):
+    def set_playground_size(self, size):
         pass
 
 

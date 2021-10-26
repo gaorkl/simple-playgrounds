@@ -244,7 +244,7 @@ class FullPlaygroundSensor(SensorDevice):
         self._sensor_max_value = 255
 
         self.requires_surface = True
-        self.requires_scale = True
+        self.requires_playground_size = True
 
     def _get_sensor_image(self, playground: Playground,
                           sensor_surface: pygame.Surface):
@@ -273,12 +273,13 @@ class FullPlaygroundSensor(SensorDevice):
                                     order=0,
                                     preserve_range=True)
 
-    def set_scale(self, size_playground: Union[List[float], Tuple[float,
-                                                                  float]]):
+    def set_playground_size(self, size: Union[List[float], Tuple[float, float]]):
+        self._pg_size = size
 
-        max_size = max(size_playground)
-        self._scale = (int(self._resolution * size_playground[1] / max_size),
-                       int(self._resolution * size_playground[0] / max_size))
+        # Compute the scaling for the sensor value
+        max_size = max(size)
+        self._scale = (int(self._resolution * size[1] / max_size),
+                       int(self._resolution * size[0] / max_size))
 
     def _apply_normalization(self):
         self.sensor_values /= self._sensor_max_value

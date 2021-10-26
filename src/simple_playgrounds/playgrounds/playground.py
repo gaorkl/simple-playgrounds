@@ -13,6 +13,8 @@ from __future__ import annotations
 from abc import ABC
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
+import pymunk
+
 if TYPE_CHECKING:
     from ..agents.communication import CommunicationDevice
     from ..agents.sensors.sensor import SensorDevice
@@ -20,7 +22,6 @@ if TYPE_CHECKING:
     from ..agents.parts.parts import Part
     from ..common.position_utils import InitCoord
 
-import pymunk
 
 from ..common.definitions import SPACE_DAMPING, CollisionTypes
 from ..common.timer import Timer
@@ -341,8 +342,8 @@ class Playground(ABC):
             self._sensor_devices.append(sensor)
             self.space.add(sensor.pm_shape)
 
-            if sensor.requires_scale:
-                sensor.set_scale(self.size)
+            if sensor.requires_playground_size:
+                sensor.set_playground_size(self.size)
 
     # Private methods for Elements
 
@@ -512,8 +513,7 @@ class Playground(ABC):
 
             return False
 
-        else:
-            assert entity.pm_visible_shape
+        assert entity.pm_visible_shape
 
         if entity_2 and entity_2.pm_visible_shape:
 
