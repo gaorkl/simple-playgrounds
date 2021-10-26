@@ -42,9 +42,4 @@ jobs:
     - name: Run pytest
       run: |
         set -o pipefail
-        pytest --cov-report=term-missing:skip-covered --cov=src tests/ | tee pytest-coverage.txt
-
-    - name: Pytest coverage comment
-      uses: MishaKav/pytest-coverage-comment@main
-      with:
-        pytest-coverage-path: ./pytest-coverage.txt
+        pytest --cov-report=term-missing:skip-covered --cov=src tests/
