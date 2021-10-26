@@ -72,7 +72,7 @@ def test_rgb_on_teleports(base_forward_agent_random):
     agent.add_sensor(
         RgbCamera(
             anchor=agent.base_platform,
-            min_range=agent.base_platform.elem_radius,
+            min_range=agent.base_platform.radius,
         ))
 
     playground = Teleports()

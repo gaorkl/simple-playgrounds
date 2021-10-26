@@ -20,7 +20,7 @@ def test_color_changing(base_forward_interactive_agent_external):
     elem = ColorChanging(textures=colors)
 
     playground.add_agent(agent, ((80, 100), 0))
-    playground.add_element(elem, ((80 + agent.base_platform.elem_radius + elem.radius + 2, 100), 0))
+    playground.add_element(elem, ((80 + agent.base_platform.radius + elem.radius + 2, 100), 0))
 
     timer = PeriodicTimer(durations=durations)
 
@@ -58,7 +58,7 @@ def test_reward_changer(reward, base_forward_interactive_agent_external):
     timer = PeriodicTimer(durations=durations)
 
     playground.add_agent(agent, ((80, 100), 0))
-    playground.add_element(roa, ((80 + agent.base_platform.elem_radius + roa.radius + 2, 100), 0))
+    playground.add_element(roa, ((80 + agent.base_platform.radius + roa.radius + 2, 100), 0))
     playground.add_element(change, ((40, 40), 0))
     playground.add_timer(timer, change)
 

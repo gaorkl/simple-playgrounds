@@ -91,7 +91,7 @@ def test_beam_homing(base_forward_interactive_agent_external):
     while not agent.is_teleporting:
         engine.step(actions)
 
-    assert agent.position.get_distance(destination.position) < agent.base_platform.elem_radius + destination.radius + 4 + 3
+    assert agent.position.get_distance(destination.position) < agent.base_platform.radius + destination.radius + 4 + 3
 
 
 def test_portal(base_forward_interactive_agent_external):
