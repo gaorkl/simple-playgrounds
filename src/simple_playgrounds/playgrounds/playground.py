@@ -437,7 +437,7 @@ class Playground(ABC):
     def _spawners_produce(self):
 
         for spawner in self.spawners:
-            elem_list = spawner.produce(self.step)
+            elem_list = spawner.produce(self.steps)
 
             for element, position in elem_list:
                 allow_overlapping = spawner.allow_overlapping
