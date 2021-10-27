@@ -14,15 +14,15 @@ import pygame
 from skimage import draw
 from skimage.transform import resize, rotate
 
-from simple_playgrounds.agents.sensors.sensor import ExternalSensor
-from simple_playgrounds.common.definitions import SensorTypes
-from simple_playgrounds.configs.parser import parse_configuration
+from ..sensor import ImageBasedSensor
+from ....common.definitions import SensorTypes
+from ....configs.parser import parse_configuration
 
 
 # pylint: disable=no-member
 
 
-class TopdownLocal(ExternalSensor):
+class TopdownLocal(ImageBasedSensor):
     """
     TopdownSensor provides an image from bird's eye view, centered and oriented on the anchor.
     The anchor is, by default, visible to the agent.
@@ -136,37 +136,6 @@ class TopdownLocal(ExternalSensor):
 
         self.sensor_values = masked_img[:, ::-1, ::-1]
 
-    def _apply_normalization(self):
-        self.sensor_values /= self._sensor_max_value
-
-    def _apply_noise(self):
-
-        if self._noise_type == 'gaussian':
-
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
-
-        elif self._noise_type == 'salt_pepper':
-
-            proba = [
-                self._noise_probability / 2, 1 - self._noise_probability,
-                self._noise_probability / 2
-            ]
-            additive_noise = np.random.choice(
-                [-self._sensor_max_value, 0, self._sensor_max_value],
-                p=proba,
-                size=self.shape)
-
-        else:
-            raise ValueError
-
-        self.sensor_values += additive_noise
-
-        self.sensor_values[self.sensor_values < 0] = 0
-        self.sensor_values[self.sensor_values >
-                           self._sensor_max_value] = self._sensor_max_value
-
     @property
     def shape(self):
 
@@ -174,24 +143,8 @@ class TopdownLocal(ExternalSensor):
             return int(self._resolution / 2), self._resolution, 3
         return self._resolution, self._resolution, 3
 
-    def _get_null_sensor(self):
-        return np.zeros(self.shape)
 
-    def draw(self, width, *_):
-
-        height_display = int(width * self.shape[0] / self.shape[1])
-
-        image = resize(self.sensor_values, (height_display, width),
-                       order=0,
-                       preserve_range=True)
-
-        if not self._normalize:
-            image /= 255.
-
-        return image
-
-
-class TopDownGlobal(ExternalSensor):
+class TopDownGlobal(ImageBasedSensor):
     """
     FullPlaygroundSensor provides an image from bird's eye view of the full playground.
     There is no anchor.
@@ -256,52 +209,6 @@ class TopDownGlobal(ExternalSensor):
         self._scale = (int(self._resolution * size[1] / max_size),
                        int(self._resolution * size[0] / max_size))
 
-    def _apply_normalization(self):
-        self.sensor_values /= self._sensor_max_value
-
-    def _apply_noise(self):
-
-        if self._noise_type == 'gaussian':
-
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
-
-        elif self._noise_type == 'salt_pepper':
-
-            additive_noise = np.random.choice(
-                [-self._sensor_max_value, 0, self._sensor_max_value],
-                p=[
-                    self._noise_probability / 2, 1 - self._noise_probability,
-                    self._noise_probability / 2
-                ],
-                size=self.shape)
-
-        else:
-            raise ValueError
-
-        self.sensor_values += additive_noise
-
-        self.sensor_values[self.sensor_values < 0] = 0
-        self.sensor_values[self.sensor_values >
-                           self._sensor_max_value] = self._sensor_max_value
-
     @property
     def shape(self):
         return self._scale[0], self._scale[1], 3
-
-    def _get_null_sensor(self):
-        return np.zeros(self.shape)
-
-    def draw(self, width, *_):
-
-        height_display = int(width * self.shape[0] / self.shape[1])
-
-        image = resize(self.sensor_values, (height_display, width),
-                       order=0,
-                       preserve_range=True)
-
-        if not self._normalize:
-            image /= 255.
-
-        return image

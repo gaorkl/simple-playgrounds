@@ -10,9 +10,9 @@ import numpy as np
 import pymunk
 from skimage.transform import resize
 
-from simple_playgrounds.agents.sensors.sensor import RayBasedSensor
-from simple_playgrounds.common.definitions import SensorTypes
-from simple_playgrounds.configs.parser import parse_configuration
+from ..sensor import RayBasedSensor
+from ....common.definitions import SensorTypes
+from ....configs.parser import parse_configuration
 
 # pylint: disable=no-member
 

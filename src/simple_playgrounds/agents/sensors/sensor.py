@@ -15,6 +15,7 @@ import numpy as np
 import pymunk
 from pygame import Surface
 from PIL import Image, ImageDraw, ImageFont
+from skimage.transform import resize
 
 from ...common.devices import Device
 from ..parts.parts import Part
@@ -124,19 +125,19 @@ class SensorDevice(Device):
         playground: Playground,
         sensor_surface: Surface,
     ):
-        pass
+        ...
 
     @abstractmethod
     def _apply_normalization(self):
-        pass
+        ...
 
     @abstractmethod
     def _apply_noise(self):
-        pass
+        ...
 
     @abstractmethod
     def _get_null_sensor(self):
-        pass
+        ...
 
     @property
     @abstractmethod
@@ -157,7 +158,7 @@ class SensorDevice(Device):
             Numpy array containing the visualization of the sensor values.
 
         """
-        return None
+        ...
 
     def set_playground_size(self, size):
         pass
@@ -203,8 +204,6 @@ class ExternalSensor(SensorDevice, ABC):
             self._invisible_elements = [invisible_elements]
         else:
             self._invisible_elements = invisible_elements
-
-
 
         self._min_range = min_range
         self._max_range = max_range
@@ -386,6 +385,68 @@ class RayBasedSensor(ExternalSensor, ABC):
         self.sensor_values[self.sensor_values >
                            self._sensor_max_value] = self._sensor_max_value
 
+
+class ImageBasedSensor(ExternalSensor, ABC):
+
+    """
+    Base class for Image Based sensors.
+    Image based sensors are computed using the top-down rendering of the playground.
+
+    """
+
+    def __init__(
+            self,
+            anchor,
+            **kwargs,
+    ):
+        super().__init__(anchor, **kwargs)
+
+    def _apply_normalization(self):
+        self.sensor_values /= self._sensor_max_value
+
+    def _apply_noise(self):
+
+        if self._noise_type == 'gaussian':
+
+            additive_noise = np.random.normal(self._noise_mean,
+                                              self._noise_scale,
+                                              size=self.shape)
+
+        elif self._noise_type == 'salt_pepper':
+
+            proba = [
+                self._noise_probability / 2, 1 - self._noise_probability,
+                self._noise_probability / 2
+            ]
+            additive_noise = np.random.choice(
+                [-self._sensor_max_value, 0, self._sensor_max_value],
+                p=proba,
+                size=self.shape)
+
+        else:
+            raise ValueError
+
+        self.sensor_values += additive_noise
+
+        self.sensor_values[self.sensor_values < 0] = 0
+        self.sensor_values[self.sensor_values >
+                           self._sensor_max_value] = self._sensor_max_value
+
+    def _get_null_sensor(self):
+        return np.zeros(self.shape)
+
+    def draw(self, width, *_):
+
+        height_display = int(width * self.shape[0] / self.shape[1])
+
+        image = resize(self.sensor_values, (height_display, width),
+                       order=0,
+                       preserve_range=True)
+
+        if not self._normalize:
+            image /= 255.
+
+        return image
 
 ##################
 # Internal Sensors
