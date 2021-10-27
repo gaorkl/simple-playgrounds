@@ -7,7 +7,7 @@ E.g. position, velocity, mass, shape can be accessed.
 from __future__ import annotations
 from typing import List, Optional, Dict, Union, TYPE_CHECKING
 if TYPE_CHECKING:
-    from ...playgrounds.playground import Playground
+    from simple_playgrounds.playgrounds.playground import Playground
 
 import math
 from operator import attrgetter
@@ -16,41 +16,31 @@ import numpy as np
 from pymunk import Shape, ShapeFilter
 from skimage.draw import line, disk, set_color
 
-from .sensor import RayCollisionSensor
-from ..parts.parts import Part
-from ...common.definitions import SensorTypes, Detection
-from ...common.entity import Entity
-from ...configs import parse_configuration
+from simple_playgrounds.agents.sensors.sensor import RayBasedSensor
+from simple_playgrounds.common.definitions import SensorTypes, Detection
+from simple_playgrounds.configs import parse_configuration
 
 
-class SemanticRay(RayCollisionSensor):
+class SemanticRay(RayBasedSensor):
     """
     Semantic Ray detect Entities by projecting rays.
     This sensor returns the actual :Entity: object.
     All the attributes (position, physical properties, ...) of the returned
     entity can be accessed.
     """
-    def __init__(self,
-                 anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity],
-                                                    Entity]] = None,
-                 normalize: bool = True,
-                 noise_params: Optional[Dict] = None,
-                 remove_duplicates: bool = True,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
 
         default_config = parse_configuration('agent_sensors',
                                              SensorTypes.SEMANTIC_RAY)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         remove_duplicates=remove_duplicates,
-                         **kwargs)
+        super().__init__(anchor, **kwargs)
 
         self._sensor_max_value = self._max_range
+
+    @property
+    def shape(self):
+        return None
 
     def _compute_raw_sensor(self, playground, *_):
 
@@ -141,26 +131,10 @@ class SemanticCones(SemanticRay):
     """
     maximum angle of cones should be
     """
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 remove_duplicates=False,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
         """
-        Args:
-            anchor: Entity on which the Lidar is attached.
-            invisible_elements: Elements which are invisible to the Sensor.
-            remove_occluded: remove occluded detections along cone.
-            allow_duplicates: remove duplicates across cones.
-                Keep the closest detection for each detected Entity.
-            **kwargs: Additional Parameters.
-
         Keyword Args:
-            n_cones: number of cones evenly spaced across the field of view.
-            rays_per_cone: number of ray per cone.
-            resolution: minimum size of detected objects.
-            fov: field of view
-            range: range of the rays.
+            rays_per_cone (int): Number of ray per cone. A cone is calculated using a set of rays.
         """
         default_config = parse_configuration('agent_sensors',
                                              SensorTypes.SEMANTIC_CONE)
@@ -177,11 +151,7 @@ class SemanticCones(SemanticRay):
         kwargs['resolution'] = n_rays
         kwargs['n_rays'] = n_rays
 
-        super().__init__(anchor,
-                         invisible_elements=invisible_elements,
-                         number_rays=n_rays,
-                         remove_duplicates=remove_duplicates,
-                         **kwargs)
+        super().__init__(anchor, **kwargs)
 
         if self.number_cones == 1:
             self.angles_cone_center = [0]
@@ -267,12 +237,7 @@ class PerfectSemantic(SemanticRay):
     Obstructed Elements are also returned.
     """
 
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
         """
         Refer to Sensor Class.
 
@@ -286,15 +251,10 @@ class PerfectSemantic(SemanticRay):
         """
 
         default_config = parse_configuration('agent_sensors',
-                                             SensorTypes.PERFECT_LIDAR)
+                                             SensorTypes.PERFECT_SEMANTIC)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         remove_duplicates=False,
-                         **kwargs)
+        super().__init__(anchor, **kwargs)
 
         self.sensor_values: List[Detection]
 
@@ -316,12 +276,13 @@ class PerfectSemantic(SemanticRay):
 
         # Filter Sensor shapes
         points_hit = [pt for pt in points_hit
-                      if not pt.shape.sensor]
+                      if pt.shape and not pt.shape.sensor]
 
         # Filter Invisible shapes
         if self._invisible_elements:
             points_hit = [pt for pt in points_hit
-                          if playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
+                          if pt.shape
+                          and playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
 
         # Calculate angle
         detections: List[Detection] = []

@@ -8,8 +8,8 @@ from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
-                                               Proximity, Touch, TopdownSensor,
-                                               FullPlaygroundSensor, PerfectSemantic,
+                                               Proximity, Touch, TopdownLocal,
+                                               TopDownGlobal, PerfectSemantic,
                                                SemanticRay, SemanticCones, Position, Velocity)
 
 from simple_playgrounds.elements.collection.basic import Physical
@@ -71,7 +71,7 @@ def base_forward_interactive_agent_external():
 @pytest.fixture(scope="module",
                 params=[
                     RgbCamera, GreyCamera, Lidar, Touch, Proximity,
-                    TopdownSensor, FullPlaygroundSensor, SemanticRay,
+                    TopdownLocal, TopDownGlobal, SemanticRay,
                     SemanticCones, PerfectSemantic, Position, Velocity
                 ])
 def any_sensor(request):
@@ -83,17 +83,17 @@ def ray_sensor(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 180])
+@pytest.fixture(scope="module", params=[1, 180])
 def fov(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 500])
+@pytest.fixture(scope="module", params=[100, 500])
 def obs_range(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 32])
+@pytest.fixture(scope="module", params=[1, 32])
 def resolution(request):
     return request.param
 

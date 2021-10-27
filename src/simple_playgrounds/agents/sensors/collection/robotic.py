@@ -5,46 +5,31 @@ These sensors can be noisy.
 Importantly, as Simple-Playgrounds is a 2D environments, these sensors are 1D.
 """
 import math
-from typing import List, Optional, Dict, Union
 
 import numpy as np
 import pymunk
-from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
-from .sensor import RayCollisionSensor, SensorDevice
-from ..parts.parts import Part
-from ...common.definitions import SensorTypes
-from ...common.entity import Entity
-from ...configs.parser import parse_configuration
+from simple_playgrounds.agents.sensors.sensor import RayBasedSensor
+from simple_playgrounds.common.definitions import SensorTypes
+from simple_playgrounds.configs.parser import parse_configuration
 
 # pylint: disable=no-member
 
 
-class RgbCamera(RayCollisionSensor):
+class RgbCamera(RayBasedSensor):
     """
     Provides a 1D image (line of RGB pixels) from the point of view of the anchor.
     """
 
     sensor_type = SensorTypes.RGB
 
-    def __init__(self,
-                 anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity],
-                                                    Entity]] = None,
-                 normalize: bool = True,
-                 noise_params: Optional[Dict] = None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
 
         default_config = parse_configuration('agent_sensors', self.sensor_type)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         remove_duplicates=False,
-                         **kwargs)
+        super().__init__(anchor, remove_duplicates=False, **kwargs)
 
         self._sensor_max_value = 255
 
@@ -147,31 +132,19 @@ class BlindCamera(GreyCamera):
         self.sensor_values = np.zeros(self.shape)
 
 
-class Lidar(RayCollisionSensor):
+class Lidar(RayBasedSensor):
     """
     Lidar are Sensors that measure distances by projecting rays.
     """
 
     sensor_type = SensorTypes.LIDAR
 
-    def __init__(self,
-                 anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity],
-                                                    Entity]] = None,
-                 normalize: bool = True,
-                 noise_params: Optional[Dict] = None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
 
         default_config = parse_configuration('agent_sensors', self.sensor_type)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         remove_duplicates=False,
-                         remove_occluded=False,
-                         **kwargs)
+        super().__init__(anchor, **kwargs)
 
         self._sensor_max_value = self._max_range
 
@@ -237,18 +210,9 @@ class Touch(Lidar):
 
     sensor_type = SensorTypes.TOUCH
 
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         **kwargs)
+        super().__init__(anchor, **kwargs)
 
         self._sensor_max_value = self._max_range
         self._max_range = self._anchor.radius + self._max_range  # pylint: disable=access-member-before-definition
@@ -260,47 +224,3 @@ class Touch(Lidar):
         distance_to_anchor = self.sensor_values - self._anchor.radius
         distance_to_anchor[distance_to_anchor < 0] = 0
         self.sensor_values = self._sensor_max_value - distance_to_anchor
-
-
-class NumericSensor(SensorDevice):
-    def __init__(self,
-                 anchor,
-                 noise_params=None,
-                 normalize=False,
-                 **kwargs):
-        super().__init__(anchor=anchor,
-                         noise_params=noise_params,
-                         fov=1,
-                         resolution=1,
-                         max_range=1,
-                         normalize=normalize,
-                         **kwargs)
-
-    def _get_null_sensor(self):
-        return np.zeros(self.shape)
-
-    def _apply_noise(self):
-        if self._noise_type == 'gaussian':
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
-
-        else:
-            raise ValueError
-
-        self.sensor_values += additive_noise
-
-    def draw(self, width: int, height: int):
-        img = Image.new("RGB", (width, height), (255, 255, 255))
-        drawer_image = ImageDraw.Draw(img)
-
-        fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height * 1 / 2))
-        values_str = ", ".join(["%.2f" % e for e in self.sensor_values])
-        w_text, h_text = fnt.getsize(text=values_str)
-        pos_text = ((width - w_text) / 2, (height - h_text) / 2)
-        drawer_image.text(pos_text,
-                          values_str,
-                          font=fnt,
-                          fill=(0, 0, 0))
-
-        return np.asarray(img) / 255

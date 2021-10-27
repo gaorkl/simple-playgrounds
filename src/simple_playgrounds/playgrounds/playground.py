@@ -145,6 +145,9 @@ class Playground(ABC):
         for comm in self._communication_devices:
             comm.pre_step()
 
+        for sensor in self._sensor_devices:
+            sensor.pre_step()
+
         for _ in range(steps):
             self.space.step(1. / steps)
 
@@ -341,9 +344,7 @@ class Playground(ABC):
 
             self._sensor_devices.append(sensor)
             self.space.add(sensor.pm_shape)
-
-            if sensor.requires_playground_size:
-                sensor.set_playground_size(self.size)
+            sensor.set_playground_size(self.size)
 
     # Private methods for Elements
 

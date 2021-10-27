@@ -5,7 +5,7 @@ Topdown sensors are based computed using the image provided by the environment.
 from __future__ import annotations
 from typing import Tuple, List, Union, TYPE_CHECKING
 if TYPE_CHECKING:
-    from ...playgrounds.playground import Playground
+    from simple_playgrounds.playgrounds.playground import Playground
 
 import math
 
@@ -14,26 +14,20 @@ import pygame
 from skimage import draw
 from skimage.transform import resize, rotate
 
-from .sensor import SensorDevice
-from ...common.definitions import SensorTypes
-from ...configs.parser import parse_configuration
+from simple_playgrounds.agents.sensors.sensor import ExternalSensor
+from simple_playgrounds.common.definitions import SensorTypes
+from simple_playgrounds.configs.parser import parse_configuration
 
 
 # pylint: disable=no-member
 
 
-class TopdownSensor(SensorDevice):
+class TopdownLocal(ExternalSensor):
     """
     TopdownSensor provides an image from bird's eye view, centered and oriented on the anchor.
     The anchor is, by default, visible to the agent.
     """
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 only_front=False,
-                 **sensor_params):
+    def __init__(self, anchor, only_front=False, **kwargs):
         """
         Refer to Sensor Class.
 
@@ -50,13 +44,9 @@ class TopdownSensor(SensorDevice):
 
         default_config = parse_configuration('agent_sensors',
                                              SensorTypes.TOP_DOWN)
-        sensor_params = {**default_config, **sensor_params}
+        kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         **sensor_params)
+        super().__init__(anchor, **kwargs)
 
         self.only_front = only_front
 
@@ -195,23 +185,18 @@ class TopdownSensor(SensorDevice):
                        order=0,
                        preserve_range=True)
 
-        if not self._apply_normalization:
+        if not self._normalize:
             image /= 255.
 
         return image
 
 
-class FullPlaygroundSensor(SensorDevice):
+class TopDownGlobal(ExternalSensor):
     """
     FullPlaygroundSensor provides an image from bird's eye view of the full playground.
     There is no anchor.
     """
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
         """
         Refer to Sensor Class.
 
@@ -228,23 +213,13 @@ class FullPlaygroundSensor(SensorDevice):
                                              SensorTypes.FULL_PLAYGROUND)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         **kwargs)
-
-        if invisible_elements:
-            self._invisible_elements = invisible_elements
-        else:
-            self._invisible_elements = []
+        super().__init__(anchor, **kwargs)
 
         self._scale = None
 
-        self._sensor_max_value = 255
+        self._sensor_max_value = 255.
 
         self.requires_surface = True
-        self.requires_playground_size = True
 
     def _get_sensor_image(self, playground: Playground,
                           sensor_surface: pygame.Surface):
@@ -274,7 +249,7 @@ class FullPlaygroundSensor(SensorDevice):
                                     preserve_range=True)
 
     def set_playground_size(self, size: Union[List[float], Tuple[float, float]]):
-        self._pg_size = size
+        super().set_playground_size(size)
 
         # Compute the scaling for the sensor value
         max_size = max(size)
@@ -326,7 +301,7 @@ class FullPlaygroundSensor(SensorDevice):
                        order=0,
                        preserve_range=True)
 
-        if not self._apply_normalization:
+        if not self._normalize:
             image /= 255.
 
         return image
