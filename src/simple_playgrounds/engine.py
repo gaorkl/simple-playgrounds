@@ -340,7 +340,7 @@ class Engine:
             if self._debug:
                 self._screen.fill((0, 0, 0))
                 options = pygame_util.DrawOptions(self._screen)
-                self.playground._space.debug_draw(options)
+                self.playground.space.debug_draw(options)
 
             else:
                 self._generate_surface_environment(with_interactions=True)
@@ -398,7 +398,7 @@ class Engine:
 
             temporary_invisible = []
             if grasped_invisible:
-                temporary_invisible = agent.is_holding
+                temporary_invisible = agent.grasped_elements
 
             for sensor in agent.sensors:
 

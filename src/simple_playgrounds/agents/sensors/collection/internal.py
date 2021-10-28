@@ -63,7 +63,7 @@ class RelativeVelocity(InternalSensor):
 
 class Time(InternalSensor):
     def _compute_raw_sensor(self, playground, *_):
-        self.sensor_values = np.array(playground.steps)
+              self.sensor_values = np.array(playground.timestep)
 
     def _apply_normalization(self):
         pass

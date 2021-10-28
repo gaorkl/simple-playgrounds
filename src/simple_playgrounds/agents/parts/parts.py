@@ -7,7 +7,7 @@ Examples on how to add Parts to an agent can be found
 in simple_playgrounds/agents/agents.py
 """
 from __future__ import annotations
-from typing import Tuple, List, TYPE_CHECKING
+from typing import Tuple, List, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from simple_playgrounds.agents.parts.actuators import Actuator
@@ -113,13 +113,7 @@ class AnchoredPart(Part, ABC):
 
     def __init__(
         self,
-        anchor: Part,
-        position_anchor: Tuple[float, float] = (0, 0),
-        position_part: Tuple[float, float] = (0, 0),
-        rotation_range: float = math.pi / 4,
-        angle_offset: float = 0,
         can_absorb: bool = False,
-        movable: bool = True,
         **kwargs,
     ):
         """
@@ -135,34 +129,53 @@ class AnchoredPart(Part, ABC):
             **kwargs:
         """
 
-        Part.__init__(self, can_absorb=can_absorb, movable=movable, **kwargs)
+        Part.__init__(self, can_absorb=can_absorb, movable=True, **kwargs)
 
-        self.anchor: Part = anchor
-        self.angle_offset = angle_offset
-        self.rotation_range = rotation_range
+        self._anchor: Optional[Part] = None
+        self._angle_offset: Optional[float] = None
+        self._rotation_range: Optional[float] = None
+        self._position_on_anchor: Optional[pymunk.Vec2d] = None
+        self._position_on_part: Optional[pymunk.Vec2d] = None
 
-        self._rel_coord_anchor = pymunk.Vec2d(*position_anchor)
-        self._rel_coord_part = pymunk.Vec2d(*position_part)
+        self._attached = False
 
+        self._motor = None
+
+    def attach_to_anchor(self,
+                         anchor: Part,
+                         position_anchor: Tuple[float, float],
+                         position_part: Tuple[float, float],
+                         rotation_range: float,
+                         angle_offset: float,
+                         ):
+
+        self._anchor = anchor
+        self._angle_offset = angle_offset
+        self._position_on_anchor = pymunk.Vec2d(*position_anchor)
+        self._position_on_part = pymunk.Vec2d(*position_part)
+
+        self._attached = True
         self.set_relative_coordinates()
-        self._attach_to_anchor()
+
+        joint = pymunk.PivotJoint(self._anchor.pm_body, self.pm_body,
+                                       self._position_on_anchor,
+                                       self._position_on_part)
+        joint.collide_bodies = False
+        limit = pymunk.RotaryLimitJoint(
+            self._anchor.pm_body, self.pm_body,
+            self._angle_offset - rotation_range / 2,
+            self._angle_offset + rotation_range / 2)
+
+        self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
+
+        self.pm_elements += [joint, self._motor, limit]
+
+    @property
+    def motor(self):
+        return self._motor
 
     def _set_shape_collision(self):
         self.pm_visible_shape.collision_type = CollisionTypes.PART
-
-    def _attach_to_anchor(self):
-        self.joint = pymunk.PivotJoint(self.anchor.pm_body, self.pm_body,
-                                       self._rel_coord_anchor,
-                                       self._rel_coord_part)
-        self.joint.collide_bodies = False
-        self.limit = pymunk.RotaryLimitJoint(
-            self.anchor.pm_body, self.pm_body,
-            self.angle_offset - self.rotation_range / 2,
-            self.angle_offset + self.rotation_range / 2)
-
-        self.motor = pymunk.SimpleMotor(self.anchor.pm_body, self.pm_body, 0)
-
-        self.pm_elements += [self.joint, self.motor, self.limit]
 
     def set_relative_coordinates(self):
         """
@@ -170,9 +183,9 @@ class AnchoredPart(Part, ABC):
         Sets the position of the Part.
         """
 
-        self.pm_body.position = self.anchor.position + self._rel_coord_anchor.rotated(self.anchor.angle)\
-                                - self._rel_coord_part.rotated(self.anchor.angle + self.angle_offset)
-        self.pm_body.angle = self.anchor.pm_body.angle + self.angle_offset
+        self.pm_body.position = self._anchor.position + self._position_on_anchor.rotated(self._anchor.angle)\
+                                - self._position_on_part.rotated(self._anchor.angle + self._angle_offset)
+        self.pm_body.angle = self._anchor.pm_body.angle + self._angle_offset
 
     def reset(self):
         pass
@@ -185,17 +198,11 @@ class Head(AnchoredPart):
 
     """
     def __init__(self,
-                 anchor,
-                 position_anchor=(0, 0),
-                 angle_offset=0,
                  **kwargs):
         default_config = parse_configuration('agent_parts', PartTypes.HEAD)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor,
-                         position_anchor=position_anchor,
-                         angle_offset=angle_offset,
-                         **kwargs)
+        super().__init__(**kwargs)
 
         self.pm_visible_shape.sensor = True
 
@@ -207,17 +214,11 @@ class Eye(AnchoredPart):
 
     """
     def __init__(self,
-                 anchor,
-                 position_anchor=(0, 0),
-                 angle_offset=0,
                  **kwargs):
         default_config = parse_configuration('agent_parts', PartTypes.EYE)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor,
-                         position_anchor=position_anchor,
-                         angle_offset=angle_offset,
-                         **kwargs)
+        super().__init__(**kwargs)
 
         self.pm_visible_shape.sensor = True
 
@@ -229,17 +230,11 @@ class Hand(AnchoredPart):
 
     """
     def __init__(self,
-                 anchor,
-                 position_anchor=(0, 0),
-                 angle_offset=0,
                  **kwargs):
         default_config = parse_configuration('agent_parts', PartTypes.HAND)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor,
-                         position_anchor=position_anchor,
-                         angle_offset=angle_offset,
-                         **kwargs)
+        super().__init__(**kwargs)
 
         self.pm_visible_shape.sensor = True
 
@@ -253,22 +248,26 @@ class Arm(AnchoredPart):
         extremity_anchor_point: coordinates of the free extremity, used to attach other Parts.
 
     """
-    def __init__(self, anchor, position_anchor, angle_offset=0, **kwargs):
+    def __init__(self, **kwargs):
         default_config = parse_configuration('agent_parts', PartTypes.ARM)
-        body_part_params = {**default_config, **kwargs}
+        kwargs = {**default_config, **kwargs}
 
         # arm attached at one extremity, and other anchor point defined at other extremity
-        width, length = body_part_params['size']
-        position_part = (-length / 2.0 + width / 2.0, 0)
+        width, length = kwargs['size']
+        self.position_part = (-length / 2.0 + width / 2.0, 0)
         self.extremity_anchor_point = (+length / 2.0 - width / 2.0, 0)
 
-        super().__init__(anchor=anchor,
-                         position_anchor=position_anchor,
-                         position_part=position_part,
-                         angle_offset=angle_offset,
-                         **body_part_params)
+        super().__init__(**kwargs)
 
         self.motor.max_force = ARM_MAX_FORCE
+
+    def attach_to_anchor(self,
+                         anchor: Part,
+                         position_anchor: Tuple[float, float],
+                         position_part: Tuple[float, float],
+                         rotation_range: float,
+                         angle_offset: float,
+                         ):
 
 
 class PartTypes(IntEnum):

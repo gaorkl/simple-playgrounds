@@ -19,11 +19,12 @@ if TYPE_CHECKING:
     from pygame import Surface
     from ..common.entity import Entity
     from ..agents.communication import CommunicationDevice
-    from simple_playgrounds.elements.element import SceneElement
+    from simple_playgrounds.playgrounds.playground import Playground
 
 from abc import ABC
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import math
 
 from ..common.position_utils import CoordinateSampler, Coordinate
 from .parts.parts import Part, Platform, AnchoredPart
@@ -46,7 +47,7 @@ class Agent(ABC):
     Attributes:
         name: name of the agent. Either provided by the user or generated using internal counter.
         base_platform: Main part of the agent. Can be mobile or fixed.
-        parts: Different parts attached to the base or to other parts.
+        _parts: Different parts attached to the base or to other parts.
         actuators:
         sensors:
         initial_coordinates:
@@ -57,7 +58,7 @@ class Agent(ABC):
 
     def __init__(
         self,
-        base_platform: Part,
+        base_platform: Platform,
         name: Optional[str] = None,
     ):
         """
@@ -80,10 +81,11 @@ class Agent(ABC):
         # List of sensors
         self.sensors: List[SensorDevice] = []
 
-        # Body parts
-        self.base_platform: Part = base_platform
+        # Base Platform
+        self.base_platform: Platform = base_platform
         base_platform.agent = self
-        self.parts: List[Part] = [self.base_platform]
+
+        self._parts: List[Part] = [self.base_platform]
 
         # Default starting position
         self.initial_coordinates: Optional[Union[Coordinate,
@@ -110,8 +112,85 @@ class Agent(ABC):
         self._max_attempts: int = 100
 
         # Communication
-        self.communication: Optional[CommunicationDevice] = None
-        self._can_communicate = False
+        self._communication: Optional[CommunicationDevice] = None
+
+        self._playground: Optional[Playground] = None
+
+    def add(self,
+            entity: Union[Part, CommunicationDevice, SensorDevice],
+            anchor: Optional[Part],
+            **kwargs):
+
+        if isinstance(entity, CommunicationDevice):
+            if self._communication:
+                raise ValueError("Communication already added")
+
+        elif isinstance(entity, Part):
+            self._add_part(entity, anchor=anchor, **kwargs)
+
+        elif isinstance(entity, SensorDevice):
+            self._add_sensor_devices(entity, anchor=anchor, **kwargs)
+
+    def _add_part(self,
+                  part: Part,
+                  anchor: Part,
+                  **kwargs,
+                  ):
+
+        self._parts.append(part)
+        part.attach_to_anchor(anchor, **kwargs)
+        part.agent = self
+
+        assert part.agent == anchor.agent
+
+
+
+    @property
+    def can_communicate(self):
+        return bool(self._communication)
+
+    @property
+    def communication(self):
+        return self._communication
+
+    def add_to_playground(self, playground: Playground):
+
+        for part in self._parts:
+            part.add_to_playground(playground)
+
+        if self.communication:
+
+
+        self._add_to_playground(playground)
+        self._playground = playground
+
+    def remove_from_playground(self):
+        self._remove_from_playground()
+        self._playground = None
+
+
+    def add_to_playground(self, playground):
+
+        self._add_sensor_devices(playground)
+        self._add_communication_devices(playground)
+
+
+    def _add_communication_devices(self, agent: Agent):
+
+        if agent.can_communicate:
+            self._communication_devices.append(agent.communication)
+            self._space.add(agent.communication.pm_shape)
+
+    def _add_sensor_devices(self, agent: Agent):
+
+        # Set the invisible element filters
+        for sensor in agent.sensors:
+
+            self._sensor_devices.append(sensor)
+            self._space.add(sensor.pm_shape)
+
+            sensor.set_playground_size(self.size)
+
 
     # COMMUNICATION
     def add_communication(self,
@@ -150,7 +229,7 @@ class Agent(ABC):
         self.actuators.append(actuator)
 
     @property
-    def is_holding(self):
+    def grasped_elements(self):
 
         list_hold = []
 
@@ -203,7 +282,7 @@ class Agent(ABC):
 
         position, angle = coord
 
-        for part in self.parts:
+        for part in self._parts:
             if isinstance(part, Platform):
                 part.position, part.angle = position, angle
             elif isinstance(part, AnchoredPart):
@@ -213,8 +292,8 @@ class Agent(ABC):
 
     def reindex_shapes(self):
 
-        for part in self.parts:
-            part.pm_body._space.reindex_shapes_for_body(part.pm_body)
+        for part in self._parts:
+            part.pm_body.space.reindex_shapes_for_body(part.pm_body)
 
     @property
     def position(self):
@@ -251,7 +330,7 @@ class Agent(ABC):
 
     @velocity.setter
     def velocity(self, velocity: Tuple[float, float]):
-        for part in self.parts:
+        for part in self._parts:
             part.velocity = velocity
 
     @property
@@ -267,7 +346,7 @@ class Agent(ABC):
         self,
         angular_velocity: float,
     ):
-        for part in self.parts:
+        for part in self._parts:
             part.angular_velocity = angular_velocity
 
     # SENSORS
@@ -292,7 +371,7 @@ class Agent(ABC):
     @property
     def in_playground(self) -> bool:
 
-        if self.base_platform.pm_body._space:
+        if self.base_platform.pm_body.space:
             return True
         return False
 
@@ -338,15 +417,6 @@ class Agent(ABC):
 
     # BODY PARTS
 
-    def add_part(self, part: Part):
-        """
-        Add a Part to the agent
-        Args:
-            part: Part to add to the agent.
-
-        """
-        self.parts.append(part)
-        part.agent = self
 
     def apply_actions_to_actuators(self, actions_dict: Dict[Actuator, float]):
         """
@@ -371,7 +441,7 @@ class Agent(ABC):
         Returns: True if pm_shape belongs to the agent.
 
         """
-        all_shapes = [part.pm_visible_shape for part in self.parts]
+        all_shapes = [part.pm_visible_shape for part in self._parts]
         if pm_shape in all_shapes:
             return True
         return False
@@ -388,7 +458,7 @@ class Agent(ABC):
         """
         return next(
             iter([
-                part for part in self.parts
+                part for part in self._parts
                 if part.pm_visible_shape == pm_shape
             ]), None)
 
@@ -438,7 +508,7 @@ class Agent(ABC):
         entity: Entity,
     ) -> bool:
 
-        for part in self.parts:
+        for part in self._parts:
 
             if entity.pm_visible_shape and part.pm_visible_shape.shapes_collide(entity.pm_visible_shape):
                 return True
@@ -454,7 +524,7 @@ class Agent(ABC):
         """
         self.velocity = [0, 0]
 
-        for part in self.parts:
+        for part in self._parts:
             part.reset()
 
     def draw(self,
@@ -475,7 +545,7 @@ class Agent(ABC):
         else:
             list_excluded = excluded
 
-        for part in self.parts:
+        for part in self._parts:
             if part not in list_excluded:
                 part.draw(surface, )
 
@@ -497,7 +567,7 @@ class Agent(ABC):
         """
         # pylint: disable=too-many-locals
 
-        number_parts_with_actions = len(self.parts)
+        number_parts_with_actions = len(self._parts)
 
         assert isinstance(self._current_actions, dict)
         count_all_actions = len(self._current_actions)
@@ -514,7 +584,7 @@ class Agent(ABC):
 
         current_height = 0
 
-        for part in self.parts:
+        for part in self._parts:
 
             w_text, h_text = fnt.getsize(text=part.name.upper())
             drawer_action_image.text(

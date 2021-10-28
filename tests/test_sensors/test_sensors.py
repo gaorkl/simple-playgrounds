@@ -12,7 +12,7 @@ def test_sensor_without_params(any_sensor, pg_sensor_class):
     agent.add_sensor(
         any_sensor(
             anchor=agent.head,
-            invisible_elements=agent.parts,
+            invisible_elements=agent._parts,
         ))
 
     agent.add_sensor(
@@ -37,7 +37,7 @@ def test_ray_sensors(ray_sensor, resolution, fov, obs_range, pg_sensor_class):
 
     agent.add_sensor(
         ray_sensor(anchor=agent.head,
-                   invisible_elements=agent.parts,
+                   invisible_elements=agent._parts,
                    fov=fov,
                    resolution=resolution,
                    max_range=obs_range))
@@ -66,7 +66,7 @@ def test_rgb_on_teleports(base_forward_agent_random):
     agent.add_sensor(
         RgbCamera(
             anchor=agent.base_platform,
-            invisible_elements=agent.parts,
+            invisible_elements=agent._parts,
         ))
 
     agent.add_sensor(

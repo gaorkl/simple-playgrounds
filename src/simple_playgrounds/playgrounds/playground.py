@@ -32,13 +32,13 @@ from simple_playgrounds.playgrounds.interactions import (gem_activates_element,
                                                          modifier_modifies_device
                                                          )
 
-from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes
+from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, MAX_ATTEMPTS_OVERLAPPING
 from simple_playgrounds.common.timer import Timer
 
 from simple_playgrounds.elements.element import SceneElement, InteractiveElement
 from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.agents.parts.actuators import Grasp
-from simple_playgrounds.elements.field import Field
+from simple_playgrounds.elements.spawner import Spawner
 from simple_playgrounds.elements.collection.activable import Dispenser
 
 from simple_playgrounds.common.devices import Device
@@ -84,11 +84,11 @@ class Playground(ABC):
         self._width, self._length = self.size
 
         # Initialization of the pymunk space, modelling all the physics
-        self._space = self._initialize_space()
+        self.space = self._initialize_space()
 
         # Public attributes for entities in the playground
         self.elements: List[SceneElement] = []
-        self.fields: List[Field] = []
+        self.spawners: List[Spawner] = []
         self.agents: List[Agent] = []
 
         self._communication_devices: List[CommunicationDevice] = []
@@ -107,132 +107,20 @@ class Playground(ABC):
         self._handle_interactions()
 
         # Timestep index. Starts at 0, and is incremented after each playground update.
-        self._step = 0
+        self._timestep = 0
 
-    # Interface: Adding and Removing entities
+    @staticmethod
+    def _initialize_space() -> pymunk.Space:
+        """ Method to initialize Pymunk empty space for 2D physics.
 
-    def add_agent(
-        self,
-        agent: Agent,
-        initial_coordinates: Optional[InitCoord] = None,
-        allow_overlapping: Optional[bool] = True,
-        max_attempts: Optional[int] = 100,
-    ):
-        """ Method to add an Agent to the Playground.
-
-        Args:
-            agent: Agent to add to the Playground
-            initial_coordinates: tuple or CoordinateSampler
-            allow_overlapping: If True, allows new agent to overlap with other elements when added to the Playground.
-            max_attempts: If overlapping is not allowed, maximum number of attempts to place the agent.
-        """
-
-        assert isinstance(agent, Agent)
-
-        # If already there
-        if agent in self.agents:
-            raise ValueError('Agent already in Playground')
-
-        # Save overlapping strategy of agent.
-        agent.overlapping_strategy = allow_overlapping, max_attempts
-
-        # Set initial position. Either set or from playground.
-        if initial_coordinates:
-            agent.initial_coordinates = initial_coordinates
-        elif self.initial_agent_coordinates:
-            agent.initial_coordinates = self.initial_agent_coordinates
-        else:
-            raise ValueError(
-                """Agent initial position should be defined in the playground or passed as an argument
-                             to the class agent""")
-
-        self._add_agent_to_playground(agent)
-        self._add_sensor_devices(agent)
-        self._add_communication_devices(agent)
-        self._move_to_initial_position(agent)
-
-    def remove_agent(self, agent: Agent):
-        """
-        Removes an agent from a playground.
-
-        Args:
-            agent: Agent to remove.
+        Returns: Pymunk Space
 
         """
+        space = pymunk.Space()
+        space.gravity = pymunk.Vec2d(0., 0.)
+        space.damping = SPACE_DAMPING
 
-        assert agent in self.agents
-
-        agent.reset()
-        for part in agent.parts:
-            self._space.remove(*part.pm_elements)
-
-        if agent.can_communicate:
-            self._communication_devices.remove(agent.communication)
-            self._space.remove(agent.communication.pm_shape)
-
-        for sensor in agent.sensors:
-            self._sensor_devices.remove(sensor)
-            self._space.remove(sensor.pm_shape)
-
-        self.agents.remove(agent)
-        assert not agent.in_playground
-
-    def add_field(self, field: Field):
-
-        assert isinstance(field, Field)
-
-        # If already there
-        if field in self.fields:
-            raise ValueError('Field already in Playground')
-
-        self.fields.append(field)
-
-    def add_element(
-        self,
-        element: SceneElement,
-        initial_coordinates: Optional[InitCoord] = None,
-        allow_overlapping: Optional[bool] = True,
-        max_attempts: Optional[int] = 100,
-    ):
-        """ Method to add a SceneElement to the Playground.
-
-        Args:
-            element: Scene Element to add to the Playground
-            initial_coordinates: initial position and angle of the SceneElement.
-                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
-            allow_overlapping: If True, allows new elements to overlap with other elements when added to the Playground.
-            max_attempts: If overlapping is not allowed, maximum number of attempts to place the element.
-        """
-
-        assert isinstance(element, SceneElement)
-
-        if element in self.elements:
-            raise ValueError('Scene Element already in Playground')
-
-        if initial_coordinates:
-            element.initial_coordinates = initial_coordinates
-
-        # If element already has a positioning strategy, use it
-        element.overlapping_strategy = (
-            allow_overlapping,
-            max_attempts,
-        )
-
-        self._add_element_to_playground(element)
-        self._move_to_initial_position(element)
-
-    def add_timer(
-        self,
-        timer: Timer,
-        element: InteractiveElement,
-    ):
-
-        assert isinstance(timer, Timer) and isinstance(element,
-                                                       InteractiveElement)
-        assert element in self.elements
-
-        self._timers[timer] = element
-
+        return space
 
     def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
         """ Update the Playground
@@ -266,6 +154,123 @@ class Playground(ABC):
         # Move one timestep by pymunk_steps increments
         self._physics_simulator_step(pymunk_steps)
 
+    @property
+    def timestep(self):
+        return self._timestep
+
+    # Interface: Adding and Removing entities
+
+    def add(self, entity, **kwargs):
+        """ Method to add a SceneElement to the Playground.
+
+        Args:
+            entity: Scene Element to add to the Playground
+
+        Keyword Args:
+            initial_coordinates: initial position and angle of the SceneElement.
+                Can be list [x,y,theta], AreaPositionSampler or Trajectory.
+            allow_overlapping: If True, allows new elements to overlap with other elements when added to the Playground.
+            max_attempts: If overlapping is not allowed, maximum number of attempts to place the element.
+        """
+
+        if isinstance(entity, Spawner):
+            if entity in self.spawners:
+                raise ValueError('Spawner already in Playground')
+            self.spawners.append(entity)
+
+        if isinstance(entity, Agent):
+            self._add_agent(entity, **kwargs)
+
+        if isinstance(entity, SceneElement):
+            self._add_element(entity)
+
+    def _add_agent(
+        self,
+        agent: Agent,
+        initial_coordinates: Optional[InitCoord] = None,
+        allow_overlapping: Optional[bool] = True,
+        max_attempts: Optional[int] = MAX_ATTEMPTS_OVERLAPPING,
+    ):
+
+        # If already there
+        if agent in self.agents:
+            raise ValueError('Agent already in Playground')
+
+        self._set_initial_position(agent, initial_coordinates, allow_overlapping, max_attempts)
+
+        agent.add_to_playground(self)
+        self.agents.append(agent)
+
+    def _add_element(
+        self,
+        element: SceneElement,
+        initial_coordinates: Optional[InitCoord] = None,
+        allow_overlapping: Optional[bool] = True,
+        max_attempts: Optional[int] = MAX_ATTEMPTS_OVERLAPPING,
+    ):
+
+        if element in self.elements:
+            raise ValueError('Scene Element already in Playground')
+
+        self._set_initial_position(element, initial_coordinates, allow_overlapping, max_attempts)
+
+        element.add_to_playground(self)
+        self._move_to_initial_position(element)
+
+    def _set_initial_position(self,
+                              entity: Union[Agent, SceneElement], initial_coordinates,
+                              allow_overlapping, max_attempts):
+
+        entity.overlapping_strategy = allow_overlapping, max_attempts
+
+        # Set initial position. Either set or from playground.
+        if initial_coordinates:
+            entity.initial_coordinates = initial_coordinates
+        elif isinstance(entity, Agent) and self.initial_agent_coordinates:
+            entity.initial_coordinates = self.initial_agent_coordinates
+        else:
+            raise ValueError(
+                """Entity {} initial position should be defined in the playground or passed as an argument
+                             to the class agent""".format(entity.name))
+
+    def remove_agent(self, agent: Agent):
+        """
+        Removes an agent from a playground.
+
+        Args:
+            agent: Agent to remove.
+
+        """
+
+        assert agent in self.agents
+
+        agent.reset()
+        for part in agent._parts:
+            self.space.remove(*part.pm_elements)
+
+        if agent.can_communicate:
+            self._communication_devices.remove(agent.communication)
+            self.space.remove(agent.communication.pm_shape)
+
+        for sensor in agent.sensors:
+            self._sensor_devices.remove(sensor)
+            self.space.remove(sensor.pm_shape)
+
+        self.agents.remove(agent)
+        assert not agent.in_playground
+
+
+    def _add_timer(
+        self,
+        timer: Timer,
+        element: InteractiveElement,
+    ):
+
+        assert isinstance(element, InteractiveElement)
+        assert element in self.elements
+
+        self._timers[timer] = element
+
     def reset(self):
         """
         Reset the Playground to its initial state.
@@ -289,7 +294,7 @@ class Playground(ABC):
             self._move_to_initial_position(element)
 
         # reset fields
-        for field in self.fields:
+        for field in self.spawners:
             field.reset()
 
         # reset agents
@@ -305,31 +310,18 @@ class Playground(ABC):
         for comm in self._communication_devices:
             comm.reset()
 
-
         self.done = False
 
-        self._step = 0
+        self._timestep = 0
 
 
-    @staticmethod
-    def _initialize_space() -> pymunk.Space:
-        """ Method to initialize Pymunk empty space for 2D physics.
-
-        Returns: Pymunk Space
-
-        """
-        space = pymunk.Space()
-        space.gravity = pymunk.Vec2d(0., 0.)
-        space.damping = SPACE_DAMPING
-
-        return space
 
     def _physics_simulator_step(self, pymunk_steps):
 
         for _ in range(pymunk_steps):
-            self._space.step(1. / pymunk_steps)
+            self.space.step(1. / pymunk_steps)
 
-        self._step += 1
+        self._timestep += 1
 
     def _update_communications(self):
         # Update Comms after the simulation step
@@ -347,46 +339,12 @@ class Playground(ABC):
         for elem in self.elements:
             elem.pre_step()
             if elem.trajectory:
-                self._space.reindex_shapes_for_body(elem.pm_body)
+                self.space.reindex_shapes_for_body(elem.pm_body)
 
-    # Private methods for Agents
-
-    def _add_agent_to_playground(self, agent: Agent):
-
-        self.agents.append(agent)
-
-        for body_part in agent.parts:
-            self._space.add(*body_part.pm_elements)
-
-    def _add_communication_devices(self, agent: Agent):
-
-        if agent.can_communicate:
-            self._communication_devices.append(agent.communication)
-            self._space.add(agent.communication.pm_shape)
-
-    def _add_sensor_devices(self, agent: Agent):
-
-        # Set the invisible element filters
-        for sensor in agent.sensors:
-
-            self._sensor_devices.append(sensor)
-            self._space.add(sensor.pm_shape)
-
-            if sensor.requires_scale:
-                sensor.set_scale(self.size)
 
     # Private methods for Elements
 
-    def _add_element_to_playground(self, element: SceneElement):
 
-        if element in self.elements:
-            raise ValueError('Scene element already in Playground')
-
-        if element in self._disappeared_elements:
-            self._disappeared_elements.remove(element)
-
-        self._space.add(*element.pm_elements)
-        self.elements.append(element)
 
     # Private methods for Agents and Elements
 
@@ -426,7 +384,7 @@ class Playground(ABC):
 
         assert element in self.elements
 
-        self._space.remove(*element.pm_elements)
+        self.space.remove(*element.pm_elements)
         self.elements.remove(element)
 
         if not element.temporary:
@@ -440,9 +398,9 @@ class Playground(ABC):
             if element in dispenser.produced_entities:
                 dispenser.produced_entities.remove(element)
 
-        for field in self.fields:
-            if element in field.produced_entities:
-                field.produced_entities.remove(element)
+        for spawner in self.spawners:
+            if element in spawner.produced_entities:
+                spawner.produced_entities.remove(element)
 
         if element.held_by:
             element.held_by.release_grasp()
@@ -469,15 +427,29 @@ class Playground(ABC):
 
     def _update_spawners(self):
 
-        for field in self.fields:
+        for spawner in self.spawners:
+            elem_list = spawner.produce(self._timestep)
 
-            if field.can_produce():
-                element, position = field.produce()
-                self.add_element(element, position)
+            for element, position in elem_list:
+                allow_overlapping = spawner.allow_overlapping
+                if isinstance(element, SceneElement):
+                    self.add_element(
+                        element,
+                        position,
+                        allow_overlapping=allow_overlapping,
+                    )
+                elif isinstance(element, Agent):
+                    self.add_agent(
+                        element,
+                        position,
+                        allow_overlapping=allow_overlapping,
+                    )
+                else:
+                    raise ValueError('Spawners can only produce SceneElements or Agents')
 
     def _update_timers(self):
 
-        for timer, element in self._timers.items():
+        for timer in self._timers:
 
             timer.step()
             if timer.tic:
@@ -500,11 +472,11 @@ class Playground(ABC):
         if isinstance(entity, Agent):
 
             if not entity_filter:
-                entity_filter = entity.parts  # type: ignore
+                entity_filter = entity._parts  # type: ignore
             else:
-                entity_filter += entity.parts
+                entity_filter += entity._parts
 
-            for part in entity.parts:
+            for part in entity._parts:
                 if self._overlaps(part, entity_filter=entity_filter):
                     return True
 
@@ -522,7 +494,7 @@ class Playground(ABC):
                 return True
             return False
 
-        shape_queries = self._space.shape_query(entity.pm_visible_shape)
+        shape_queries = self.space.shape_query(entity.pm_visible_shape)
         overlapping_shapes = [shape_q.shape for shape_q in shape_queries]
         overlapping_shapes = [
             shape for shape in overlapping_shapes
@@ -570,7 +542,7 @@ class Playground(ABC):
 
     def _get_agent_from_part(self, part: Part) -> Optional[Agent]:
         for agent in self.agents:
-            if part in agent.parts:
+            if part in agent._parts:
                 return agent
         return None
 
@@ -633,8 +605,8 @@ class Playground(ABC):
 
         """
 
-        handler = self._space.add_collision_handler(collision_type_1,
-                                                    collision_type_2)
+        handler = self.space.add_collision_handler(collision_type_1,
+                                                   collision_type_2)
         handler.pre_solve = interaction_function
         handler.data['playground'] = self
 

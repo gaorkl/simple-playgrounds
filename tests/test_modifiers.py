@@ -110,9 +110,9 @@ def test_disable_all_sensors():
         lateral=False
     )
 
-    sensor_1 = RgbCamera(agent_1.base_platform, invisible_elements=agent_1.parts)
-    sensor_2 = Lidar(agent_1.base_platform, invisible_elements=agent_1.parts)
-    sensor_3 = SemanticRay(agent_1.base_platform, invisible_elements=agent_1.parts)
+    sensor_1 = RgbCamera(agent_1.base_platform, invisible_elements=agent_1._parts)
+    sensor_2 = Lidar(agent_1.base_platform, invisible_elements=agent_1._parts)
+    sensor_3 = SemanticRay(agent_1.base_platform, invisible_elements=agent_1._parts)
 
     agent_1.add_sensor(sensor_1)
     agent_1.add_sensor(sensor_2)
@@ -148,9 +148,9 @@ def test_one_sensor():
         lateral=False
     )
 
-    sensor_1 = RgbCamera(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, max_range=400)
-    sensor_2 = Lidar(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, max_range=400)
-    sensor_3 = SemanticRay(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, max_range=400)
+    sensor_1 = RgbCamera(anchor=agent_1.base_platform, invisible_elements=agent_1._parts, max_range=400)
+    sensor_2 = Lidar(anchor=agent_1.base_platform, invisible_elements=agent_1._parts, max_range=400)
+    sensor_3 = SemanticRay(anchor=agent_1.base_platform, invisible_elements=agent_1._parts, max_range=400)
 
     agent_1.add_sensor(sensor_1)
     agent_1.add_sensor(sensor_2)
@@ -191,9 +191,9 @@ def test_list_sensors():
         lateral=False
     )
 
-    sensor_1 = RgbCamera(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
-    sensor_2 = Lidar(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
-    sensor_3 = SemanticRay(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
+    sensor_1 = RgbCamera(anchor=agent_1.base_platform, invisible_elements=agent_1._parts, range=400)
+    sensor_2 = Lidar(anchor=agent_1.base_platform, invisible_elements=agent_1._parts, range=400)
+    sensor_3 = SemanticRay(anchor=agent_1.base_platform, invisible_elements=agent_1._parts, range=400)
 
     agent_1.add_sensor(sensor_1)
     agent_1.add_sensor(sensor_2)

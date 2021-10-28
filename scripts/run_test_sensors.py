@@ -11,11 +11,11 @@ my_agent = BaseAgent(controller=Keyboard(), lateral=True, interactive=True)
 
 # ----------------------------------------------------------
 rgb = sensors.RgbCamera(my_agent.base_platform,
-                invisible_elements=my_agent.parts,
-                fov=180,
-                resolution=64,
-                max_range=500,
-                normalize = True)
+                        invisible_elements=my_agent._parts,
+                        fov=180,
+                        resolution=64,
+                        max_range=500,
+                        normalize = True)
 my_agent.add_sensor(rgb)
 
 rgb = sensors.RgbCamera(my_agent.base_platform,
@@ -28,22 +28,22 @@ my_agent.add_sensor(rgb)
 # grey = sensors.GreyCamera(my_agent.head, invisible_elements=my_agent.parts, fov=180, resolution=64, max_range=500)
 # my_agent.add_sensor(grey)
 
-lidar = sensors.Lidar(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=180, resolution=128, max_range=400)
+lidar = sensors.Lidar(my_agent.base_platform, normalize=False, invisible_elements=my_agent._parts, fov=180, resolution=128, max_range=400)
 my_agent.add_sensor(lidar)
 
 # depth = sensors.Proximity(my_agent.base_platform, normalize=False, invisible_elements=my_agent.parts, fov=100, resolution=64, max_range=400)
 # my_agent.add_sensor(depth)
 
-touch = sensors.Touch(my_agent.base_platform, normalize=True, invisible_elements=my_agent.parts)
+touch = sensors.Touch(my_agent.base_platform, normalize=True, invisible_elements=my_agent._parts)
 my_agent.add_sensor(touch)
 
-sem_ray = sensors.SemanticRay(my_agent.base_platform, invisible_elements=my_agent.parts, remove_duplicates=False, fov=90)
+sem_ray = sensors.SemanticRay(my_agent.base_platform, invisible_elements=my_agent._parts, remove_duplicates=False, fov=90)
 my_agent.add_sensor(sem_ray)
 
-sem_cones = sensors.SemanticCones(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, remove_duplicates=False)
+sem_cones = sensors.SemanticCones(my_agent.base_platform, invisible_elements=my_agent._parts, normalize=True, remove_duplicates=False)
 my_agent.add_sensor(sem_cones)
 
-td = sensors.TopdownLocal(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, only_front=True, fov=180)
+td = sensors.TopdownLocal(my_agent.base_platform, invisible_elements=my_agent._parts, normalize=True, only_front=True, fov=180)
 my_agent.add_sensor(td)
 
 fi = sensors.TopDownGlobal(my_agent.base_platform, resolution=64, normalize=False)

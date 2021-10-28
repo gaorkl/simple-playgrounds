@@ -266,9 +266,9 @@ class PerfectSemantic(SemanticRay):
         position_body = self._anchor.pm_body.position
         angle_body = self._anchor.pm_body.angle
 
-        points_hit = playground._space.point_query(position_body,
-                                                   self._max_range,
-                                                   shape_filter=ShapeFilter(ShapeFilter.ALL_MASKS()))
+        points_hit = playground.space.point_query(position_body,
+                                                  self._max_range,
+                                                  shape_filter=ShapeFilter(ShapeFilter.ALL_MASKS()))
 
         # Filter points too close
         points_hit = [pt for pt in points_hit

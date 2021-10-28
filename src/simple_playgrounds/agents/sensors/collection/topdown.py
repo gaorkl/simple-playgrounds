@@ -96,7 +96,7 @@ class TopdownLocal(ImageBasedSensor):
                           sensor_surface: pygame.Surface):
 
         for agent in playground.agents:
-            for part in agent.parts:
+            for part in agent._parts:
                 if part not in self._invisible_elements:
                     part.draw(sensor_surface)
 
@@ -178,7 +178,7 @@ class TopDownGlobal(ImageBasedSensor):
                           sensor_surface: pygame.Surface):
 
         for agent in playground.agents:
-            for part in agent.parts:
+            for part in agent._parts:
                 if part not in self._invisible_elements:
                     part.draw(sensor_surface)
 

@@ -9,10 +9,15 @@ Examples can be found in :
     - simple_playgrounds/agents/parts
     - simple_playgrounds/playgrounds/scene_elements
 """
+from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from enum import IntEnum, auto
-from typing import Union, Tuple, Dict, List, Optional
+from typing import Union, Tuple, Dict, List, Optional, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.playgrounds.playground import Playground
+
+
 
 import numpy as np
 import pygame
@@ -209,11 +214,37 @@ class Entity(ABC):
         self.graspable = graspable
         self.drawn = False
 
-        self.temporary = temporary
+        self._temporary = temporary
+
+        self._playground: Optional[Playground] = None
+
+    # Adding and removing from Playground
+
+    def add_to_playground(self, playground: Playground):
+
+        if self._playground:
+            raise ValueError('Entity {} already in a Playground'.format(self.name))
+
+        self._playground = playground
+        self._playground.space.add(*self.pm_elements)
+
+    def remove_from_playground(self):
+        self._playground.space.remove(*self.pm_elements)
+        self._playground = None
+
+    @property
+    def temporary(self):
+        return self._temporary
+
+    @property
+    def in_playground(self):
+        return bool(self._playground)
 
     def get_pixel(self, relative_pos):
 
         return self.texture.get_pixel(relative_pos)
+
+
 
     @property
     def base_color(self):
@@ -528,6 +559,9 @@ class Entity(ABC):
             surface.blit(visible_mask, mask_rect, None)
 
         self.drawn = True
+
+class Producer:
+    pass
 
 
 class PhysicalShapes(IntEnum):
