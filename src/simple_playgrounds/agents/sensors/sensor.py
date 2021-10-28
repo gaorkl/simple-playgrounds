@@ -313,7 +313,7 @@ class RayCollisionSensor(SensorDevice, ABC):
                 elem.pm_visible_shape.sensor = True
                 inv_shapes.append(elem.pm_visible_shape)
 
-        collision = playground.space.segment_query_first(
+        collision = playground._space.segment_query_first(
             position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
 
         for shape in inv_shapes:

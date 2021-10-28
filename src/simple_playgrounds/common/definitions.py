@@ -5,7 +5,7 @@
 from collections import namedtuple
 from enum import IntEnum, auto
 
-SIMULATION_STEPS = 10
+PYMUNK_STEPS = 10
 SPACE_DAMPING = 0.9
 LINEAR_FORCE = 100
 ANGULAR_VELOCITY = 0.3

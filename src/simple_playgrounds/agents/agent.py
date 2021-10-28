@@ -210,7 +210,7 @@ class Agent(ABC):
     def reindex_shapes(self):
 
         for part in self.parts:
-            part.pm_body.space.reindex_shapes_for_body(part.pm_body)
+            part.pm_body._space.reindex_shapes_for_body(part.pm_body)
 
     @property
     def position(self):
@@ -288,7 +288,7 @@ class Agent(ABC):
     @property
     def in_playground(self) -> bool:
 
-        if self.base_platform.pm_body.space:
+        if self.base_platform.pm_body._space:
             return True
         return False
 

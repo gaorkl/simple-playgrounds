@@ -27,7 +27,6 @@ from skimage.transform import rescale
 from .agents.agent import Agent
 from .agents.parts.actuators import Actuator, Activate
 from simple_playgrounds.agents.communication import Stream
-from .common.definitions import SIMULATION_STEPS
 from .playgrounds.playground import Playground
 from simple_playgrounds.agents.communication import CommunicationDevice
 
@@ -217,7 +216,7 @@ class Engine:
             }
             agent.apply_actions_to_actuators(action_dict)
 
-        self.playground.update(SIMULATION_STEPS)
+        self.playground.update()
 
         self.elapsed_time += 1
 
@@ -340,7 +339,7 @@ class Engine:
             if self._debug:
                 self._screen.fill((0, 0, 0))
                 options = pygame_util.DrawOptions(self._screen)
-                self.playground.space.debug_draw(options)
+                self.playground._space.debug_draw(options)
 
             else:
                 self._generate_surface_environment(with_interactions=True)

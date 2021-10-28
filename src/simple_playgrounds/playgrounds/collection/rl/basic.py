@@ -79,7 +79,7 @@ class CoinMaster(SingleRoom):
 
         super().reset()
 
-    def _fields_produce(self):
+    def _update_spawners(self):
 
-        super()._fields_produce()
+        super()._update_spawners()
         self.vending_machine.accepted_coins = self.field.produced_entities
