@@ -7,11 +7,14 @@ Examples on how to add Parts to an agent can be found
 in simple_playgrounds/agents/agents.py
 """
 from __future__ import annotations
+from typing import Tuple, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from simple_playgrounds.agents.parts.actuators import Actuator
 
 import math
 from abc import ABC
 from enum import IntEnum, auto
-from typing import Tuple
 
 import pymunk
 
@@ -44,13 +47,15 @@ class Part(Entity, ABC):
                         **kwargs)
 
         self.can_absorb = can_absorb
+        self.actuators: List[Actuator] = []
+
+        self.agent = None
 
     def _set_shape_collision(self):
         self.pm_visible_shape.collision_type = CollisionTypes.PART
 
     def reset(self):
         pass
-
 
 # Platforms
 

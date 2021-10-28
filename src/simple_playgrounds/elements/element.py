@@ -1,8 +1,12 @@
 """
 Module that defines Base Class SceneElement
 """
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from simple_playgrounds.agents.parts.actuators import Grasp
 
 from ..common.entity import Entity
 from ..common.position_utils import InitCoord
@@ -11,6 +15,19 @@ from ..common.position_utils import InitCoord
 class SceneElement(Entity, ABC):
     def __init__(self, **entity_params):
         super().__init__(**entity_params)
+        self._held_by: Optional[Grasp] = None
+
+    @property
+    def held_by(self):
+        return self._held_by
+
+    @held_by.setter
+    def held_by(self, actuator):
+        self._held_by = actuator
+
+    def reset(self):
+        super().reset()
+        self._held_by = None
 
 
 class InteractiveElement(SceneElement, ABC):

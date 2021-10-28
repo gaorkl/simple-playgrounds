@@ -65,8 +65,9 @@ def test_beam_area(base_forward_interactive_agent_external):
 
     actions = {agent: {agent.longitudinal_force: 1}}
 
-    while not agent.is_teleporting:
+    while not agent.has_teleported:
         engine.step(actions)
+        print('step')
 
     assert 30 <= agent.position[0] <= 80
     assert 30 <= agent.position[1] <= 80
@@ -89,7 +90,7 @@ def test_beam_homing(base_forward_interactive_agent_external):
 
     actions = {agent: {agent.longitudinal_force: 1}}
 
-    while not agent.is_teleporting:
+    while not agent.has_teleported:
         engine.step(actions)
 
     assert agent.position.get_distance(destination.position) < agent.base_platform.radius + destination.radius + 4 + 3

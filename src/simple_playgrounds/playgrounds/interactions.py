@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from simple_playgrounds.playgrounds.playground import Playground
 
@@ -16,23 +16,35 @@ from simple_playgrounds.agents.parts.actuators import Grasp, Activate
 from simple_playgrounds.common.devices import Device
 
 
-def get_interaction_participants(playground: Playground, arbiter)
+def get_colliding_entities(playground: Playground, arbiter):
 
+    entity_1 = playground.get_entity_from_shape(arbiter.shapes[0])
+    entity_2 = playground.get_entity_from_shape(arbiter.shapes[1])
+
+    agent_1 = None
+    agent_2 = None
+
+    if isinstance(entity_1, Part):
+        agent_1 = entity_1.agent
+
+    if isinstance(entity_2, Part):
+        agent_2 = entity_2.agent
+
+    return (entity_1, agent_1), (entity_2, agent_2)
 
 # Collision Handlers
 
 
-def _agent_touches_element(playground: Playground,
-                           arbiter: pymunk.Arbiter,
-                           space, data):
+def agent_touches_element(arbiter, space, data):
 
-    agent: Agent = playground.get_entity_from_shape(arbiter.shapes[0])
-    touched_element = playground.get_entity_from_shape(arbiter.shapes[1])
+    playground: Playground = data['playground']
+    (_, agent), (touched_element, _) = get_colliding_entities(playground, arbiter)
 
     if not touched_element:
         return True
 
     assert isinstance(touched_element, InteractiveElement)
+    assert isinstance(agent, Agent)
 
     agent.reward += touched_element.reward
 
@@ -44,16 +56,17 @@ def _agent_touches_element(playground: Playground,
 
     return True
 
-def _agent_activates_element(playground: Playground, arbiter, space, data):
 
-    agent: Agent = playground.get_entity_from_shape(arbiter.shapes[0])
-    part: Part = agent.get_part_from_shape(arbiter.shapes[0])
-    activable_element = playground.get_entity_from_shape(arbiter.shapes[1])
+def agent_activates_element(arbiter, space, data):
+
+    playground: Playground = data['playground']
+    (part, agent), (activable_element, _) = get_colliding_entities(playground, arbiter)
 
     if not activable_element:
         return True
 
     assert isinstance(activable_element, InteractiveElement)
+    assert isinstance(agent, Agent)
 
     # Note: later, should handle the case where two agents activate simultaneously.
     for actuator in agent.actuators:
@@ -74,54 +87,32 @@ def _agent_activates_element(playground: Playground, arbiter, space, data):
     return True
 
 
-def _agent_grasps_element(playground: Playground, arbiter, space, data):
+def agent_grasps_element(arbiter, space, data):
 
-    agent: Agent = playground.get_entity_from_shape(arbiter.shapes[0])
-    part: Part = agent.get_part_from_shape(arbiter.shapes[0])
-    grasped_element = playground.get_entity_from_shape(arbiter.shapes[1])
+    playground: Playground = data['playground']
+    (part, agent), (grasped_element, _) = get_colliding_entities(playground, arbiter)
 
     if not grasped_element:
         return True
 
     assert isinstance(grasped_element, SceneElement)
 
-    for actuator in agent.actuators:
+    for actuator in part.actuators:
 
-        if actuator.part is part and isinstance(actuator, Grasp):
-
-            if actuator.is_grasping and not actuator.is_holding:
-
-                actuator.is_holding = grasped_element
-
-                j_1 = pymunk.PinJoint(part.pm_body,
-                                      grasped_element.pm_body, (0, 0),
-                                      (0, 20))
-                j_2 = pymunk.PinJoint(part.pm_body,
-                                      grasped_element.pm_body, (0, 0),
-                                      (0, -20))
-
-                j_3 = pymunk.PinJoint(part.pm_body,
-                                      grasped_element.pm_body, (0, 20),
-                                      (0, 0))
-                j_4 = pymunk.PinJoint(part.pm_body,
-                                      grasped_element.pm_body, (0, -20),
-                                      (0, 0))
-
-                playground._space.add(j_1, j_2, j_3, j_4)
-                actuator.grasped = [j_1, j_2, j_3, j_4]
-
-                playground._grasped_elements[grasped_element] = actuator
+        if isinstance(actuator, Grasp) and actuator.is_grasping and not actuator.grasped_element:
+            actuator.grasp(grasped_element)
 
     return True
 
-def _gem_activates_element(playground: Playground, arbiter, space, data):
 
-    gem = playground.get_entity_from_shape(arbiter.shapes[0])
-    activable_element = playground.get_entity_from_shape(arbiter.shapes[1])
+def gem_activates_element(arbiter, space, data):
+
+    playground: Playground = data['playground']
+    (gem, _), (activable_element, _) = get_colliding_entities(playground, arbiter)
 
     assert isinstance(activable_element, InteractiveElement)
 
-    agent = playground._get_closest_agent(gem)
+    agent = playground.get_closest_agent(gem)
 
     if not gem:
         return True
@@ -140,39 +131,26 @@ def _gem_activates_element(playground: Playground, arbiter, space, data):
 
     return True
 
-def _agent_teleports(playground, arbiter, space, data):
 
-    agent = playground._get_agent_from_shape(arbiter.shapes[0])
-    teleport = playground._get_element_from_shape(arbiter.shapes[1])
+def agent_teleports(arbiter, space, data):
+
+    playground: Playground = data['playground']
+    (_, agent), (teleport, _) = get_colliding_entities(playground, arbiter)
 
     assert isinstance(teleport, TeleportElement)
 
-    if ((agent, teleport) in playground._teleported) or agent.is_teleporting:
+    if agent.has_teleported:
         return True
 
-    if isinstance(teleport.destination, TeleportElement):
-        playground._teleported.append((agent, teleport.destination))
-
-    new_position, new_angle = teleport.energize(agent)
-
-    delta_angle = agent.angle - new_angle
-
-    agent.position, agent.angle = new_position, new_angle
-
-    if teleport.keep_inertia:
-        agent.velocity = pymunk.Vec2d(
-            *agent.velocity).rotated(-delta_angle)
-    else:
-        agent.velocity = (0, 0)
-
-    agent.is_teleporting = True
+    teleport.energize(agent)
 
     return True
 
-def _modifier_modifies_device(playground, arbiter, space, data):
 
-    modifier = playground._get_element_from_shape(arbiter.shapes[0])
-    device = playground._get_device_from_shape(arbiter.shapes[1])
+def modifier_modifies_device(arbiter, space, data):
+
+    playground: Playground = data['playground']
+    (modifier, _), (device, _) = get_colliding_entities(playground, arbiter)
 
     assert isinstance(device, Device)
     assert isinstance(modifier, ModifierElement)

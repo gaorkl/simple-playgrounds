@@ -14,33 +14,34 @@ from abc import ABC
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..agents.communication import CommunicationDevice
-    from ..agents.sensors.sensor import SensorDevice
-    from ..agents.communication import CommunicationDevice
-    from ..agents.parts.parts import Part
-    from ..common.position_utils import InitCoord
+    from simple_playgrounds.agents.communication import CommunicationDevice
+    from simple_playgrounds.agents.sensors.sensor import SensorDevice
+    from simple_playgrounds.agents.communication import CommunicationDevice
+    from simple_playgrounds.agents.parts.parts import Part
+    from simple_playgrounds.common.position_utils import InitCoord
 
 import pymunk
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
+from simple_playgrounds.playgrounds.interactions import (gem_activates_element,
+                                                         agent_activates_element,
+                                                         agent_touches_element,
+                                                         agent_grasps_element,
+                                                         agent_teleports,
+                                                         modifier_modifies_device
+                                                         )
 
-from ..common.definitions import SPACE_DAMPING, CollisionTypes
-from ..common.timer import Timer
+from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes
+from simple_playgrounds.common.timer import Timer
 
-from ..elements.element import SceneElement
-from ..agents.agent import Agent
-from ..agents.parts.actuators import Grasp, Activate
-from ..elements.field import Field
-from ..elements.collection.activable import Dispenser
+from simple_playgrounds.elements.element import SceneElement, InteractiveElement
+from simple_playgrounds.agents.agent import Agent
+from simple_playgrounds.agents.parts.actuators import Grasp
+from simple_playgrounds.elements.field import Field
+from simple_playgrounds.elements.collection.activable import Dispenser
 
-from ..elements.collection.modifier import ModifierElement
-from ..common.devices import Device
-from ..elements.element import InteractiveElement
-
-from ..elements.collection.gem import GemElement
-from ..elements.collection.teleport import TeleportElement
-
+from simple_playgrounds.common.devices import Device
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -96,7 +97,6 @@ class Playground(ABC):
         # Private attributes for managing interactions in playground
         self._disappeared_elements: List[SceneElement] = []
         self._grasped_elements: Dict[SceneElement, Grasp] = {}
-        self._teleported: List[Tuple[Agent, SceneElement]] = []
 
         # Timers to handle periodic events
         self._timers: Dict[Timer, InteractiveElement] = {}
@@ -105,116 +105,11 @@ class Playground(ABC):
         self.initial_agent_coordinates: Optional[InitCoord] = None
 
         self._handle_interactions()
-        self.sensor_collision_index = 2
 
         # Timestep index. Starts at 0, and is incremented after each playground update.
         self._step = 0
 
-    @staticmethod
-    def _initialize_space() -> pymunk.Space:
-        """ Method to initialize Pymunk empty space for 2D physics.
-
-        Returns: Pymunk Space
-
-        """
-        space = pymunk.Space()
-        space.gravity = pymunk.Vec2d(0., 0.)
-        space.damping = SPACE_DAMPING
-
-        return space
-
-    def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
-        """ Update the Playground
-
-        Update all SceneElements, Fields, Timers and Grasps
-        Runs the Physics engine for n steps.
-
-        Args:
-            pymunk_steps: Number of steps
-
-        """
-
-        # Update the state of all elements and interactions
-        self._update_spawners()
-        self._update_grasps()
-        self._update_teleports()
-
-        # Update timers
-        self._update_timers()
-
-        # Agents communicate before moving
-        self._update_communications()
-
-        self._simulator_step(pymunk_steps)
-
-    def _simulator_step(self, pymunk_steps):
-
-        self._entities_pre_step()
-
-        for _ in range(pymunk_steps):
-            self._space.step(1. / pymunk_steps)
-
-        self._step += 1
-
-    def _update_communications(self):
-        # Update Comms after the simulation step
-        for comm in self._communication_devices:
-            comm.pre_step()
-
-        for comm in self._communication_devices:
-            comm.update_list_comms_in_range(self._communication_devices)
-
-    def _entities_pre_step(self):
-
-        for agent in self.agents:
-            agent.pre_step()
-
-        for elem in self.elements:
-            elem.pre_step()
-            if elem.trajectory:
-                self._space.reindex_shapes_for_body(elem.pm_body)
-
-    def reset(self):
-        """
-        Reset the Playground to its initial state.
-        """
-
-        # remove entities which are temporary. Reset the others
-        for element in self.elements.copy():
-            if element.temporary:
-                self._remove_element_from_playground(element)
-            else:
-                element.reset()
-                self._move_to_initial_position(element)
-
-        # reset and replace entities that are not temporary
-        for element in self._disappeared_elements.copy():
-            element.reset()
-            self._add_element_to_playground(element)
-            self._move_to_initial_position(element)
-
-        # reset fields
-        for field in self.fields:
-            field.reset()
-
-        # reset agents
-        for agent in self.agents.copy():
-            agent.reset()
-            self._move_to_initial_position(agent)
-
-        # reset timers
-        for timer in self._timers:
-            timer.reset()
-
-        # reset communication devices
-        for comm in self._communication_devices:
-            comm.reset()
-
-        self._teleported = []
-
-        self.done = False
-
-        self._step = 0
+    # Interface: Adding and Removing entities
 
     def add_agent(
         self,
@@ -338,6 +233,122 @@ class Playground(ABC):
 
         self._timers[timer] = element
 
+
+    def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
+        """ Update the Playground
+
+        Updates the Playground.
+        Time moves by one unit of time.
+
+        Args:
+            pymunk_steps: Number of steps for the pymunk physics engine to run.
+
+        Notes:
+            pymunk_steps only influences the micro-steps that the physical engine is taking to render
+            the movement of objects and collisions.
+            From an external point of view, one unit of time passes independent on the number
+            of pymunk_steps.
+
+        """
+
+        # Update the state of all elements and interactions
+        self._update_spawners()
+
+        # Update timers
+        self._update_timers()
+
+        # Agents communicate before physical steps
+        self._update_communications()
+
+        # Update all entities and interactions before physical steps
+        self._update_entities()
+
+        # Move one timestep by pymunk_steps increments
+        self._physics_simulator_step(pymunk_steps)
+
+    def reset(self):
+        """
+        Reset the Playground to its initial state.
+        """
+
+        # remove entities which are temporary. Reset the others
+        for element in self.elements.copy():
+            if element.held_by:
+                element.held_by.release_grasp()
+
+            if element.temporary:
+                self._remove_element_from_playground(element)
+            else:
+                element.reset()
+                self._move_to_initial_position(element)
+
+        # reset and replace entities that are not temporary
+        for element in self._disappeared_elements.copy():
+            element.reset()
+            self._add_element_to_playground(element)
+            self._move_to_initial_position(element)
+
+        # reset fields
+        for field in self.fields:
+            field.reset()
+
+        # reset agents
+        for agent in self.agents.copy():
+            agent.reset()
+            self._move_to_initial_position(agent)
+
+        # reset timers
+        for timer in self._timers:
+            timer.reset()
+
+        # reset communication devices
+        for comm in self._communication_devices:
+            comm.reset()
+
+
+        self.done = False
+
+        self._step = 0
+
+
+    @staticmethod
+    def _initialize_space() -> pymunk.Space:
+        """ Method to initialize Pymunk empty space for 2D physics.
+
+        Returns: Pymunk Space
+
+        """
+        space = pymunk.Space()
+        space.gravity = pymunk.Vec2d(0., 0.)
+        space.damping = SPACE_DAMPING
+
+        return space
+
+    def _physics_simulator_step(self, pymunk_steps):
+
+        for _ in range(pymunk_steps):
+            self._space.step(1. / pymunk_steps)
+
+        self._step += 1
+
+    def _update_communications(self):
+        # Update Comms after the simulation step
+        for comm in self._communication_devices:
+            comm.pre_step()
+
+        for comm in self._communication_devices:
+            comm.update_list_comms_in_range(self._communication_devices)
+
+    def _update_entities(self):
+
+        for agent in self.agents:
+            agent.pre_step()
+
+        for elem in self.elements:
+            elem.pre_step()
+            if elem.trajectory:
+                self._space.reindex_shapes_for_body(elem.pm_body)
+
     # Private methods for Agents
 
     def _add_agent_to_playground(self, agent: Agent):
@@ -433,10 +444,8 @@ class Playground(ABC):
             if element in field.produced_entities:
                 field.produced_entities.remove(element)
 
-        if element in self._grasped_elements.keys():
-            actuator = self._grasped_elements[element]
-            self._space.remove(*actuator.grasped)
-            actuator.grasped = []
+        if element.held_by:
+            element.held_by.release_grasp()
 
         return True
 
@@ -474,37 +483,6 @@ class Playground(ABC):
             if timer.tic:
                 elems_remove, elems_add = element.activate(timer)
                 self.remove_add_within(elems_remove, elems_add)
-
-    def _update_grasps(self):
-
-        for agent in self.agents:
-
-            for actuator in agent.actuators:
-
-                # if agent is not holding anymore
-                if isinstance(actuator, Grasp):
-
-                    if actuator.is_holding and not actuator.grasped:
-                        actuator.is_holding = False
-
-                    # if agent is not holding anymore
-                    if not actuator.is_holding:
-
-                        for joint in actuator.grasped:
-                            self._space.remove(joint)
-                        actuator.grasped = []
-
-        for element_grasped, actuator in self._grasped_elements.copy().items():
-            if not actuator.grasped:
-                self._grasped_elements.pop(element_grasped)
-
-    def _update_teleports(self):
-
-        for agent, teleport in self._teleported.copy():
-
-            overlaps = self._overlaps(agent, teleport)
-            if not overlaps and not agent.is_teleporting:
-                self._teleported.remove((agent, teleport))
 
     # Overlaps
 
@@ -610,9 +588,13 @@ class Playground(ABC):
             if part:
                 return part
 
+        for device in self._communication_devices + self._sensor_devices:
+            if device.pm_shape is pm_shape:
+                return device
+
         return None
 
-    def _get_closest_agent(self, element: SceneElement) -> Agent:
+    def get_closest_agent(self, element: SceneElement) -> Agent:
         return min(self.agents,
                    key=lambda a: element.position.get_dist_sqrd(a.position))
 
@@ -621,18 +603,18 @@ class Playground(ABC):
         # Order is important
 
         self.add_interaction(CollisionTypes.PART, CollisionTypes.GRASPABLE,
-                             self._agent_grasps_element)
+                             agent_grasps_element)
         self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
-                             self._agent_touches_element)
+                             agent_touches_element)
         self.add_interaction(CollisionTypes.PART, CollisionTypes.ACTIVABLE,
-                             self._agent_activates_element)
+                             agent_activates_element)
         self.add_interaction(CollisionTypes.GEM,
                              CollisionTypes.ACTIVABLE_BY_GEM,
-                             self._gem_activates_element)
+                             gem_activates_element)
         self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
-                             self._agent_teleports)
+                             agent_teleports)
         self.add_interaction(CollisionTypes.MODIFIER, CollisionTypes.DEVICE,
-                             self._modifier_modifies_device)
+                             modifier_modifies_device)
 
     def add_interaction(
         self,
@@ -654,6 +636,7 @@ class Playground(ABC):
         handler = self._space.add_collision_handler(collision_type_1,
                                                     collision_type_2)
         handler.pre_solve = interaction_function
+        handler.data['playground'] = self
 
 
 class PlaygroundRegister:

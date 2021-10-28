@@ -146,7 +146,7 @@ def test_timer_switch(base_forward_interactive_agent_external):
     engine.step(actions)
     assert door not in playground.elements
 
-    for i in range(8):
+    for i in range(9):
         engine.step()
         assert door not in playground.elements
 
@@ -157,7 +157,7 @@ def test_timer_switch(base_forward_interactive_agent_external):
     engine.step(actions)
     assert door not in playground.elements
 
-    for i in range(8):
+    for i in range(9):
         engine.step()
         assert door not in playground.elements
 
@@ -171,7 +171,7 @@ def test_timer_switch(base_forward_interactive_agent_external):
     engine.step(actions)
     assert door not in playground.elements
 
-    for i in range(8):
+    for i in range(9):
         engine.step()
         assert door not in playground.elements
 

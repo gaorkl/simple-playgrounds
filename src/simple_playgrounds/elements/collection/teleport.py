@@ -1,16 +1,18 @@
 """
 Teleport can be used to teleport an agent.
 """
+from __future__ import annotations
+from typing import Union, Optional, Tuple, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.agents.agent import Agent
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from math import pi
-from typing import Union, Optional, Tuple
-
 from pymunk import Vec2d
 
 from .basic import Traversable
 from ..element import SceneElement
-from ...agents.agent import Agent
 from ...common.definitions import CollisionTypes, ElementTypes
 from ...common.position_utils import CoordinateSampler, Coordinate
 from ...configs.parser import parse_configuration
@@ -42,8 +44,25 @@ class TeleportElement(SceneElement, ABC):
         self._destination = destination
         self.keep_inertia = keep_inertia
 
-    @abstractmethod
     def energize(self, agent: Agent):
+
+        new_position, new_angle = self._calculate_new_coordinates(agent)
+        delta_angle = agent.angle - new_angle
+        agent.position, agent.angle = new_position, new_angle
+
+        if self.keep_inertia:
+            agent.velocity = Vec2d(
+                *agent.velocity).rotated(-delta_angle)
+        else:
+            agent.velocity = (0, 0)
+
+        if isinstance(self._destination, TeleportElement):
+            agent.has_teleported_to(self._destination)
+        else:
+            agent.has_teleported_to( (new_position, new_angle) )
+
+    @abstractmethod
+    def _calculate_new_coordinates(self, agent: Agent):
         pass
 
     @property
@@ -71,7 +90,7 @@ class TeleportToCoordinates(TeleportElement, ABC):
         if not isinstance(destination, CoordinateSampler):
             assert len(destination) == 2 and len(destination[0]) == 2
 
-    def energize(self, agent: Agent):
+    def _calculate_new_coordinates(self, agent: Agent):
 
         if isinstance(self.destination, CoordinateSampler):
             return self.destination.sample()
@@ -118,7 +137,7 @@ class TeleportToElement(TeleportElement, ABC):
 
         self.relative_teleport = relative_teleport
 
-    def energize(self, agent: Agent):
+    def _calculate_new_coordinates(self, agent: Agent):
 
         relative_position = Vec2d(*agent.position) - self.position
 
@@ -205,7 +224,7 @@ class Portal(TeleportElement):
     def _set_shape_collision(self):
         self.pm_invisible_shape.collision_type = CollisionTypes.TELEPORT
 
-    def energize(self, agent: Agent):
+    def _calculate_new_coordinates(self, agent: Agent):
 
         relative_position = Vec2d(*agent.position) - self.position
 

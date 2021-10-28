@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from pygame import Surface
     from ..common.entity import Entity
     from ..agents.communication import CommunicationDevice
+    from simple_playgrounds.elements.element import SceneElement
 
 from abc import ABC
 import numpy as np
@@ -27,6 +28,7 @@ from PIL import Image, ImageDraw, ImageFont
 from ..common.position_utils import CoordinateSampler, Coordinate
 from .parts.parts import Part, Platform, AnchoredPart
 from .parts.actuators import Grasp
+from simple_playgrounds.elements.collection.teleport import TeleportElement
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -80,6 +82,7 @@ class Agent(ABC):
 
         # Body parts
         self.base_platform: Part = base_platform
+        base_platform.agent = self
         self.parts: List[Part] = [self.base_platform]
 
         # Default starting position
@@ -98,7 +101,8 @@ class Agent(ABC):
         self.reward: float = 0
 
         # Teleport
-        self.is_teleporting: bool = False
+        self._teleported_to: Optional[Coordinate, TeleportElement] = None
+        self._has_teleported: bool = False
 
         # Used to set an element which is not supposed to overlap
         self._allow_overlapping: bool = False
@@ -151,8 +155,8 @@ class Agent(ABC):
         list_hold = []
 
         for act in self.actuators:
-            if isinstance(act, Grasp) and act.is_holding:
-                list_hold.append(act.is_holding)
+            if isinstance(act, Grasp) and act.grasped_element:
+                list_hold.append(act.grasped_element)
 
         return list_hold
 
@@ -334,7 +338,7 @@ class Agent(ABC):
 
     # BODY PARTS
 
-    def add_body_part(self, part: Part):
+    def add_part(self, part: Part):
         """
         Add a Part to the agent
         Args:
@@ -342,6 +346,7 @@ class Agent(ABC):
 
         """
         self.parts.append(part)
+        part.agent = self
 
     def apply_actions_to_actuators(self, actions_dict: Dict[Actuator, float]):
         """
@@ -389,13 +394,59 @@ class Agent(ABC):
 
     # DYNAMICS
 
+    @property
+    def teleported_to(self):
+        return self._teleported_to
+
+    def has_teleported_to(self, destination):
+        self._teleported_to = destination
+        self._has_teleported = True
+
+    @property
+    def has_teleported(self):
+        return self._has_teleported
+
     def pre_step(self):
         """
         Reset actuators and reward to 0 before a new step of the environment.
         """
 
         self.reward = 0
-        self.is_teleporting = False
+
+        # If the agent is outside of the range of the teleport it arrived on,
+        # it can again use the teleport.
+
+        self._update_teleport()
+
+        for actuator in self.actuators:
+            actuator.pre_step()
+
+    def _update_teleport(self):
+
+        self._has_teleported = False
+
+        if isinstance(self._teleported_to, TeleportElement):
+            if self._overlaps(self._teleported_to):
+                return
+
+        self._teleported_to = None
+
+
+
+    def _overlaps(
+        self,
+        entity: Entity,
+    ) -> bool:
+
+        for part in self.parts:
+
+            if entity.pm_visible_shape and part.pm_visible_shape.shapes_collide(entity.pm_visible_shape):
+                return True
+
+            if entity.pm_invisible_shape and part.pm_visible_shape.shapes_collide(entity.pm_invisible_shape):
+                return True
+
+        return False
 
     def reset(self):
         """
