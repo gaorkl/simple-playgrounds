@@ -5,45 +5,31 @@ These sensors can be noisy.
 Importantly, as Simple-Playgrounds is a 2D environments, these sensors are 1D.
 """
 import math
-from typing import List, Optional, Dict, Union
 
 import numpy as np
 import pymunk
 from skimage.transform import resize
 
-from .sensor import RayCollisionSensor
-from ..parts.parts import Part
-from ...common.definitions import SensorTypes
-from ...common.entity import Entity
-from ...configs.parser import parse_configuration
+from simple_playgrounds.agents.sensors.sensor import RayBasedSensor
+from simple_playgrounds.common.definitions import SensorTypes
+from simple_playgrounds.configs.parser import parse_configuration
 
 # pylint: disable=no-member
 
 
-class RgbCamera(RayCollisionSensor):
+class RgbCamera(RayBasedSensor):
     """
     Provides a 1D image (line of RGB pixels) from the point of view of the anchor.
     """
 
     sensor_type = SensorTypes.RGB
 
-    def __init__(self,
-                 anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity],
-                                                    Entity]] = None,
-                 normalize: bool = True,
-                 noise_params: Optional[Dict] = None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
 
         default_config = parse_configuration('agent_sensors', self.sensor_type)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         remove_duplicates=False,
-                         **kwargs)
+        super().__init__(anchor, remove_duplicates=False, **kwargs)
 
         self._sensor_max_value = 255
 
@@ -146,31 +132,19 @@ class BlindCamera(GreyCamera):
         self.sensor_values = np.zeros(self.shape)
 
 
-class Lidar(RayCollisionSensor):
+class Lidar(RayBasedSensor):
     """
     Lidar are Sensors that measure distances by projecting rays.
     """
 
     sensor_type = SensorTypes.LIDAR
 
-    def __init__(self,
-                 anchor: Part,
-                 invisible_elements: Optional[Union[List[Entity],
-                                                    Entity]] = None,
-                 normalize: bool = True,
-                 noise_params: Optional[Dict] = None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
 
         default_config = parse_configuration('agent_sensors', self.sensor_type)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         remove_duplicates=False,
-                         remove_occluded=False,
-                         **kwargs)
+        super().__init__(anchor, **kwargs)
 
         self._sensor_max_value = self._max_range
 
@@ -236,18 +210,9 @@ class Touch(Lidar):
 
     sensor_type = SensorTypes.TOUCH
 
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         **kwargs)
+        super().__init__(anchor, **kwargs)
 
         self._sensor_max_value = self._max_range
         self._max_range = self._anchor.radius + self._max_range  # pylint: disable=access-member-before-definition

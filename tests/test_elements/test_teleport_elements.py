@@ -1,5 +1,4 @@
 import math
-import time
 
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom

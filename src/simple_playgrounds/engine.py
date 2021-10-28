@@ -29,6 +29,7 @@ from .agents.parts.actuators import Actuator, Activate
 from simple_playgrounds.agents.communication import Stream
 from .playgrounds.playground import Playground
 from simple_playgrounds.agents.communication import CommunicationDevice
+from simple_playgrounds.agents.sensors.sensor import ExternalSensor
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
@@ -401,8 +402,8 @@ class Engine:
 
             for sensor in agent.sensors:
 
-                sensor.pre_step()
-                sensor.set_temporary_invisible(temporary_invisible)
+                if isinstance(sensor, ExternalSensor):
+                    sensor.set_temporary_invisible(temporary_invisible)
 
                 if sensor.requires_surface:
                     self._update_surface_background()

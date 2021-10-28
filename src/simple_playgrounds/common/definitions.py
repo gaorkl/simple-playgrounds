@@ -111,7 +111,7 @@ class ElementTypes(IntEnum):
     SENSOR_DISABLER = auto()
     COMM_DISABLER = auto()
 
-    FIELD = auto()
+    SPAWNER = auto()
 
 
 class SensorTypes(IntEnum):
@@ -131,7 +131,7 @@ class SensorTypes(IntEnum):
     SEMANTIC_RAY = auto()
     TOP_DOWN = auto()
     FULL_PLAYGROUND = auto()
-    PERFECT_LIDAR = auto()
+    PERFECT_SEMANTIC = auto()
 
 
 Detection = namedtuple('Detection', 'entity, distance, angle')

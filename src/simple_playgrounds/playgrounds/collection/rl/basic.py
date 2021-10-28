@@ -8,7 +8,7 @@ from ...playground import PlaygroundRegister
 from ....common.position_utils import CoordinateSampler
 from ....elements.collection.activable import VendingMachine
 from ....elements.collection.gem import Coin
-from ....elements.field import Field
+from ....elements.spawner import Spawner
 
 
 @PlaygroundRegister.register('basic_rl', 'coinmaster_singleroom')
@@ -28,7 +28,7 @@ class CoinMaster(SingleRoom):
                                               reward=1)
         self.add_element(self.vending_machine, self.area_vending)
 
-        self.field = Field(Coin,
+        self.spawner = Spawner(Coin,
                            self.area_prod,
                            max_elements_in_playground=5,
                            production_limit=1000,
@@ -37,7 +37,7 @@ class CoinMaster(SingleRoom):
                                'vending_machine': self.vending_machine,
                                'reward': 1
                            })
-        self.add_field(self.field)
+        self.add_spawner(self.spawner)
 
         self.time_limit = 2000
 
@@ -74,12 +74,12 @@ class CoinMaster(SingleRoom):
         for agent in self.agents:
             agent.initial_coordinates = self.agent_starting_area
 
-        self.field.location_sampler = self.area_prod
+        self.spawner.location_sampler = self.area_prod
         self.vending_machine.initial_position = self.area_vending
 
         super().reset()
 
-    def _update_spawners(self):
+    def _spawners_produce(self):
 
-        super()._update_spawners()
-        self.vending_machine.accepted_coins = self.field.produced_entities
+        super()._spawners_produce()
+        self.vending_machine.accepted_coins = self.spawner.produced_entities

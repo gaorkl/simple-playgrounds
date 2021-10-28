@@ -5,7 +5,7 @@ Topdown sensors are based computed using the image provided by the environment.
 from __future__ import annotations
 from typing import Tuple, List, Union, TYPE_CHECKING
 if TYPE_CHECKING:
-    from ...playgrounds.playground import Playground
+    from simple_playgrounds.playgrounds.playground import Playground
 
 import math
 
@@ -14,26 +14,20 @@ import pygame
 from skimage import draw
 from skimage.transform import resize, rotate
 
-from .sensor import SensorDevice
-from ...common.definitions import SensorTypes
-from ...configs.parser import parse_configuration
+from simple_playgrounds.agents.sensors.sensor import ImageBasedSensor
+from simple_playgrounds.common.definitions import SensorTypes
+from simple_playgrounds.configs.parser import parse_configuration
 
 
 # pylint: disable=no-member
 
 
-class TopdownSensor(SensorDevice):
+class TopdownLocal(ImageBasedSensor):
     """
     TopdownSensor provides an image from bird's eye view, centered and oriented on the anchor.
     The anchor is, by default, visible to the agent.
     """
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 only_front=False,
-                 **sensor_params):
+    def __init__(self, anchor, only_front=False, **kwargs):
         """
         Refer to Sensor Class.
 
@@ -50,13 +44,9 @@ class TopdownSensor(SensorDevice):
 
         default_config = parse_configuration('agent_sensors',
                                              SensorTypes.TOP_DOWN)
-        sensor_params = {**default_config, **sensor_params}
+        kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         **sensor_params)
+        super().__init__(anchor, **kwargs)
 
         self.only_front = only_front
 
@@ -146,37 +136,6 @@ class TopdownSensor(SensorDevice):
 
         self.sensor_values = masked_img[:, ::-1, ::-1]
 
-    def _apply_normalization(self):
-        self.sensor_values /= self._sensor_max_value
-
-    def _apply_noise(self):
-
-        if self._noise_type == 'gaussian':
-
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
-
-        elif self._noise_type == 'salt_pepper':
-
-            proba = [
-                self._noise_probability / 2, 1 - self._noise_probability,
-                self._noise_probability / 2
-            ]
-            additive_noise = np.random.choice(
-                [-self._sensor_max_value, 0, self._sensor_max_value],
-                p=proba,
-                size=self.shape)
-
-        else:
-            raise ValueError
-
-        self.sensor_values += additive_noise
-
-        self.sensor_values[self.sensor_values < 0] = 0
-        self.sensor_values[self.sensor_values >
-                           self._sensor_max_value] = self._sensor_max_value
-
     @property
     def shape(self):
 
@@ -184,34 +143,13 @@ class TopdownSensor(SensorDevice):
             return int(self._resolution / 2), self._resolution, 3
         return self._resolution, self._resolution, 3
 
-    def _get_null_sensor(self):
-        return np.zeros(self.shape)
 
-    def draw(self, width, *_):
-
-        height_display = int(width * self.shape[0] / self.shape[1])
-
-        image = resize(self.sensor_values, (height_display, width),
-                       order=0,
-                       preserve_range=True)
-
-        if not self._apply_normalization:
-            image /= 255.
-
-        return image
-
-
-class FullPlaygroundSensor(SensorDevice):
+class TopDownGlobal(ImageBasedSensor):
     """
     FullPlaygroundSensor provides an image from bird's eye view of the full playground.
     There is no anchor.
     """
-    def __init__(self,
-                 anchor,
-                 invisible_elements=None,
-                 normalize=True,
-                 noise_params=None,
-                 **kwargs):
+    def __init__(self, anchor, **kwargs):
         """
         Refer to Sensor Class.
 
@@ -228,23 +166,13 @@ class FullPlaygroundSensor(SensorDevice):
                                              SensorTypes.FULL_PLAYGROUND)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor=anchor,
-                         invisible_elements=invisible_elements,
-                         normalize=normalize,
-                         noise_params=noise_params,
-                         **kwargs)
-
-        if invisible_elements:
-            self._invisible_elements = invisible_elements
-        else:
-            self._invisible_elements = []
+        super().__init__(anchor, **kwargs)
 
         self._scale = None
 
-        self._sensor_max_value = 255
+        self._sensor_max_value = 255.
 
         self.requires_surface = True
-        self.requires_scale = True
 
     def _get_sensor_image(self, playground: Playground,
                           sensor_surface: pygame.Surface):
@@ -273,59 +201,14 @@ class FullPlaygroundSensor(SensorDevice):
                                     order=0,
                                     preserve_range=True)
 
-    def set_scale(self, size_playground: Union[List[float], Tuple[float,
-                                                                  float]]):
+    def set_playground_size(self, size: Union[List[float], Tuple[float, float]]):
+        super().set_playground_size(size)
 
-        max_size = max(size_playground)
-        self._scale = (int(self._resolution * size_playground[1] / max_size),
-                       int(self._resolution * size_playground[0] / max_size))
-
-    def _apply_normalization(self):
-        self.sensor_values /= self._sensor_max_value
-
-    def _apply_noise(self):
-
-        if self._noise_type == 'gaussian':
-
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
-
-        elif self._noise_type == 'salt_pepper':
-
-            additive_noise = np.random.choice(
-                [-self._sensor_max_value, 0, self._sensor_max_value],
-                p=[
-                    self._noise_probability / 2, 1 - self._noise_probability,
-                    self._noise_probability / 2
-                ],
-                size=self.shape)
-
-        else:
-            raise ValueError
-
-        self.sensor_values += additive_noise
-
-        self.sensor_values[self.sensor_values < 0] = 0
-        self.sensor_values[self.sensor_values >
-                           self._sensor_max_value] = self._sensor_max_value
+        # Compute the scaling for the sensor value
+        max_size = max(size)
+        self._scale = (int(self._resolution * size[1] / max_size),
+                       int(self._resolution * size[0] / max_size))
 
     @property
     def shape(self):
         return self._scale[0], self._scale[1], 3
-
-    def _get_null_sensor(self):
-        return np.zeros(self.shape)
-
-    def draw(self, width, *_):
-
-        height_display = int(width * self.shape[0] / self.shape[1])
-
-        image = resize(self.sensor_values, (height_display, width),
-                       order=0,
-                       preserve_range=True)
-
-        if not self._apply_normalization:
-            image /= 255.
-
-        return image
