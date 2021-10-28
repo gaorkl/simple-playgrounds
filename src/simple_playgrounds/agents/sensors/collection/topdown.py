@@ -14,9 +14,9 @@ import pygame
 from skimage import draw
 from skimage.transform import resize, rotate
 
-from ..sensor import ImageBasedSensor
-from ....common.definitions import SensorTypes
-from ....configs.parser import parse_configuration
+from simple_playgrounds.agents.sensors.sensor import ImageBasedSensor
+from simple_playgrounds.common.definitions import SensorTypes
+from simple_playgrounds.configs.parser import parse_configuration
 
 
 # pylint: disable=no-member

@@ -7,7 +7,7 @@ Importantly, as Simple-Playgrounds is a 2D environments, these sensors are 1D.
 import math
 import numpy as np
 
-from ..sensor import InternalSensor
+from simple_playgrounds.agents.sensors.sensor import InternalSensor
 
 
 class Position(InternalSensor):
