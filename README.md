@@ -54,7 +54,7 @@ the keyboard control of the agents.
 
 [04 - Modify the appearance of elements](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/04_Textures.ipynb)
 
-[05 - Fields elements](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/05_Fields.ipynb)
+[05 - Spawners elements](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/05_Spawners.ipynb)
 
 [06 - Using agents and sensors](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/tutorials/jupyter/06_Agents.ipynb)
 

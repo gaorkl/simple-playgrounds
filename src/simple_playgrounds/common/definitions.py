@@ -111,7 +111,7 @@ class ElementTypes(IntEnum):
     SENSOR_DISABLER = auto()
     COMM_DISABLER = auto()
 
-    FIELD = auto()
+    SPAWNER = auto()
 
 
 class SensorTypes(IntEnum):

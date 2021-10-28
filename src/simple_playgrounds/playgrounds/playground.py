@@ -29,7 +29,7 @@ from ..common.timer import Timer
 from ..elements.element import SceneElement
 from ..agents.agent import Agent
 from ..agents.parts.actuators import Grasp, Activate
-from ..elements.field import Field
+from ..elements.spawner import Spawner
 from ..elements.collection.activable import Dispenser
 
 from ..elements.collection.modifier import ModifierElement
@@ -52,7 +52,7 @@ class Playground(ABC):
     Attributes:
         size: size of the scene (width, length).
         elements: list of SceneElements present in the Playground.
-        fields: list of fields producing SceneElements in the Playground.
+        spawners: list of spawners producing elements in the Playground.
         agents: list of Agents present in the Playground.
         initial_agent_coordinates: position or PositionAreaSampler,
             Starting position of an agent (single agent).
@@ -85,7 +85,7 @@ class Playground(ABC):
 
         # Public attributes for entities in the playground
         self.elements: List[SceneElement] = []
-        self.fields: List[Field] = []
+        self.spawners: List[Spawner] = []
         self.agents: List[Agent] = []
 
         self._communication_devices: List[CommunicationDevice] = []
@@ -122,7 +122,7 @@ class Playground(ABC):
     def update(self, steps: int):
         """ Update the Playground
 
-        Update all SceneElements, Fields, Timers and Grasps
+        Update all SceneElements, Spawners, Timers and Grasps
         Runs the Physics engine for n steps.
 
         Args:
@@ -130,7 +130,7 @@ class Playground(ABC):
 
         """
 
-        self._fields_produce()
+        self._spawners_produce()
         self._release_grasps()
         self._check_teleports()
 
@@ -178,9 +178,9 @@ class Playground(ABC):
             self._add_element_to_playground(element)
             self._move_to_initial_position(element)
 
-        # reset fields
-        for field in self.fields:
-            field.reset()
+        # reset spawners
+        for spawner in self.spawners:
+            spawner.reset()
 
         # reset agents
         for agent in self.agents.copy():
@@ -266,15 +266,15 @@ class Playground(ABC):
         self.agents.remove(agent)
         assert not agent.in_playground
 
-    def add_field(self, field: Field):
+    def add_spawner(self, spawner: Spawner):
 
-        assert isinstance(field, Field)
+        assert isinstance(spawner, Spawner)
 
         # If already there
-        if field in self.fields:
-            raise ValueError('Field already in Playground')
+        if spawner in self.spawners:
+            raise ValueError('Spawner already in Playground')
 
-        self.fields.append(field)
+        self.spawners.append(spawner)
 
     def add_element(
         self,
@@ -411,9 +411,9 @@ class Playground(ABC):
             if element in dispenser.produced_entities:
                 dispenser.produced_entities.remove(element)
 
-        for field in self.fields:
-            if element in field.produced_entities:
-                field.produced_entities.remove(element)
+        for spawner in self.spawners:
+            if element in spawner.produced_entities:
+                spawner.produced_entities.remove(element)
 
         if element in self._grasped_elements.keys():
             actuator = self._grasped_elements[element]
@@ -440,13 +440,27 @@ class Playground(ABC):
                 else:
                     self._move_to_initial_position(elem)
 
-    def _fields_produce(self):
+    def _spawners_produce(self):
 
-        for field in self.fields:
+        for spawner in self.spawners:
+            elem_list = spawner.produce(self.steps)
 
-            if field.can_produce():
-                element, position = field.produce()
-                self.add_element(element, position)
+            for element, position in elem_list:
+                allow_overlapping = spawner.allow_overlapping
+                if isinstance(element, SceneElement):
+                    self.add_element(
+                        element,
+                        position,
+                        allow_overlapping=allow_overlapping,
+                    )
+                elif isinstance(element, Agent):
+                    self.add_agent(
+                        element,
+                        position,
+                        allow_overlapping=allow_overlapping,
+                    )
+                else:
+                    raise ValueError('Spawners can only produce SceneElements or Agents')
 
     def _update_timers(self):
 

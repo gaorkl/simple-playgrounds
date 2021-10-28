@@ -3,7 +3,7 @@ from ...playground import PlaygroundRegister
 from ....common.position_utils import CoordinateSampler, Trajectory
 from ....elements.collection.aura import Fireball
 from ....elements.collection.contact import Candy
-from ....elements.field import Field
+from ....elements.spawner import Spawner
 
 
 @PlaygroundRegister.register('basic_rl', 'candy_fireballs')
@@ -47,9 +47,9 @@ class CandyFireballs(SingleRoom):
                                       area_shape='rectangle',
                                       size=(150, 150))
 
-        field = Field(Candy,
+        spawner = Spawner(Candy,
                       production_area=area_prod,
                       probability=probability_production)
-        self.add_field(field)
+        self.add_spawner(spawner)
 
         self.time_limit = time_limit

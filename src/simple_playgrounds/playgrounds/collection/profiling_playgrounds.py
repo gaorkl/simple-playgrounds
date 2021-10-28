@@ -15,7 +15,7 @@ from ...elements.collection.edible import Apple, RottenApple
 from ...elements.collection.gem import Key, Coin
 from ...elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
 from ...elements.collection.zone import DeathZone, GoalZone, HealingZone, ToxicZone
-from ...elements.field import Field
+from ...elements.spawner import Spawner
 from ...common.texture import RandomTilesTexture
 
 from numpy.random import default_rng
