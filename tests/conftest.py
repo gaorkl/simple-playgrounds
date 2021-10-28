@@ -8,9 +8,9 @@ from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
-                                               Proximity, Touch, TopdownSensor,
-                                               FullPlaygroundSensor, PerfectSemantic,
-                                               SemanticRay, SemanticCones)
+                                               Proximity, Touch, TopdownLocal,
+                                               TopDownGlobal, PerfectSemantic,
+                                               SemanticRay, SemanticCones, Position, Velocity)
 
 from simple_playgrounds.elements.collection.basic import Physical
 
@@ -63,16 +63,16 @@ def base_forward_interactive_agent_external():
     return agent
 
 
-
 ###########################
 # AGENT BODY
 ###########################
 
+
 @pytest.fixture(scope="module",
                 params=[
                     RgbCamera, GreyCamera, Lidar, Touch, Proximity,
-                    TopdownSensor, FullPlaygroundSensor, SemanticRay,
-                    SemanticCones, PerfectSemantic
+                    TopdownLocal, TopDownGlobal, SemanticRay,
+                    SemanticCones, PerfectSemantic, Position, Velocity
                 ])
 def any_sensor(request):
     return request.param
@@ -83,17 +83,17 @@ def ray_sensor(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 90, 180])
+@pytest.fixture(scope="module", params=[1, 180])
 def fov(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 100, 500])
+@pytest.fixture(scope="module", params=[100, 500])
 def obs_range(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[2, 32, 64])
+@pytest.fixture(scope="module", params=[1, 32])
 def resolution(request):
     return request.param
 
@@ -136,18 +136,17 @@ def wall_type(request):
     return request.param
 
 
-
 ###########################
 # Elements
 ###########################
 
 @pytest.fixture(scope="module", params=[True, False])
-def movable(request):
+def is_movable(request):
     return request.param
 
 
 @pytest.fixture(scope="module", params=[2, 10, 15])
-def radius(request):
+def elem_radius(request):
     return request.param
 
 
@@ -163,17 +162,17 @@ def radius(request):
         'polygon',
     ],
 )
-def basic_element(request, movable, radius):
+def basic_element(request, is_movable, elem_radius):
 
     if request.param == 'rectangle':
-        kwargs = {'size': (radius, radius)}
+        kwargs = {'size': (elem_radius, elem_radius)}
     elif request.param == 'polygon':
         kwargs = {'vertices': [[-10, 0], [0, 5], [-2, 0], [0, -5], [-10, 0]]}
     else:
-        kwargs = {'radius': radius}
+        kwargs = {'radius': elem_radius}
 
     return Physical(
-        config_key=request.param, movable=movable, mass=10, **kwargs)
+        config_key=request.param, movable=is_movable, mass=10, **kwargs)
 
 
 ####################

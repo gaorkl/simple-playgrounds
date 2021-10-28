@@ -10,10 +10,10 @@ from simple_playgrounds.playgrounds.collection.profiling_playgrounds import Basi
 
 
 @pytest.fixture(scope="module", params=[sensors.RgbCamera,
-                   sensors.Lidar,
-                   sensors.SemanticRay,
-                   sensors.TopdownSensor,
-                   sensors.FullPlaygroundSensor])
+                                        sensors.Lidar,
+                                        sensors.SemanticRay,
+                                        sensors.TopdownLocal,
+                                        sensors.TopDownGlobal])
 def type_sensor(request):
     return request.param
 

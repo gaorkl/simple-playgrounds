@@ -73,7 +73,7 @@ def test_reward_changer(reward, base_forward_interactive_agent_external):
 
         for d in durations:
 
-            for t in range(d):
+            for _ in range(d):
                 assert change.texture.base_color == colors[index_color]
                 engine.step(actions)
                 assert agent.reward == sign*reward

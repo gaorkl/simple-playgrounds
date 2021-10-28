@@ -1,6 +1,3 @@
-import numpy
-import pytest
-
 import numpy as np
 
 from simple_playgrounds.engine import Engine
@@ -11,8 +8,8 @@ from simple_playgrounds.agents.parts.controllers import External
 from simple_playgrounds.agents.communication import CommunicationDevice
 from simple_playgrounds.elements.collection.modifier import CommunicationDisabler, SensorDisabler
 
-from simple_playgrounds.agents.sensors.robotic_sensors import Lidar, RgbCamera
-from simple_playgrounds.agents.sensors.semantic_sensors import SemanticRay
+from simple_playgrounds.agents.sensors.collection.robotic import Lidar, RgbCamera
+from simple_playgrounds.agents.sensors import SemanticRay
 from simple_playgrounds.agents.sensors.sensor import SensorDevice
 
 
@@ -113,9 +110,9 @@ def test_disable_all_sensors():
         lateral=False
     )
 
-    sensor_1 = RgbCamera(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
-    sensor_2 = Lidar(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
-    sensor_3 = SemanticRay(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
+    sensor_1 = RgbCamera(agent_1.base_platform, invisible_elements=agent_1.parts)
+    sensor_2 = Lidar(agent_1.base_platform, invisible_elements=agent_1.parts)
+    sensor_3 = SemanticRay(agent_1.base_platform, invisible_elements=agent_1.parts)
 
     agent_1.add_sensor(sensor_1)
     agent_1.add_sensor(sensor_2)
@@ -151,9 +148,9 @@ def test_one_sensor():
         lateral=False
     )
 
-    sensor_1 = RgbCamera(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
-    sensor_2 = Lidar(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
-    sensor_3 = SemanticRay(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, range=400)
+    sensor_1 = RgbCamera(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, max_range=400)
+    sensor_2 = Lidar(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, max_range=400)
+    sensor_3 = SemanticRay(anchor=agent_1.base_platform, invisible_elements=agent_1.parts, max_range=400)
 
     agent_1.add_sensor(sensor_1)
     agent_1.add_sensor(sensor_2)
@@ -171,8 +168,8 @@ def test_one_sensor():
     for sensor in [sensor_1, sensor_2, sensor_3]:
 
         if isinstance(sensor, RgbCamera):
-            assert np.all(sensor.sensor_values == sensor._get_null_sensor())
             assert sensor._disabled
+            assert np.all(sensor.sensor_values == sensor._get_null_sensor())
 
         else:
             assert not sensor._disabled

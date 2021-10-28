@@ -1,15 +1,9 @@
-""" Module defining the Base Classes for Sensors.
-
-This module implements the base class Sensor, that all sensors inherit from.
-It also implements a base class RayCollisionSensor.
-RayCollisionSensor use pymunk collisions with lines to create different
-families of sensors and allow very fast computation.
-
-Apart if specified, all sensors are attached to an anchor.
-They compute sensor-values from the point of view of this anchor.
 """
+Module defining the Base Classes for Sensors.
+"""
+
 from __future__ import annotations
-from typing import List, Dict, Optional, Union, TYPE_CHECKING
+from typing import List, Dict, Optional, Union, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
     from ...playgrounds.playground import Playground
 
@@ -20,18 +14,21 @@ from operator import attrgetter
 import numpy as np
 import pymunk
 from pygame import Surface
+from PIL import Image, ImageDraw, ImageFont
+from skimage.transform import resize
 
-from ...common.devices import Device
-from ..parts.parts import Part
-from ...common.entity import Entity
+from simple_playgrounds.common.devices import Device
+from simple_playgrounds.agents.parts.parts import Part
+from simple_playgrounds.common.entity import Entity
+from simple_playgrounds.elements.element import SceneElement
 
 
 class SensorDevice(Device):
     """ Base class Sensor, used as an Interface for all sensors.
 
     Attributes:
-        anchor: body Part to which the sensor is attached.
-            Sensor is attached to the center of the Anchor.
+        anchor: Part or Element to which the sensor is attached.
+            Sensor is attached to the center of the anchor.
         sensor_values: current values of the sensor.
         name: Name of the sensor.
 
@@ -43,29 +40,19 @@ class SensorDevice(Device):
     _index_sensor = 0
 
     def __init__(self,
-                 anchor: Part,
-                 fov: float,
-                 resolution: int,
-                 max_range: float,
-                 normalize: bool,
+                 anchor: Union[Part, SceneElement],
                  noise_params: Optional[Dict] = None,
-                 min_range: Optional[float] = None,
-                 invisible_elements: Optional[Union[List[Entity],
-                                                    Entity]] = None,
+                 normalize: Optional[bool] = False,
                  name: Optional[str] = None,
-                 **_kwargs):
+                 **kwargs,
+                 ):
         """
-        Sensors are attached to an anchor. They detect every visible Agent Part or Scene Element.
+        Sensors are attached to an anchor.
+        They can detect any visible Part of an Agent or Elements of the Playground.
         If the entity is in invisible elements, it is not detected.
 
         Args:
             anchor: Body Part or Scene Element on which the sensor will be attached.
-            fov: Field of view of the sensor (in degrees).
-            resolution: Resolution of the sensor (in pixels, or number of rays).
-            max_range: maximum range of the sensor (in the same units as the playground distances).
-            min_range: minimum range of the sensor (in the same units as the playground distances).
-                        Default: 0
-            invisible_elements: Optional list of elements invisible to the sensor.
             normalize: boolean. If True, sensor values are scaled between 0 and 1.
             noise_params: Dictionary of noise parameters.
                 Noise is applied to the raw sensor, before normalization.
@@ -74,31 +61,16 @@ class SensorDevice(Device):
         Noise Parameters:
             type: 'gaussian', 'salt_pepper'
             mean: mean of gaussian noise (default 0)
-            scale: scale / std of gaussian noise (default 1)
+            scale: scale (or std) of gaussian noise (default 1)
             salt_pepper_probability: probability for a pixel to be turned off or max
 
-        Notes:
-             Three approaches can be used to prevent a sensor from detecting the parts of an agent.
-
-             The first approach consists in not setting min_range and invisible_elements.
-             In this case the min_range will by default be set to the correct value to start detection after
-             the anchor. However this approach might be limited to the case of simple agents with only a base.
-
-             The second approach is to set min_range large enough so that the sensors start at a reasonable distance.
-
-             Finally, another approach, which is slower, is to use the invisible_elements argument to make all parts
-             of the agent invisible.
-
-             The sensor values are the same when using invisible_elements or setting a minimum range.
-             If the sensor values are normalized, the values might be slightly different for distance sensors.
-             The approach that sets invisible_elements attributes is preferred as it is slightly faster.
         """
 
         Device.__init__(self, anchor=anchor)
 
         # Sensor name
         # Internal counter to assign number and name to each sensor
-        if name is not None:
+        if name:
             self.name = name
         else:
             self.name = self.__class__.__name__.lower() + '_' + str(
@@ -106,20 +78,6 @@ class SensorDevice(Device):
             SensorDevice._index_sensor += 1
 
         self.sensor_values = None
-
-        # Invisible elements
-        if isinstance(invisible_elements, Entity):
-            invisible_elements = [invisible_elements]
-        self._invisible_elements = invisible_elements
-
-        if not invisible_elements:
-            self._invisible_elements = []
-
-        if not invisible_elements and not min_range:
-            min_range = self._anchor.radius + 1
-        elif invisible_elements and not min_range:
-            min_range = 0
-        self._min_range = min_range
 
         self._normalize = normalize
 
@@ -138,30 +96,14 @@ class SensorDevice(Device):
             else:
                 raise ValueError('Noise type not implemented')
 
-        self._max_range = max_range
-        self._fov = fov * math.pi / 180
-        self._resolution = resolution
-
-        if not self._resolution > 0:
-            raise ValueError('resolution must be more than 1')
-        if not self._fov > 0:
-            raise ValueError('field of view must be more than 1')
-        if not self._max_range > 0:
-            raise ValueError('maximum range must be more than 1')
-        if not self._min_range >= 0:
-            raise ValueError('minimum range must be more than 0')
-
         # Sensor max value is used for noise and normalization calculation
         self._sensor_max_value: float = 0.
 
         # If it requires a topdown representation of the playground
         # to compute the sensor values
-        self.requires_surface = False
-        self.requires_scale = False
-
-        # Temporary invisible to manage elements that are invisible to the agent or sensor.
-        # Manages dynamic invisibility. Elements are invisible some times.
-        self._temporary_invisible: List[Entity] = []
+        self.requires_surface: bool = False
+        self.requires_playground_size: bool = False
+        self._pg_size: Optional[Tuple[int, int]] = None
 
     def update(self, playground: Playground, sensor_surface: Surface):
 
@@ -177,43 +119,34 @@ class SensorDevice(Device):
             if self._normalize:
                 self._apply_normalization()
 
-    def pre_step(self):
-        self._temporary_invisible = []
-
-    def set_temporary_invisible(self, temporary_invisible: List[Entity]):
-        self._temporary_invisible = temporary_invisible
-
     @abstractmethod
     def _compute_raw_sensor(
         self,
         playground: Playground,
         sensor_surface: Surface,
     ):
-        pass
+        ...
 
     @abstractmethod
     def _apply_normalization(self):
-        pass
+        ...
 
     @abstractmethod
     def _apply_noise(self):
-        pass
+        ...
 
     @abstractmethod
     def _get_null_sensor(self):
         ...
 
     @property
+    @abstractmethod
     def shape(self):
         """ Returns the shape of the numpy array, if applicable."""
-        return None
+        ...
 
     @abstractmethod
-    def draw(
-        self,
-        width: int,
-        height: int,
-    ):
+    def draw(self, width: int, height: int):
         """
         Function that creates an image for visualizing a sensor.
 
@@ -225,15 +158,82 @@ class SensorDevice(Device):
             Numpy array containing the visualization of the sensor values.
 
         """
-        return None
+        ...
 
-    def set_scale(self, size):
+    def set_playground_size(self, size):
         pass
 
 
-class RayCollisionSensor(SensorDevice, ABC):
+##################
+# External Sensors
+##################
+
+class ExternalSensor(SensorDevice, ABC):
+
+    def __init__(self,
+                 anchor,
+                 fov: float,
+                 resolution: int,
+                 max_range: float,
+                 min_range: float,
+                 invisible_elements: Optional[Union[List[Entity],
+                                                    Entity]] = None,
+                 **kwargs,
+                 ):
+
+        """
+
+        Args:
+            fov: Field of view of the sensor (in degrees).
+            resolution: Resolution of the sensor (depends on the sensor).
+            max_range: maximum range of the sensor (in units of distance).
+            min_range: minimum range of the sensor (in units of distance).
+            invisible_elements: Optional list of elements invisible to the sensor.
+            **kwargs:
+
+        """
+
+        super().__init__(anchor, **kwargs)
+
+        self._invisible_elements: List[Entity]
+
+        # Invisible elements
+        if not invisible_elements:
+            self._invisible_elements = []
+        elif isinstance(invisible_elements, Entity):
+            self._invisible_elements = [invisible_elements]
+        else:
+            self._invisible_elements = invisible_elements
+
+        self._min_range = min_range
+        self._max_range = max_range
+        self._fov = fov * math.pi / 180
+        self._resolution = resolution
+
+        if self._resolution < 0:
+            raise ValueError('resolution must be more than 1')
+        if self._fov < 0:
+            raise ValueError('field of view must be more than 1')
+        if self._max_range < 0:
+            raise ValueError('maximum range must be more than 1')
+        if self._min_range < 0:
+            raise ValueError('minimum range must be more than 1')
+
+        # Temporary invisible to manage elements that are invisible to the agent or sensor.
+        # Manages dynamic invisibility. Elements are invisible some times.
+        self._temporary_invisible: List[Entity] = []
+
+    def pre_step(self):
+        super().pre_step()
+        self._temporary_invisible = []
+
+    def set_temporary_invisible(self, temporary_invisible: List[Entity]):
+        self._temporary_invisible = temporary_invisible
+
+
+class RayBasedSensor(ExternalSensor, ABC):
     """
-    Base class for Ray Collision sensors.
+    Base class for Ray Based sensors.
     Ray collisions are computed using pymunk segment queries.
     They detect intersection with obstacles.
     Robotic sensors and Semantic sensors inherit from this class.
@@ -241,7 +241,8 @@ class RayCollisionSensor(SensorDevice, ABC):
     """
     def __init__(
         self,
-        remove_duplicates: bool,
+        anchor,
+        remove_duplicates: Optional[bool] = False,
         **kwargs,
     ):
         """
@@ -249,11 +250,32 @@ class RayCollisionSensor(SensorDevice, ABC):
             remove_duplicates: If True, removes detections of the same objects on multiple rays.
                 Keeps the closest detection.
             **kwargs: Additional sensor params.
+
+        Notes:
+         Three approaches can be used to prevent a sensor from detecting the parts of an agent.
+
+         (1) Do not set min_range and invisible_elements.
+         In this case the min_range will by default be set to the correct value to start detection after
+         the anchor.
+         The computation of robotic and semantic sensors is in general faster with this approach.
+         However this approach might be limited to the case of simple agents with only a base.
+
+         (2) Set min_range large enough so that the sensors start at a reasonable distance.
+
+         (3) Use the invisible_elements argument to make all parts
+         of the agent invisible.
+         This approach is slightly slower but easier to implement and use.
+
         """
 
-        super().__init__(**kwargs)
+        super().__init__(anchor, **kwargs)
 
         self._remove_duplicates = remove_duplicates
+
+        # Rays need to start at least after anchor
+        if (self._anchor not in self._invisible_elements) \
+                and (self._min_range < self._anchor.radius + 1):
+            self._min_range = self._anchor.radius + 1
 
         # Field of View of the Sensor
         if self._resolution == 1:
@@ -362,3 +384,107 @@ class RayCollisionSensor(SensorDevice, ABC):
         self.sensor_values[self.sensor_values < 0] = 0
         self.sensor_values[self.sensor_values >
                            self._sensor_max_value] = self._sensor_max_value
+
+
+class ImageBasedSensor(ExternalSensor, ABC):
+
+    """
+    Base class for Image Based sensors.
+    Image based sensors are computed using the top-down rendering of the playground.
+
+    """
+
+    def __init__(
+            self,
+            anchor,
+            **kwargs,
+    ):
+        super().__init__(anchor, **kwargs)
+
+    def _apply_normalization(self):
+        self.sensor_values /= self._sensor_max_value
+
+    def _apply_noise(self):
+
+        if self._noise_type == 'gaussian':
+
+            additive_noise = np.random.normal(self._noise_mean,
+                                              self._noise_scale,
+                                              size=self.shape)
+
+        elif self._noise_type == 'salt_pepper':
+
+            proba = [
+                self._noise_probability / 2, 1 - self._noise_probability,
+                self._noise_probability / 2
+            ]
+            additive_noise = np.random.choice(
+                [-self._sensor_max_value, 0, self._sensor_max_value],
+                p=proba,
+                size=self.shape)
+
+        else:
+            raise ValueError
+
+        self.sensor_values += additive_noise
+
+        self.sensor_values[self.sensor_values < 0] = 0
+        self.sensor_values[self.sensor_values >
+                           self._sensor_max_value] = self._sensor_max_value
+
+    def _get_null_sensor(self):
+        return np.zeros(self.shape)
+
+    def draw(self, width, *_):
+
+        height_display = int(width * self.shape[0] / self.shape[1])
+
+        image = resize(self.sensor_values, (height_display, width),
+                       order=0,
+                       preserve_range=True)
+
+        if not self._normalize:
+            image /= 255.
+
+        return image
+
+##################
+# Internal Sensors
+##################
+
+
+class InternalSensor(SensorDevice, ABC):
+
+    """
+    Base Class for Internal Sensors.
+    """
+
+    def _get_null_sensor(self):
+        return np.zeros(self.shape)
+
+    def _apply_noise(self):
+        if self._noise_type == 'gaussian':
+            additive_noise = np.random.normal(self._noise_mean,
+                                              self._noise_scale,
+                                              size=self.shape)
+
+        else:
+            raise ValueError
+
+        self.sensor_values += additive_noise
+
+    def draw(self, width: int, height: int):
+        img = Image.new("RGB", (width, height), (255, 255, 255))
+        drawer_image = ImageDraw.Draw(img)
+
+        if self.sensor_values is not None:
+            fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height * 1 / 2))
+            values_str = ", ".join(["%.2f" % e for e in self.sensor_values])
+            w_text, h_text = fnt.getsize(text=values_str)
+            pos_text = ((width - w_text) / 2, (height - h_text) / 2)
+            drawer_image.text(pos_text,
+                              values_str,
+                              font=fnt,
+                              fill=(0, 0, 0))
+
+        return np.asarray(img) / 255.

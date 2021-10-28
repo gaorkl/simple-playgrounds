@@ -13,6 +13,8 @@ from __future__ import annotations
 from abc import ABC
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
+import pymunk
+
 if TYPE_CHECKING:
     from ..agents.communication import CommunicationDevice
     from ..agents.sensors.sensor import SensorDevice
@@ -20,7 +22,6 @@ if TYPE_CHECKING:
     from ..agents.parts.parts import Part
     from ..common.position_utils import InitCoord
 
-import pymunk
 
 from ..common.definitions import SPACE_DAMPING, CollisionTypes
 from ..common.timer import Timer
@@ -103,6 +104,7 @@ class Playground(ABC):
 
         self._handle_interactions()
         self.sensor_collision_index = 2
+        self.steps = 0
 
     @staticmethod
     def _initialize_space() -> pymunk.Space:
@@ -143,6 +145,9 @@ class Playground(ABC):
         for comm in self._communication_devices:
             comm.pre_step()
 
+        for sensor in self._sensor_devices:
+            sensor.pre_step()
+
         for _ in range(steps):
             self.space.step(1. / steps)
 
@@ -151,6 +156,8 @@ class Playground(ABC):
         # Update Comms
         for comm in self._communication_devices:
             comm.update_list_comms_in_range(self._communication_devices)
+
+        self.steps += 1
 
     def reset(self):
         """
@@ -190,6 +197,7 @@ class Playground(ABC):
 
         self._teleported = []
 
+        self.steps = 0
         self.done = False
 
     def add_agent(
@@ -336,9 +344,7 @@ class Playground(ABC):
 
             self._sensor_devices.append(sensor)
             self.space.add(sensor.pm_shape)
-
-            if sensor.requires_scale:
-                sensor.set_scale(self.size)
+            sensor.set_playground_size(self.size)
 
     # Private methods for Elements
 
@@ -508,8 +514,7 @@ class Playground(ABC):
 
             return False
 
-        else:
-            assert entity.pm_visible_shape
+        assert entity.pm_visible_shape
 
         if entity_2 and entity_2.pm_visible_shape:
 

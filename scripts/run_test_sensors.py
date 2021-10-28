@@ -1,4 +1,3 @@
-import simple_playgrounds.agents.sensors.semantic_sensors
 from simple_playgrounds.playgrounds.collection import *
 
 from simple_playgrounds.engine import Engine
@@ -15,13 +14,15 @@ rgb = sensors.RgbCamera(my_agent.base_platform,
                 invisible_elements=my_agent.parts,
                 fov=180,
                 resolution=64,
-                max_range=500)
+                max_range=500,
+                normalize = True)
 my_agent.add_sensor(rgb)
 
 rgb = sensors.RgbCamera(my_agent.base_platform,
                 fov=180,
                 resolution=64,
-                max_range=500)
+                max_range=500,
+                normalize=False)
 my_agent.add_sensor(rgb)
 
 # grey = sensors.GreyCamera(my_agent.head, invisible_elements=my_agent.parts, fov=180, resolution=64, max_range=500)
@@ -42,17 +43,26 @@ my_agent.add_sensor(sem_ray)
 sem_cones = sensors.SemanticCones(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, remove_duplicates=False)
 my_agent.add_sensor(sem_cones)
 
-td = sensors.TopdownSensor(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, only_front=True, fov=180)
+td = sensors.TopdownLocal(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, only_front=True, fov=180)
 my_agent.add_sensor(td)
 
-fi = sensors.FullPlaygroundSensor(my_agent.base_platform, resolution=64)
+fi = sensors.TopDownGlobal(my_agent.base_platform, resolution=64, normalize=False)
 my_agent.add_sensor(fi)
 
-fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectSemantic(my_agent.base_platform)
+fi = sensors.PerfectSemantic(my_agent.base_platform)
 my_agent.add_sensor(fi)
 
 
-fi = simple_playgrounds.agents.sensors.semantic_sensors.PerfectSemantic(my_agent.base_platform, fov=180)
+fi = sensors.PerfectSemantic(my_agent.base_platform, fov=180)
+my_agent.add_sensor(fi)
+
+fi = sensors.Position(my_agent.base_platform)
+my_agent.add_sensor(fi)
+
+fi = sensors.Velocity(my_agent.base_platform)
+my_agent.add_sensor(fi)
+
+fi = sensors.RelativeVelocity(my_agent.base_platform)
 my_agent.add_sensor(fi)
 
 

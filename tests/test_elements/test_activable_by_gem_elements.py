@@ -1,7 +1,5 @@
 from simple_playgrounds.engine import Engine
 from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.agents.agents import BaseAgent
-from simple_playgrounds.agents.parts.controllers import External
 
 from simple_playgrounds.elements.collection.activable import VendingMachine, Chest, Lock
 from simple_playgrounds.elements.collection.gem import Coin, Key
