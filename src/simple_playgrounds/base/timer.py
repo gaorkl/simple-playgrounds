@@ -1,12 +1,12 @@
 from abc import ABC
 from typing import Union, List, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
-    from simple_playgrounds.elements.element import InteractiveElement
-    from simple_playgrounds.elements.spawner import Spawner
+    from simple_playgrounds.base.activable import Activable
+    from simple_playgrounds.base.producer import Producer
 
 
 class Timer(ABC):
-    def __init__(self, timed_entity: Union[InteractiveElement, Spawner]):
+    def __init__(self, timed_entity: Union[InteractiveElement, Producer]):
 
         self._running = False
         self._time = 0

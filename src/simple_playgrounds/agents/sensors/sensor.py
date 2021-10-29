@@ -17,7 +17,7 @@ from pygame import Surface
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
-from simple_playgrounds.common.devices import Device
+from simple_playgrounds.base.device import Device
 from simple_playgrounds.agents.parts.parts import Part
 from simple_playgrounds.common.entity import Entity
 from simple_playgrounds.elements.element import SceneElement

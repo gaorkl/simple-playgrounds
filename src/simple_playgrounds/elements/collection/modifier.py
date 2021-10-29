@@ -9,7 +9,7 @@ from ...common.definitions import ElementTypes, CollisionTypes
 from ...configs.parser import parse_configuration
 from ...elements.element import SceneElement
 
-from ...common.devices import Device
+from simple_playgrounds.base.device import Device
 from ...agents.communication import CommunicationDevice
 from ...agents.sensors.sensor import SensorDevice
 

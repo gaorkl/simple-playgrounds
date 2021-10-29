@@ -3,7 +3,7 @@ import math
 from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
 from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory
-from simple_playgrounds.common.timer import CountDownTimer, PeriodicTimer
+from simple_playgrounds.base.timer import CountDownTimer, PeriodicTimer
 from simple_playgrounds.elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation, OpenCloseSwitch, \
     TimerSwitch, Lock
 from simple_playgrounds.elements.collection.aura import Fairy, Fireball

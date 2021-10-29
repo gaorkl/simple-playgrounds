@@ -8,7 +8,7 @@ from ..element import InteractiveElement
 from ...agents.agent import Agent
 from ...common.definitions import CollisionTypes, ElementTypes
 from ...common.texture import Texture, TextureGenerator, ColorTexture
-from ...common.timer import Timer
+from simple_playgrounds.base.timer import Timer
 from ...configs.parser import parse_configuration
 
 

@@ -10,8 +10,8 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
+from abc import ABC
+from typing import Union, List, Dict, Optional, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from simple_playgrounds.agents.communication import CommunicationDevice
@@ -33,12 +33,12 @@ from simple_playgrounds.playgrounds.interactions import (gem_activates_element,
                                                          )
 
 from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, MAX_ATTEMPTS_OVERLAPPING
-from simple_playgrounds.common.timer import Timer
+from simple_playgrounds.base.timer import Timer
 
 from simple_playgrounds.elements.element import SceneElement
 from simple_playgrounds.agents.agent import Agent
 from simple_playgrounds.elements.spawner import Spawner
-from simple_playgrounds.common.devices import Device
+from simple_playgrounds.base.device import Device
 
 
 # pylint: disable=unused-argument
@@ -526,57 +526,6 @@ class Playground(ABC):
         handler.pre_solve = interaction_function
         handler.data['playground'] = self
 
-
-class Entity(ABC):
-    """
-    Base class that defines the interface between playground and entities that are composing it.
-    Entities can be: SceneElement, Agent, Spawner, Timer, ...
-    """
-
-    index_entity = 0
-
-    def __init__(self, name: Optional[str] = None):
-
-        self._name: str
-
-        if not name:
-            name = self.__class__.__name__ + '_' + str(Entity.index_entity)
-        self._name = name
-
-        Entity.index_entity += 1
-
-        self._playground: Optional[Playground] = None
-
-    @property
-    def playground(self):
-        return self._playground
-
-    def add_to_playground(self, playground: Playground):
-        self._playground = playground
-        self._add_to_playground()
-
-    @abstractmethod
-    def _add_to_playground(self):
-        ...
-
-    def remove_from_playground(self):
-        self._remove_from_playground()
-
-    @abstractmethod
-    def _remove_from_playground(self):
-        ...
-
-    @abstractmethod
-    def pre_step(self):
-        ...
-
-    @abstractmethod
-    def activate(self):
-        ...
-
-    @abstractmethod
-    def reset(self):
-        ...
 
 
 class PlaygroundRegister:

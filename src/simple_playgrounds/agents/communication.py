@@ -1,13 +1,10 @@
 from __future__ import annotations
 from typing import Optional, Any, List, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
-    from simple_playgrounds.playgrounds.playground import Playground
-
-import pymunk
+    pass
 
 from simple_playgrounds.common.entity import Entity
-from simple_playgrounds.common.devices import Device
-from simple_playgrounds.common.definitions import CollisionTypes
+from simple_playgrounds.base.device import Device
 
 
 class CommunicationDevice(Device):

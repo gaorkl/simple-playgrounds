@@ -3,8 +3,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from simple_playgrounds.playgrounds.playground import Playground
 
-import pymunk
-
 from simple_playgrounds.elements.element import InteractiveElement, SceneElement
 from simple_playgrounds.elements.collection.gem import GemElement
 from simple_playgrounds.elements.collection.teleport import TeleportElement
@@ -13,7 +11,7 @@ from simple_playgrounds.elements.collection.modifier import ModifierElement
 from simple_playgrounds.agents.agent import Agent, Part
 from simple_playgrounds.agents.parts.actuators import Grasp, Activate
 
-from simple_playgrounds.common.devices import Device
+from simple_playgrounds.base.device import Device
 
 
 def get_colliding_entities(playground: Playground, arbiter):

@@ -7,7 +7,7 @@ from simple_playgrounds.elements.collection.contact import Candy
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.elements.collection.basic import Door
 
-from simple_playgrounds.common.timer import CountDownTimer
+from simple_playgrounds.base.timer import CountDownTimer
 
 
 def test_dispenser(base_forward_interactive_agent_external):

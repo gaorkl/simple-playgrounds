@@ -3,7 +3,7 @@ from simple_playgrounds.playgrounds.layouts import SingleRoom
 
 from simple_playgrounds.elements.collection.conditioning import ColorChanging, FlipReward
 from simple_playgrounds.elements.collection.activable import RewardOnActivation
-from simple_playgrounds.common.timer import PeriodicTimer
+from simple_playgrounds.base.timer import PeriodicTimer
 
 
 def test_color_changing(base_forward_interactive_agent_external):

@@ -1,38 +1,34 @@
-""" Contains the base class for entities.
-
-Entity class should be used to create body parts of
-an agent, or scene entities.
-Entity is the generic building block of physical and interactive
-objects in simple-playgrounds.
-
-Examples can be found in :
-    - simple_playgrounds/agents/parts
-    - simple_playgrounds/playgrounds/scene_elements
-"""
-from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
-from enum import IntEnum, auto
-from typing import Union, Tuple, Dict, List, Optional, TYPE_CHECKING
-if TYPE_CHECKING:
-    from simple_playgrounds.playgrounds.playground import Playground
-
-
+from typing import Union, Dict, Tuple, Optional, List, TYPE_CHECKING
 
 import numpy as np
 import pygame
 import pymunk
-from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY, CollisionTypes
+from enum import IntEnum, auto
 
-from .position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
-from .texture import Texture, TextureGenerator, ColorTexture
+if TYPE_CHECKING:
+    from simple_playgrounds.common.position_utils import InitCoord, Trajectory, CoordinateSampler, Coordinate
+
+from simple_playgrounds.common.definitions import CollisionTypes, FRICTION_ENTITY, ELASTICITY_ENTITY,\
+    MAX_ATTEMPTS_OVERLAPPING
+from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
+from simple_playgrounds.base.entity import Entity
 
 
-# pylint: disable=line-too-long
-# pylint: disable=too-many-instance-attributes
+class PhysicalShapes(IntEnum):
+
+    LINE = 2
+    TRIANGLE = 3
+    SQUARE = 4
+    PENTAGON = 5
+    HEXAGON = 6
+    CIRCLE = 60
+    RECTANGLE = auto()
+    POLYGON = auto()
 
 
-class Entity(ABC):
+class PhysicalEntity(Entity, ABC):
     """
     Entity creates a physical object, and deals with interactive properties and visual appearance
     """
@@ -40,20 +36,18 @@ class Entity(ABC):
     index_entity = 0
 
     def __init__(
-        self,
-        visible_shape: bool,
-        invisible_shape: bool,
-        texture: Union[Texture, Dict, Tuple[int, int, int]],
-        physical_shape: str,
-        invisible_range: float = 5,
-        graspable: bool = False,
-        traversable: bool = False,
-        movable: bool = False,
-        temporary: bool = False,
-        mass: Optional[float] = None,
-        background: bool = True,
-        pymunk_attributes: Optional[Dict] = None,
-        **kwargs,
+            self,
+            visible_shape: bool,
+            invisible_shape: bool,
+            texture: Union[Texture, Dict, Tuple[int, int, int]],
+            physical_shape: str,
+            invisible_range: float = 5,
+            graspable: bool = False,
+            traversable: bool = False,
+            movable: bool = False,
+            mass: Optional[float] = None,
+            background: bool = True,
+            **kwargs,
     ):
         """
         Polygon not yet usable: display problem.
@@ -76,6 +70,8 @@ class Entity(ABC):
             **kwargs:
         """
 
+        Entity.__init__(**kwargs)
+
         # Physical properties of the entity
         if graspable:
             movable = True
@@ -93,11 +89,11 @@ class Entity(ABC):
         self._size_visible: Union[Tuple[float, float], List[float]]
 
         if self.physical_shape in [
-                PhysicalShapes.TRIANGLE,
-                PhysicalShapes.SQUARE,
-                PhysicalShapes.PENTAGON,
-                PhysicalShapes.HEXAGON,
-                PhysicalShapes.CIRCLE,
+            PhysicalShapes.TRIANGLE,
+            PhysicalShapes.SQUARE,
+            PhysicalShapes.PENTAGON,
+            PhysicalShapes.HEXAGON,
+            PhysicalShapes.CIRCLE,
         ]:
             radius = kwargs.get('radius')
             assert radius is not None and isinstance(radius, (float, int))
@@ -175,8 +171,6 @@ class Entity(ABC):
 
         if isinstance(texture, Dict):
             texture = TextureGenerator.create(**texture)
-
-        elif isinstance(texture, (tuple, list)):
             texture = ColorTexture(color=texture)
 
         assert isinstance(texture, Texture)
@@ -190,46 +184,23 @@ class Entity(ABC):
         # Used to set an element which is not supposed to overlap
         self._allow_overlapping = False
         self._overlapping_strategy_set = False
-        self._max_attempts = 100
-
-        self._set_pm_attr(pymunk_attributes)
+        self._max_attempts = MAX_ATTEMPTS_OVERLAPPING
 
         if invisible_shape or movable:
             background = False
+        self._background = background
 
-        self.background = background
-        self.movable = movable
-        self.graspable = graspable
         self.drawn = False
-
-        self._temporary = temporary
-
-        self._playground: Optional[Playground] = None
 
     # Adding and removing from Playground
 
-    def add_to_playground(self, playground: Playground):
-
-        if self._playground:
-            raise ValueError('Entity {} already in a Playground'.format(self.name))
-
-        self._playground = playground
+    def _add_to_playground(self):
         self._playground.space.add(*self.pm_elements)
 
     def remove_from_playground(self):
         self._playground.space.remove(*self.pm_elements)
-        self._playground = None
-
-    @property
-    def temporary(self):
-        return self._temporary
-
-    @property
-    def in_playground(self):
-        return bool(self._playground)
 
     def get_pixel(self, relative_pos):
-
         return self.texture.get_pixel(relative_pos)
 
     @property
@@ -247,27 +218,6 @@ class Entity(ABC):
     @abstractmethod
     def _set_shape_collision(self):
         pass
-
-    def assign_shape_filter(self, category_index: int):
-        """
-        Used to define collisions between entities.
-        Used for sensors.
-
-        Returns:
-
-        """
-        if self.pm_visible_shape is not None:
-            mask_filter = self.pm_visible_shape.filter.mask ^ 2**category_index
-            self.pm_visible_shape.filter = pymunk.ShapeFilter(
-                categories=self.pm_visible_shape.filter.categories,
-                mask=mask_filter)
-
-    def _set_pm_attr(self, attr):
-
-        if attr:
-            for prop, value in attr.items():
-                for pm_elem in self.pm_elements:
-                    setattr(pm_elem, prop, value)
 
     # BODY AND SHAPE
 
@@ -504,7 +454,7 @@ class Entity(ABC):
         if self.trajectory:
             self.position, self.angle = next(self.trajectory)
 
-        if not self.background:
+        if not self._background:
             self.drawn = False
 
     def reset(self):
@@ -545,18 +495,3 @@ class Entity(ABC):
             surface.blit(visible_mask, mask_rect, None)
 
         self.drawn = True
-
-class Producer:
-    pass
-
-
-class PhysicalShapes(IntEnum):
-
-    LINE = 2
-    TRIANGLE = 3
-    SQUARE = 4
-    PENTAGON = 5
-    HEXAGON = 6
-    CIRCLE = 60
-    RECTANGLE = auto()
-    POLYGON = auto()

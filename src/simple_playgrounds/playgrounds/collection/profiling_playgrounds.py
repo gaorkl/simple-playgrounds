@@ -1,24 +1,9 @@
 import math
 import random
 
-from ..layouts import GridRooms, SingleRoom
+from ..layouts import SingleRoom
 from ..playground import PlaygroundRegister
-from ...common.position_utils import CoordinateSampler, Trajectory
-from ...common.timer import CountDownTimer, PeriodicTimer
-from ...elements.collection.activable import Dispenser, VendingMachine, Chest, RewardOnActivation, OpenCloseSwitch, \
-    TimerSwitch, Lock
-from ...elements.collection.aura import Fairy, Fireball
-from ...elements.collection.basic import Physical, Traversable
-from ...elements.collection.conditioning import FlipReward
-from ...elements.collection.contact import VisibleEndGoal, VisibleDeathTrap, Poison, Candy, ContactSwitch
-from ...elements.collection.edible import Apple, RottenApple
-from ...elements.collection.gem import Key, Coin
-from ...elements.collection.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
-from ...elements.collection.zone import DeathZone, GoalZone, HealingZone, ToxicZone
-from ...elements.spawner import Spawner
-from ...common.texture import RandomTilesTexture
-
-from numpy.random import default_rng
+from ...elements.collection.basic import Physical
 
 
 @PlaygroundRegister.register('profiling', 'basic_unmovable')
