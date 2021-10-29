@@ -2,7 +2,9 @@
 Module for Spawner
 """
 import random
-from typing import Optional, Dict, Tuple, Type, List, Union
+from typing import Optional, Dict, Tuple, Type, List, Union, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.playgrounds.playground import Playground
 
 from ..agents.agent import Agent
 from .element import SceneElement
@@ -54,11 +56,16 @@ class Spawner:
         self.total_limit = production_limit
         self.total_produced = 0
         self.produced_entities: Union[List[SceneElement], List[Agent]] = []
-        self.allow_overlapping = allow_overlapping
+        self._allow_overlapping = allow_overlapping
 
         # Internal counter to assign identity number to each entity
         self.name = 'spawner_' + str(Spawner.id_number)
         Spawner.id_number += 1
+
+        self._playground: Optional[Playground] = None
+
+    def add_to_playground(self, playground: Playground):
+        self._playground = playground
 
     def _can_produce(self, steps=None) -> bool:
         """
@@ -74,7 +81,7 @@ class Spawner:
                 and self.total_produced < self.total_limit
                 and random.random() < self.probability)
 
-    def produce(self, steps=None) -> List[Tuple[Union[SceneElement, Agent], Coordinate]]:
+    def produce(self, steps=None):
         """
 
         Returns: A list of SceneElement or Agent, initial position
@@ -90,9 +97,7 @@ class Spawner:
 
             initial_position = self.location_sampler.sample()
 
-            return [[obj, initial_position]]
-
-        return []
+            self._playground.add(obj, initial_position=initial_position, allow_overlapping=self._allow_overlapping)
 
     def reset(self):
         """

@@ -50,7 +50,6 @@ class Entity(ABC):
         traversable: bool = False,
         movable: bool = False,
         temporary: bool = False,
-        name: Optional[str] = None,
         mass: Optional[float] = None,
         background: bool = True,
         pymunk_attributes: Optional[Dict] = None,
@@ -76,17 +75,6 @@ class Entity(ABC):
             pymunk_attributes:
             **kwargs:
         """
-
-        # Internal counter to assign identity number and name to each entity
-        self.name: str
-
-        if not name:
-            self.name = self.__class__.__name__ + '_' + str(
-                Entity.index_entity)
-        else:
-            assert isinstance(name, str)
-            self.name = name
-        Entity.index_entity += 1
 
         # Physical properties of the entity
         if graspable:
@@ -243,8 +231,6 @@ class Entity(ABC):
     def get_pixel(self, relative_pos):
 
         return self.texture.get_pixel(relative_pos)
-
-
 
     @property
     def base_color(self):

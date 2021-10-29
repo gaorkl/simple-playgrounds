@@ -42,14 +42,14 @@ def test_countdown():
     countdown.start()
 
     for i in range(5):
-        countdown.step()
+        countdown.update()
         assert not countdown.tic
 
-    countdown.step()
+    countdown.update()
     assert countdown.tic
 
     for i in range(10):
-        countdown.step()
+        countdown.update()
         assert not countdown.tic
 
     ################
@@ -57,13 +57,13 @@ def test_countdown():
     countdown.start()
 
     for i in range(5):
-        countdown.step()
+        countdown.update()
         assert not countdown.tic
 
-    countdown.step()
+    countdown.update()
     assert countdown.tic
 
-    countdown.step()
+    countdown.update()
     assert not countdown.tic
 
 
@@ -78,19 +78,19 @@ def test_periodic_tics(periods):
     for p in periods:
 
         for i in range(p-1):
-            periodic_tics.step()
+            periodic_tics.update()
             assert not periodic_tics.tic
 
-        periodic_tics.step()
+        periodic_tics.update()
         assert periodic_tics.tic
 
     for p in periods:
 
         for i in range(p - 1):
-            periodic_tics.step()
+            periodic_tics.update()
             assert not periodic_tics.tic
 
-        periodic_tics.step()
+        periodic_tics.update()
         assert periodic_tics.tic
 
 

@@ -243,7 +243,7 @@ class Engine:
 
                 # Else it is broadcast to all agents in range
                 elif target is None:
-                    for comm in self.playground._communication_devices:
+                    for comm in self.playground.communication_devices:
                         comm.receive(source, msg)
 
                 else:

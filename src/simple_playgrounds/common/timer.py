@@ -1,17 +1,17 @@
 from abc import ABC
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.elements.element import InteractiveElement
+    from simple_playgrounds.elements.spawner import Spawner
 
 
 class Timer(ABC):
-    def __init__(self):
+    def __init__(self, timed_entity: Union[InteractiveElement, Spawner]):
 
         self._running = False
         self._time = 0
         self._tic = False
-
-    @property
-    def tic(self):
-        return self._tic
+        self._timed_entity = timed_entity
 
     def start(self):
         self._running = True
@@ -19,7 +19,7 @@ class Timer(ABC):
     def stop(self):
         self._running = False
 
-    def step(self):
+    def update(self):
         if self._running:
             self._time += 1
 
@@ -27,18 +27,23 @@ class Timer(ABC):
         self.stop()
         self._time = 0
 
+    @property
+    def timed_entity(self):
+        return self._timed_entity
+
 
 class CountDownTimer(Timer):
-    def __init__(self, duration: int):
+    def __init__(self, timed_entity, duration: int):
 
-        super().__init__()
+        super().__init__(timed_entity=timed_entity)
         self._duration = duration
 
-    def step(self):
-        super().step()
+    def update(self):
+        super().update()
 
         if self._tic:
             self._tic = False
+            self._timed_entity.activate()
 
         if self._time == self._duration:
             self.reset()
@@ -46,7 +51,7 @@ class CountDownTimer(Timer):
 
 
 class PeriodicTimer(Timer):
-    def __init__(self, durations: Union[List[int], int, Tuple[int, ...]]):
+    def __init__(self, timed_entity, durations: Union[List[int], int, Tuple[int, ...]]):
 
         if isinstance(durations, int):
             durations = [durations]
@@ -57,7 +62,7 @@ class PeriodicTimer(Timer):
         self._current_duration = self._durations[0]
         self._index_duration = 0
 
-        super().__init__()
+        super().__init__(timed_entity=timed_entity)
 
     def reset(self):
         super().reset()
@@ -66,12 +71,13 @@ class PeriodicTimer(Timer):
         self._tic = False
         self.start()
 
-    def step(self):
+    def update(self):
 
-        super().step()
+        super().update()
 
-        if self.tic:
+        if self._tic:
             self._tic = False
+            self._timed_entity.activate()
 
         if self._time == self._current_duration:
             self._index_duration = (self._index_duration + 1) % len(

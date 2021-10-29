@@ -116,6 +116,19 @@ class Agent(ABC):
 
         self._playground: Optional[Playground] = None
 
+        self._produced_by: Optional[Producer] = None
+
+
+    @property
+    def produced_by(self):
+        return self._produced_by
+
+    @produced_by.setter
+    def produced_by(self, producer: Producer):
+        self._produced_by = producer
+        self._temporary = True
+
+
     def add(self,
             entity: Union[Part, CommunicationDevice, SensorDevice],
             anchor: Optional[Part],
@@ -142,6 +155,25 @@ class Agent(ABC):
         part.agent = self
 
         assert part.agent == anchor.agent
+
+
+    def add_to_playground(self):
+
+    def remove_from_playground(self):
+
+        for part in agent._parts:
+            self.space.remove(*part.pm_elements)
+
+        if agent.can_communicate:
+            self._communication_devices.remove(agent.communication)
+            self.space.remove(agent.communication.pm_shape)
+
+        for sensor in agent.sensors:
+            self._sensor_devices.remove(sensor)
+            self.space.remove(sensor.pm_shape)
+
+        self.agents.remove(agent)
+        assert not agent.in_playground
 
 
 
