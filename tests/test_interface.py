@@ -2,7 +2,7 @@ from simple_playgrounds.playgrounds.playground import PlaygroundRegister
 from simple_playgrounds.playgrounds.layouts import SingleRoom
 from simple_playgrounds.elements.collection.basic import Physical
 
-from simple_playgrounds.base.timer import CountDownTimer, PeriodicTimer
+from simple_playgrounds.common.timer import CountDownTimer, PeriodicTimer
 
 
 @PlaygroundRegister.register('test_test', 'basic')

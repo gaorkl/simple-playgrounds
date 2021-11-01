@@ -159,19 +159,19 @@ class Engine:
             self._engine_step(action)
 
             for agent in self.agents:
-                cumulated_rewards[agent] += agent.reward
+                cumulated_rewards[agent] += agent.acquired_reward
 
             step += 1
 
             terminate = self._has_terminated()
 
         for agent in self.agents:
-            agent.reward = cumulated_rewards[agent]
+            agent.acquired_reward = cumulated_rewards[agent]
 
         if self._reached_time_limit(
         ) and self.playground.time_limit_reached_reward is not None:
             for agent in self.agents:
-                agent.reward += self.playground.time_limit_reached_reward
+                agent.acquired_reward += self.playground.time_limit_reached_reward
 
         if messages:
             self._apply_communication(messages)
@@ -197,7 +197,7 @@ class Engine:
         if self._reached_time_limit(
         ) and self.playground.time_limit_reached_reward is not None:
             for agent in self.agents:
-                agent.reward += self.playground.time_limit_reached_reward
+                agent.acquired_reward += self.playground.time_limit_reached_reward
 
         if messages:
             self._apply_communication(messages)
@@ -400,7 +400,7 @@ class Engine:
             if grasped_invisible:
                 temporary_invisible = agent.grasped_elements
 
-            for sensor in agent.sensors:
+            for sensor in agent._sensors:
 
                 if isinstance(sensor, ExternalSensor):
                     sensor.set_temporary_invisible(temporary_invisible)
@@ -574,8 +574,8 @@ class Engine:
 
             if print_rewards:
                 for agent in self.agents:
-                    if agent.reward != 0:
-                        print(agent.name, ' got reward ', agent.reward)
+                    if agent.acquired_reward != 0:
+                        print(agent.name, ' got reward ', agent.acquired_reward)
 
             if steps is not None:
                 steps -= 1

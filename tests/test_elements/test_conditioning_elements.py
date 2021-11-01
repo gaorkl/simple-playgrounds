@@ -3,7 +3,7 @@ from simple_playgrounds.playgrounds.layouts import SingleRoom
 
 from simple_playgrounds.elements.collection.conditioning import ColorChanging, FlipReward
 from simple_playgrounds.elements.collection.activable import RewardOnActivation
-from simple_playgrounds.base.timer import PeriodicTimer
+from simple_playgrounds.common.timer import PeriodicTimer
 
 
 def test_color_changing(base_forward_interactive_agent_external):
@@ -35,12 +35,12 @@ def test_color_changing(base_forward_interactive_agent_external):
         for d in durations:
 
             for _ in range(d):
-                assert elem.texture.base_color == colors[index_color]
+                assert elem._texture.base_color == colors[index_color]
                 engine.step()
 
             index_color += 1
 
-        assert elem.texture.base_color == colors[0]
+        assert elem._texture.base_color == colors[0]
 
 
 def test_reward_changer(reward, base_forward_interactive_agent_external):
@@ -75,8 +75,8 @@ def test_reward_changer(reward, base_forward_interactive_agent_external):
 
             for t in range(d-1):
                 engine.step(actions)
-                assert change.texture.base_color == colors[index_color]
-                assert agent.reward == sign*reward
+                assert change._texture.base_color == colors[index_color]
+                assert agent.acquired_reward == sign * reward
 
 
 
@@ -85,8 +85,8 @@ def test_reward_changer(reward, base_forward_interactive_agent_external):
 
             engine.step(actions)
 
-            assert change.texture.base_color == colors[index_color]
-            assert agent.reward == sign * reward
+            assert change._texture.base_color == colors[index_color]
+            assert agent.acquired_reward == sign * reward
 
 
 

@@ -22,9 +22,9 @@ def test_fairy(base_forward_interactive_agent_external):
         engine.step(actions)
 
         if engine.elapsed_time < 10:
-            assert agent.reward == 4
+            assert agent.acquired_reward == 4
 
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 50
 
@@ -38,9 +38,9 @@ def test_fairy(base_forward_interactive_agent_external):
         engine.step(actions)
 
         if engine.elapsed_time < 10:
-            assert agent.reward == 4
+            assert agent.acquired_reward == 4
 
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 50
 
@@ -62,7 +62,7 @@ def test_fairy_no_limit(base_forward_interactive_agent_external):
     while engine.game_on:
 
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 400
 
@@ -86,9 +86,9 @@ def test_fireball(base_forward_interactive_agent_external):
         engine.step(actions)
 
         if engine.elapsed_time < 10:
-            assert agent.reward == -2
+            assert agent.acquired_reward == -2
 
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == -33
 
@@ -102,9 +102,9 @@ def test_fireball(base_forward_interactive_agent_external):
         engine.step(actions)
 
         if engine.elapsed_time < 10:
-            assert agent.reward == -2
+            assert agent.acquired_reward == -2
 
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == -33
 

@@ -21,7 +21,7 @@ def test_contact_candy(base_forward_interactive_agent_external):
 
     while engine.game_on:
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew > 0
 
@@ -42,7 +42,7 @@ def test_contact_termination(base_forward_interactive_agent_external):
 
     while engine.game_on:
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew > 0
     assert playground.done

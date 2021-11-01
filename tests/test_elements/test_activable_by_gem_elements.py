@@ -30,7 +30,7 @@ def test_vending_machine(base_forward_interactive_agent_external):
 
     while engine.game_on:
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
     assert total_rew == 10
     assert not agent.grasp.grasped_element
 
@@ -44,7 +44,7 @@ def test_vending_machine(base_forward_interactive_agent_external):
     while engine.game_on:
         actions = {agent: {agent.grasp: 1, agent.longitudinal_force: 1}}
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew > 0
 
@@ -55,7 +55,7 @@ def test_vending_machine(base_forward_interactive_agent_external):
 
     while engine.game_on:
         engine.step()
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 0
 
@@ -83,7 +83,7 @@ def test_chest(base_forward_interactive_agent_external):
 
         actions = {agent: {agent.grasp: 1, agent.longitudinal_force: 1}}
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew > 0
 
@@ -94,7 +94,7 @@ def test_chest(base_forward_interactive_agent_external):
 
     while engine.game_on:
         engine.step()
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 0
 

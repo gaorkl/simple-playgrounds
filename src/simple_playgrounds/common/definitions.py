@@ -15,6 +15,9 @@ MAX_ATTEMPTS_OVERLAPPING = 100
 
 RADIUS_DEVICE = 5
 
+ALPHA_VISIBLE = 255
+ALPHA_INVISIBLE = 75
+
 class KeyTypes(IntEnum):
 
     PRESS_HOLD = auto()
@@ -24,19 +27,36 @@ class KeyTypes(IntEnum):
 FRICTION_ENTITY = 0.8
 ELASTICITY_ENTITY = 0.5
 
+class GeometricShapes(IntEnum):
+
+    LINE = 2
+    TRIANGLE = 3
+    SQUARE = 4
+    PENTAGON = 5
+    HEXAGON = 6
+    CIRCLE = 60
+    RECTANGLE = auto()
+    POLYGON = auto()
+
 
 class CollisionTypes(IntEnum):
 
     PART = auto()
     CONTACT = auto()
+
+    ACTIVATOR = auto()
     ACTIVABLE = auto()
-    GEM = auto()
+
+    GRASPER = auto()
     GRASPABLE = auto()
-    ACTIVABLE_BY_GEM = auto()
-    TELEPORT = auto()
+
+    ABSORBER = auto()
+    ABSORBABLE = auto()
 
     DEVICE = auto()
-    MODIFIER = auto()
+    DEVICE_MODIFIER = auto()
+
+    TELEPORT = auto()
 
 
 def add_custom_collision(collision_types, name):

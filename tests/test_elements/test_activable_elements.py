@@ -7,7 +7,7 @@ from simple_playgrounds.elements.collection.contact import Candy
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.elements.collection.basic import Door
 
-from simple_playgrounds.base.timer import CountDownTimer
+from simple_playgrounds.common.timer import CountDownTimer
 
 
 def test_dispenser(base_forward_interactive_agent_external):
@@ -34,7 +34,7 @@ def test_dispenser(base_forward_interactive_agent_external):
         else:
             actions = {agent: {agent.longitudinal_force: -1.}}
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew > 0
 
@@ -65,7 +65,7 @@ def test_dispenser_limit(base_forward_interactive_agent_external):
         else:
             actions = {agent: {agent.longitudinal_force: -1.}}
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 1
 
@@ -88,7 +88,7 @@ def test_reward_on_activation(base_forward_interactive_agent_external):
     while engine.game_on:
 
         engine.step(actions)
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 50
 
@@ -196,19 +196,19 @@ def test_edible_apple(base_forward_interactive_agent_external):
     for rew in [16, 8, 4, 2, 1]:
 
         engine.step(actions)
-        assert agent.reward == rew
+        assert agent.acquired_reward == rew
 
     engine.step(actions)
-    assert agent.reward == 0
+    assert agent.acquired_reward == 0
     assert apple not in playground.elements
 
     engine.reset()
 
     for rew in [16, 8, 4, 2, 1]:
         engine.step(actions)
-        assert agent.reward == rew
+        assert agent.acquired_reward == rew
 
     engine.step(actions)
-    assert agent.reward == 0
+    assert agent.acquired_reward == 0
     assert apple not in playground.elements
 

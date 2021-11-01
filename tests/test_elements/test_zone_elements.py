@@ -19,7 +19,7 @@ def test_reward_zone(base_forward_interactive_agent_external):
 
     while engine.game_on:
         engine.step()
-        total_rew += agent.reward
+        total_rew += agent.acquired_reward
 
     assert total_rew == 31
 
@@ -40,6 +40,6 @@ def test_termination_zone(base_forward_interactive_agent_external):
     while engine.game_on:
         engine.step(actions)
 
-    assert agent.reward > 0
+    assert agent.acquired_reward > 0
     assert playground.done
 

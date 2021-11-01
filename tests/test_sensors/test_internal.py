@@ -42,12 +42,12 @@ def test_pose_sensors(pg_sensor_class):
 
     head = agent.head
 
-    pos_values = agent.sensors[0].sensor_values
+    pos_values = agent._sensors[0].sensor_values
     assert head.position[0] == pos_values[0]
     assert head.position[1] == pos_values[1]
     assert head.angle == pos_values[2]
 
-    vel_values = agent.sensors[1].sensor_values
+    vel_values = agent._sensors[1].sensor_values
     assert head.velocity[0] == vel_values[0]
     assert head.velocity[1] == vel_values[1]
     assert head.angular_velocity == vel_values[2]
@@ -69,12 +69,12 @@ def test_time_sensor(pg_sensor_class):
 
     for _ in range(100):
         engine.run(1)
-        time_value = agent.sensors[0].sensor_values
+        time_value = agent._sensors[0].sensor_values
         assert engine.elapsed_time == time_value
 
     engine.reset()
     engine.run(1)
-    time_value = agent.sensors[0].sensor_values
+    time_value = agent._sensors[0].sensor_values
     assert 1 == time_value
 
     playground.remove_agent(agent)

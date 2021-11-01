@@ -24,8 +24,8 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
         actions = {my_agent: my_agent.controller.generate_actions()}
         engine.multiple_steps(actions, 2)
 
-        if my_agent.reward != 0:
-            print(my_agent.reward)
+        if my_agent.acquired_reward != 0:
+            print(my_agent.acquired_reward)
 
         time.sleep(0.05)
 
