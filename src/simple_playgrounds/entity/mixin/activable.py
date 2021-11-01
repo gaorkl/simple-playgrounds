@@ -12,6 +12,7 @@ class Activator(InteractionShape):
         pm_shape.collision_type = CollisionTypes.ACTIVATOR
 
 
+
 class Activable(InteractionShape):
 
     def __init__(self, **kwargs):
