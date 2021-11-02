@@ -1,16 +1,16 @@
 import numpy as np
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.agents.agents import BaseAgent
-from simple_playgrounds.agents.parts.controllers import External
+from simple_playgrounds.playground.layouts import SingleRoom
+from simple_playgrounds.agent.agents import BaseAgent
+from simple_playgrounds.agent.controllers import External
 
-from simple_playgrounds.agents.communication import CommunicationDevice
-from simple_playgrounds.elements.collection.modifier import CommunicationDisabler, SensorDisabler
+from simple_playgrounds.device.communication import CommunicationDevice
+from simple_playgrounds.element.elements.modifier import CommunicationDisabler, SensorDisabler
 
-from simple_playgrounds.agents.sensors.collection.robotic import Lidar, RgbCamera
-from simple_playgrounds.agents.sensors import SemanticRay
-from simple_playgrounds.agents.sensors.sensor import SensorDevice
+from simple_playgrounds.device.sensors.robotic import Lidar, RgbCamera
+from simple_playgrounds.device.sensors.semantic import SemanticRay
+from simple_playgrounds.device.sensor import SensorDevice
 
 
 def test_disable_communication_sender():
@@ -43,8 +43,8 @@ def test_disable_communication_sender():
     disabler = CommunicationDisabler()
     playground.add_element(disabler, ((100, 100), 0))
 
-    assert agent_1.can_communicate
-    assert agent_2.can_communicate
+    assert agent_1.communication
+    assert agent_2.communication
 
     engine = Engine(playground)
 
@@ -85,8 +85,8 @@ def test_disable_communication_receiver():
     disabler = CommunicationDisabler()
     playground.add_element(disabler, ((200, 100), 0))
 
-    assert agent_1.can_communicate
-    assert agent_2.can_communicate
+    assert agent_1.communication
+    assert agent_2.communication
 
     engine = Engine(playground)
 

@@ -1,9 +1,7 @@
-import pytest
-
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.agents.agents import BaseAgent
-from simple_playgrounds.agents.parts.controllers import External
+from simple_playgrounds.playground.layouts import SingleRoom
+from simple_playgrounds.agent.agents import BaseAgent
+from simple_playgrounds.agent.controllers import External
 
 
 def test_moving_element(basic_element):

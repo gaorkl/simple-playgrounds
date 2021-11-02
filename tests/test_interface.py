@@ -1,6 +1,6 @@
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.elements.collection.basic import Physical
+from simple_playgrounds.playground.playground import PlaygroundRegister
+from simple_playgrounds.playground.layouts import SingleRoom
+from simple_playgrounds.element.elements.basic import Physical
 
 from simple_playgrounds.common.timer import CountDownTimer, PeriodicTimer
 

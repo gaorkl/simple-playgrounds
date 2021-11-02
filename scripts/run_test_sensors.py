@@ -1,9 +1,9 @@
-from simple_playgrounds.playgrounds.collection import *
+from simple_playgrounds.playground.playgrounds import *
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.agents.parts.controllers import Keyboard
-from simple_playgrounds.agents.agents import BaseAgent
-import simple_playgrounds.agents.sensors as sensors
+from simple_playgrounds.agent.controllers import Keyboard
+from simple_playgrounds.agent.agents import BaseAgent
+import simple_playgrounds.device.sensors as sensors
 
 import cv2
 

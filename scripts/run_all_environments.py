@@ -1,7 +1,7 @@
 from simple_playgrounds.playgrounds.collection import *
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.agents.parts.controllers import Keyboard
+from simple_playgrounds.agents.controllers import Keyboard
 from simple_playgrounds.agents.agents import HeadAgent
 
 import time

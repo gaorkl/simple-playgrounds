@@ -1,11 +1,11 @@
 import pytest
 
-from simple_playgrounds.agents.agents import HeadAgent
-from simple_playgrounds.agents.parts.controllers import RandomContinuous
-from simple_playgrounds.elements.collection.contact import Candy
-from simple_playgrounds.elements.spawner import Spawner
+from simple_playgrounds.agent.agents import HeadAgent
+from simple_playgrounds.agent.controllers import RandomContinuous
+from simple_playgrounds.element.elements.contact import Candy
+from simple_playgrounds.common.spawner import Spawner
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
+from simple_playgrounds.playground.layouts import SingleRoom
 
 
 @pytest.mark.parametrize(

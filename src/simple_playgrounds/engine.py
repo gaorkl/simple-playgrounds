@@ -24,13 +24,13 @@ import pygame.locals
 from pymunk import pygame_util
 from skimage.transform import rescale
 
-from .agents.agent import Agent
-from .agents.parts.actuators import Actuator, Activate
-from simple_playgrounds.agents.communication import Stream
+from simple_playgrounds.agent.agent import Agent
+from simple_playgrounds.agent.actuators import ActuatorDevice, Activate
+from simple_playgrounds.device.communication import Stream
 from .common.definitions import SIMULATION_STEPS
-from .playgrounds.playground import Playground
-from simple_playgrounds.agents.communication import CommunicationDevice
-from simple_playgrounds.agents.sensors.sensor import ExternalSensor
+from simple_playgrounds.playground.playground import Playground
+from simple_playgrounds.device.communication import CommunicationDevice
+from simple_playgrounds.device.sensor import ExternalSensor
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
@@ -113,7 +113,7 @@ class Engine:
 
     def multiple_steps(self,
                        n_steps: int = 1,
-                       actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+                       actions: Optional[Dict[Agent, Dict[ActuatorDevice, float]]] = None,
                        messages: Optional[Stream] = None,
                        ):
         """
@@ -127,8 +127,8 @@ class Engine:
             n_steps: Number of consecutive steps where the same actions will be applied
 
         """
-        hold_actions: Dict[Agent, Dict[Actuator, float]] = {}
-        last_action: Dict[Agent, Dict[Actuator, float]] = {}
+        hold_actions: Dict[Agent, Dict[ActuatorDevice, float]] = {}
+        last_action: Dict[Agent, Dict[ActuatorDevice, float]] = {}
 
         terminate = False
 
@@ -179,7 +179,7 @@ class Engine:
 
     def step(
         self,
-        actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+        actions: Optional[Dict[Agent, Dict[ActuatorDevice, float]]] = None,
         messages: Optional[Stream] = None,
     ):
         """
@@ -205,7 +205,7 @@ class Engine:
 
     def _engine_step(
         self,
-        actions: Optional[Dict[Agent, Dict[Actuator, float]]] = None,
+        actions: Optional[Dict[Agent, Dict[ActuatorDevice, float]]] = None,
     ):
 
         if not actions:
@@ -244,7 +244,7 @@ class Engine:
 
                 # Else it is broadcast to all agents in range
                 elif target is None:
-                    for comm in self.playground._communication_devices:
+                    for comm in self.playground.communication_devices:
                         comm.receive(source, msg)
 
                 else:

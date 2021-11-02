@@ -9,10 +9,15 @@ Examples can be found in :
     - simple_playgrounds/agents/parts
     - simple_playgrounds/playgrounds/scene_elements
 """
+from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from enum import IntEnum, auto
-from typing import Union, Tuple, Dict, List, Optional
+from typing import Union, Tuple, Dict, List, Optional, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.playground.playground import Playground
+    from simple_playgrounds.common.producer import Producer
+    from simple_playgrounds.agent.actuators import Grasp
 
 import numpy as np
 import pygame
@@ -158,7 +163,7 @@ class Entity(ABC):
             self.pm_elements.append(self.pm_visible_shape)
 
             if traversable:
-                self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=1)
+                self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=1, mask=pymunk.ShapeFilter.ALL_MASKS() ^ 1)
             else:
                 self.pm_visible_shape.filter = pymunk.ShapeFilter(
                     categories=2, mask=pymunk.ShapeFilter.ALL_MASKS() ^ 1)
@@ -210,6 +215,39 @@ class Entity(ABC):
         self.drawn = False
 
         self.temporary = temporary
+
+        self._playground: Optional[Playground] = None
+
+        self._held_by: Optional[Grasp] = None
+        self._produced_by: Optional[Producer] = None
+
+    @property
+    def held_by(self):
+        return self._held_by
+
+    @held_by.setter
+    def held_by(self, grasper: Grasp):
+        self._held_by = grasper
+
+    @property
+    def produced_by(self):
+        return self._produced_by
+
+    @produced_by.setter
+    def produced_by(self, producer: Producer):
+        self._produced_by = producer
+
+    @property
+    def playground(self):
+        return self._playground
+
+    @playground.setter
+    def playground(self, pg):
+        self._playground = pg
+
+    @property
+    def in_playground(self):
+        return bool(self._playground)
 
     def get_pixel(self, relative_pos):
 
