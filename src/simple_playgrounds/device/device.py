@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
 
@@ -40,8 +40,6 @@ class Device(ABC):
     @property
     def in_playground(self):
         return bool(self._playground)
-
-
 
     def pre_step(self):
         self._disabled = False
