@@ -20,7 +20,7 @@ from pygame import K_UP, K_DOWN, K_RIGHT, K_LEFT, K_v, K_b, K_g, K_a, K_n, K_m, 
     K_r, K_t, K_y, K_u, K_i, K_o, K_l, K_k
 
 from .agent import Agent
-from simple_playgrounds.agent.actuators import Actuator, AngularVelocity, LongitudinalForce, LateralForce, \
+from simple_playgrounds.agent.actuators import ActuatorDevice, AngularVelocity, LongitudinalForce, LateralForce, \
     Grasp, Activate, AngularRelativeVelocity
 from simple_playgrounds.agent.controllers import Controller
 from simple_playgrounds.agent.parts import Platform, Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
@@ -67,12 +67,12 @@ class BaseAgent(Agent):
 
         super().__init__(base_platform=base, name=name)
 
-        actuator: Actuator
-        self.longitudinal_force: Optional[Actuator] = None
-        self.lateral_force: Optional[Actuator] = None
-        self.rotation_velocity: Optional[Actuator] = None
-        self.grasp: Optional[Actuator] = None
-        self.activate: Optional[Actuator] = None
+        actuator: ActuatorDevice
+        self.longitudinal_force: Optional[ActuatorDevice] = None
+        self.lateral_force: Optional[ActuatorDevice] = None
+        self.rotation_velocity: Optional[ActuatorDevice] = None
+        self.grasp: Optional[ActuatorDevice] = None
+        self.activate: Optional[ActuatorDevice] = None
 
         if forward:
 
@@ -137,7 +137,7 @@ class HeadAgent(BaseAgent):
                          angle_offset=0,
                          rotation_range=math.pi,
                          name='head')
-        self.add_body_part(self.head)
+        self.add_part(self.head)
 
         head_actuator = AngularRelativeVelocity(self.head)
         head_actuator.assign_key(K_n, KeyTypes.PRESS_HOLD, -1)
@@ -169,7 +169,7 @@ class HeadEyeAgent(HeadAgent):
                          rotation_range=2 * math.pi / 3,
                          name='left_eye')
 
-        self.add_body_part(self.eye_l)
+        self.add_part(self.eye_l)
 
         eye_l_actuator = AngularRelativeVelocity(self.eye_l)
         eye_l_actuator.assign_key(K_d, KeyTypes.PRESS_HOLD, 1)
@@ -182,7 +182,7 @@ class HeadEyeAgent(HeadAgent):
                          angle_offset=math.pi / 5,
                          rotation_range=2 * math.pi / 3,
                          name='right_eye')
-        self.add_body_part(self.eye_r)
+        self.add_part(self.eye_r)
 
         eye_r_actuator = AngularRelativeVelocity(self.eye_r)
         eye_r_actuator.assign_key(K_h, KeyTypes.PRESS_HOLD, 1)
@@ -223,7 +223,7 @@ class FullAgent(HeadEyeAgent):
                          position_anchor=(0, self.base_platform.radius),
                          angle_offset=math.pi / 4,
                          rotation_range=math.pi)
-        self.add_body_part(self.arm_r)
+        self.add_part(self.arm_r)
 
         arm_r_actuator = AngularRelativeVelocity(self.arm_r)
         arm_r_actuator.assign_key(K_r, KeyTypes.PRESS_HOLD, 1)
@@ -234,7 +234,7 @@ class FullAgent(HeadEyeAgent):
                            position_anchor=self.arm_r.extremity_anchor_point,
                            angle_offset=-math.pi / 4,
                            rotation_range=math.pi)
-        self.add_body_part(self.arm_r_2)
+        self.add_part(self.arm_r_2)
 
         arm_r_2_actuator = AngularRelativeVelocity(self.eye_l)
         arm_r_2_actuator.assign_key(K_y, KeyTypes.PRESS_HOLD, 1)
@@ -247,13 +247,13 @@ class FullAgent(HeadEyeAgent):
             radius=8,
             rotation_range=0,
         )
-        self.add_body_part(self.hand_r)
+        self.add_part(self.hand_r)
 
         self.arm_l = Arm(self.base_platform,
                          position_anchor=(0, -self.base_platform.radius),
                          angle_offset=-math.pi / 4,
                          rotation_range=math.pi)
-        self.add_body_part(self.arm_l)
+        self.add_part(self.arm_l)
 
         arm_l_actuator = AngularRelativeVelocity(self.arm_l)
         arm_l_actuator.assign_key(K_i, KeyTypes.PRESS_HOLD, 1)
@@ -264,7 +264,7 @@ class FullAgent(HeadEyeAgent):
                            position_anchor=self.arm_l.extremity_anchor_point,
                            angle_offset=math.pi / 4,
                            rotation_range=math.pi)
-        self.add_body_part(self.arm_l_2)
+        self.add_part(self.arm_l_2)
 
         arm_l_2_actuator = AngularRelativeVelocity(self.arm_l_2)
         arm_l_2_actuator.assign_key(K_k, KeyTypes.PRESS_HOLD, 1)
@@ -277,7 +277,7 @@ class FullAgent(HeadEyeAgent):
             radius=8,
             rotation_range=0,
         )
-        self.add_body_part(self.hand_l)
+        self.add_part(self.hand_l)
 
         if interactive:
             grasp_actuator = Grasp(self.hand_l)

@@ -11,7 +11,10 @@ from __future__ import annotations
 import math
 from abc import ABC
 from enum import IntEnum, auto
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING, Optional, List
+if TYPE_CHECKING:
+    from simple_playgrounds.agent.agent import Agent
+    from simple_playgrounds.agent.actuators import ActuatorDevice
 
 import pymunk
 
@@ -44,6 +47,25 @@ class Part(Entity, ABC):
                         **kwargs)
 
         self.can_absorb = can_absorb
+
+        self._agent: Optional[Agent] = None
+
+        self._actuators: List[ActuatorDevice] = []
+
+    @property
+    def agent(self):
+        return self._agent
+
+    @agent.setter
+    def agent(self, agent):
+        self._agent = agent
+
+    @property      
+    def actuators(self):
+        return self._actuators
+
+    def add_actuator(self, act):
+        self._actuators.append(act)
 
     def _set_shape_collision(self):
         self.pm_visible_shape.collision_type = CollisionTypes.PART

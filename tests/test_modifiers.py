@@ -43,8 +43,8 @@ def test_disable_communication_sender():
     disabler = CommunicationDisabler()
     playground.add_element(disabler, ((100, 100), 0))
 
-    assert agent_1.can_communicate
-    assert agent_2.can_communicate
+    assert agent_1.communication
+    assert agent_2.communication
 
     engine = Engine(playground)
 
@@ -85,8 +85,8 @@ def test_disable_communication_receiver():
     disabler = CommunicationDisabler()
     playground.add_element(disabler, ((200, 100), 0))
 
-    assert agent_1.can_communicate
-    assert agent_2.can_communicate
+    assert agent_1.communication
+    assert agent_2.communication
 
     engine = Engine(playground)
 

@@ -1,6 +1,9 @@
+from __future__ import annotations
 import random
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.element.element import SceneElement
 
 import numpy as np
 import pymunk
@@ -8,9 +11,10 @@ from PIL import ImageFont, ImageDraw
 
 from simple_playgrounds.agent.parts import Part, AnchoredPart, Platform
 from simple_playgrounds.common.definitions import LINEAR_FORCE, ANGULAR_VELOCITY, KeyTypes
+from simple_playgrounds.device.device import Device
 
 
-class Actuator(ABC):
+class ActuatorDevice(Device, ABC):
     """
     Actuator classes defines how one body part acts.
     It is used to control parts of an agent:
@@ -22,6 +26,7 @@ class Actuator(ABC):
         part,
         noise: Optional[str] = None,
         noise_params: Optional[Dict[str, float]] = None,
+        **kwargs
     ):
         """
 
@@ -35,6 +40,8 @@ class Actuator(ABC):
             mean: mean of gaussian noise (default 0)
             scale: scale / std of gaussian noise (default 1)
         """
+
+        super().__init__(anchor=part)
 
         self.part = part
         self.command: float = 0
@@ -50,6 +57,8 @@ class Actuator(ABC):
                 raise ValueError('Noise params not set')
             self._parse_noise_params(noise_params)
 
+        part.add_actuator(self)
+
     def assign_key(self, key: int, key_behavior: KeyTypes, value: float):
         """
         Assign keyboard key to a value.
@@ -63,10 +72,17 @@ class Actuator(ABC):
         self.has_key_mapping = True
         self.key_map[key] = [key_behavior, value]
 
+    def pre_step(self):
+        super().pre_step()
+        self.value = self.default_value
+
     def apply_action(
         self,
         value,
     ):
+
+        if self._disabled:
+            return
 
         self.command = value
 
@@ -118,7 +134,7 @@ class Actuator(ABC):
 # DISCRETE ACTUATORS
 
 
-class DiscreteActuator(Actuator, ABC):
+class DiscreteActuator(ActuatorDevice, ABC):
     """
     Discrete Actuators are initialized by providing a list of valid actuator values.
     Then, an action is applied by providing the index of the desired actuator value.
@@ -265,23 +281,54 @@ class Activate(InteractionActuator):
 class Grasp(InteractionActuator):
     def __init__(self, part):
         super().__init__(part)
-        self.is_grasping = 0
-        self.is_holding = False
-        self.grasped = []
+
+        self.is_grasping = False
+
+        self.grasped_element: Optional[SceneElement] = None
+        self._grasp_joints = []
 
     def apply_action(self, action_index: int):
 
         super().apply_action(action_index)
         self.is_grasping = self.actuator_values[action_index]
 
-        if self.is_holding and not self.is_grasping:
-            self.is_holding = False
+        if self.grasped_element and not self.is_grasping:
+            self.release_grasp()
 
+    def grasp(self, grasped_element: SceneElement):
+
+        j_1 = pymunk.PinJoint(self.part.pm_body,
+                              grasped_element.pm_body, (0, 0),
+                              (0, 20))
+        j_2 = pymunk.PinJoint(self.part.pm_body,
+                              grasped_element.pm_body, (0, 0),
+                              (0, -20))
+
+        j_3 = pymunk.PinJoint(self.part.pm_body,
+                              grasped_element.pm_body, (0, 20),
+                              (0, 0))
+        j_4 = pymunk.PinJoint(self.part.pm_body,
+                              grasped_element.pm_body, (0, -20),
+                              (0, 0))
+
+        self._grasp_joints = [j_1, j_2, j_3, j_4]
+        self.part.pm_body.space.add(*self._grasp_joints)
+
+        self.grasped_element = grasped_element
+        grasped_element.held_by = self
+
+    def release_grasp(self):
+
+        for joint in self._grasp_joints:
+            self.part.pm_body.space.remove(joint)
+        self._grasp_joints = []
+        self.grasped_element.held_by = None
+        self.grasped_element = None
 
 # CONTINUOUS ACTUATORS
 
 
-class ContinuousActuator(Actuator, ABC):
+class ContinuousActuator(ActuatorDevice, ABC):
     def __init__(
         self,
         part,

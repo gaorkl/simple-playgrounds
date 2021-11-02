@@ -32,10 +32,10 @@ def test_vending_machine(base_forward_interactive_agent_external):
         engine.step(actions)
         total_rew += agent.reward
     assert total_rew == 10
-    assert not agent.grasp.is_holding
+    assert not agent.grasped_elements
 
     engine.step(actions)
-    assert not agent.grasp.is_holding
+    assert not agent.grasped_elements
 
     # test reset
     engine.reset()

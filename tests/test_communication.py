@@ -32,8 +32,8 @@ def test_equip_communication(comm_radius):
     playground.add_agent(agent_1, ((100, 100), 0))
     playground.add_agent(agent_2, ((200, 100), 0))
 
-    assert agent_1.can_communicate
-    assert not agent_2.can_communicate
+    assert agent_1.communication
+    assert not agent_2.communication
 
 
 @pytest.mark.parametrize(
@@ -73,8 +73,8 @@ def test_transmission_range(range_1, range_2, distance, in_range):
     playground.add_agent(agent_1, ((100, 100), 0))
     playground.add_agent(agent_2, ((100+distance, 100), 0))
 
-    assert agent_1.can_communicate
-    assert agent_2.can_communicate
+    assert agent_1.communication
+    assert agent_2.communication
 
     assert comm_1.in_transmission_range(comm_2) is in_range
     assert comm_2.in_transmission_range(comm_1) is in_range

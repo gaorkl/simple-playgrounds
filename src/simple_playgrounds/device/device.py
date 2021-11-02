@@ -29,6 +29,11 @@ class Device(ABC):
 
         self._playground: Optional[Playground] = None
 
+        # if anchor already in playground
+        if anchor.playground:
+            self._playground = anchor.playground
+
+
     @property
     def playground(self):
         return self._playground

@@ -7,7 +7,7 @@ from typing import List, Dict
 
 import pygame
 
-from .actuators import Actuator, DiscreteActuator, ContinuousActuator
+from .actuators import ActuatorDevice, DiscreteActuator, ContinuousActuator
 from simple_playgrounds.common.definitions import KeyTypes
 
 
@@ -17,15 +17,15 @@ class Controller(ABC):
     def __init__(self):
 
         self.require_key_mapping: bool = False
-        self._controlled_actuators: List[Actuator] = []
+        self._controlled_actuators: List[ActuatorDevice] = []
 
     @abstractmethod
-    def generate_actions(self) -> Dict[Actuator, float]:
+    def generate_actions(self) -> Dict[ActuatorDevice, float]:
         """ Generate actions for each actuator of an agent,
         Returns a dictionary of actuators and associated action value.
         """
 
-    def generate_null_actions(self) -> Dict[Actuator, float]:
+    def generate_null_actions(self) -> Dict[ActuatorDevice, float]:
         """
         Generate dictionary of actuators and null actions.
         All actions are set to zero.
@@ -37,11 +37,11 @@ class Controller(ABC):
         return commands
 
     @property
-    def controlled_actuators(self) -> List[Actuator]:
+    def controlled_actuators(self) -> List[ActuatorDevice]:
         return self._controlled_actuators
 
     @controlled_actuators.setter
-    def controlled_actuators(self, actuators: List[Actuator]):
+    def controlled_actuators(self, actuators: List[ActuatorDevice]):
         self._controlled_actuators = actuators
 
 

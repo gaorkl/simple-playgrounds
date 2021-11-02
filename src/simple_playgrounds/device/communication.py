@@ -34,6 +34,7 @@ class CommunicationDevice(Device):
     def pre_step(self):
         super().pre_step()
         self.reset()
+        self.update_list_comms_in_range()
 
     def reset(self):
         self._received_messages = []
@@ -55,7 +56,9 @@ class CommunicationDevice(Device):
     def received_message(self):
         return self._received_messages
 
-    def update_list_comms_in_range(self, comms: List[CommunicationDevice]):
+    def update_list_comms_in_range(self):
+
+        comms = self._playground.communication_devices
 
         valid_comms = [com for com in comms if com is not self]
 
