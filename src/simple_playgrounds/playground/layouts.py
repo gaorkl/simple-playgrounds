@@ -2,15 +2,16 @@
 Empty Playgrounds with built-in walls and rooms
 
 """
-from typing import Union, Tuple, Optional, List
+from typing import Union, Tuple, Optional, List, Dict
 
 import numpy as np
 
-from .playground import Playground
-from .rooms import Doorstep, RectangleRoom
-from ..common.position_utils import CoordinateSampler
-from ..configs import parse_configuration
-
+from simple_playgrounds.playground.playground import Playground
+from simple_playgrounds.playground.rooms import Doorstep, RectangleRoom
+from simple_playgrounds.common.position_utils import CoordinateSampler
+from simple_playgrounds.configs import parse_configuration
+from simple_playgrounds.common.texture import TextureGenerator, ColorTexture, Texture
+from simple_playgrounds.common.definitions import WALL_DEPTH
 
 class GridRooms(Playground):
     """
@@ -24,10 +25,10 @@ class GridRooms(Playground):
         room_layout: Union[List[int], Tuple[int, int]],
         doorstep_size: float,
         random_doorstep_position: bool = True,
-        wall_type: str = 'classic',
-        wall_depth: float = 10,
+        wall_type: Optional[str] = 'classic',
+        wall_depth: Optional[float] = WALL_DEPTH,
         playground_seed: Optional[int] = None,
-        **wall_params,
+        wall_texture: Optional[Union[Texture, Dict, Tuple[int, int, int]]] = None,
     ):
         """
 
@@ -41,7 +42,8 @@ class GridRooms(Playground):
             **wall_params:
 
 
-        Wall parameters take priority on wall type.
+        Wall texture takes priority on wall type.
+        Several wall types are already implemented: classic, light, dark, colorful
 
         """
 
@@ -66,15 +68,24 @@ class GridRooms(Playground):
 
         self.rng_playground = np.random.default_rng(playground_seed)
 
-        # Wall parameters
-        wall_type_params = parse_configuration('playground', wall_type)
-        wall_params = {
-            'rng': self.rng_playground,
-            **wall_type_params,
-            **wall_params
-        }
+        # If wall texture is provided, use it
 
-        self._wall_texture_params = wall_params
+        if isinstance(wall_texture, Dict):
+            wall_texture = TextureGenerator.create(**wall_texture, rng=self.rng_playground)
+
+        elif isinstance(wall_texture, (tuple, list)):
+            wall_texture = ColorTexture(color=wall_texture)
+
+        # if not, use default
+        if not wall_texture:
+
+            # Wall parameters
+            default_wall_texture_params = parse_configuration('playground', wall_type)
+            wall_texture = TextureGenerator.create(**default_wall_texture_params, rng=self.rng_playground)
+
+        assert isinstance(wall_texture, Texture)
+
+        self._wall_texture = wall_texture
         self._wall_depth = wall_depth
 
         # Set random texture for possible replication
@@ -194,7 +205,7 @@ class GridRooms(Playground):
                     doorstep_down=doorstep_down,
                     doorstep_left=doorstep_left,
                     wall_depth=self._wall_depth,
-                    wall_texture_params=self._wall_texture_params,
+                    wall_texture=self._wall_texture,
                 )
 
                 for wall in room.generate_walls():

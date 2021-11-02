@@ -27,7 +27,7 @@ class DispenserEnv(GridRooms):
             room_layout=(3, 2),
             doorstep_size=60,
             wall_type='colorful',
-            rng=wall_texture_seed,
+            playground_seed=wall_texture_seed,
         )
 
         self.initial_agent_coordinates, self.area_prod, self.area_dispenser = self._assign_areas(
@@ -87,7 +87,7 @@ class DoorDispenserCoin(LineRooms):
                          number_rooms=3,
                          doorstep_size=60,
                          wall_type='colorful',
-                         rng=wall_texture_seed)
+                         playground_seed=wall_texture_seed)
 
         self.time_limit = time_limit
 

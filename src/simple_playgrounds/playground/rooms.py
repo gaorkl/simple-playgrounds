@@ -35,7 +35,7 @@ class RectangleRoom:
         center: Union[List[float], Tuple[float, float]],
         size: Union[List[float], Tuple[float, float]],
         wall_depth: float,
-        wall_texture_params: Union[Dict, Texture],
+        wall_texture: Union[Dict, Texture],
         doorstep_up: Optional[Doorstep] = None,
         doorstep_down: Optional[Doorstep] = None,
         doorstep_left: Optional[Doorstep] = None,
@@ -51,7 +51,7 @@ class RectangleRoom:
         self.size = size
 
         self._wall_depth = wall_depth
-        self._wall_texture_params = wall_texture_params
+        self._wall_texture = wall_texture
 
         self.doorstep_up = doorstep_up
         self.doorstep_down = doorstep_down
@@ -100,7 +100,7 @@ class RectangleRoom:
             wall = Wall(start,
                         middle_left,
                         wall_depth=self._wall_depth,
-                        texture=self._wall_texture_params)
+                        texture=self._wall_texture)
 
             yield wall
 
@@ -109,7 +109,7 @@ class RectangleRoom:
             wall = Wall(middle_right,
                         end,
                         wall_depth=self._wall_depth,
-                        texture=self._wall_texture_params)
+                        texture=self._wall_texture)
 
             yield wall
 
@@ -121,7 +121,7 @@ class RectangleRoom:
             wall = Wall(start,
                         end,
                         wall_depth=self._wall_depth,
-                        texture=self._wall_texture_params)
+                        texture=self._wall_texture)
             yield wall
 
     def get_area_sampler(self):
