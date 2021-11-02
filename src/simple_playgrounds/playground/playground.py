@@ -10,39 +10,34 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 from __future__ import annotations
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Union, List, Dict, Optional, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from simple_playgrounds.agents.communication import CommunicationDevice
-    from simple_playgrounds.agents.sensors.sensor import SensorDevice
-    from simple_playgrounds.agents.communication import CommunicationDevice
-    from simple_playgrounds.agents.parts.parts import Part
+    from simple_playgrounds.device.communication.communication import CommunicationDevice
+    from simple_playgrounds.device.sensor.sensor import SensorDevice
+    from simple_playgrounds.agent.parts import Part
     from simple_playgrounds.common.position_utils import InitCoord
 
 import pymunk
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
-from simple_playgrounds.playgrounds.interactions import (gem_activates_element,
-                                                         agent_activates_element,
-                                                         agent_touches_element,
-                                                         agent_grasps_element,
-                                                         agent_teleports,
-                                                         modifier_modifies_device
-                                                         )
+from simple_playgrounds.playground.collision_handlers import (gem_activates_element,
+                                                              agent_activates_element,
+                                                              agent_touches_element,
+                                                              agent_grasps_element,
+                                                              agent_teleports,
+                                                              modifier_modifies_device
+                                                              )
 
 from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, MAX_ATTEMPTS_OVERLAPPING
 from simple_playgrounds.common.timer import Timer
 
-from simple_playgrounds.elements.element import SceneElement
-from simple_playgrounds.agents.agent import Agent
-from simple_playgrounds.elements.spawner import Spawner
-from simple_playgrounds.base.device import Device
-
-
-# pylint: disable=unused-argument
-# pylint: disable=line-too-long
+from simple_playgrounds.element.element import SceneElement
+from simple_playgrounds.agent.agent import Agent
+from simple_playgrounds.element.spawner import Spawner
+from simple_playgrounds.device.device import Device
 
 
 class Playground(ABC):
@@ -51,9 +46,8 @@ class Playground(ABC):
     Playground manages the interactions between Agents and Scene Elements.
 
     Attributes:
-        size: size of the scene (width, length).
         elements: list of SceneElements present in the Playground.
-        fields: list of fields producing SceneElements in the Playground.
+        spawners: list of fields producing SceneElements in the Playground.
         agents: list of Agents present in the Playground.
         initial_agent_coordinates: position or PositionAreaSampler,
             Starting position of an agent (single agent).
@@ -74,12 +68,12 @@ class Playground(ABC):
         self.space = self._initialize_space()
 
         # Public attributes for entities in the playground
-        self.elements: List[SceneElement] = []
-        self.spawners: List[Spawner] = []
-        self.agents: List[Agent] = []
+        self._elements: List[SceneElement] = []
+        self._spawners: List[Spawner] = []
+        self._agents: List[Agent] = []
 
         # Store devices for easy updates
-        self.communication_devices: List[CommunicationDevice] = []
+        self._communication_devices: List[CommunicationDevice] = []
         self._sensor_devices: List[SensorDevice] = []
 
         # Store elements that are removed but should be respawned after reset.
@@ -88,28 +82,27 @@ class Playground(ABC):
         # Timers to handle periodic events
         self._timers: List[Timer] = []
 
-        self.done = False
-        self.initial_agent_coordinates: Optional[InitCoord] = None
+        self._done = False
+        self._initial_agent_coordinates: Optional[InitCoord] = None
 
         self._handle_interactions()
 
         # Timestep index. Starts at 0, and is incremented after each playground update.
         self._timestep = 0
 
-        # TODO: Keep Lookup table for shape to entity!
+    @property
+    def communication_devices(self):
+        return self._communication_devices
 
+    @property
+    def sensor_devices(self):
+        return self._sensor_devices
 
     @staticmethod
     def _initialize_space() -> pymunk.Space:
-        """ Method to initialize Pymunk empty space for 2D physics.
-
-        Returns: Pymunk Space
-
-        """
         space = pymunk.Space()
         space.gravity = pymunk.Vec2d(0., 0.)
         space.damping = SPACE_DAMPING
-
         return space
 
     def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
@@ -130,24 +123,54 @@ class Playground(ABC):
         """
 
         # Update the state of all elements and interactions
-        self._update_spawners()
+        for spawner in self._spawners:
+            spawner.produce(self._timestep)
 
         # Update timers
-        self._update_timers()
+        for timer in self._timers:
+            timer.update()
 
-        # Agents communicate before physical steps
-        self._update_communications()
-
-        # Update all entities and interactions before physical steps
-        self._update_entities()
+        # Compute necessary pre_steps before physical steps
+        self._pre_step_entities()
 
         # Move one timestep by pymunk_steps increments
         self._physics_simulator_step(pymunk_steps)
 
-    def update_sensors(self):
+    def _pre_step_entities(self):
 
+        # Agents communicate before physical steps
+        # So their range is updated before moving.
+        for comm in self._communication_devices:
+            comm.pre_step()
+            comm.update_list_comms_in_range()
+
+        # Sensors generally don't need a pre-step.
+        # Implemented in case of stateful sensors
+        for sensor in self._sensor_devices:
+            sensor.pre_step()
+
+        for agent in self._agents:
+            agent.pre_step()
+
+        for elem in self._elements:
+            elem.pre_step()
+            if elem.trajectory:
+                self.space.reindex_shapes_for_body(elem.pm_body)
+
+    def _physics_simulator_step(self, pymunk_steps):
+
+        for _ in range(pymunk_steps):
+            self.space.step(1. / pymunk_steps)
+
+        self._timestep += 1
+
+    def update_sensors(self):
         for sensor in self._sensor_devices:
             sensor.update()
+
+    def update_communication(self):
+        for comm in self._communication_devices:
+            comm.update()
 
     @property
     def timestep(self):
@@ -167,10 +190,10 @@ class Playground(ABC):
         """
 
         if isinstance(entity, Spawner):
-            if entity in self.spawners:
+            if entity in self._spawners:
                 raise ValueError('Spawner already in Playground')
             entity.add_to_playground(self)
-            self.spawners.append(entity)
+            self._spawners.append(entity)
 
         if isinstance(entity, Agent):
             self._add_agent(entity, **kwargs)
@@ -181,18 +204,18 @@ class Playground(ABC):
     def remove(self, entity: Union[Agent, SceneElement], definitive=False):
 
         if isinstance(entity, Agent):
-            if entity not in self.agents:
+            if entity not in self._agents:
                 raise ValueError('Agent {} already removed or not in Playground'.format(entity.name))
-            self.agents.remove(entity)
+            self._agents.remove(entity)
 
         elif isinstance(entity, SceneElement):
 
             if entity.held_by:
                 entity.held_by.release_grasp()
 
-            if entity not in self.elements:
+            if entity not in self._elements:
                 raise ValueError('Element {} already removed or not in Playground'.format(entity.name))
-            self.elements.remove(entity)
+            self._elements.remove(entity)
 
         if entity.produced_by:
             entity.produced_by.produced.remove(entity)
@@ -210,7 +233,7 @@ class Playground(ABC):
         """
 
         # remove entities which are temporary. Reset the others
-        for element in self.elements.copy():
+        for element in self._elements.copy():
             if element.held_by:
                 element.held_by.release_grasp()
 
@@ -226,11 +249,11 @@ class Playground(ABC):
             self.add(element)
 
         # reset fields
-        for spawner in self.spawners:
+        for spawner in self._spawners:
             spawner.reset()
 
         # reset agents
-        for agent in self.agents.copy():
+        for agent in self._agents.copy():
             agent.reset()
             self._move_to_initial_position(agent)
 
@@ -239,14 +262,14 @@ class Playground(ABC):
             timer.reset()
 
         # reset communication devices
-        for comm in self.communication_devices:
+        for comm in self._communication_devices:
             comm.reset()
 
         # reset sensor devices
         for sens in self._sensor_devices:
             sens.reset()
 
-        self.done = False
+        self._done = False
         self._timestep = 0
 
     def _add_agent(
@@ -254,16 +277,14 @@ class Playground(ABC):
             agent: Agent,
             **kwargs,
     ):
-
         # If already there
-        if agent in self.agents:
+        if agent in self._agents or agent.in_playground:
             raise ValueError('Agent already in Playground')
 
         self._set_initial_position(agent, **kwargs)
-
         agent.add_to_playground(self)
         self._move_to_initial_position(agent)
-        self.agents.append(agent)
+        self._agents.append(agent)
 
     def _add_element(
             self,
@@ -271,14 +292,14 @@ class Playground(ABC):
             **kwargs,
     ):
 
-        if element in self.elements:
+        if element in self._elements:
             raise ValueError('Scene Element already in Playground')
 
         self._set_initial_position(element, **kwargs)
 
         element.add_to_playground(self)
         self._move_to_initial_position(element)
-        self.elements.append(element)
+        self._elements.append(element)
 
     def _set_initial_position(self,
                               entity: Union[Agent, SceneElement],
@@ -292,8 +313,8 @@ class Playground(ABC):
         # Set initial position. Either set or from playground.
         if initial_coordinates:
             entity.initial_coordinates = initial_coordinates
-        elif isinstance(entity, Agent) and self.initial_agent_coordinates:
-            entity.initial_coordinates = self.initial_agent_coordinates
+        elif isinstance(entity, Agent) and self._initial_agent_coordinates:
+            entity.initial_coordinates = self._initial_agent_coordinates
         else:
             raise ValueError(
                 """Entity {} initial position should be defined in the playground or passed as an argument
@@ -306,30 +327,6 @@ class Playground(ABC):
 
         assert timer.timed_entity.in_playground is self
         self._timers.append(timer)
-
-    def _physics_simulator_step(self, pymunk_steps):
-
-        for _ in range(pymunk_steps):
-            self.space.step(1. / pymunk_steps)
-
-        self._timestep += 1
-
-    def _update_communications(self):
-        # Update Comms after the simulation step
-        for comm in self.communication_devices:
-            comm.pre_step()
-
-    def _update_entities(self):
-
-        for agent in self.agents:
-            agent.pre_step()
-
-        for elem in self.elements:
-            elem.pre_step()
-            if elem.trajectory:
-                self.space.reindex_shapes_for_body(elem.pm_body)
-
-    # Private methods for Elements
 
     # Private methods for Agents and Elements
 
@@ -357,23 +354,14 @@ class Playground(ABC):
 
     # Entities
 
+    @abstractmethod
     def _out_of_playground(self, entity: Union[Agent, SceneElement]) -> bool:
-
-        if (not 0 < entity.position[0] < self._width
-                or not 0 < entity.position[1] < self._length):
-            return True
-
-        return False
-
-    def _update_spawners(self):
-
-        for spawner in self.spawners:
-            spawner.produce(self._timestep)
-
-    def _update_timers(self):
-
-        for timer in self._timers:
-            timer.update()
+        ...
+        # if (not 0 < entity.position[0] < self._width
+        #         or not 0 < entity.position[1] < self._length):
+        #     return True
+        #
+        # return False
 
     # Overlaps
 
@@ -391,11 +379,11 @@ class Playground(ABC):
         if isinstance(entity, Agent):
 
             if not entity_filter:
-                entity_filter = entity._parts  # type: ignore
+                entity_filter = entity.parts  # type: ignore
             else:
-                entity_filter += entity._parts
+                entity_filter += entity.parts
 
-            for part in entity._parts:
+            for part in entity.parts:
                 if self._overlaps(part, entity_filter=entity_filter):
                     return True
 
@@ -430,7 +418,7 @@ class Playground(ABC):
             pm_shape: pymunk.Shape,
     ) -> Optional[SceneElement]:
         return next(
-            iter([e for e in self.elements if pm_shape in e.pm_elements]),
+            iter([e for e in self._elements if pm_shape in e.pm_elements]),
             None)
 
     def _get_device_from_shape(
@@ -439,7 +427,7 @@ class Playground(ABC):
     ) -> Optional[Device]:
 
         device = next(
-            iter([e for e in self.communication_devices if pm_shape is e.pm_shape]),
+            iter([e for e in self._communication_devices if pm_shape is e.pm_shape]),
             None)
         if device:
             return device
@@ -454,14 +442,14 @@ class Playground(ABC):
 
     def _get_agent_from_shape(self,
                               pm_shape: pymunk.Shape) -> Union[None, Agent]:
-        for agent in self.agents:
+        for agent in self._agents:
             if agent.owns_shape(pm_shape):
                 return agent
         return None
 
     def _get_agent_from_part(self, part: Part) -> Optional[Agent]:
-        for agent in self.agents:
-            if part in agent._parts:
+        for agent in self._agents:
+            if part in agent.parts:
                 return agent
         return None
 
@@ -473,20 +461,20 @@ class Playground(ABC):
         if element:
             return element
 
-        for agent in self.agents:
+        for agent in self._agents:
 
             part = agent.get_part_from_shape(pm_shape)
             if part:
                 return part
 
-        for device in self.communication_devices + self._sensor_devices:
+        for device in self._communication_devices + self._sensor_devices:
             if device.pm_shape is pm_shape:
                 return device
 
         return None
 
     def get_closest_agent(self, element: SceneElement) -> Agent:
-        return min(self.agents,
+        return min(self._agents,
                    key=lambda a: element.position.get_dist_sqrd(a.position))
 
     def _handle_interactions(self):
@@ -528,7 +516,6 @@ class Playground(ABC):
                                                    collision_type_2)
         handler.pre_solve = interaction_function
         handler.data['playground'] = self
-
 
 
 class PlaygroundRegister:

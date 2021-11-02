@@ -4,18 +4,16 @@ from abc import ABC
 import pymunk
 
 if TYPE_CHECKING:
-    from simple_playgrounds.base.physical import PhysicalEntity
-    from simple_playgrounds.playgrounds.playground import Playground
     from simple_playgrounds.common.definitions import RADIUS_DEVICE
 
 from simple_playgrounds.common.definitions import CollisionTypes
-from simple_playgrounds.base.entity import Entity
+from simple_playgrounds.common.entity import Entity
 
 
 class Device(Entity, ABC):
 
     def __init__(self,
-                 anchor: PhysicalEntity,
+                 anchor: Entity,
                  **kwargs
                  ):
 
@@ -23,10 +21,12 @@ class Device(Entity, ABC):
 
         self.pm_shape = pymunk.Circle(anchor.pm_body, RADIUS_DEVICE)
         self.pm_shape.sensor = True
+        self.pm_shape.collision_type = CollisionTypes.DEVICE
 
         self._disabled: bool = False
 
-        self.pm_shape.collision_type = CollisionTypes.DEVICE
+
+        self._playground = anchor.playground
 
     def pre_step(self):
         self._disabled = False

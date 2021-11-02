@@ -10,11 +10,11 @@ if TYPE_CHECKING:
     from simple_playgrounds.playgrounds.playground import Playground
     from simple_playgrounds.common.entity import Producer
 
-from ..common.entity import Entity
+from ..common.entity import EmbodiedEntity
 from ..common.position_utils import InitCoord
 
 
-class SceneElement(Entity, ABC):
+class SceneElement(EmbodiedEntity, ABC):
 
     def __init__(self, **entity_params):
 

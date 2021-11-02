@@ -5,7 +5,7 @@ Module defining the Base Classes for Sensors.
 from __future__ import annotations
 from typing import List, Dict, Optional, Union, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
-    from simple_playgrounds.playgrounds.playground import Playground
+    from simple_playgrounds.playground.playground import Playground
 
 import math
 from abc import abstractmethod, ABC
@@ -13,14 +13,13 @@ from operator import attrgetter
 
 import numpy as np
 import pymunk
-from pygame import Surface
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
-from simple_playgrounds.base.device import Device
-from simple_playgrounds.agents.parts.parts import Part
+from simple_playgrounds.device.device import Device
+from simple_playgrounds.agent.parts import Part
 from simple_playgrounds.common.entity import Entity
-from simple_playgrounds.elements.element import SceneElement
+from simple_playgrounds.element.element import SceneElement
 
 
 class SensorDevice(Device):
@@ -97,21 +96,14 @@ class SensorDevice(Device):
                 raise ValueError('Noise type not implemented')
 
         # Sensor max value is used for noise and normalization calculation
-        self._sensor_max_value: float = 0.
 
-        # If it requires a topdown representation of the playground
-        # to compute the sensor values
-        self.requires_surface: bool = False
-        self.requires_playground_size: bool = False
-        self._pg_size: Optional[Tuple[int, int]] = None
-
-    def update(self, playground: Playground, sensor_surface: Surface):
+    def update(self):
 
         if self._disabled:
             self.sensor_values = self._get_null_sensor()
 
         else:
-            self._compute_raw_sensor(playground, sensor_surface)
+            self._compute_raw_sensor()
 
             if self._noise:
                 self._apply_noise()
@@ -120,11 +112,7 @@ class SensorDevice(Device):
                 self._apply_normalization()
 
     @abstractmethod
-    def _compute_raw_sensor(
-        self,
-        playground: Playground,
-        sensor_surface: Surface,
-    ):
+    def _compute_raw_sensor(self):
         ...
 
     @abstractmethod
@@ -143,6 +131,11 @@ class SensorDevice(Device):
     @abstractmethod
     def shape(self):
         """ Returns the shape of the numpy array, if applicable."""
+        ...
+
+    @property
+    @abstractmethod
+    def _sensor_max_value(self):
         ...
 
     @abstractmethod

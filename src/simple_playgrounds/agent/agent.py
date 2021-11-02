@@ -27,9 +27,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..common.position_utils import CoordinateSampler, Coordinate
 from simple_playgrounds.agent.actuators import Grasp
-from simple_playgrounds.elements.collection.teleport import TeleportElement
+from simple_playgrounds.element.elements.teleport import TeleportElement
 
-from simple_playgrounds.base.entity import Entity
+from simple_playgrounds.common.entity import Entity
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-member
@@ -130,14 +130,13 @@ class Agent(Entity, ABC):
             sensor.remove_from_playground()
 
     def add(self,
-            entity: Union[Part, Actuator, CommunicationDevice, SensorDevice],
-            anchor: Optional[Part] = None,
+            entity: Union[Part, CommunicationDevice, SensorDevice],
             **kwargs):
 
         if isinstance(entity, CommunicationDevice):
             if self._communication:
                 raise ValueError("Communication already added")
-            self._add_communication_devices(entity, anchor)
+            self._add_communication_device(entity)
 
         elif isinstance(entity, Part):
             self._add_part(entity, anchor=anchor, **kwargs)
@@ -150,7 +149,7 @@ class Agent(Entity, ABC):
         self.attach_device_to_anchor()
         comm.add_to_playground(self._playground)
 
-        self._playground.communication_devices.append(comm)
+        self._playground._communication_devices.append(comm)
 
     def _add_part(self, part: Part, anchor: Part, **kwargs):
 

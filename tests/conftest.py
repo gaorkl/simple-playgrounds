@@ -1,11 +1,11 @@
 import pytest
 
-from simple_playgrounds.agents.agents import (BaseAgent, HeadAgent,
+from simple_playgrounds.agent.agents import (BaseAgent, HeadAgent,
                                               HeadEyeAgent, FullAgent)
-from simple_playgrounds.agents.parts.controllers import RandomDiscrete, RandomContinuous, External
-from simple_playgrounds.playgrounds.collection.demo_playgrounds import Basics, Zones, Teleports, ExtraTeleports
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.layouts import SingleRoom
+from simple_playgrounds.agent.controllers import RandomDiscrete, RandomContinuous, External
+from simple_playgrounds.playground.playgrounds.demo_playgrounds import Basics, Zones, Teleports, ExtraTeleports
+from simple_playgrounds.playground.playground import PlaygroundRegister
+from simple_playgrounds.playground.layout import SingleRoom
 
 from simple_playgrounds.agents.sensors import (RgbCamera, GreyCamera, Lidar,
                                                Proximity, Touch, TopdownLocal,

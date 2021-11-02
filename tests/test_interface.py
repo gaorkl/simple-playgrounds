@@ -1,6 +1,6 @@
-from simple_playgrounds.playgrounds.playground import PlaygroundRegister
-from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.elements.collection.basic import Physical
+from simple_playgrounds.playground.playground import PlaygroundRegister
+from simple_playgrounds.playground.layout import SingleRoom
+from simple_playgrounds.element.elements.basic import Physical
 
 from simple_playgrounds.common.timer import CountDownTimer, PeriodicTimer
 
@@ -21,7 +21,7 @@ class Basics(SingleRoom):
 
         self.my_obj = Physical(**obj_params)
 
-        self.add_element(self.my_obj, ((150, 160), 0.2))
+        self.add(self.my_obj, initial_((150, 160), 0.2))
 
 
 def test_new_object():

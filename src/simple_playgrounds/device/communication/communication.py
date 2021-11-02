@@ -1,10 +1,8 @@
 from __future__ import annotations
-from typing import Optional, Any, List, Tuple, TYPE_CHECKING
-if TYPE_CHECKING:
-    pass
+from typing import Optional, Any, List, Tuple
 
 from simple_playgrounds.common.entity import Entity
-from simple_playgrounds.base.device import Device
+from simple_playgrounds.device.devices import Device
 
 
 class CommunicationDevice(Device):
@@ -35,17 +33,11 @@ class CommunicationDevice(Device):
 
     def pre_step(self):
         super().pre_step()
-        self._pre_step_comms()
+        self.reset()
 
     def reset(self):
-        super().reset()
-        self._pre_step_comms()
-
-    def _pre_step_comms(self):
-
         self._received_messages = []
-        other_comms = [com for com in self._playground.communication_devices if com is not self]
-        self._comms_in_range = [com for com in other_comms is self.in_transmission_range(com)]
+        self._comms_in_range = []
 
     @property
     def position(self):
@@ -62,6 +54,16 @@ class CommunicationDevice(Device):
     @property
     def received_message(self):
         return self._received_messages
+
+    def update_list_comms_in_range(self):
+
+        comms = self._playground.communication_devices
+
+        valid_comms = [com for com in comms if com is not self]
+
+        for comm in valid_comms:
+            if self.in_transmission_range(comm):
+                self._comms_in_range.append(comm)
 
     @property
     def comms_in_range(self):

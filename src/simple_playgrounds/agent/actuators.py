@@ -2,7 +2,7 @@ import random
 from abc import ABC, abstractmethod
 from typing import Tuple, Optional, Dict
 # if TYPE_CHECKING:
-from simple_playgrounds.elements.element import SceneElement
+from simple_playgrounds.element.element import SceneElement
 
 import numpy as np
 import pymunk

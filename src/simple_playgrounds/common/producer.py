@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Type, Optional, List, TYPE_CHECKING
+from typing import Dict, Type, Optional, List, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import CoordinateSampler
+    from simple_playgrounds.common.entity import Entity
+    from simple_playgrounds.agent.agent import Agent
 
-from simple_playgrounds.entity.entity import Entity
 
-
-class ProducerMixin(Entity, ABC):
+class Producer(Entity, ABC):
 
     def __init__(self,
                  production_area: CoordinateSampler,
-                 entity_produced: Type[Entity],
+                 entity_produced: Union[Type[Entity], Type[Agent]],
                  limit_entities_in_playground: Optional[int] = None,
                  total_production_limit: Optional[int] = None,
                  entity_produced_params: Optional[Dict] = None,
@@ -20,7 +20,6 @@ class ProducerMixin(Entity, ABC):
                  ):
 
         """
-
         Args:
             entity_produced: Entity produced. Can be agents, scene elements, etc..
             limit_entities_in_playground: max number of produced entities present in the playground at any given time.
@@ -79,3 +78,4 @@ class ProducerMixin(Entity, ABC):
 
         self.produced_entities = []
         self._total_produced = 0
+

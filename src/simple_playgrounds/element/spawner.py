@@ -17,7 +17,11 @@ from simple_playgrounds.base.producer import Producer
 # pylint: disable=too-many-arguments
 
 
-class RandomSpawner(Producer):
+class Spawner(Producer):
+    pass
+
+
+class RandomSpawner(Spawner):
     """
     A Spawner produces entities in a random location of the playground.
     """
