@@ -1,11 +1,11 @@
 import math
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.elements.collection.teleport import InvisibleBeam, VisibleBeamHoming, Portal, PortalColor
+from simple_playgrounds.playground.layouts import SingleRoom
+from simple_playgrounds.element.elements.teleport import InvisibleBeam, VisibleBeamHoming, Portal, PortalColor
 from simple_playgrounds.common.position_utils import CoordinateSampler
 
-from simple_playgrounds.elements.collection.basic import Physical
+from simple_playgrounds.element.elements.basic import Physical
 
 
 def test_beam(base_forward_interactive_agent_external):

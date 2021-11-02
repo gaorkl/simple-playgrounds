@@ -1,11 +1,8 @@
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
+from simple_playgrounds.playground.layouts import SingleRoom
 
-from simple_playgrounds.elements.collection.contact import Candy, VisibleEndGoal, ContactSwitch
-from simple_playgrounds.common.position_utils import CoordinateSampler
-from simple_playgrounds.elements.collection.basic import Door
-
-from simple_playgrounds.common.timer import CountDownTimer
+from simple_playgrounds.element.elements.contact import Candy, VisibleEndGoal, ContactSwitch
+from simple_playgrounds.element.elements.basic import Door
 
 
 def test_contact_candy(base_forward_interactive_agent_external):

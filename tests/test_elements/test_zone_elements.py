@@ -1,7 +1,7 @@
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
+from simple_playgrounds.playground.layouts import SingleRoom
 
-from simple_playgrounds.elements.collection.zone import HealingZone, GoalZone
+from simple_playgrounds.element.elements.zone import HealingZone, GoalZone
 
 
 def test_reward_zone(base_forward_interactive_agent_external):
@@ -29,7 +29,7 @@ def test_termination_zone(base_forward_interactive_agent_external):
 
     agent = base_forward_interactive_agent_external
 
-    goal = GoalZone(reward=100, size=(5,5))
+    goal = GoalZone(reward=100, size=(5, 5))
     playground.add_agent(agent, ((100, 100), 0))
     playground.add_element(goal, ((140, 100), 0))
 
@@ -42,4 +42,3 @@ def test_termination_zone(base_forward_interactive_agent_external):
 
     assert agent.reward > 0
     assert playground.done
-

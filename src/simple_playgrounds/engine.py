@@ -24,13 +24,13 @@ import pygame.locals
 from pymunk import pygame_util
 from skimage.transform import rescale
 
-from .agents.agent import Agent
-from .agents.parts.actuators import Actuator, Activate
-from simple_playgrounds.agents.communication import Stream
+from simple_playgrounds.agent.agent import Agent
+from simple_playgrounds.agent.actuators import Actuator, Activate
+from simple_playgrounds.device.communication import Stream
 from .common.definitions import SIMULATION_STEPS
-from .playgrounds.playground import Playground
-from simple_playgrounds.agents.communication import CommunicationDevice
-from simple_playgrounds.agents.sensors.sensor import ExternalSensor
+from simple_playgrounds.playground.playground import Playground
+from simple_playgrounds.device.communication import CommunicationDevice
+from simple_playgrounds.device.sensor import ExternalSensor
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30

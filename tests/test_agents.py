@@ -1,8 +1,8 @@
 import pytest
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import GridRooms, SingleRoom
-from simple_playgrounds.elements.collection.basic import Physical
+from simple_playgrounds.playground.layouts import GridRooms, SingleRoom
+from simple_playgrounds.element.elements.basic import Physical
 
 
 def run_engine(base_agent, pg_class, **pg_params):

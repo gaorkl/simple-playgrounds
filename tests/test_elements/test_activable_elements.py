@@ -1,11 +1,11 @@
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
+from simple_playgrounds.playground.layouts import SingleRoom
 
-from simple_playgrounds.elements.collection.activable import Dispenser, RewardOnActivation, OpenCloseSwitch, TimerSwitch
-from simple_playgrounds.elements.collection.edible import Apple
-from simple_playgrounds.elements.collection.contact import Candy
+from simple_playgrounds.element.elements.activable import Dispenser, RewardOnActivation, OpenCloseSwitch, TimerSwitch
+from simple_playgrounds.element.elements.edible import Apple
+from simple_playgrounds.element.elements.contact import Candy
 from simple_playgrounds.common.position_utils import CoordinateSampler
-from simple_playgrounds.elements.collection.basic import Door
+from simple_playgrounds.element.elements.basic import Door
 
 from simple_playgrounds.common.timer import CountDownTimer
 

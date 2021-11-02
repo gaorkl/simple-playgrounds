@@ -4,7 +4,7 @@ from typing import Union, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..common.definitions import ElementTypes, SensorTypes
-    from ..agents.parts.parts import PartTypes
+    from simple_playgrounds.agents.parts import PartTypes
 
 import os
 import yaml

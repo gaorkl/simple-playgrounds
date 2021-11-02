@@ -1,6 +1,6 @@
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
-from simple_playgrounds.elements.collection.aura import Fairy, Fireball
+from simple_playgrounds.playground.layouts import SingleRoom
+from simple_playgrounds.element.elements.aura import Fairy, Fireball
 
 
 def test_fairy(base_forward_interactive_agent_external):

@@ -1,11 +1,11 @@
 import math
 import numpy as np
 
-from simple_playgrounds.agents.parts.controllers import External, RandomContinuous
-from simple_playgrounds.agents.agents import BaseAgent, HeadAgent
-from simple_playgrounds.agents.sensors import Position, Velocity, Time
+from simple_playgrounds.agent.controllers import External, RandomContinuous
+from simple_playgrounds.agent.agents import BaseAgent, HeadAgent
+from simple_playgrounds.device.sensors import Position, Velocity, Time
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds import SingleRoom
+from simple_playgrounds.playground.layouts import SingleRoom
 
 
 def test_normalize_position_sensor():

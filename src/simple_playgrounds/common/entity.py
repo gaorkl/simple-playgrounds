@@ -158,7 +158,7 @@ class Entity(ABC):
             self.pm_elements.append(self.pm_visible_shape)
 
             if traversable:
-                self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=1)
+                self.pm_visible_shape.filter = pymunk.ShapeFilter(categories=1, mask=pymunk.ShapeFilter.ALL_MASKS() ^ 1)
             else:
                 self.pm_visible_shape.filter = pymunk.ShapeFilter(
                     categories=2, mask=pymunk.ShapeFilter.ALL_MASKS() ^ 1)

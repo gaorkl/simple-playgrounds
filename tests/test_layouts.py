@@ -1,7 +1,7 @@
 import pytest
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import GridRooms, LineRooms, SingleRoom
+from simple_playgrounds.playground.layouts import GridRooms, LineRooms, SingleRoom
 
 
 def test_grid_layout():

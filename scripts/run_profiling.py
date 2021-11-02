@@ -3,7 +3,7 @@ import time
 import math
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.agents.parts.controllers import RandomContinuous
+from simple_playgrounds.agents.controllers import RandomContinuous
 from simple_playgrounds.agents.agents import BaseAgent
 import simple_playgrounds.agents.sensors as sensors
 from simple_playgrounds.playgrounds.collection.profiling_playgrounds import BasicUnmovable

@@ -1,8 +1,8 @@
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
+from simple_playgrounds.playground.layouts import SingleRoom
 
-from simple_playgrounds.elements.collection.conditioning import ColorChanging, FlipReward
-from simple_playgrounds.elements.collection.activable import RewardOnActivation
+from simple_playgrounds.element.elements.conditioning import ColorChanging, FlipReward
+from simple_playgrounds.element.elements.activable import RewardOnActivation
 from simple_playgrounds.common.timer import PeriodicTimer
 
 

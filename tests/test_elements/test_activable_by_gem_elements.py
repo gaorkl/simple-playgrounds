@@ -1,10 +1,10 @@
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.playgrounds.layouts import SingleRoom
+from simple_playgrounds.playground.layouts import SingleRoom
 
-from simple_playgrounds.elements.collection.activable import VendingMachine, Chest, Lock
-from simple_playgrounds.elements.collection.gem import Coin, Key
-from simple_playgrounds.elements.collection.contact import Candy
-from simple_playgrounds.elements.collection.basic import Door
+from simple_playgrounds.element.elements.activable import VendingMachine, Chest, Lock
+from simple_playgrounds.element.elements.gem import Coin, Key
+from simple_playgrounds.element.elements.contact import Candy
+from simple_playgrounds.element.elements.basic import Door
 
 
 def test_vending_machine(base_forward_interactive_agent_external):
