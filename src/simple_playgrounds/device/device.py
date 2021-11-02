@@ -1,3 +1,8 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.playground.playground import Playground
+
 from abc import ABC
 
 import pymunk
@@ -21,6 +26,22 @@ class Device(ABC):
         self._disabled: bool = False
 
         self.pm_shape.collision_type = CollisionTypes.DEVICE
+
+        self._playground: Optional[Playground] = None
+
+    @property
+    def playground(self):
+        return self._playground
+
+    @playground.setter
+    def playground(self, pg):
+        self._playground = pg
+
+    @property
+    def in_playground(self):
+        return bool(self._playground)
+
+
 
     def pre_step(self):
         self._disabled = False

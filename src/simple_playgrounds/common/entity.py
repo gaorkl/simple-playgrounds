@@ -12,7 +12,9 @@ Examples can be found in :
 import math
 from abc import ABC, abstractmethod
 from enum import IntEnum, auto
-from typing import Union, Tuple, Dict, List, Optional
+from typing import Union, Tuple, Dict, List, Optional, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.playground.playground import Playground
 
 import numpy as np
 import pygame
@@ -210,6 +212,20 @@ class Entity(ABC):
         self.drawn = False
 
         self.temporary = temporary
+
+        self._playground: Optional[Playground] = None
+
+    @property
+    def playground(self):
+        return self._playground
+
+    @playground.setter
+    def playground(self, pg):
+        self._playground = pg
+
+    @property
+    def in_playground(self):
+        return bool(self._playground)
 
     def get_pixel(self, relative_pos):
 

@@ -2,7 +2,9 @@
 Module for Spawner
 """
 import random
-from typing import Optional, Dict, Tuple, Type, List, Union
+from typing import Optional, Dict, Tuple, Type, List, Union, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.playground.playground import Playground
 
 from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.element.element import SceneElement
@@ -59,6 +61,20 @@ class Spawner:
         # Internal counter to assign identity number to each entity
         self.name = 'spawner_' + str(Spawner.id_number)
         Spawner.id_number += 1
+
+        self._playground: Optional[Playground] = None
+
+    @property
+    def playground(self):
+        return self._playground
+
+    @playground.setter
+    def playground(self, pg):
+        self._playground = pg
+
+    @property
+    def in_playground(self):
+        return bool(self._playground)
 
     def _can_produce(self, steps=None) -> bool:
         """

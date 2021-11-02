@@ -1,5 +1,8 @@
+from __future__ import annotations
 from abc import ABC
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, TYPE_CHECKING, Optional
+if TYPE_CHECKING:
+    from simple_playgrounds.playground.playground import Playground
 
 
 class Timer(ABC):
@@ -8,6 +11,7 @@ class Timer(ABC):
         self._running = False
         self._time = 0
         self._tic = False
+        self._playground: Optional[Playground] = None
 
     @property
     def tic(self):
@@ -26,6 +30,19 @@ class Timer(ABC):
     def reset(self):
         self.stop()
         self._time = 0
+
+
+    @property
+    def playground(self):
+        return self._playground
+
+    @playground.setter
+    def playground(self, pg):
+        self._playground = pg
+
+    @property
+    def in_playground(self):
+        return bool(self._playground)
 
 
 class CountDownTimer(Timer):

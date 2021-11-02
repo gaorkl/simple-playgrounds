@@ -12,9 +12,10 @@ from __future__ import annotations
 from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
-    from simple_playgrounds.device.sensors.sensor import SensorDevice
+    from simple_playgrounds.device.sensor import SensorDevice
     from simple_playgrounds.agent.actuators import Actuator
     from simple_playgrounds.agent.controllers import Controller
+    from simple_playgrounds.playground.playground import Playground
     from pymunk import Shape
     from pygame import Surface
     from ..common.entity import Entity
@@ -108,6 +109,20 @@ class Agent(ABC):
         # Communication
         self.communication: Optional[CommunicationDevice] = None
         self._can_communicate = False
+
+        self._playground: Optional[Playground] = None
+
+    @property
+    def playground(self):
+        return self._playground
+
+    @playground.setter
+    def playground(self, pg):
+        self._playground = pg
+
+    @property
+    def in_playground(self):
+        return bool(self._playground)
 
     # COMMUNICATION
     def add_communication(self,
@@ -284,13 +299,7 @@ class Agent(ABC):
             raise ValueError('Add sensors outside of a playground.')
 
         self.sensors.append(new_sensor)
-
-    @property
-    def in_playground(self) -> bool:
-
-        if self.base_platform.pm_body.space:
-            return True
-        return False
+        new_sensor.playground = self._playground
 
     @property
     def observations(self):
