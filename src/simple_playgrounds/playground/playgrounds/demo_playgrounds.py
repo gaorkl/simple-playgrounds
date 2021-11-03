@@ -16,8 +16,11 @@ from simple_playgrounds.element.elements.teleport import VisibleBeamHoming, Invi
 from simple_playgrounds.element.elements.zone import DeathZone, GoalZone, HealingZone, ToxicZone
 from simple_playgrounds.common.spawner import Spawner
 from simple_playgrounds.common.texture import RandomTilesTexture
-from simple_playgrounds.element.elements.modifier import SensorDisabler
+from simple_playgrounds.element.elements.modifier import SensorDisabler, ActuatorDisabler
 from simple_playgrounds.device.sensor import SensorDevice
+from simple_playgrounds.agent.actuators import ActuatorDevice, AngularVelocity
+from simple_playgrounds.device.sensors import RgbCamera
+from simple_playgrounds.device.sensor import ImageBasedSensor
 
 from numpy.random import default_rng
 
@@ -106,40 +109,24 @@ class Basics(SingleRoom):
 
 @PlaygroundRegister.register('demo', 'disabler')
 class Disabler(SingleRoom):
-    def __init__(self, size=(400, 200), **playground_params):
+    def __init__(self, size=(300, 100), **playground_params):
 
         super().__init__(size=size, **playground_params)
 
-        disabler = SensorDisabler(disabled_sensor_types=SensorDevice, radius = 40)
-        self.add_element(disabler,
-                         initial_coordinates=((150, 100), 0))
+        disabler = SensorDisabler(disabled_sensor_types=SensorDevice, radius=40)
+        self.add_element(disabler, initial_coordinates=((50, 50), 0))
 
-        circle_01 = Traversable(config_key='circle',
-                                movable=True,
-                                mass=100,
-                                texture=[150, 150, 150])
-        self.add_element(circle_01, ((50, 60), 0))
+        disabler = ActuatorDisabler(disabled_actuator_types=ActuatorDevice, radius=40)
+        self.add_element(disabler, initial_coordinates=((100, 50), 0))
 
-        square_01 = Physical(config_key='square', movable=True, mass=10)
-        self.add_element(square_01, ((150, 60), 0))
+        disabler = SensorDisabler(disabled_sensor_types=RgbCamera, radius=40)
+        self.add_element(disabler, initial_coordinates=((150, 50), 0))
 
-        pentagon_01 = Physical(config_key='pentagon', radius=15)
-        self.add_element(pentagon_01, ((50, 160), math.pi / 2))
+        disabler = SensorDisabler(disabled_sensor_types=ImageBasedSensor, radius=40)
+        self.add_element(disabler, initial_coordinates=((200, 50), 0))
 
-        tri_01 = Physical(config_key='triangle', movable=False, mass=5)
-        self.add_element(tri_01, ((100, 100), math.pi / 4))
-
-        tri_01 = Physical(config_key='triangle',
-                          movable=False,
-                          mass=5,
-                          radius=20)
-        self.add_element(tri_01, ((300, 66), 0))
-
-        tri_01 = Physical(config_key='triangle',
-                          movable=False,
-                          mass=5,
-                          radius=20)
-        self.add_element(tri_01, ((300, 133), math.pi / 3))
+        disabler = ActuatorDisabler(disabled_actuator_types=AngularVelocity, radius=40)
+        self.add_element(disabler, initial_coordinates=((250, 50), 0))
 
 
 

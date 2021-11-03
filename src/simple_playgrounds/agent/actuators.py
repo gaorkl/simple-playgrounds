@@ -41,7 +41,7 @@ class ActuatorDevice(Device, ABC):
             scale: scale / std of gaussian noise (default 1)
         """
 
-        super().__init__(anchor=part)
+        Device.__init__(self, anchor=part)
 
         self.part = part
         self.command: float = 0
@@ -81,19 +81,25 @@ class ActuatorDevice(Device, ABC):
         value,
     ):
 
-        if self._disabled:
-            return
-
         self.command = value
 
-        if not self._check_action_value(value):
-            raise ValueError(
-                "Value for command {} not compatible".format(value))
+        if self._disabled:
+            value = self.default_value
 
-        if self._noise:
-            value = self._apply_noise(value)
+        else:
 
-        self.value = value
+            if not self._check_action_value(value):
+                raise ValueError(
+                    "Value for command {} not compatible".format(value))
+
+            if self._noise:
+                value = self._apply_noise(value)
+
+        self._apply_action(value)
+
+    @abstractmethod
+    def _apply_action(self, value):
+        ...
 
     @abstractmethod
     def _check_action_value(self, value) -> bool:
@@ -272,10 +278,8 @@ class Activate(InteractionActuator):
         super().__init__(part)
         self.is_activating = 0
 
-    def apply_action(self, action_index: int):
-
-        super().apply_action(action_index)
-        self.is_activating = self.actuator_values[action_index]
+    def _apply_action(self, value):
+        self.is_activating = self.actuator_values[value]
 
 
 class Grasp(InteractionActuator):
@@ -287,10 +291,9 @@ class Grasp(InteractionActuator):
         self.grasped_element: Optional[SceneElement] = None
         self._grasp_joints = []
 
-    def apply_action(self, action_index: int):
+    def _apply_action(self, value):
 
-        super().apply_action(action_index)
-        self.is_grasping = self.actuator_values[action_index]
+        self.is_grasping = self.actuator_values[value]
 
         if self.grasped_element and not self.is_grasping:
             self.release_grasp()
@@ -447,7 +450,7 @@ class ContinuousActuator(ActuatorDevice, ABC):
             raise ValueError('Noise type not implemented')
 
 
-class ForceActuator(ContinuousActuator):
+class ForceActuator(ContinuousActuator, ABC):
     def __init__(
         self,
         part: Platform,
@@ -463,32 +466,26 @@ class ForceActuator(ContinuousActuator):
 
 
 class LongitudinalForce(ForceActuator):
-    def apply_action(self, value: float):
-
-        super().apply_action(value)
+    def _apply_action(self, value: float):
 
         self.part.pm_body.apply_force_at_local_point(
             pymunk.Vec2d(value, 0) * LINEAR_FORCE * self._action_range, (0, 0))
 
 
 class LateralForce(ForceActuator):
-    def apply_action(self, value: float):
 
-        super().apply_action(value)
-
+    def _apply_action(self, value: float):
         self.part.pm_body.apply_force_at_local_point(
             pymunk.Vec2d(0, value) * self._action_range * LINEAR_FORCE, (0, 0))
 
 
 class AngularVelocity(ForceActuator):
-    def apply_action(self, value: float):
 
-        super().apply_action(value)
-
+    def _apply_action(self, value: float):
         self.part.pm_body.angular_velocity = value * ANGULAR_VELOCITY * self._action_range
 
 
-class MotorActuator(ContinuousActuator):
+class MotorActuator(ContinuousActuator, ABC):
     def __init__(
         self,
         part: AnchoredPart,
@@ -505,11 +502,9 @@ class MotorActuator(ContinuousActuator):
 
 
 class AngularRelativeVelocity(MotorActuator):
-    def apply_action(self, value: float):
+    def _apply_action(self, value: float):
 
         self.part: AnchoredPart
-
-        super().apply_action(value)
 
         theta_part = self.part.angle
         theta_anchor = self.part.anchor.angle

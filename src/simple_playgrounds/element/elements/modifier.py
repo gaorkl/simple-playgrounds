@@ -12,6 +12,7 @@ from simple_playgrounds.element.element import SceneElement
 from simple_playgrounds.device.device import Device
 from simple_playgrounds.device.communication import CommunicationDevice
 from simple_playgrounds.device.sensor import SensorDevice
+from simple_playgrounds.agent.actuators import ActuatorDevice
 
 
 class ModifierElement(SceneElement, ABC):
@@ -44,26 +45,28 @@ class ModifierElement(SceneElement, ABC):
 class DeviceDisabler(ModifierElement, ABC):
 
     def __init__(self,
-                 disabled_element_types: Union[type(Device), List[type(Device)]],
+                 disabled_device_types: Union[type(Device), List[type(Device)]],
                  **entity_params):
 
         super().__init__(**entity_params)
 
-        if isinstance(disabled_element_types, type(Device)):
-            disabled_element_types = [disabled_element_types]
+        if isinstance(disabled_device_types, type(Device)):
+            disabled_device_types = [disabled_device_types]
 
-        self.disabled_cls: Tuple[type(Device)] = tuple(disabled_element_types)
+        self.disabled_cls: Tuple[type(Device)] = tuple(disabled_device_types)
 
     def modify(self, modified: Device):
 
         if isinstance(modified, self.disabled_cls):
+            print(modified)
+
             modified.disable()
 
 
 class CommunicationDisabler(DeviceDisabler):
 
     def __init__(self, **entity_params):
-        super().__init__(disabled_element_types=CommunicationDevice,
+        super().__init__(disabled_device_types=CommunicationDevice,
                          config_key=ElementTypes.COMM_DISABLER,
                          **entity_params)
 
@@ -73,5 +76,14 @@ class SensorDisabler(DeviceDisabler):
                  disabled_sensor_types: Union[type(SensorDevice), List[type(SensorDevice)]],
                  **entity_params):
 
-        super().__init__(disabled_element_types=disabled_sensor_types,
+        super().__init__(disabled_device_types=disabled_sensor_types,
                          config_key=ElementTypes.SENSOR_DISABLER, **entity_params)
+
+
+class ActuatorDisabler(DeviceDisabler):
+    def __init__(self,
+                 disabled_actuator_types: Union[type(ActuatorDevice), List[type(ActuatorDevice)]],
+                 **entity_params):
+
+        super().__init__(disabled_device_types=disabled_actuator_types,
+                         config_key=ElementTypes.ACTUATOR_DISABLER, **entity_params)

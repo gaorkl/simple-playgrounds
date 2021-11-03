@@ -33,7 +33,6 @@ class Device(ABC):
         if anchor.playground:
             self._playground = anchor.playground
 
-
     @property
     def playground(self):
         return self._playground

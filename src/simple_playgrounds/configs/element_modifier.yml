@@ -18,3 +18,12 @@ sensor_disabler :
   size: [ 15, 15 ]
   texture: *sensor-disabler-texture
 
+actuator_disabler_texture : &actuator-disabler-texture
+  texture_type: color
+  color: [10, 225, 100]
+
+actuator_disabler :
+  physical_shape: rectangle
+  size: [ 15, 15 ]
+  texture: *actuator-disabler-texture
+

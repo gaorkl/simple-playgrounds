@@ -5,7 +5,7 @@ Module defining the Base Classes for Sensors.
 from __future__ import annotations
 from typing import List, Dict, Optional, Union, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
-    from simple_playgrounds.playgrounds.playground import Playground
+    from simple_playgrounds.playground.playground import Playground
 
 import math
 from abc import abstractmethod, ABC

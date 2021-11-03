@@ -153,7 +153,12 @@ class Agent(ABC):
         self._current_actions = controller.generate_null_actions()
 
     def add_actuator(self, actuator: ActuatorDevice):
+
+        if self.in_playground:
+            raise ValueError('Add actuators outside of a playground.')
+
         self.actuators.append(actuator)
+        actuator.playground = self._playground
 
     @property
     def grasped_elements(self):

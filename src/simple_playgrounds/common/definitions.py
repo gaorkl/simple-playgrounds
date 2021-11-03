@@ -114,6 +114,7 @@ class ElementTypes(IntEnum):
     # Modifier Zones
     SENSOR_DISABLER = auto()
     COMM_DISABLER = auto()
+    ACTUATOR_DISABLER = auto()
 
     SPAWNER = auto()
 
