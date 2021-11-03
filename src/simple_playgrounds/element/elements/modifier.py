@@ -58,8 +58,6 @@ class DeviceDisabler(ModifierElement, ABC):
     def modify(self, modified: Device):
 
         if isinstance(modified, self.disabled_cls):
-            print(modified)
-
             modified.disable()
 
 
