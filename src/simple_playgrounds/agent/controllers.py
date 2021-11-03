@@ -144,6 +144,9 @@ class Keyboard(Controller):
 
         self.hold = []
 
+        self.screen = None
+        self.quit_key_ready = True
+
     def discover_key_mapping(self):
         """ Key mapping that links keyboard strokes with a desired action."""
 
@@ -205,3 +208,5 @@ class Keyboard(Controller):
     def controlled_actuators(self, contr):
         self._controlled_actuators = contr
         self.discover_key_mapping()
+
+        assert isinstance(contr[0], ActuatorDevice)

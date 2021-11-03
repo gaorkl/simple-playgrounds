@@ -121,6 +121,13 @@ class Agent(ABC):
 
     @playground.setter
     def playground(self, pg):
+        for part in self.parts:
+            part.playground = pg
+        for act in self.actuators:
+            act.playground = pg
+        for sens in self.sensors:
+            sens.playground = pg
+
         self._playground = pg
 
     @property
@@ -299,7 +306,10 @@ class Agent(ABC):
             raise ValueError('Add sensors outside of a playground.')
 
         self.sensors.append(new_sensor)
-        new_sensor.playground = self._playground
+
+        # If already in playground, add
+        if self._playground:
+            new_sensor.playground = self._playground
 
     @property
     def observations(self):
@@ -433,8 +443,6 @@ class Agent(ABC):
 
         self._teleported_to = None
 
-
-
     def _overlaps(
         self,
         entity: Entity,
@@ -479,7 +487,7 @@ class Agent(ABC):
 
         for part in self.parts:
             if part not in list_excluded:
-                part.draw(surface, )
+                part.draw(surface, viewpoint=(0, 0))
 
     def generate_actions_image(self,
                                width_action: int = 100,

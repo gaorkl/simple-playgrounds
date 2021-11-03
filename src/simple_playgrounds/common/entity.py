@@ -53,7 +53,6 @@ class Entity(ABC):
         temporary: bool = False,
         name: Optional[str] = None,
         mass: Optional[float] = None,
-        background: bool = True,
         pymunk_attributes: Optional[Dict] = None,
         **kwargs,
     ):
@@ -73,7 +72,6 @@ class Entity(ABC):
             temporary:
             name:
             mass:
-            background:
             pymunk_attributes:
             **kwargs:
         """
@@ -207,13 +205,8 @@ class Entity(ABC):
 
         self._set_pm_attr(pymunk_attributes)
 
-        if invisible_shape or movable:
-            background = False
-
-        self.background = background
         self.movable = movable
         self.graspable = graspable
-        self.drawn = False
 
         self.temporary = temporary
 
@@ -530,9 +523,6 @@ class Entity(ABC):
         if self.trajectory:
             self.position, self.angle = next(self.trajectory)
 
-        if not self.background:
-            self.drawn = False
-
     def reset(self):
         """
         Reset the trajectory and initial position
@@ -546,9 +536,7 @@ class Entity(ABC):
 
         self.position, self.angle = self.initial_coordinates
 
-        self.drawn = False
-
-    def draw(self, surface, draw_invisible=False, force_recompute_mask=False):
+    def draw(self, surface, viewpoint, draw_invisible=False, force_recompute_mask=False):
         """
         Draw the entity on the surface.
 
@@ -561,16 +549,14 @@ class Entity(ABC):
         if draw_invisible and (self.pm_invisible_shape or self.pm_grasp_shape):
             invisible_mask = self._create_mask(invisible=True)
             mask_rect = invisible_mask.get_rect()
-            mask_rect.center = self.position
+            mask_rect.center = self.position - viewpoint
             surface.blit(invisible_mask, mask_rect, None)
 
         if self.pm_visible_shape:
             visible_mask = self._create_mask()
             mask_rect = visible_mask.get_rect()
-            mask_rect.center = self.position
+            mask_rect.center = self.position - viewpoint
             surface.blit(visible_mask, mask_rect, None)
-
-        self.drawn = True
 
 
 class PhysicalShapes(IntEnum):

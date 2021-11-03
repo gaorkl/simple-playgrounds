@@ -7,7 +7,7 @@ E.g. position, velocity, mass, shape can be accessed.
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 if TYPE_CHECKING:
-    from simple_playgrounds.playgrounds.playground import Playground
+    from simple_playgrounds.playground.playground import Playground
 
 import math
 from operator import attrgetter
@@ -42,19 +42,18 @@ class SemanticRay(RayBasedSensor):
     def shape(self):
         return None
 
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
 
-        collision_points = self._compute_points(playground)
+        collision_points = self._compute_points()
 
         collision_points = {
             k: v
             for k, v in collision_points.items() if v != []
         }
 
-        self.sensor_values = self._collisions_to_detections(
-            playground, collision_points)
+        self.sensor_values = self._collisions_to_detections(collision_points)
 
-    def _collisions_to_detections(self, playground, collision_points):
+    def _collisions_to_detections(self, collision_points):
         """
         Transforms pymunk collisions into simpler data structures.
 
@@ -73,7 +72,7 @@ class SemanticRay(RayBasedSensor):
 
             if collision:
 
-                element_colliding = playground.get_entity_from_shape(
+                element_colliding = self.playground.get_entity_from_shape(
                     pm_shape=collision.shape)
                 distance = collision.alpha * (self._max_range - self._min_range - 1) + self._min_range + 1
 
@@ -162,9 +161,9 @@ class SemanticCones(SemanticRay):
                 for n in range(self.number_cones)
             ]
 
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
 
-        super()._compute_raw_sensor(playground)
+        super()._compute_raw_sensor()
 
         detections_per_cone = {}
         for cone_angle in self.angles_cone_center:
@@ -258,15 +257,12 @@ class PerfectSemantic(SemanticRay):
 
         self.sensor_values: List[Detection]
 
-    def _compute_detections(
-        self,
-        playground: Playground,
-    ) -> List[Detection]:
+    def _compute_detections(self) -> List[Detection]:
 
         position_body = self._anchor.pm_body.position
         angle_body = self._anchor.pm_body.angle
 
-        points_hit = playground.space.point_query(position_body,
+        points_hit = self.playground.space.point_query(position_body,
                                                   self._max_range,
                                                   shape_filter=ShapeFilter(ShapeFilter.ALL_MASKS()))
 
@@ -282,7 +278,7 @@ class PerfectSemantic(SemanticRay):
         if self._invisible_elements:
             points_hit = [pt for pt in points_hit
                           if pt.shape
-                          and playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
+                          and self.playground.get_entity_from_shape(pt.shape) not in self._invisible_elements]
 
         # Calculate angle
         detections: List[Detection] = []
@@ -294,7 +290,7 @@ class PerfectSemantic(SemanticRay):
                 continue
 
             assert isinstance(pt.shape, Shape)
-            element_colliding = playground.get_entity_from_shape(
+            element_colliding = self.playground.get_entity_from_shape(
                 pm_shape=pt.shape)
             distance = pt.distance
 
@@ -305,11 +301,7 @@ class PerfectSemantic(SemanticRay):
 
         return detections
 
-    def _compute_raw_sensor(
-        self,
-        playground: Playground,
-        *_,
-    ):
+    def _compute_raw_sensor(self):
 
-        detections = self._compute_detections(playground)
+        detections = self._compute_detections()
         self.sensor_values = detections

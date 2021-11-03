@@ -85,9 +85,10 @@ class ColorChanging(InteractiveElement):
 
         return None, None
 
-    def draw(self, surface, draw_invisible=False, force_recompute_mask=False):
+    def draw(self, surface, viewpoint, draw_invisible=False, force_recompute_mask=False):
 
         super().draw(surface,
+                     viewpoint,
                      draw_invisible=draw_invisible,
                      force_recompute_mask=self._texture_changed)
 

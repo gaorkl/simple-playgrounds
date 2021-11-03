@@ -33,9 +33,9 @@ class RgbCamera(RayBasedSensor):
 
         self._sensor_max_value = 255
 
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
 
-        collision_points = self._compute_points(playground)
+        collision_points = self._compute_points()
 
         pixels = np.zeros((self._resolution, 3))
 
@@ -45,7 +45,7 @@ class RgbCamera(RayBasedSensor):
 
             if collision:
 
-                elem_colliding = playground.get_entity_from_shape(
+                elem_colliding = self.playground.get_entity_from_shape(
                     pm_shape=collision.shape)
 
                 if collision.alpha == 0.0:
@@ -107,8 +107,8 @@ class GreyCamera(RgbCamera):
 
     sensor_type = SensorTypes.GREY
 
-    def _compute_raw_sensor(self, playground, *_):
-        super()._compute_raw_sensor(playground)
+    def _compute_raw_sensor(self):
+        super()._compute_raw_sensor()
         self.sensor_values = np.dot(self.sensor_values[..., :3],
                                     [0.114, 0.299, 0.587]).reshape(self.shape)
 
@@ -128,7 +128,7 @@ class GreyCamera(RgbCamera):
 
 
 class BlindCamera(GreyCamera):
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
         self.sensor_values = np.zeros(self.shape)
 
 
@@ -148,9 +148,9 @@ class Lidar(RayBasedSensor):
 
         self._sensor_max_value = self._max_range
 
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
 
-        collision_points = self._compute_points(playground)
+        collision_points = self._compute_points()
 
         pixels = np.ones(self._resolution) * self._max_range
 
@@ -193,9 +193,9 @@ class Proximity(Lidar):
 
     sensor_type = SensorTypes.Proximity
 
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
 
-        super()._compute_raw_sensor(playground)
+        super()._compute_raw_sensor()
 
         self.sensor_values = self._sensor_max_value - self.sensor_values
 
@@ -217,9 +217,9 @@ class Touch(Lidar):
         self._sensor_max_value = self._max_range
         self._max_range = self._anchor.radius + self._max_range  # pylint: disable=access-member-before-definition
 
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
 
-        super()._compute_raw_sensor(playground)
+        super()._compute_raw_sensor()
 
         distance_to_anchor = self.sensor_values - self._anchor.radius
         distance_to_anchor[distance_to_anchor < 0] = 0
