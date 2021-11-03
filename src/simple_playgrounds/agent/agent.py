@@ -412,7 +412,6 @@ class Agent(ABC):
         """
 
         self.reward = 0
-        self.is_teleporting = False
 
         self._update_teleport()
 

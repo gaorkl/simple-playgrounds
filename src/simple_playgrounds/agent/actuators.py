@@ -322,7 +322,7 @@ class Grasp(InteractionActuator):
         for joint in self._grasp_joints:
             self.part.pm_body.space.remove(joint)
         self._grasp_joints = []
-        self.grasped_element.held_by = None
+        self.grasped_element.released_by(self)
         self.grasped_element = None
 
 # CONTINUOUS ACTUATORS

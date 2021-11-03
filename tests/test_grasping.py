@@ -34,7 +34,7 @@ def test_grasping():
     engine.step(actions)
 
     assert (elem.position, elem.angle) != initial_position_elem
-    assert elem.held_by.part.agent is agent_1
+    assert elem.held_by[0].part.agent is agent_1
 
     engine.step()
     assert not elem.held_by

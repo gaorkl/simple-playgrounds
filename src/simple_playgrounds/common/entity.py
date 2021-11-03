@@ -16,16 +16,17 @@ from enum import IntEnum, auto
 from typing import Union, Tuple, Dict, List, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
-    from simple_playgrounds.common.producer import Producer
     from simple_playgrounds.agent.actuators import Grasp
+    from simple_playgrounds.element.elements.activable import Dispenser
+    from simple_playgrounds.common.spawner import Spawner
 
 import numpy as np
 import pygame
 import pymunk
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY, CollisionTypes
 
-from .position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
-from .texture import Texture, TextureGenerator, ColorTexture
+from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
+from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
 
 
 # pylint: disable=line-too-long
@@ -218,8 +219,8 @@ class Entity(ABC):
 
         self._playground: Optional[Playground] = None
 
-        self._held_by: Optional[Grasp] = None
-        self._produced_by: Optional[Producer] = None
+        self._held_by: List[Grasp] = []
+        self._produced_by: Optional[Union[Dispenser, Spawner]] = None
 
     @property
     def held_by(self):
@@ -227,14 +228,18 @@ class Entity(ABC):
 
     @held_by.setter
     def held_by(self, grasper: Grasp):
-        self._held_by = grasper
+        self._held_by.append(grasper)
+
+    def released_by(self, grasper):
+        assert grasper in self._held_by
+        self._held_by.remove(grasper)
 
     @property
     def produced_by(self):
         return self._produced_by
 
     @produced_by.setter
-    def produced_by(self, producer: Producer):
+    def produced_by(self, producer: Union[Spawner, Dispenser]):
         self._produced_by = producer
 
     @property

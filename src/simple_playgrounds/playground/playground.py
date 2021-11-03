@@ -441,8 +441,8 @@ class Playground(ABC):
             if element in spawner.produced_entities:
                 spawner.produced_entities.remove(element)
 
-        if element.held_by:
-            element.held_by.release_grasp()
+        for grasper in element.held_by:
+            grasper.release_grasp()
 
         element.playground = False
 
