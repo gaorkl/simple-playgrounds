@@ -399,7 +399,7 @@ class Engine:
 
             temporary_invisible = []
             if grasped_invisible:
-                temporary_invisible = agent.is_holding
+                temporary_invisible = agent.grasped_elements
 
             for sensor in agent.sensors:
 
