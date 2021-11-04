@@ -66,8 +66,6 @@ class RgbCamera(RayBasedSensor):
 
                 pixels[angle_index] = rgb
 
-        pixels = pixels[:, ::-1]
-
         self.sensor_values = pixels
 
     def _apply_normalization(self):

@@ -381,6 +381,7 @@ class ImageBasedSensor(ExternalSensor, ABC):
 
     def __init__(
             self,
+            aliasing: bool = True,
             **kwargs,
     ):
         super().__init__(**kwargs)
@@ -388,9 +389,12 @@ class ImageBasedSensor(ExternalSensor, ABC):
         self._size_surface = (2*self._max_range + 1, 2*self._max_range+1)
         self._surface = pygame.Surface(self._size_surface)
 
+        self._sensor_size = None
+        self._anti_aliasing = aliasing
+
     def pre_step(self):
         super().pre_step()
-        self._surface.fill(pygame.Color(0, 0, 0, 0))
+        self._surface.fill(pygame.Color(0, 0, 0))
 
     def _apply_normalization(self):
         self.sensor_values /= self._sensor_max_value

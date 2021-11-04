@@ -315,7 +315,10 @@ class Engine:
                                             img.shape[1])
             img = rescale(img, scaling_factor, multichannel=True)
 
-        return img
+        img = np.rot90(img, -1, (1, 0))
+        img = img[::-1, :, ::-1]
+
+        return img/255.
 
     # AGENTS
 

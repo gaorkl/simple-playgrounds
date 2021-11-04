@@ -117,10 +117,10 @@ class SemanticRay(RayBasedSensor):
             pos_y = int(width / 2 - distance * math.sin(-detection.angle))
 
             rr, cc = line(int(width / 2), int(width / 2), pos_x, pos_y)
-            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
+            set_color(img, (rr, cc), (0.3, 0.1, 0.5))
 
             rr, cc = disk((pos_x, pos_y), 2)
-            color = [c / 255 for c in detection.entity.base_color[::-1]]
+            color = [c / 255 for c in detection.entity.base_color]
             set_color(img, (rr, cc), color)
 
         return img
@@ -219,13 +219,13 @@ class SemanticCones(SemanticRay):
             # pylint: disable=no-member
 
             rr, cc = line(int(width / 2), int(width / 2), pos_x_1, pos_y_1)
-            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
+            set_color(img, (rr, cc), (0.3, 0.1, 0.5))
 
             rr, cc = line(pos_x_1, pos_y_1, pos_x_2, pos_y_2)
-            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
+            set_color(img, (rr, cc), (0.3, 0.1, 0.5))
 
             rr, cc = line(pos_x_2, pos_y_2, int(width / 2), int(width / 2))
-            set_color(img, (rr, cc), (0.5, 0.1, 0.3))
+            set_color(img, (rr, cc), (0.3, 0.1, 0.5))
 
         return img
 

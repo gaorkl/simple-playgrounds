@@ -658,7 +658,7 @@ class Playground(ABC):
 
         center = (center[0] - size[0]/2, center[1] - size[1]/2)
 
-        surface.fill(pygame.Color(0, 0, 0, 0))
+        surface.fill(pygame.Color(0, 0, 0))
 
         max_range = pymunk.Vec2d(*size).length
 
@@ -678,7 +678,7 @@ class Playground(ABC):
             if elem not in invisible_elements:
                 elem.draw(surface, viewpoint=center, draw_invisible=draw_invisible)
 
-        img = pygame.surfarray.pixels3d(surface).astype(float)
+        img = pygame.surfarray.pixels3d(surface).astype(float)[:, :, ::-1]
 
         return img
 

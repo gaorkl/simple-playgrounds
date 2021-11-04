@@ -9,7 +9,6 @@ import math
 
 import numpy as np
 import pygame
-import pymunk
 from skimage import draw
 from skimage.transform import resize, rotate
 
@@ -88,6 +87,11 @@ class TopdownLocal(ImageBasedSensor):
         self.mask_total_fov = mask_circle & mask_poly
         self._sensor_max_value = 255
 
+        if self.only_front:
+            self._sensor_size = int(self._resolution / 2), self._resolution, 3
+        else:
+            self._sensor_size = self._resolution, self._resolution, 3
+
     def _compute_raw_sensor(self):
 
         cropped_img = self.playground.view(surface=self._surface,
@@ -96,12 +100,16 @@ class TopdownLocal(ImageBasedSensor):
                                            draw_invisible=False,
                                            invisible_elements=self._invisible_elements)
 
-        small_img = resize(cropped_img, (self._resolution, self._resolution),
+        img = np.rot90(cropped_img, -1, (1, 0))
+        img = img[::-1, :, ::-1]
+
+        small_img = resize(img, (self._resolution, self._resolution),
                            order=0,
-                           preserve_range=True)
+                           preserve_range=True,
+                           anti_aliasing=self._anti_aliasing)
 
         rotated_img = rotate(small_img,
-                             -self._anchor.pm_body.angle * 180 / math.pi + 180)
+                             self._anchor.pm_body.angle * 180 / math.pi + 90)
 
         masked_img = rotated_img
         masked_img[self.mask_total_fov == 0] = 0
@@ -109,14 +117,11 @@ class TopdownLocal(ImageBasedSensor):
         if self.only_front:
             masked_img = masked_img[:int(self._resolution / 2), ...]
 
-        self.sensor_values = masked_img[:, ::-1, ::-1]
+        self.sensor_values = masked_img
 
     @property
     def shape(self):
-
-        if self.only_front:
-            return int(self._resolution / 2), self._resolution, 3
-        return self._resolution, self._resolution, 3
+        return self._sensor_size[0], self._sensor_size[1], 3
 
 
 class TopDownGlobal(ImageBasedSensor):
@@ -162,14 +167,15 @@ class TopDownGlobal(ImageBasedSensor):
 
         if playground:
             self._size = playground.size
-            self._center = (self._size [0] / 2, self._size [1] / 2)
+            self._center = (self._size[0] / 2, self._size[1] / 2)
 
             self._size_surface = self._size
             # Assert that center is set or coming from playground
 
             max_size = max(self._size)
-            self._destination_size = (int(self._resolution * self._size[1] / max_size),
-                                      int(self._resolution * self._size[0] / max_size))
+
+            self._sensor_size = (int(self._resolution * self._size[1] / max_size),
+                                 int(self._resolution * self._size[0] / max_size))
 
             self._surface = pygame.Surface(self._size)
 
@@ -183,22 +189,29 @@ class TopDownGlobal(ImageBasedSensor):
                                            draw_invisible=False,
                                            invisible_elements=self._invisible_elements)
 
-        np_image = np.rot90(global_img, -1, (1, 0))
-        np_image = np_image[::-1, :, ::-1]
-        return np_image
+
+        small_img = resize(global_img, self._sensor_size,
+                           order=0,
+                           preserve_range=True,
+                           anti_aliasing=self._anti_aliasing)
+
+        img = np.rot90(small_img, -1, (1, 0))
+        img = img[::-1, :, ::-1]
+
+        return img
 
     def _compute_raw_sensor(self):
 
         full_image = self._get_sensor_image()
 
         self.sensor_values = resize(full_image,
-                                    self._destination_size,
+                                    self._sensor_size,
                                     order=0,
                                     preserve_range=True)
 
     @property
     def shape(self):
-        return self._destination_size[0], self._destination_size[1], 3
+        return self._sensor_size[0], self._sensor_size[1], 3
 
 #
 # class TopDownGlobal(ImageBasedSensor):
