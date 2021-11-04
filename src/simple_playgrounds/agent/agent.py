@@ -475,6 +475,7 @@ class Agent(ABC):
 
     def draw(self,
              surface: Surface,
+             draw_invisible: Optional[bool] = False,
              excluded: Optional[Union[List[Entity], Entity]] = None):
         """
         Draw the agent on a pygame surface.
@@ -493,7 +494,9 @@ class Agent(ABC):
 
         for part in self.parts:
             if part not in list_excluded:
-                part.draw(surface, viewpoint=(0, 0))
+                part.draw(surface,
+                          viewpoint=(0, 0),
+                          draw_invisible=draw_invisible)
 
     def generate_actions_image(self,
                                width_action: int = 100,

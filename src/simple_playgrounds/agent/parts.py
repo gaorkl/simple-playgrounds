@@ -40,9 +40,12 @@ class Part(Entity, ABC):
         movable: bool = True,
         **kwargs,
     ):
+        kwargs = {
+            'visible_shape': True,
+            'invisible_shape': False,
+            **kwargs,
+        }
         Entity.__init__(self,
-                        visible_shape=True,
-                        invisible_shape=False,
                         movable=movable,
                         **kwargs)
 
