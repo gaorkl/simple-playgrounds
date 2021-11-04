@@ -125,9 +125,17 @@ class Playground(ABC):
     def size(self):
         return self._size
 
+    @size.setter
+    def size(self, size):
+        self._size = tuple(size)
+
     @property
     def center(self):
         return self._center
+
+    @center.setter
+    def center(self, center):
+        self._center = tuple(center)
 
     def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
         """ Update the Playground
