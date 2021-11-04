@@ -410,7 +410,7 @@ class Agent(ABC):
         return next(
             iter([
                 part for part in self.parts
-                if part.pm_visible_shape == pm_shape
+                if part.pm_visible_shape == pm_shape or part.pm_invisible_shape == pm_shape
             ]), None)
 
     # DYNAMICS

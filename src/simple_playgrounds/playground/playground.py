@@ -669,7 +669,7 @@ class Playground(ABC):
         elems = set([self.get_entity_from_shape(shape.shape) for shape in shapes_in_range])
 
         # Remove devices
-        elems = [elem for elem in elems if not isinstance(elem, Device)]
+        elems = [elem for elem in elems if elem and not isinstance(elem, Device)]
 
         if not invisible_elements:
             invisible_elements = []
