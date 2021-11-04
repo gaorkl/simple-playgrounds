@@ -17,15 +17,14 @@ class Position(InternalSensor):
     orientation of the anchor.
     """
 
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
         self.sensor_values = np.concatenate([np.array(self._anchor.position),
                                              [self._anchor.angle]])
 
-    def set_playground_size(self, size):
-        self._pg_size = size
-
     def _apply_normalization(self):
-        self.sensor_values /= (self._pg_size[0], self._pg_size[1], 2*math.pi)
+
+        if self._playground and self.playground.size:
+            self.sensor_values /= (self.playground.size[0], self.playground.size[1], 2*math.pi)
 
     @property
     def shape(self):
@@ -33,7 +32,7 @@ class Position(InternalSensor):
 
 
 class Velocity(InternalSensor):
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
         self.sensor_values = np.concatenate([np.array(self._anchor.velocity),
                                              [self._anchor.angular_velocity]])
 
@@ -46,7 +45,7 @@ class Velocity(InternalSensor):
 
 
 class RelativeVelocity(InternalSensor):
-    def _compute_raw_sensor(self, playground, *_):
+    def _compute_raw_sensor(self):
 
         vel = self._anchor.velocity.rotated(-self._anchor.angle)
 
@@ -62,8 +61,8 @@ class RelativeVelocity(InternalSensor):
 
 
 class Time(InternalSensor):
-    def _compute_raw_sensor(self, playground, *_):
-        self.sensor_values = np.array(playground._timestep)
+    def _compute_raw_sensor(self):
+        self.sensor_values = np.array(self.playground.timestep)
 
     def _apply_normalization(self):
         pass

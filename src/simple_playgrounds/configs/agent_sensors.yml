@@ -44,13 +44,13 @@ touch:
 #####################
 # TopDown Sensors
 
-top_down:
+topdown_local:
   resolution: 200
   min_range: 0
   max_range: 100
   fov: 180
 
-full_playground:
+topdown_global:
   resolution: 64
   min_range: 0
   max_range: 10

@@ -13,14 +13,16 @@ from __future__ import annotations
 from abc import ABC
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
-import pymunk
+import pymunk, pygame
+import numpy as np
 
 if TYPE_CHECKING:
     from simple_playgrounds.device.communication import CommunicationDevice
     from simple_playgrounds.device.sensor import SensorDevice
     from simple_playgrounds.device.communication import CommunicationDevice
     from simple_playgrounds.agent.parts import Part
-    from ..common.position_utils import InitCoord
+    from simple_playgrounds.common.position_utils import InitCoord
+    from simple_playgrounds.common.entity import Entity
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
@@ -76,15 +78,8 @@ class Playground(ABC):
 
     def __init__(
         self,
-        size: Tuple[int, int],
     ):
-
-        # Generate Scene
-        assert isinstance(size, (tuple, list))
-        assert len(size) == 2
-
-        self.size = size
-        self._width, self._length = self.size
+        self._size = None
 
         # Initialization of the pymunk space, modelling all the physics
         self.space = self._initialize_space()
@@ -125,6 +120,14 @@ class Playground(ABC):
         space.damping = SPACE_DAMPING
 
         return space
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def center(self):
+        return self._center
 
     def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
         """ Update the Playground
@@ -278,14 +281,17 @@ class Playground(ABC):
         if agent.communication:
             self.communication_devices.remove(agent.communication)
             self.space.remove(agent.communication.pm_shape)
+            agent.communication.playground = None
 
         for sensor in agent.sensors:
             self._sensor_devices.remove(sensor)
             self.space.remove(sensor.pm_shape)
+            sensor.playground = None
 
         for actuator in agent.actuators:
             self._actuator_devices.remove(actuator)
             self.space.remove(actuator.pm_shape)
+            actuator.playground = None
 
         self.agents.remove(agent)
         agent.playground = None
@@ -371,7 +377,6 @@ class Playground(ABC):
 
             self._sensor_devices.append(sensor)
             self.space.add(sensor.pm_shape)
-            sensor.set_playground_size(self.size)
 
     def _add_actuator_devices(self, agent: Agent):
 
@@ -421,12 +426,7 @@ class Playground(ABC):
 
     # Entities
 
-    def _out_of_playground(self, entity: Union[Agent, SceneElement]) -> bool:
-
-        if (not 0 < entity.position[0] < self._width
-                or not 0 < entity.position[1] < self._length):
-            return True
-
+    def _out_of_playground(self, entity):
         return False
 
     def _remove_element_from_playground(self, element: SceneElement):
@@ -516,19 +516,9 @@ class Playground(ABC):
                 # if agent is not holding anymore
                 if isinstance(actuator, Grasp):
 
-                    if actuator.is_holding and not actuator.grasped:
-                        actuator.is_holding = False
+                    actuator.release_grasp()
 
-                    # if agent is not holding anymore
-                    if not actuator.is_holding:
 
-                        for joint in actuator.grasped:
-                            self.space.remove(joint)
-                        actuator.grasped = []
-
-        for element_grasped, actuator in self._grasped_elements.copy().items():
-            if not actuator.grasped:
-                self._grasped_elements.pop(element_grasped)
 
     # def _check_teleports(self):
     #
@@ -650,6 +640,47 @@ class Playground(ABC):
     def get_closest_agent(self, element: SceneElement) -> Agent:
         return min(self.agents,
                    key=lambda a: element.position.get_dist_sqrd(a.position))
+
+    def view(self,
+             center: Tuple[float, float],
+             size: Tuple[float, float],
+             invisible_elements: Optional[Union[List[Entity],
+                                                Entity]] = None,
+             draw_invisible: bool = False,
+             surface: Optional[pygame.Surface]=None,
+    ):
+
+        if not surface:
+            surface = pygame.Surface(size)
+
+        else:
+            assert surface.get_size() == size
+
+        center = (center[0] - size[0]/2, center[1] - size[1]/2)
+
+        surface.fill(pygame.Color(0, 0, 0))
+
+        max_range = pymunk.Vec2d(*size).length
+
+        shapes_in_range = self.space.point_query(center,
+                                                 max_range,
+                                                 shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
+
+        elems = set([self.get_entity_from_shape(shape.shape) for shape in shapes_in_range])
+
+        # Remove devices
+        elems = [elem for elem in elems if not isinstance(elem, Device)]
+
+        if not invisible_elements:
+            invisible_elements = []
+
+        for elem in elems:
+            if elem not in invisible_elements:
+                elem.draw(surface, viewpoint=center, draw_invisible=draw_invisible)
+
+        img = pygame.surfarray.pixels3d(surface).astype(float)[:, :, ::-1]
+
+        return img
 
     def _handle_interactions(self):
 

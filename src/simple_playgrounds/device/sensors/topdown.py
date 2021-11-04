@@ -3,9 +3,7 @@ Module that defines TopDown Sensors.
 Topdown sensors are based computed using the image provided by the environment.
 """
 from __future__ import annotations
-from typing import Tuple, List, Union, TYPE_CHECKING
-if TYPE_CHECKING:
-    from simple_playgrounds.playgrounds.playground import Playground
+from typing import Tuple, TYPE_CHECKING, Optional
 
 import math
 
@@ -43,10 +41,10 @@ class TopdownLocal(ImageBasedSensor):
         """
 
         default_config = parse_configuration('agent_sensors',
-                                             SensorTypes.TOP_DOWN)
+                                             SensorTypes.TOPDOWN_LOCAL)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor, **kwargs)
+        super().__init__(anchor=anchor, **kwargs)
 
         self.only_front = only_front
 
@@ -87,46 +85,31 @@ class TopdownLocal(ImageBasedSensor):
                                       np.array(points))
 
         self.mask_total_fov = mask_circle & mask_poly
-
         self._sensor_max_value = 255
 
-        self.requires_surface = True
+        if self.only_front:
+            self._sensor_size = int(self._resolution / 2), self._resolution, 3
+        else:
+            self._sensor_size = self._resolution, self._resolution, 3
 
-    def _get_sensor_image(self, playground: Playground,
-                          sensor_surface: pygame.Surface):
+    def _compute_raw_sensor(self):
 
-        for agent in playground.agents:
-            for part in agent.parts:
-                if part not in self._invisible_elements:
-                    part.draw(sensor_surface)
+        cropped_img = self.playground.view(surface=self._surface,
+                                           center=self._anchor.position,
+                                           size=self._size_surface,
+                                           draw_invisible=False,
+                                           invisible_elements=self._invisible_elements)
 
-        for elem in playground.elements:
-            if not elem.background and elem not in self._invisible_elements:
-                elem.draw(sensor_surface)
+        img = np.rot90(cropped_img, -1, (1, 0))
+        img = img[::-1, :, ::-1]
 
-        cropped = pygame.Surface(
-            (2 * self._max_range + 1, 2 * self._max_range + 1))
-
-        pos_x = -self._anchor.position[0] + self._max_range
-        pos_y = -self._anchor.position[1] + self._max_range
-
-        cropped.blit(sensor_surface, (pos_x, pos_y))
-
-        img_cropped = pygame.surfarray.pixels3d(cropped).astype(float)
-
-        return img_cropped
-
-    def _compute_raw_sensor(self, playground: Playground,
-                            sensor_surface: pygame.Surface):
-
-        cropped_img = self._get_sensor_image(playground, sensor_surface)
-
-        small_img = resize(cropped_img, (self._resolution, self._resolution),
+        small_img = resize(img, (self._resolution, self._resolution),
                            order=0,
-                           preserve_range=True)
+                           preserve_range=True,
+                           anti_aliasing=self._anti_aliasing)
 
         rotated_img = rotate(small_img,
-                             -self._anchor.pm_body.angle * 180 / math.pi + 180)
+                             self._anchor.pm_body.angle * 180 / math.pi + 90)
 
         masked_img = rotated_img
         masked_img[self.mask_total_fov == 0] = 0
@@ -134,22 +117,22 @@ class TopdownLocal(ImageBasedSensor):
         if self.only_front:
             masked_img = masked_img[:int(self._resolution / 2), ...]
 
-        self.sensor_values = masked_img[:, ::-1, ::-1]
+        self.sensor_values = masked_img
 
     @property
     def shape(self):
-
-        if self.only_front:
-            return int(self._resolution / 2), self._resolution, 3
-        return self._resolution, self._resolution, 3
+        return self._sensor_size[0], self._sensor_size[1], 3
 
 
 class TopDownGlobal(ImageBasedSensor):
     """
-    FullPlaygroundSensor provides an image from bird's eye view of the full playground.
-    There is no anchor.
+    TopDownGlobal provides an image from bird's eye view of the full playground.
+    The anchor only serves for Device Modifiers.
+
     """
-    def __init__(self, anchor, **kwargs):
+    def __init__(self,
+                 anchor,
+                 **kwargs):
         """
         Refer to Sensor Class.
 
@@ -163,52 +146,163 @@ class TopDownGlobal(ImageBasedSensor):
         """
 
         default_config = parse_configuration('agent_sensors',
-                                             SensorTypes.FULL_PLAYGROUND)
+                                             SensorTypes.TOPDOWN_GLOBAL)
         kwargs = {**default_config, **kwargs}
 
-        super().__init__(anchor, **kwargs)
+        super().__init__(anchor=anchor, **kwargs)
 
-        self._scale = None
+        # Assert that size is set or coming from playground.
+
+        self._size = None
+        self._center = None
 
         self._sensor_max_value = 255.
 
-        self.requires_surface = True
+    @property
+    def playground(self):
+        return self._playground
 
-    def _get_sensor_image(self, playground: Playground,
-                          sensor_surface: pygame.Surface):
+    @playground.setter
+    def playground(self, playground):
 
-        for agent in playground.agents:
-            for part in agent.parts:
-                if part not in self._invisible_elements:
-                    part.draw(sensor_surface)
+        if playground:
+            self._size = playground.size
+            self._center = (self._size[0] / 2, self._size[1] / 2)
 
-        for elem in playground.elements:
-            if not elem.background and elem not in self._invisible_elements:
-                elem.draw(sensor_surface)
+            self._size_surface = self._size
+            # Assert that center is set or coming from playground
 
-        img = pygame.surfarray.pixels3d(sensor_surface).astype(float)
-        np_image = np.rot90(img, -1, (1, 0))
-        np_image = np_image[::-1, :, ::-1]
-        return np_image
+            max_size = max(self._size)
 
-    def _compute_raw_sensor(self, playground: Playground,
-                            sensor_surface: pygame.Surface):
+            self._sensor_size = (int(self._resolution * self._size[1] / max_size),
+                                 int(self._resolution * self._size[0] / max_size))
 
-        full_image = self._get_sensor_image(playground, sensor_surface)
+            self._surface = pygame.Surface(self._size)
+
+        self._playground = playground
+
+    def _get_sensor_image(self):
+
+        global_img = self.playground.view(surface=self._surface,
+                                           center=self._center,
+                                           size=self._size_surface,
+                                           draw_invisible=False,
+                                           invisible_elements=self._invisible_elements)
+
+
+        small_img = resize(global_img, self._sensor_size,
+                           order=0,
+                           preserve_range=True,
+                           anti_aliasing=self._anti_aliasing)
+
+        img = np.rot90(small_img, -1, (1, 0))
+        img = img[::-1, :, ::-1]
+
+        return img
+
+    def _compute_raw_sensor(self):
+
+        full_image = self._get_sensor_image()
 
         self.sensor_values = resize(full_image,
-                                    (self._scale[0], self._scale[1]),
+                                    self._sensor_size,
                                     order=0,
                                     preserve_range=True)
 
-    def set_playground_size(self, size: Union[List[float], Tuple[float, float]]):
-        super().set_playground_size(size)
-
-        # Compute the scaling for the sensor value
-        max_size = max(size)
-        self._scale = (int(self._resolution * size[1] / max_size),
-                       int(self._resolution * size[0] / max_size))
-
     @property
     def shape(self):
-        return self._scale[0], self._scale[1], 3
+        return self._sensor_size[0], self._sensor_size[1], 3
+
+#
+# class TopDownGlobal(ImageBasedSensor):
+#     """
+#     TopDownGlobal provides an image from bird's eye view of the full playground.
+#     The anchor only serves for Device Modifiers.
+#
+#     """
+#     def __init__(self,
+#                  anchor,
+#                  center: Optional[Tuple[int, int]] = None,
+#                  size: Optional[Tuple[int, int]] = None,
+#                  **kwargs):
+#         """
+#         Refer to Sensor Class.
+#
+#         Args:
+#             invisible_elements: elements that the sensor does not perceive.
+#                 List of Parts of SceneElements.
+#             normalize: if true, Sensor values are normalized between 0 and 1.
+#                 Default: True
+#             only_front: Only return the half part of the Playground that the Sensor faces.
+#                 Remove what is behind the sensor. Default: False.
+#         """
+#
+#         default_config = parse_configuration('agent_sensors',
+#                                              SensorTypes.TOPDOWN_GLOBAL)
+#         kwargs = {**default_config, **kwargs}
+#
+#         super().__init__(anchor=anchor, **kwargs)
+#
+#         # Assert that size is set or coming from playground.
+#
+#         self._size = None
+#         if size:
+#             self._size = size
+#
+#         self._center = None
+#         if center:
+#             self._center = center
+#
+#         if (center and not size) or (size and not center):
+#             raise ValueError('size and center must both be set')
+#
+#         self._sensor_max_value = 255.
+#
+#     @property
+#     def playground(self):
+#         return self._playground
+#
+#     @playground.setter
+#     def playground(self, playground):
+#
+#         if not self._size:
+#             self._size = playground.size
+#             self._center = (self._size [0] / 2, self._size [1] / 2)
+#         else:
+#             raise ValueError("Size must be set either in the Playground or in the sensor")
+#
+#         self._size_surface = self._size
+#         # Assert that center is set or coming from playground
+#
+#         max_size = max(self._size)
+#         self._destination_size = (int(self._resolution * self._size[1] / max_size),
+#                                   int(self._resolution * self._size[0] / max_size))
+#
+#         self._surface = pygame.Surface(self._size)
+#
+#         self._playground = playground
+#
+#     def _get_sensor_image(self):
+#
+#         global_img = self.playground.view(surface=self._surface,
+#                                            center=self._center,
+#                                            size=self._size_surface,
+#                                            draw_invisible=False,
+#                                            invisible_elements=self._invisible_elements)
+#
+#         np_image = np.rot90(global_img, -1, (1, 0))
+#         np_image = np_image[::-1, :, ::-1]
+#         return np_image
+#
+#     def _compute_raw_sensor(self):
+#
+#         full_image = self._get_sensor_image()
+#
+#         self.sensor_values = resize(full_image,
+#                                     self._destination_size,
+#                                     order=0,
+#                                     preserve_range=True)
+#
+#     @property
+#     def shape(self):
+#         return self._destination_size[0], self._destination_size[1], 3

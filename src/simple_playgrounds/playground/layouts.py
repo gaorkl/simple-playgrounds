@@ -2,7 +2,11 @@
 Empty Playgrounds with built-in walls and rooms
 
 """
-from typing import Union, Tuple, Optional, List, Dict
+from __future__ import annotations
+from typing import Union, Tuple, Optional, List, Dict, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.agent.agent import Agent
+    from simple_playgrounds.element.element import SceneElement
 
 import numpy as np
 
@@ -62,7 +66,11 @@ class GridRooms(Playground):
                 or self.length_room - 2*wall_depth < doorstep_size:
             raise ValueError("Doorstep too large wrt room size")
 
-        super().__init__(size=size)
+        super().__init__()
+
+        self._size = size
+        self._width, self._length = self._size
+        self._center = (self._width / 2, self._length/2)
 
         self._size_door = (wall_depth, doorstep_size)
 
@@ -105,6 +113,14 @@ class GridRooms(Playground):
             center=center_first_room,
             area_shape='rectangle',
             size=size_first_room)
+
+    def _out_of_playground(self, entity: Union[Agent, SceneElement]) -> bool:
+
+        if (not 0 < entity.position[0] < self._width
+                or not 0 < entity.position[1] < self._length):
+            return True
+
+        return False
 
     def _generate_rooms(
         self,

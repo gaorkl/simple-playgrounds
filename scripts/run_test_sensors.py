@@ -46,7 +46,7 @@ my_agent.add_sensor(sem_cones)
 td = sensors.TopdownLocal(my_agent.base_platform, invisible_elements=my_agent.parts, normalize=True, only_front=True, fov=180)
 my_agent.add_sensor(td)
 
-fi = sensors.TopDownGlobal(my_agent.base_platform, resolution=64, normalize=False)
+fi = sensors.TopDownGlobal(my_agent.base_platform, resolution=128, normalize=False)
 my_agent.add_sensor(fi)
 
 fi = sensors.PerfectSemantic(my_agent.base_platform)
@@ -97,11 +97,9 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
     pg = pg_class()
     pg.add_agent(my_agent, allow_overlapping=False)
 
-    engine = Engine(playground=pg, screen=True, debug=False)
+    engine = Engine(playground=pg, debug=False)
 
     while engine.game_on:
-
-        engine.update_screen()
 
         actions = {}
         for agent in engine.agents:
@@ -114,7 +112,10 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
             'agent',
             engine.generate_agent_image(my_agent,
                                         layout=(('sensors', 'playground'),
-                                                'actions')))
+                                                'actions'))[:,:,::-1])
+        cv2.imshow(
+            'playground',
+            engine.generate_playground_image()[:,:,::-1])
 
         cv2.waitKey(1)
 

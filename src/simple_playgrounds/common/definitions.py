@@ -134,8 +134,8 @@ class SensorTypes(IntEnum):
 
     SEMANTIC_CONE = auto()
     SEMANTIC_RAY = auto()
-    TOP_DOWN = auto()
-    FULL_PLAYGROUND = auto()
+    TOPDOWN_LOCAL = auto()
+    TOPDOWN_GLOBAL = auto()
     PERFECT_SEMANTIC = auto()
 
 

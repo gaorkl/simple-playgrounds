@@ -3,9 +3,7 @@ Module defining the Base Classes for Sensors.
 """
 
 from __future__ import annotations
-from typing import List, Dict, Optional, Union, Tuple, TYPE_CHECKING
-if TYPE_CHECKING:
-    from simple_playgrounds.playground.playground import Playground
+from typing import List, Dict, Optional, Union
 
 import math
 from abc import abstractmethod, ABC
@@ -13,7 +11,7 @@ from operator import attrgetter
 
 import numpy as np
 import pymunk
-from pygame import Surface
+import pygame
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
@@ -101,17 +99,14 @@ class SensorDevice(Device):
 
         # If it requires a topdown representation of the playground
         # to compute the sensor values
-        self.requires_surface: bool = False
-        self.requires_playground_size: bool = False
-        self._pg_size: Optional[Tuple[int, int]] = None
 
-    def update(self, playground: Playground, sensor_surface: Surface):
+    def update(self):
 
         if self._disabled:
             self.sensor_values = self._get_null_sensor()
 
         else:
-            self._compute_raw_sensor(playground, sensor_surface)
+            self._compute_raw_sensor()
 
             if self._noise:
                 self._apply_noise()
@@ -120,11 +115,7 @@ class SensorDevice(Device):
                 self._apply_normalization()
 
     @abstractmethod
-    def _compute_raw_sensor(
-        self,
-        playground: Playground,
-        sensor_surface: Surface,
-    ):
+    def _compute_raw_sensor(self):
         ...
 
     @abstractmethod
@@ -159,9 +150,6 @@ class SensorDevice(Device):
 
         """
         ...
-
-    def set_playground_size(self, size):
-        pass
 
 
 ##################
@@ -286,6 +274,10 @@ class RayBasedSensor(ExternalSensor, ABC):
                 for n in range(self._resolution)
             ]
 
+    @property
+    def ray_angles(self):
+        return self._ray_angles
+
     @staticmethod
     def _remove_duplicate_collisions(
             collisions_by_angle: Dict[float,
@@ -314,11 +306,7 @@ class RayBasedSensor(ExternalSensor, ABC):
 
         return collisions_by_angle
 
-    def _compute_collision(
-        self,
-        playground: Playground,
-        sensor_angle: float,
-    ) -> Optional[pymunk.SegmentQueryInfo]:
+    def _compute_collision(self, sensor_angle) -> Optional[pymunk.SegmentQueryInfo]:
 
         position_body = self._anchor.pm_body.position
         angle = self._anchor.pm_body.angle + sensor_angle
@@ -335,7 +323,7 @@ class RayBasedSensor(ExternalSensor, ABC):
                 elem.pm_visible_shape.sensor = True
                 inv_shapes.append(elem.pm_visible_shape)
 
-        collision = playground.space.segment_query_first(
+        collision = self.playground.space.segment_query_first(
             position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
 
         for shape in inv_shapes:
@@ -343,15 +331,12 @@ class RayBasedSensor(ExternalSensor, ABC):
 
         return collision
 
-    def _compute_points(
-        self,
-        playground: Playground,
-    ) -> Dict[float, Optional[pymunk.SegmentQueryInfo]]:
+    def _compute_points(self) -> Dict[float, Optional[pymunk.SegmentQueryInfo]]:
 
         points = {}
 
         for sensor_angle in self._ray_angles:
-            collision = self._compute_collision(playground, sensor_angle)
+            collision = self._compute_collision(sensor_angle)
             points[sensor_angle] = collision
 
         if self._remove_duplicates:
@@ -396,10 +381,20 @@ class ImageBasedSensor(ExternalSensor, ABC):
 
     def __init__(
             self,
-            anchor,
+            aliasing: bool = True,
             **kwargs,
     ):
-        super().__init__(anchor, **kwargs)
+        super().__init__(**kwargs)
+
+        self._size_surface = (2*self._max_range + 1, 2*self._max_range+1)
+        self._surface = pygame.Surface(self._size_surface)
+
+        self._sensor_size = None
+        self._anti_aliasing = aliasing
+
+    def pre_step(self):
+        super().pre_step()
+        self._surface.fill(pygame.Color(0, 0, 0))
 
     def _apply_normalization(self):
         self.sensor_values /= self._sensor_max_value

@@ -14,7 +14,7 @@ from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
 if TYPE_CHECKING:
     from simple_playgrounds.device.sensor import SensorDevice
     from simple_playgrounds.agent.actuators import ActuatorDevice
-    from simple_playgrounds.agent.controllers import Controller
+    from simple_playgrounds.agent.controllers import Controller, Keyboard
     from simple_playgrounds.playground.playground import Playground
     from pymunk import Shape
     from pygame import Surface
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 from abc import ABC
 import numpy as np
+import pygame
 from PIL import Image, ImageDraw, ImageFont
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate
@@ -114,6 +115,9 @@ class Agent(ABC):
         self._can_communicate = False
 
         self._playground: Optional[Playground] = None
+        self._screen = None
+        self._quit_key_ready = True
+        self._surface_screen = None
 
     @property
     def playground(self):
@@ -121,6 +125,13 @@ class Agent(ABC):
 
     @playground.setter
     def playground(self, pg):
+        for part in self.parts:
+            part.playground = pg
+        for act in self.actuators:
+            act.playground = pg
+        for sens in self.sensors:
+            sens.playground = pg
+
         self._playground = pg
 
     @property
@@ -151,6 +162,8 @@ class Agent(ABC):
         self._controller = controller
         self._controller.controlled_actuators = self.actuators
         self._current_actions = controller.generate_null_actions()
+
+        self._controller.agent = self
 
     def add_actuator(self, actuator: ActuatorDevice):
 
@@ -299,7 +312,10 @@ class Agent(ABC):
             raise ValueError('Add sensors outside of a playground.')
 
         self.sensors.append(new_sensor)
-        new_sensor.playground = self._playground
+
+        # If already in playground, add
+        if self._playground:
+            new_sensor.playground = self._playground
 
     @property
     def observations(self):
@@ -433,8 +449,6 @@ class Agent(ABC):
 
         self._teleported_to = None
 
-
-
     def _overlaps(
         self,
         entity: Entity,
@@ -479,7 +493,7 @@ class Agent(ABC):
 
         for part in self.parts:
             if part not in list_excluded:
-                part.draw(surface, )
+                part.draw(surface, viewpoint=(0, 0))
 
     def generate_actions_image(self,
                                width_action: int = 100,

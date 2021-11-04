@@ -146,8 +146,8 @@ def test_multiagents(pg_test_class):
 
     assert len(playground.agents) == 100
 
-    engine = Engine(playground, time_limit=100, screen=False)
-    engine.run(update_screen=False)
+    engine = Engine(playground, time_limit=100)
+    engine.run()
     engine.terminate()
 
 
@@ -164,8 +164,8 @@ def test_multiagents_no_overlapping(pg_test_class):
 
     assert len(playground.agents) == 4
 
-    engine = Engine(playground, time_limit=100, screen=False)
-    engine.run(update_screen=False)
+    engine = Engine(playground, time_limit=100)
+    engine.run()
 
 
 # Run all test playgrounds with 10 agents
@@ -179,7 +179,7 @@ def test_multisteps(base_forward_agent_random, pg_test_class):
     print('Starting Multistep testing of ', pg_test_class.__name__)
     playground.add_agent(agent)
 
-    engine = Engine(playground, time_limit=10000, screen=False)
+    engine = Engine(playground, time_limit=10000)
 
     while engine.game_on:
 
