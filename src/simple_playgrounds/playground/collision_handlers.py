@@ -150,7 +150,6 @@ def modifier_modifies_device(arbiter, space, data):
     playground: Playground = data['playground']
     (modifier, _), (device, _) = get_colliding_entities(playground, arbiter)
 
-    print(device)
     assert isinstance(device, Device)
     assert isinstance(modifier, ModifierElement)
 

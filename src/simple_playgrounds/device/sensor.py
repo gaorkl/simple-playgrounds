@@ -274,6 +274,10 @@ class RayBasedSensor(ExternalSensor, ABC):
                 for n in range(self._resolution)
             ]
 
+    @property
+    def ray_angles(self):
+        return self._ray_angles
+
     @staticmethod
     def _remove_duplicate_collisions(
             collisions_by_angle: Dict[float,

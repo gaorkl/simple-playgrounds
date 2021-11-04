@@ -21,7 +21,6 @@ import numpy as np
 import pygame
 import pygame.color
 import pygame.locals
-from pymunk import pygame_util
 from skimage.transform import rescale
 
 from simple_playgrounds.agent.agent import Agent
@@ -31,6 +30,7 @@ from .common.definitions import SIMULATION_STEPS
 from simple_playgrounds.playground.playground import Playground
 from simple_playgrounds.device.communication import CommunicationDevice
 from simple_playgrounds.device.sensor import ExternalSensor
+from simple_playgrounds.agent.controllers import Keyboard
 
 _BORDER_IMAGE = 5
 _PYGAME_WAIT_DISPLAY = 30
@@ -55,8 +55,9 @@ class Engine:
         self,
         playground: Playground,
         time_limit: Union[int, None] = None,
-        screen: bool = False,
         debug: bool = False,
+        full_surface: bool = True
+
     ):
         """
         Args:
@@ -88,16 +89,15 @@ class Engine:
         elif self.playground.time_limit is not None:
             self._time_limit = self.playground.time_limit
 
-        self._debug = debug
+        # If full_surface, and size is set, prepare a surface to manage the display
+        self._playground_surface = None
+        if full_surface:
+            if not self.playground.size:
+                raise ValueError("Surface should be set")
 
-        # Display screen
-        self._screen = None
-        if screen:
-            # Screen for Pygame
-            self._screen = pygame.display.set_mode((100, 100))
-            self._screen.set_alpha(None)
-            self._quit_key_ready = True
-            self._surface_screen = pygame.Surface((100, 100))
+            self._playground_surface = pygame.Surface(self.playground.size)
+
+        self._debug = debug
 
         self.game_on = True
         self.elapsed_time = 0
@@ -204,6 +204,10 @@ class Engine:
         actions: Optional[Dict[Agent, Dict[ActuatorDevice, float]]] = None,
     ):
 
+        for agent in self.agents:
+            if isinstance(agent.controller, Keyboard):
+                agent.controller.update_screen()
+
         if not actions:
             actions = {}
 
@@ -278,57 +282,15 @@ class Engine:
             True if the game is terminated
             False if the game continues
         """
-        terminate_game = False
 
-        if self._screen is not None:
+        for agent in self.agents:
 
-            pygame.event.get()
+            if agent.controller.terminates_episode():
+                return True
 
-            # pylint: disable=no-member
+        return False
 
-            # Press Q to terminate
-            if not pygame.key.get_pressed()[
-                    pygame.locals.K_q] and not self._quit_key_ready:
-                self._quit_key_ready = True
-
-            elif pygame.key.get_pressed()[
-                    pygame.locals.K_q] and self._quit_key_ready:
-                self._quit_key_ready = False
-                terminate_game = True
-
-        return terminate_game
-
-    def update_screen(self):
-        """
-        If the screen is set, updates the screen and displays the environment.
-        """
-
-        if self._screen is not None:
-
-            if self._debug:
-                self._screen.fill((0, 0, 0))
-                options = pygame_util.DrawOptions(self._screen)
-                self.playground.space.debug_draw(options)
-
-            else:
-
-                # to be Moved to agent
-                self.playground.view(
-                    surface=self._surface_screen,
-                    center=self.agents[0].position,
-                    size=(100, 100),
-                    draw_invisible=True,
-                    return_array=False,
-                    )
-
-                self._screen.blit(self._surface_screen, (0, 0), None)
-
-            pygame.display.flip()
-
-        else:
-            raise ValueError('No screen to update')
-
-    def generate_playground_image(self, max_size=None, plt_mode=False):
+    def generate_playground_image(self, max_size=None):
         """
         Updates the Environment Surface and convert it into an array.
         Color code follows OpenCV.
@@ -340,27 +302,20 @@ class Engine:
         """
 
         img = self.playground.view(
-            size= self.playground.size,
-            center= self.playground.center,
+            surface=self._playground_surface,
+            size=self.playground.size,
+            center=self.playground.center,
             invisible_elements=[],
-            draw_invisible=True
+            draw_invisible=True,
         )
-
-        np_image = pygame.surfarray.pixels3d(
-            self._surface_screen.copy()) / 255.
-        np_image = np.rot90(np_image, -1, (1, 0))
-        np_image = np_image[::-1, :, ::-1]
 
         if max_size is not None:
 
-            scaling_factor = max_size / max(np_image.shape[0],
-                                            np_image.shape[1])
-            np_image = rescale(np_image, scaling_factor, multichannel=True)
+            scaling_factor = max_size / max(img.shape[0],
+                                            img.shape[1])
+            img = rescale(img, scaling_factor, multichannel=True)
 
-        if plt_mode:
-            np_image = np_image[:, :, ::-1]
-
-        return np_image
+        return img
 
     # AGENTS
 
@@ -400,7 +355,6 @@ class Engine:
                              with_sensors=True,
                              width_sensors=150,
                              height_sensor=20,
-                             plt_mode=False,
                              layout=('playground', ('sensors', 'actions'))):
         """
         Method to generate an image for displaying the playground, agent sensors and actions.
@@ -506,9 +460,6 @@ class Engine:
                 current_width += max([images[col].shape[1]
                                       for col in column]) + _BORDER_IMAGE
 
-        if plt_mode:
-            full_img = full_img[:, :, ::-1]
-
         return full_img
 
     def reset(self):
@@ -520,11 +471,8 @@ class Engine:
         self.elapsed_time = 0
         self.game_on = True
 
-    def run(self, steps=None, update_screen=False, print_rewards=False):
+    def run(self, steps=None, print_rewards=False):
         """ Run the engine for the full duration of the game or a certain number of steps"""
-
-        if self._screen is False and update_screen:
-            raise ValueError("Can't update non-existing screen")
 
         continue_for_n_steps = True
 
@@ -536,10 +484,6 @@ class Engine:
 
             self.step(actions)
             self.update_observations()
-
-            if update_screen and self.game_on:
-                self.update_screen()
-                pygame.time.wait(_PYGAME_WAIT_DISPLAY)
 
             if print_rewards:
                 for agent in self.agents:

@@ -97,11 +97,9 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
     pg = pg_class()
     pg.add_agent(my_agent, allow_overlapping=False)
 
-    engine = Engine(playground=pg, screen=True, debug=False)
+    engine = Engine(playground=pg, debug=False)
 
     while engine.game_on:
-
-        engine.update_screen()
 
         actions = {}
         for agent in engine.agents:
@@ -113,6 +111,10 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
         cv2.imshow(
             'agent',
             engine.generate_agent_image(my_agent,
+                                        layout=(('sensors', 'playground'),
+                                                'actions')))
+
+        plt.imshow(engine.generate_agent_image(my_agent,
                                         layout=(('sensors', 'playground'),
                                                 'actions')))
 

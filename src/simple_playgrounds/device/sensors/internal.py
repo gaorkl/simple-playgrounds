@@ -21,11 +21,10 @@ class Position(InternalSensor):
         self.sensor_values = np.concatenate([np.array(self._anchor.position),
                                              [self._anchor.angle]])
 
-    def set_playground_size(self, size):
-        self._pg_size = size
-
     def _apply_normalization(self):
-        self.sensor_values /= (self._pg_size[0], self._pg_size[1], 2*math.pi)
+
+        if self._playground and self.playground.size:
+            self.sensor_values /= (self.playground.size[0], self.playground.size[1], 2*math.pi)
 
     @property
     def shape(self):

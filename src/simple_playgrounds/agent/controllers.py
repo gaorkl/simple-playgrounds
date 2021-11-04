@@ -18,6 +18,15 @@ class Controller(ABC):
 
         self.require_key_mapping: bool = False
         self._controlled_actuators: List[ActuatorDevice] = []
+        self._agent = None
+
+    @property
+    def agent(self):
+        return self._agent
+
+    @agent.setter
+    def agent(self, agent):
+        self._agent = agent
 
     @abstractmethod
     def generate_actions(self) -> Dict[ActuatorDevice, float]:
@@ -44,6 +53,10 @@ class Controller(ABC):
     def controlled_actuators(self, actuators: List[ActuatorDevice]):
         self._controlled_actuators = actuators
 
+    @abstractmethod
+    def terminates_episode(self):
+        ...
+
 
 class External(Controller):
     """
@@ -51,6 +64,9 @@ class External(Controller):
     E.g. this class can be used with RL algorithms.
     """
     def generate_actions(self):
+        pass
+
+    def terminates_episode(self):
         pass
 
 
@@ -61,6 +77,9 @@ class Dummy(Controller):
     """
     def generate_actions(self):
         return self.generate_null_actions()
+
+    def terminates_episode(self):
+        pass
 
 
 class RandomDiscrete(Controller):
@@ -94,6 +113,9 @@ class RandomDiscrete(Controller):
 
         return commands
 
+    def terminates_episode(self):
+        pass
+
 
 class RandomContinuous(Controller):
     """
@@ -126,6 +148,9 @@ class RandomContinuous(Controller):
 
         return commands
 
+    def terminates_episode(self):
+        pass
+
 
 class Keyboard(Controller):
     """
@@ -144,8 +169,24 @@ class Keyboard(Controller):
 
         self.hold = []
 
-        self.screen = None
-        self.quit_key_ready = True
+        self._quit_key_ready = True
+
+        self._screen = pygame.display.set_mode((100, 100))
+        self._screen.set_alpha(None)
+        self._surface_screen = pygame.Surface((100, 100))
+        self._agent = None
+
+    def update_screen(self):
+        self._agent.playground.view(
+            surface=self._surface_screen,
+            center=self._agent.position,
+            size=(100, 100),
+            draw_invisible=True,
+        )
+
+        self._screen.blit(self._surface_screen, (0, 0), None)
+
+        pygame.display.flip()
 
     def discover_key_mapping(self):
         """ Key mapping that links keyboard strokes with a desired action."""
@@ -210,3 +251,22 @@ class Keyboard(Controller):
         self.discover_key_mapping()
 
         assert isinstance(contr[0], ActuatorDevice)
+
+        self._playground = contr[0].part.playground
+        self._agent = contr[0].part.agent
+
+    def terminates_episode(self):
+
+        pygame.event.get()
+
+        # pylint: disable=no-member
+
+        # Press Q to terminate
+        if not pygame.key.get_pressed()[pygame.locals.K_q] and not self._quit_key_ready:
+            self._quit_key_ready = True
+
+        elif pygame.key.get_pressed()[pygame.locals.K_q] and self._quit_key_ready:
+            self._quit_key_ready = False
+            return True
+
+        return False

@@ -14,6 +14,7 @@ from abc import ABC
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
 import pymunk, pygame
+import numpy as np
 
 if TYPE_CHECKING:
     from simple_playgrounds.device.communication import CommunicationDevice
@@ -647,7 +648,6 @@ class Playground(ABC):
                                                 Entity]] = None,
              draw_invisible: bool = False,
              surface: Optional[pygame.Surface]=None,
-             return_array=True,
     ):
 
         if not surface:
@@ -678,10 +678,9 @@ class Playground(ABC):
             if elem not in invisible_elements:
                 elem.draw(surface, viewpoint=center, draw_invisible=draw_invisible)
 
-        if return_array:
-            return pygame.surfarray.pixels3d(surface).astype(float)
+        img = pygame.surfarray.pixels3d(surface).astype(float)
 
-        return True
+        return img
 
     def _handle_interactions(self):
 
