@@ -114,9 +114,6 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
                                         layout=(('sensors', 'playground'),
                                                 'actions')))
 
-        plt.imshow(engine.generate_agent_image(my_agent,
-                                        layout=(('sensors', 'playground'),
-                                                'actions')))
 
         cv2.waitKey(1)
 
