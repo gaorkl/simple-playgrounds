@@ -230,7 +230,7 @@ class InteractionActuator(DiscreteActuator, ABC):
     def draw(self, drawer_action_image, img_width, position_height,
              height_action, fnt):
 
-        if self.value == 1:
+        if self.command == 1:
             start = (0, position_height)
             end = (img_width, position_height + height_action)
             drawer_action_image.rectangle([start, end], fill=(20, 200, 20))
@@ -369,13 +369,13 @@ class ContinuousActuator(ActuatorDevice, ABC):
     def draw(self, drawer_action_image, img_width, position_height,
              height_action, fnt):
 
-        if self.centered and self.value != 0:
+        if self.centered and self.command != 0:
 
             if self.value < 0:
-                left = int(img_width / 2. + self.value * img_width / 2.)
+                left = int(img_width / 2. + self.command * img_width / 2.)
                 right = int(img_width / 2.)
             else:
-                right = int(img_width / 2. + self.value * img_width / 2.)
+                right = int(img_width / 2. + self.command * img_width / 2.)
                 left = int(img_width / 2.)
 
             start = (left, position_height)
@@ -383,10 +383,10 @@ class ContinuousActuator(ActuatorDevice, ABC):
 
             drawer_action_image.rectangle([start, end], fill=(20, 200, 20))
 
-        elif not self.centered and self.value != 0:
+        elif not self.centered and self.command != 0:
 
             left = int(img_width / 2.)
-            right = int(img_width / 2. + self.value * img_width / 2.)
+            right = int(img_width / 2. + self.command * img_width / 2.)
 
             start = (left, position_height)
             end = (right, position_height + height_action)

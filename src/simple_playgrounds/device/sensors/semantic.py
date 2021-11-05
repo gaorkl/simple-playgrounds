@@ -161,21 +161,24 @@ class SemanticCones(SemanticRay):
                 for n in range(self.number_cones)
             ]
 
+        self._angle_to_cone = {}
+        for index, angle in enumerate(self.ray_angles):
+            cone_angle = min(self.angles_cone_center,
+                                                  key=lambda x: (x - angle)**2)
+            self._angle_to_cone[angle] = cone_angle
+
     def _compute_raw_sensor(self):
 
         super()._compute_raw_sensor()
 
-        detections_per_cone = {}
-        for cone_angle in self.angles_cone_center:
-            detections_per_cone[cone_angle] = []
+        detections_per_cone = {angle: [] for angle in self.angles_cone_center}
 
         for detection in self.sensor_values:
             # pylint: disable=all
-            cone_angle = min(self.angles_cone_center,
-                             key=lambda x: (x - detection.angle)**2)
+            cone_angle = self._angle_to_cone[detection.angle]
             detections_per_cone[cone_angle].append(detection)
 
-        # detections_per_cone = {k: v for k, v in detections_per_cone.items() if v != []}
+        detections_per_cone = {k: v for k, v in detections_per_cone.items() if v != []}
 
         self.sensor_values = []
 
