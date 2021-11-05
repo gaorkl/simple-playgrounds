@@ -197,21 +197,25 @@ class Playground(ABC):
             else:
                 element.reset()
                 self._move_to_initial_position(element)
+                element.pre_step()
 
         # reset and replace entities that are not temporary
         for element in self._disappeared_elements.copy():
             element.reset()
             self._add_element_to_playground(element)
             self._move_to_initial_position(element)
+            element.pre_step()
 
         # reset spawners
         for spawner in self.spawners:
             spawner.reset()
 
+
         # reset agents
         for agent in self.agents.copy():
             agent.reset()
             self._move_to_initial_position(agent)
+            agent.pre_step()
 
         # reset timers
         for timer in self._timers:
