@@ -17,7 +17,7 @@ from skimage.transform import resize
 
 from simple_playgrounds.device.device import Device
 from simple_playgrounds.agent.parts import Part
-from simple_playgrounds.common.entity import Entity
+from simple_playgrounds.entity import Entity
 from simple_playgrounds.element.element import SceneElement
 
 

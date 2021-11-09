@@ -14,16 +14,15 @@ from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
 if TYPE_CHECKING:
     from simple_playgrounds.device.sensor import SensorDevice
     from simple_playgrounds.agent.actuators import ActuatorDevice
-    from simple_playgrounds.agent.controllers import Controller, Keyboard
+    from simple_playgrounds.agent.controllers import Controller
     from simple_playgrounds.playground.playground import Playground
     from pymunk import Shape
     from pygame import Surface
-    from ..common.entity import Entity
+    from simple_playgrounds.entity import Entity
     from simple_playgrounds.device.communication import CommunicationDevice
 
 from abc import ABC
 import numpy as np
-import pygame
 from PIL import Image, ImageDraw, ImageFont
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate

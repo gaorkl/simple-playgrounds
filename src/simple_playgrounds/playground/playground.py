@@ -14,7 +14,6 @@ from abc import ABC
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
 import pymunk, pygame
-import numpy as np
 
 if TYPE_CHECKING:
     from simple_playgrounds.device.communication import CommunicationDevice
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
     from simple_playgrounds.device.communication import CommunicationDevice
     from simple_playgrounds.agent.parts import Part
     from simple_playgrounds.common.position_utils import InitCoord
-    from simple_playgrounds.common.entity import Entity
+    from simple_playgrounds.entity import Entity
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
@@ -644,7 +643,7 @@ class Playground(ABC):
                 return part
 
         for device in self.communication_devices + self._sensor_devices + self._actuator_devices:
-            if device.pm_shape is pm_shape:
+            if device._pm_shape is pm_shape:
                 return device
 
         return None

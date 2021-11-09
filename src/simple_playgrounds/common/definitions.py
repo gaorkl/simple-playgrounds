@@ -17,6 +17,21 @@ WALL_DEPTH = 10
 PYMUNK_STEPS = 10
 MAX_ATTEMPTS_OVERLAPPING = 100
 
+VISIBLE_ALPHA = 255
+INVISIBLE_ALPHA = 75
+
+class PymunkCollisionCategories(IntEnum):
+
+    DEFAULT = auto()
+
+    # Must start at one:
+    TRAVERSABLE = auto()
+    TRANSPARENT = auto()
+    SENSOR = auto()
+    SENSOR_CONTACT = auto()
+    INTERACTION = auto()
+
+
 class KeyTypes(IntEnum):
 
     PRESS_HOLD = auto()

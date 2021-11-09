@@ -7,7 +7,7 @@ from abc import ABC
 
 import pymunk
 
-from simple_playgrounds.common.entity import Entity
+from simple_playgrounds.entity import Entity
 from simple_playgrounds.common.definitions import CollisionTypes
 
 _RADIUS_DEVICE = 5
