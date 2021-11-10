@@ -45,6 +45,7 @@ from simple_playgrounds.element.elements.activable import Dispenser
 from simple_playgrounds.agent.actuators import ActuatorDevice
 from simple_playgrounds.device.device import Device
 from simple_playgrounds.element.element import InteractiveElement
+from simple_playgrounds.entity import Entity
 
 
 # pylint: disable=unused-argument
@@ -78,7 +79,10 @@ class Playground(ABC):
     def __init__(
         self,
     ):
+
+        # By default, size is infinite and center is at (0,0)
         self._size = None
+        self._center = (0, 0)
 
         # Initialization of the pymunk space, modelling all the physics
         self.space = self._initialize_space()
@@ -106,6 +110,9 @@ class Playground(ABC):
         self._handle_interactions()
         self.sensor_collision_index = 2
         self._timestep = 0
+
+        self.entities: List[Entity] = []
+        self.shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
 
     @staticmethod
     def _initialize_space() -> pymunk.Space:
@@ -230,6 +237,16 @@ class Playground(ABC):
 
         self._timestep = 0
         self.done = False
+
+    def add(self,
+            entity: Entity,
+            coordinates: Optional[InitCoord] = None,
+            **kwargs):
+
+        entity.add_to_playground(self)
+        entity.move_to_position(coordinates, **kwargs)
+
+        self.entities.append(entity)
 
     def add_agent(
         self,
@@ -630,23 +647,10 @@ class Playground(ABC):
 
     def get_entity_from_shape(
             self,
-            pm_shape: pymunk.Shape) -> Optional[Union[Part, SceneElement]]:
+            pm_shape: pymunk.Shape) -> Entity:
 
-        element = self._get_element_from_shape(pm_shape)
-        if element:
-            return element
-
-        for agent in self.agents:
-
-            part = agent.get_part_from_shape(pm_shape)
-            if part:
-                return part
-
-        for device in self.communication_devices + self._sensor_devices + self._actuator_devices:
-            if device._pm_shape is pm_shape:
-                return device
-
-        return None
+        assert pm_shape in self.shapes_to_entities
+        return self.shapes_to_entities[pm_shape]
 
     def get_closest_agent(self, element: SceneElement) -> Agent:
         return min(self.agents,
@@ -687,7 +691,7 @@ class Playground(ABC):
 
         for elem in elems:
             if elem not in invisible_elements:
-                elem.draw(surface, viewpoint=center, draw_invisible=draw_invisible)
+                elem.draw(surface, viewpoint=center, draw_transparent=draw_invisible)
 
         img = pygame.surfarray.pixels3d(surface).astype(float)[:, :, ::-1]
 
@@ -762,3 +766,8 @@ class PlaygroundRegister:
             return subclass
 
         return decorator
+
+
+class EmptyPlayground(Playground):
+    pass
+

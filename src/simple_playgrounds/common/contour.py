@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 from collections import namedtuple
 from enum import IntEnum, auto
 
@@ -20,19 +20,20 @@ class GeometricShapes(IntEnum):
     POLYGON = auto()
 
 
-def get_contour(geometric_shape: str,
+def get_contour(shape: Union[str, GeometricShapes],
                 radius: Optional[float] = None,
                 size: Optional[Tuple[float, float]] = None,
                 vertices: Optional[List[Tuple[float, float]]] = None,
                 **kwargs):
 
-    geometric_shape = GeometricShapes[geometric_shape.upper()]
+    if isinstance(shape, str):
+        shape = GeometricShapes[shape.upper()]
 
-    assert geometric_shape in [i for i in GeometricShapes]
+    assert shape in [i for i in GeometricShapes]
 
     # Dimensions of the entity
 
-    if geometric_shape in [
+    if shape in [
         GeometricShapes.TRIANGLE,
         GeometricShapes.SQUARE,
         GeometricShapes.PENTAGON,
@@ -44,14 +45,14 @@ def get_contour(geometric_shape: str,
         radius = radius
         size = (2 * radius, 2 * radius)
 
-    elif geometric_shape == GeometricShapes.RECTANGLE:
+    elif shape == GeometricShapes.RECTANGLE:
         assert size is not None and len(size) == 2
 
         width, length = size
         radius = ((width / 2) ** 2 + (length / 2) ** 2) ** (1 / 2)
         size = size
 
-    elif geometric_shape == GeometricShapes.POLYGON:
+    elif shape == GeometricShapes.POLYGON:
         assert vertices and len(vertices) > 1
 
         vertices = np.array(vertices)
@@ -65,13 +66,13 @@ def get_contour(geometric_shape: str,
         size = (2 * radius, 2 * radius)
 
     else:
-        raise ValueError('Wrong physical shape: {}.'.format(geometric_shape))
+        raise ValueError('Wrong physical shape: {}.'.format(shape))
 
-    contour = Contour(geometric_shape, radius, size, vertices)
+    contour = Contour(shape, radius, size, vertices)
 
     # compute missing vertices
     vertices = get_vertices(contour)
-    contour = Contour(geometric_shape, radius, size, vertices)
+    contour = Contour(shape, radius, size, vertices)
 
     return contour
 

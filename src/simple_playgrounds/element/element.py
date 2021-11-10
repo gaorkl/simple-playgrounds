@@ -4,11 +4,11 @@ Module that defines Base Class SceneElement
 from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple
 
-from simple_playgrounds.entity import Entity
+from simple_playgrounds.entity import Entity, PhysicalEntity
 from ..common.position_utils import InitCoord
 
 
-class SceneElement(Entity, ABC):
+class SceneElement(PhysicalEntity, ABC):
     def __init__(self, **entity_params):
         super().__init__(**entity_params)
 

@@ -19,12 +19,12 @@ if TYPE_CHECKING:
 import pygame
 import pymunk
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY, MAX_ATTEMPTS_OVERLAPPING, \
-    PymunkCollisionCategories, VISIBLE_ALPHA, INVISIBLE_ALPHA
+    PymunkCollisionCategories, VISIBLE_ALPHA, INVISIBLE_ALPHA, DEFAULT_INTERACTION_RANGE
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
 from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
 
-from simple_playgrounds.common.contour import get_contour, GeometricShapes, get_vertices
+from simple_playgrounds.common.contour import get_contour, GeometricShapes, get_vertices, expand_contour
 
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
@@ -39,7 +39,8 @@ class Entity(ABC):
     index_entity = 0
 
     def __init__(self,
-                 name: Optional[str] = None):
+                 name: Optional[str] = None,
+                 **kwargs):
 
         self._name: str
 
@@ -81,6 +82,13 @@ class Entity(ABC):
         """
 
     @abstractmethod
+    def move_to_position(self,
+                         coordinates: Optional[InitCoord] = None,
+                         allow_overlapping: Optional[bool] = True,
+                         max_attempts: Optional[int] = MAX_ATTEMPTS_OVERLAPPING):
+        pass
+
+    @abstractmethod
     def pre_step(self):
         """
         Computes all the necessary calculations before the pymunk engine steps.
@@ -110,7 +118,7 @@ class PlaygroundEntity(Entity, ABC):
 
     """
     Playground Entities are entities that are present in the playground.
-    They have a texture that defines their appearance for user and for sensors.
+    They have a texture that defines their appearance for user display and for sensors.
     """
 
     def __init__(self,
@@ -123,7 +131,6 @@ class PlaygroundEntity(Entity, ABC):
 
         self._contour = get_contour(**kwargs)
         self.pm_body: Optional[pymunk.Body] = self._set_pm_body()
-        self._pm_shapes: List[pymunk.Shape] = []
 
         self._temporary = temporary
         self._produced_by: Optional[Entity] = None
@@ -141,39 +148,6 @@ class PlaygroundEntity(Entity, ABC):
         self._texture: Texture = texture
         self._texture_surface = self._texture.generate()
 
-    def _create_mask(self, alpha):
-
-        # pylint: disable-all
-
-        mask_radius = self._contour.radius + 1
-
-        center = (mask_radius,) * 2
-        mask_size = (int(2 * mask_radius),) * 2
-        mask = pygame.Surface(mask_size, pygame.SRCALPHA)
-        mask.fill((0, 0, 0, 0))
-
-        if self._contour.shape == GeometricShapes.CIRCLE:
-            pygame.draw.circle(mask, (255, 255, 255, alpha), center,
-                               mask_radius)
-
-        else:
-            vert = get_vertices(self._contour, offset_angle=self.angle)
-            vertices = [v + center for v in vert]
-            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
-
-        texture_surface = self._texture_surface.copy()
-
-        # Pygame / numpy conversion
-        mask_angle = math.pi / 2 - self.angle
-        texture_surface = pygame.transform.rotate(texture_surface,
-                                                  mask_angle * 180 / math.pi)
-        mask_rect = texture_surface.get_rect()
-        mask_rect.center = center
-        mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
-
-        return mask
-
-
     @property
     def produced_by(self):
         return self._produced_by
@@ -186,24 +160,6 @@ class PlaygroundEntity(Entity, ABC):
     @property
     def temporary(self):
         return self._temporary
-
-    @abstractmethod
-    def _set_pm_body(self):
-        """ Shapes must be attached to a body."""
-        ...
-
-    def _create_pm_shape(self):
-
-        if self._contour.shape == GeometricShapes.CIRCLE:
-            pm_shape = pymunk.Circle(self.pm_body, self._contour.radius)
-
-        else:
-            pm_shape = pymunk.Poly(self.pm_body, self._contour.vertices)
-
-        pm_shape.friction = FRICTION_ENTITY
-        pm_shape.elasticity = ELASTICITY_ENTITY
-
-        return pm_shape
 
     @property
     def contour(self):
@@ -253,6 +209,63 @@ class PlaygroundEntity(Entity, ABC):
     def angular_velocity(self, v_phi):
         self.pm_body.angular_velocity = v_phi
 
+    def get_pixel(self, relative_pos):
+        return self._texture.get_pixel(relative_pos)
+
+    @property
+    def base_color(self):
+        return self._texture.base_color
+
+    def _create_pm_shape(self):
+
+        if self._contour.shape == GeometricShapes.CIRCLE:
+            pm_shape = pymunk.Circle(self.pm_body, self._contour.radius)
+
+        else:
+            pm_shape = pymunk.Poly(self.pm_body, self._contour.vertices)
+
+        pm_shape.friction = FRICTION_ENTITY
+        pm_shape.elasticity = ELASTICITY_ENTITY
+
+        return pm_shape
+
+    def _create_mask(self, alpha):
+
+        # pylint: disable-all
+
+        mask_radius = self._contour.radius + 1
+
+        center = (mask_radius,) * 2
+        mask_size = (int(2 * mask_radius),) * 2
+        mask = pygame.Surface(mask_size, pygame.SRCALPHA)
+        mask.fill((0, 0, 0, 0))
+
+        if self._contour.shape == GeometricShapes.CIRCLE:
+            pygame.draw.circle(mask, (255, 255, 255, alpha), center,
+                               mask_radius)
+
+        else:
+            vert = get_vertices(self._contour, offset_angle=self.angle)
+            vertices = [v + center for v in vert]
+            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
+
+        texture_surface = self._texture_surface.copy()
+
+        # Pygame / numpy conversion
+        mask_angle = math.pi / 2 - self.angle
+        texture_surface = pygame.transform.rotate(texture_surface,
+                                                  mask_angle * 180 / math.pi)
+        mask_rect = texture_surface.get_rect()
+        mask_rect.center = center
+        mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
+
+        return mask
+
+    @abstractmethod
+    def _set_pm_body(self):
+        """ Shapes must be attached to a body."""
+        ...
+
 
 class PhysicalEntity(PlaygroundEntity, ABC):
     """
@@ -271,13 +284,13 @@ class PhysicalEntity(PlaygroundEntity, ABC):
             **kwargs,
     ):
 
-        super().__init__(**kwargs)
-
         if movable:
             assert mass
         self._movable = movable
 
         self._mass = mass
+
+        super().__init__(**kwargs)
 
         self._pm_shape = self._create_pm_shape()
 
@@ -285,21 +298,25 @@ class PhysicalEntity(PlaygroundEntity, ABC):
         if transparent and traversable:
             raise ValueError('Physical Object can not be transparent and traversable')
 
+        self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.DEFAULT.value,
+                                                   mask= pymunk.ShapeFilter.ALL_MASKS() ^
+                                                         2 ** PymunkCollisionCategories.TRAVERSABLE.value)
+
         # If traversable, collides only with sensors
         if traversable:
             self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.TRAVERSABLE.value,
                                                        mask=2 ** PymunkCollisionCategories.SENSOR.value |
-                                                      2 ** PymunkCollisionCategories.SENSOR_CONTACT.value)
+                                                       2 ** PymunkCollisionCategories.SENSOR_CONTACT.value)
         self._traversable = traversable
 
         # If transparent, collides with everything. Sensors don't collide except for contact sensor.
         if transparent:
             self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.TRANSPARENT.value,
                                                        mask=pymunk.ShapeFilter.ALL_MASKS() ^
-                                                      (2 ** PymunkCollisionCategories.SENSOR.value))
+                                                       (2 ** PymunkCollisionCategories.SENSOR.value))
         self._transparent = transparent
 
-        self._pm_shapes = [self._pm_shape]
+        self._pm_shape = self._pm_shape
 
         # To be set when entity is added to playground.
         self._initial_coordinates: Optional[InitCoord] = None
@@ -314,6 +331,8 @@ class PhysicalEntity(PlaygroundEntity, ABC):
 
         self._held_by: List[Grasp] = []
 
+        self._interactives = []
+
     @property
     def held_by(self):
         return self._held_by
@@ -325,13 +344,6 @@ class PhysicalEntity(PlaygroundEntity, ABC):
     def released_by(self, grasper):
         assert grasper in self._held_by
         self._held_by.remove(grasper)
-
-    def get_pixel(self, relative_pos):
-        return self._texture.get_pixel(relative_pos)
-
-    @property
-    def base_color(self):
-        return self._texture.base_color
 
     # BODY AND SHAPE
     def _set_pm_body(self):
@@ -394,7 +406,33 @@ class PhysicalEntity(PlaygroundEntity, ABC):
                     init_coordinates[0]) == 2
             self._initial_coordinates = init_coordinates
 
+    @property
+    def trajectory(self):
+        return self._trajectory
+
     # INTERFACE
+
+    def _add_to_playground(self):
+        self._playground.space.add(self.pm_body, self._pm_shape)
+        self._playground.entities.append(self)
+        self._playground.shapes_to_entities[self._pm_shape] = self
+
+        for interactive in self._interactives:
+            interactive.add_to_playground(self._playground)
+
+    def _remove_from_playground(self):
+        self._playground.space.remove(self.pm_body, self._pm_shape)
+        self._playground.entities.remove(self)
+        self._playground.shapes_to_entities.pop(self._pm_shape)
+
+        for interactive in self._interactives:
+            interactive.remove_from_playground(self._playground)
+
+    def add_interactive(self, entity: InteractiveEntity):
+        self._interactives.append(entity)
+
+        if not entity.playground and self._playground:
+            entity.add_to_playground(self._playground)
 
     def pre_step(self):
         """
@@ -466,13 +504,39 @@ class StandAloneInteractive(InteractiveEntity, ABC):
     def _set_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 
+    def _add_to_playground(self):
+        self._playground.space.add(self.pm_body, self._pm_interactive_shape)
+        self._playground.shapes_to_entities[self._pm_interactive_shape] = self
+
+    def _remove_from_playground(self):
+        self._playground.space.remove(self.pm_body, self._pm_interactive_shape)
+        self._playground.shapes_to_entities.pop(self._pm_interactive_shape)
+
 
 class AnchoredInteractive(InteractiveEntity, ABC):
 
-    def __init__(self, anchor: PhysicalEntity, **kwargs):
+    def __init__(self,
+                 anchor: PhysicalEntity,
+                 interaction_range: float = DEFAULT_INTERACTION_RANGE,
+                 **kwargs):
 
         self._anchor = anchor
+        anchor_contour = anchor.contour
+        interaction_contour = expand_contour(anchor_contour, interaction_range)
+
+        kwargs = {**interaction_contour._asdict(), **kwargs}
+
         super().__init__(**kwargs)
 
     def _set_pm_body(self):
         return self._anchor.pm_body
+
+    def _add_to_playground(self):
+        self._playground.space.add(self._pm_interactive_shape)
+        self._playground.shapes_to_entities[self._pm_interactive_shape] = self
+
+    def _remove_from_playground(self):
+        self._playground.space.remove(self._pm_interactive_shape)
+        self._playground.shapes_to_entities.pop(self._pm_interactive_shape)
+
+

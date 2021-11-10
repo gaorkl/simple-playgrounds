@@ -11,6 +11,10 @@ from ...configs.parser import parse_configuration
 
 
 class Physical(SceneElement):
+
+    def update(self):
+        pass
+
     def __init__(
         self,
         config_key: Optional[Union[str, ElementTypes]] = None,
@@ -26,9 +30,7 @@ class Physical(SceneElement):
         elem_config = parse_configuration('element_basic', config_key)
         elem_config = {**elem_config, **entity_params}
 
-        super().__init__(visible_shape=True,
-                         invisible_shape=False,
-                         **elem_config)
+        super().__init__(**elem_config)
 
     def _set_shape_collision(self):
         pass

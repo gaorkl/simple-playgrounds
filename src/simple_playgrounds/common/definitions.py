@@ -19,6 +19,7 @@ MAX_ATTEMPTS_OVERLAPPING = 100
 
 VISIBLE_ALPHA = 255
 INVISIBLE_ALPHA = 75
+DEFAULT_INTERACTION_RANGE = 5
 
 class PymunkCollisionCategories(IntEnum):
 
@@ -54,6 +55,9 @@ class CollisionTypes(IntEnum):
 
     DEVICE = auto()
     MODIFIER = auto()
+
+    TEST_TRIGGER = auto()
+    TEST_TRIGGERED = auto()
 
 
 def add_custom_collision(collision_types, name):
