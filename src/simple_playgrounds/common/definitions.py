@@ -21,6 +21,7 @@ VISIBLE_ALPHA = 255
 INVISIBLE_ALPHA = 75
 DEFAULT_INTERACTION_RANGE = 5
 
+
 class PymunkCollisionCategories(IntEnum):
 
     DEFAULT = auto()

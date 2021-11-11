@@ -33,7 +33,7 @@ from simple_playgrounds.playground.collision_handlers import (gem_activates_elem
                                                               modifier_modifies_device
                                                               )
 
-from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, MAX_ATTEMPTS_OVERLAPPING
+from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, MAX_ATTEMPTS_OVERLAPPING, PymunkCollisionCategories
 from simple_playgrounds.common.timer import Timer
 
 from simple_playgrounds.element.element import SceneElement
@@ -114,6 +114,8 @@ class Playground(ABC):
         self.entities: List[Entity] = []
         self.shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
 
+        self._teams = {}
+
     @staticmethod
     def _initialize_space() -> pymunk.Space:
         """ Method to initialize Pymunk empty space for 2D physics.
@@ -142,6 +144,19 @@ class Playground(ABC):
     @center.setter
     def center(self, center):
         self._center = tuple(center)
+
+    @property
+    def teams(self):
+        return self._teams
+
+    def add_team(self, team):
+        assert team not in self._teams
+        team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
+        self._teams[team] = team_index
+
+    def update_teams(self):
+        for entity in self.entities:
+            entity.update_team_filter()
 
     def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
         """ Update the Playground
@@ -247,6 +262,8 @@ class Playground(ABC):
         entity.move_to_position(coordinates, **kwargs)
 
         self.entities.append(entity)
+
+        self.update_teams()
 
     def add_agent(
         self,

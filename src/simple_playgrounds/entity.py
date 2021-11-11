@@ -52,6 +52,8 @@ class Entity(ABC):
 
         self._playground: Optional[Playground] = None
 
+        self._teams: List[str] = []
+
     @property
     def playground(self):
         return self._playground
@@ -61,7 +63,13 @@ class Entity(ABC):
             raise ValueError('Entity {} already in a Playground'.format(self._name))
 
         self._playground = playground
+
         self._add_to_playground()
+
+        # If in a team when added to the playground, add the team.
+        for team in self._teams:
+            if team not in self._playground.teams:
+                self._playground.add_team(team)
 
     @abstractmethod
     def _add_to_playground(self):
@@ -80,6 +88,20 @@ class Entity(ABC):
         Remove pymunk elements from playground space.
         Remove entity from lists or dicts in playground.
         """
+
+    def add_to_team(self, team):
+        self._teams.append(team)
+
+        # If already in playground, add the team
+        if self._playground:
+
+            if team not in self._playground.teams.keys():
+                self._playground.add_team(team)
+
+            self._playground.update_teams()
+
+    def update_team_filter(self):
+        pass
 
     @abstractmethod
     def move_to_position(self,
@@ -428,11 +450,37 @@ class PhysicalEntity(PlaygroundEntity, ABC):
         for interactive in self._interactives:
             interactive.remove_from_playground(self._playground)
 
+    def add_to_team(self, team):
+        super().add_to_team(team)
+
+        for interactive in self._interactives:
+            interactive.add_to_team(team)
+
+    def update_team_filter(self):
+
+        categ = self._pm_shape.filter.categories
+        for team in self._teams:
+            categ = categ | 2 ** self._playground.teams[team]
+
+        mask = self._pm_shape.filter.mask
+        for team in self._playground.teams:
+
+            if team not in self._teams:
+                mask = mask | 2 ** self._playground.teams[team] ^ 2 ** self._playground.teams[team]
+
+        self._pm_shape.filter = pymunk.ShapeFilter( categories= categ, mask=mask)
+
+        for interactive in self._interactives:
+            interactive.update_team_filter()
+
     def add_interactive(self, entity: InteractiveEntity):
         self._interactives.append(entity)
 
         if not entity.playground and self._playground:
             entity.add_to_playground(self._playground)
+
+        if self._teams:
+            entity.add_to_team(self._teams)
 
     def pre_step(self):
         """
@@ -479,6 +527,9 @@ class InteractiveEntity(PlaygroundEntity, ABC):
         self._pm_interactive_shape = self._create_pm_shape()
         self._pm_interactive_shape.sensor = True
 
+        self._pm_interactive_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.INTERACTION.value,
+                                                               mask=2 ** PymunkCollisionCategories.INTERACTION.value)
+
         self._set_pm_collision_handler()
 
     @abstractmethod
@@ -497,6 +548,24 @@ class InteractiveEntity(PlaygroundEntity, ABC):
         mask_rect = mask.get_rect()
         mask_rect.center = self.position - viewpoint
         surface.blit(mask, mask_rect, None)
+
+    def update_team_filter(self):
+
+        if not self._teams:
+            return
+
+        categ = 0
+        for team in self._teams:
+            categ = categ | 2 ** self._playground.teams[team]
+
+        mask = 0
+        for team in self._playground.teams:
+
+            mask = mask | 2 ** self._playground.teams[team]
+            if team not in self._teams:
+                 mask = mask ^ 2 ** self._playground.teams[team]
+
+        self._pm_interactive_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
 
 class StandAloneInteractive(InteractiveEntity, ABC):

@@ -1,7 +1,6 @@
 from typing import Optional
 
 import numpy as np
-import pymunk
 
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
 
@@ -90,114 +89,109 @@ def trigger_triggers_triggered(arbiter, space, data):
     return True
 
 
-def test_halo_halo(physical_basic, physical_basic_2):
+def test_same_team(physical_basic):
 
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    halo_1 = MockHaloTrigger(anchor=physical_basic, interaction_range=5, texture=(2,3,4))
-    physical_basic.add_interactive(halo_1)
-
-    playground.add(physical_basic, ((0, 0), 0))
-
-    playground.add(physical_basic_2, ((physical_basic.contour.radius + physical_basic_2.contour.radius + 7, 0), 0))
-
-    halo_2 = MockHaloTriggered(anchor=physical_basic_2, interaction_range=5, texture=(2, 3, 4))
-    physical_basic_2.add_interactive(halo_2)
-
-    assert not halo_1.activated and not halo_2.activated
-
-    playground.update()
-
-    assert halo_1.activated and halo_2.activated
-
-
-def test_halo_halo_outrange(physical_basic, physical_basic_2):
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-    halo_1 = MockHaloTrigger(anchor=physical_basic, interaction_range=5, texture=(2, 3, 4))
-    physical_basic.add_interactive(halo_1)
-
-    playground.add(physical_basic, ((0, 0), 0))
-
-    playground.add(physical_basic_2, ((physical_basic.contour.radius + physical_basic_2.contour.radius + 11, 0), 0))
-
-    halo_2 = MockHaloTriggered(anchor=physical_basic_2, interaction_range=5, texture=(2, 3, 4))
-    physical_basic_2.add_interactive(halo_2)
-
-    assert not halo_1.activated and not halo_2.activated
-
-    playground.update()
-
-    assert not halo_1.activated and not halo_2.activated
-
-
-def test_halo_standalone(physical_basic):
-
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-    halo_1 = MockHaloTrigger(anchor=physical_basic, interaction_range=5, texture = (10, 10, 10))
-    physical_basic.add_interactive(halo_1)
+    halo = MockHaloTrigger(anchor=physical_basic, interaction_range=5, texture=(10, 10, 10))
+    physical_basic.add_interactive(halo)
+    physical_basic.add_to_team('team_1')
 
     playground.add(physical_basic, ((0, 0), 0))
 
     contour = Contour('square', 10, None, None)
     zone = MockZoneTriggered(**contour._asdict(), texture=(10, 10, 10))
+    zone.add_to_team('team_1')
 
     playground.add(zone, ((0, 0), 0))
 
-    assert not halo_1.activated and not zone.activated
-
     playground.update()
 
-    assert halo_1.activated and zone.activated
-    assert halo_1.position == zone.position
+    assert halo.activated and zone.activated
 
 
-def test_standalone_halo(physical_basic):
+def test_different_team(physical_basic):
 
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    halo_1 = MockHaloTriggered(anchor=physical_basic, interaction_range=5, texture=(10, 10, 10))
-    physical_basic.add_interactive(halo_1)
+    halo = MockHaloTrigger(anchor=physical_basic, interaction_range=5, texture=(10, 10, 10))
+    physical_basic.add_interactive(halo)
+    physical_basic.add_to_team('team_1')
 
     playground.add(physical_basic, ((0, 0), 0))
 
     contour = Contour('square', 10, None, None)
-    zone = MockZoneTrigger(**contour._asdict(), texture=(10, 10, 10))
+    zone = MockZoneTriggered(**contour._asdict(), texture=(10, 10, 10))
+    zone.add_to_team('team_2')
 
     playground.add(zone, ((0, 0), 0))
 
-    assert not halo_1.activated and not zone.activated
-
     playground.update()
 
-    assert halo_1.activated and zone.activated
-    assert halo_1.position == zone.position
+    assert not halo.activated and not zone.activated
 
 
-def test_standalone_standalone():
+def test_multiple_teams(physical_basic):
 
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    contour = Contour('circle', 10, None, None)
-    zone_1 = MockZoneTrigger(**contour._asdict(), texture=(10, 10, 10))
-    zone_2 = MockZoneTriggered(**contour._asdict(), texture=(10, 10, 10))
+    halo = MockHaloTrigger(anchor=physical_basic, interaction_range=5, texture=(10, 10, 10))
+    physical_basic.add_interactive(halo)
+    physical_basic.add_to_team('team_1')
+    physical_basic.add_to_team('team_2')
 
-    playground.add(zone_1, ((0, 5), 0))
-    playground.add(zone_2, ((0, -5), 0))
+    playground.add(physical_basic, ((0, 0), 0))
 
-    assert not zone_1.activated and not zone_2.activated
+    # adding a team after entering playground should also work.
+    physical_basic.add_to_team('team_3')
+
+    contour = Contour('square', 10, None, None)
+    zone_1 = MockZoneTriggered(**contour._asdict(), texture=(10, 10, 10))
+    zone_1.add_to_team('team_2')
+    zone_1.add_to_team('team_4')
+
+    playground.add(zone_1, ((0, 0), 0))
 
     playground.update()
 
+    assert halo.activated and zone_1.activated
 
-    # static objects don't generate collisions
-    assert not zone_1.activated and not zone_2.activated
+
+def test_multiple_triggered(physical_basic):
+
+    playground = EmptyPlayground()
+    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+
+    halo = MockHaloTrigger(anchor=physical_basic, interaction_range=5, texture=(10, 10, 10))
+    physical_basic.add_interactive(halo)
+    physical_basic.add_to_team('team_1')
+
+    playground.add(physical_basic, ((0, 0), 0))
+
+    contour = Contour('square', 10, None, None)
+    zone_1 = MockZoneTriggered(**contour._asdict(), texture=(10, 10, 10))
+    zone_1.add_to_team('team_1')
+
+    playground.add(zone_1, ((0, 0), 0))
+
+    zone_2 = MockZoneTriggered(**contour._asdict(), texture=(10, 10, 10))
+    zone_2.add_to_team('team_1')
+
+    playground.add(zone_2, ((0, 0), 0))
+
+    zone_3 = MockZoneTriggered(**contour._asdict(), texture=(10, 10, 10))
+    zone_3.add_to_team('team_2')
+
+    playground.add(zone_3, ((0, 0), 0))
+
+    playground.update()
+
+    assert halo.activated and zone_1.activated and zone_2.activated
+    assert not zone_3.activated
+    # assert not zone_2.activated
 
 
 
