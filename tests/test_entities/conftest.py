@@ -1,55 +1,39 @@
 import pytest
 
-from typing import Optional
-
-from simple_playgrounds.entity import PhysicalEntity, AnchoredInteractive, StandAloneInteractive
-from simple_playgrounds.common.position_utils import Coordinate
 from simple_playgrounds.common.contour import Contour
-from simple_playgrounds.common.definitions import CollisionTypes
-
-contour = Contour('circle', 10, None, None)
 
 
-class MockPhysical(PhysicalEntity):
-    def move_to_position(self,
-                         coordinates: Optional[Coordinate] = None,
-                         **kwargs):
-        self.coordinates = coordinates
-
-    def update(self):
-        pass
+@pytest.fixture(scope="module", params=['circle', 'square', 'rectangle', 'polygon'])
+def shape(request):
+    return request.param
 
 
-@pytest.fixture(scope="function")
-def physical_basic():
-    return MockPhysical(traversable=False,
-                        transparent=False,
-                        **contour._asdict(),
-                        texture=(10, 100, 100),
-                        movable=True, mass=5)
+@pytest.fixture(scope="module", params=[5, 10, 20])
+def radius(request):
+    return request.param
 
 
-physical_basic_2 = physical_basic
+@pytest.fixture(scope="module", params=[(5, 3), (10, 5)])
+def size(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[
+    ((-5, -5), (5, -5), (10, 0)),
+    ((-5, -5), (5, -5), (5, 10), (-10, 5)),
+])
+def vertices(request):
+    return request.param
 
 
 @pytest.fixture(scope="function")
-def physical_traversable():
-    return MockPhysical(traversable=True,
-                        transparent=False,
-                        **contour._asdict(),
-                        texture=(10, 100, 100),
-                        movable=True, mass=5)
+def custom_contour(shape, radius, size, vertices):
+    return Contour(shape, radius, size, vertices)
 
 
-physical_traversable_2 = physical_traversable
+custom_contour_2 = custom_contour
 
 
-@pytest.fixture(scope="function")
-def physical_transparent():
-    return MockPhysical(traversable=False,
-                        transparent=True,
-                        **contour._asdict(),
-                        texture=(10, 100, 100),
-                        movable=True, mass=5)
-
-
+@pytest.fixture(scope="module", params=[5, 10])
+def interaction_radius(request):
+    return request.param

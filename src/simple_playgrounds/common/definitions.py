@@ -32,6 +32,8 @@ class PymunkCollisionCategories(IntEnum):
     SENSOR = auto()
     SENSOR_CONTACT = auto()
     INTERACTION = auto()
+    BOUNDARY = auto()
+    NO_TEAM = auto()
 
 
 class KeyTypes(IntEnum):

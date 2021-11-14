@@ -65,6 +65,8 @@ def get_contour(shape: Union[str, GeometricShapes],
         radius = ((width / 2) ** 2 + (length / 2) ** 2) ** (1 / 2)
         size = (2 * radius, 2 * radius)
 
+        vertices = [pymunk.Vec2d(*pt) for pt in vertices]
+
     else:
         raise ValueError('Wrong physical shape: {}.'.format(shape))
 
