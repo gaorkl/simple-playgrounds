@@ -15,11 +15,6 @@ class MockPhysical(PhysicalEntity):
 
         super().__init__(texture = (10, 10, 10), **kwargs)
 
-    def move_to_position(self,
-                         coordinates: Optional[Coordinate] = None,
-                         **kwargs):
-        self._move_to(coordinates)
-
     def update(self):
         pass
 
@@ -29,11 +24,6 @@ class MockHaloTrigger(AnchoredInteractive):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.activated = False
-
-    def move_to_position(self,
-                         coordinates: Optional[Coordinate] = None,
-                         **kwargs):
-        pass
 
     def pre_step(self):
         self.activated = False
@@ -45,7 +35,7 @@ class MockHaloTrigger(AnchoredInteractive):
         pass
 
     def _set_pm_collision_type(self):
-        self._pm_interactive_shape.collision_type = CollisionTypes.TEST_TRIGGER
+        self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
 
     def trigger(self):
         self.activated = True
@@ -54,7 +44,7 @@ class MockHaloTrigger(AnchoredInteractive):
 class MockHaloTriggered(MockHaloTrigger):
 
     def _set_pm_collision_type(self):
-        self._pm_interactive_shape.collision_type = CollisionTypes.TEST_TRIGGERED
+        self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
 
 
 class MockZoneTrigger(StandAloneInteractive):
@@ -64,11 +54,7 @@ class MockZoneTrigger(StandAloneInteractive):
         self.activated = False
 
     def _set_pm_collision_type(self):
-        self._pm_interactive_shape.collision_type = CollisionTypes.TEST_TRIGGER
-
-    def move_to_position(self, coordinates: Optional[Coordinate] = None,
-                         **kwargs):
-        self._move_to(coordinates)
+        self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
 
     def pre_step(self):
         self.activated = False
@@ -86,7 +72,7 @@ class MockZoneTrigger(StandAloneInteractive):
 class MockZoneTriggered(MockZoneTrigger):
 
     def _set_pm_collision_type(self):
-        self._pm_interactive_shape.collision_type = CollisionTypes.TEST_TRIGGERED
+        self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
 
 
 class MockBarrier(PhysicalEntity):
@@ -108,10 +94,6 @@ class MockBarrier(PhysicalEntity):
                 mask = mask ^ 2 ** self._playground.teams[team]
 
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
-
-    def move_to_position(self, coordinates: Optional[InitCoord] = None, allow_overlapping: Optional[bool] = True,
-                         max_attempts: Optional[int] = 100):
-        self._move_to(coordinates)
 
     def update(self):
         pass
