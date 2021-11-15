@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional, Any, List, Tuple
 
-from simple_playgrounds.entity import Entity
+from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.device.device import Device
 
 

@@ -262,8 +262,8 @@ class PerfectSemantic(SemanticRay):
 
     def _compute_detections(self) -> List[Detection]:
 
-        position_body = self._anchor.pm_body.position
-        angle_body = self._anchor.pm_body.angle
+        position_body = self._anchor._pm_body.position
+        angle_body = self._anchor._pm_body.angle
 
         points_hit = self.playground.space.point_query(position_body,
                                                   self._max_range,

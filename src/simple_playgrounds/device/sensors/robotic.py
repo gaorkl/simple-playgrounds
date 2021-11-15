@@ -50,7 +50,7 @@ class RgbCamera(RayBasedSensor):
 
                 if collision.alpha == 0.0:
 
-                    angle = self._anchor.pm_body.angle + ray_angle
+                    angle = self._anchor._pm_body.angle + ray_angle
                     collision_pt = self._anchor.position + pymunk.Vec2d(
                         self._min_range + 1, 0).rotated(angle)
 

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 import pymunk
 
 from simple_playgrounds.common.definitions import ARM_MAX_FORCE, CollisionTypes
-from simple_playgrounds.entity import Entity
+from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.configs.parser import parse_configuration
 
 

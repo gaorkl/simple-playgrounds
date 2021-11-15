@@ -4,7 +4,7 @@ Module that defines Base Class SceneElement
 from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple
 
-from simple_playgrounds.entity import Entity, PhysicalEntity
+from ..entity.physical import PhysicalEntity
 from ..common.position_utils import InitCoord
 
 

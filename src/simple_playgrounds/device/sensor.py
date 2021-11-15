@@ -17,7 +17,7 @@ from skimage.transform import resize
 
 from simple_playgrounds.device.device import Device
 from simple_playgrounds.agent.parts import Part
-from simple_playgrounds.entity import Entity
+from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.element.element import SceneElement
 
 
@@ -308,8 +308,8 @@ class RayBasedSensor(ExternalSensor, ABC):
 
     def _compute_collision(self, sensor_angle) -> Optional[pymunk.SegmentQueryInfo]:
 
-        position_body = self._anchor.pm_body.position
-        angle = self._anchor.pm_body.angle + sensor_angle
+        position_body = self._anchor._pm_body.position
+        angle = self._anchor._pm_body.angle + sensor_angle
 
         position_end = position_body + pymunk.Vec2d(self._max_range,
                                                     0).rotated(angle)

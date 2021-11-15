@@ -109,7 +109,7 @@ class TopdownLocal(ImageBasedSensor):
                            anti_aliasing=self._anti_aliasing)
 
         rotated_img = rotate(small_img,
-                             self._anchor.pm_body.angle * 180 / math.pi + 90)
+                             self._anchor._pm_body.angle * 180 / math.pi + 90)
 
         masked_img = rotated_img
         masked_img[self.mask_total_fov == 0] = 0

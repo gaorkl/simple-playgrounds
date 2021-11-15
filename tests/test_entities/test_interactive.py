@@ -1,5 +1,4 @@
 
-
 from simple_playgrounds.common.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 

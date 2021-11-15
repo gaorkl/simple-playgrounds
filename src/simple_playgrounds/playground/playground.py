@@ -10,7 +10,7 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 from __future__ import annotations
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
 import pymunk, pygame
@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from simple_playgrounds.device.communication import CommunicationDevice
     from simple_playgrounds.agent.parts import Part
     from simple_playgrounds.common.position_utils import InitCoord
-    from simple_playgrounds.entity import Entity
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
@@ -45,7 +44,7 @@ from simple_playgrounds.element.elements.activable import Dispenser
 from simple_playgrounds.agent.actuators import ActuatorDevice
 from simple_playgrounds.device.device import Device
 from simple_playgrounds.element.element import InteractiveElement
-from simple_playgrounds.entity import Entity
+from simple_playgrounds.entity.entity import Entity, EmbodiedEntity
 
 
 # pylint: disable=unused-argument
@@ -255,15 +254,19 @@ class Playground(ABC):
 
     def add(self,
             entity: Entity,
-            coordinates: Optional[InitCoord] = None,
-            **kwargs):
-
-        entity.add_to_playground(self)
-        entity.move_to_position(coordinates, **kwargs)
+            initial_coordinates: Optional[InitCoord] = None,
+            **kwargs,
+            ):
 
         self.entities.append(entity)
+        entity.add_to_playground(self, initial_coordinates=initial_coordinates, **kwargs)
 
-        self.update_teams()
+    def remove(self,
+               entity: Entity,
+               ):
+
+        self.entities.remove(entity)
+        entity.remove_from_playground()
 
     def add_agent(
         self,
@@ -563,7 +566,9 @@ class Playground(ABC):
 
                     actuator.release_grasp()
 
-
+    @abstractmethod
+    def within_playground(self, coordinates):
+        ...
 
     # def _check_teleports(self):
     #
@@ -786,5 +791,7 @@ class PlaygroundRegister:
 
 
 class EmptyPlayground(Playground):
-    pass
+
+    def within_playground(self, coordinates):
+        return True
 
