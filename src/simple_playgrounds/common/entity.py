@@ -138,10 +138,8 @@ class Entity(ABC):
             center = np.mean(vertices, axis=0)
             self._vertices = vertices - center
 
-            width = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
-            length = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
+            self._radius_visible = np.max(np.linalg.norm(self._vertices, axis=1))
 
-            self._radius_visible = ((width / 2)**2 + (length / 2)**2)**(1 / 2)
             self._size_visible = (2 * self._radius_visible, 2 * self._radius_visible)
             self._radius_invisible = self._radius_visible + self._invisible_range
             self._size_invisible = (2 * self._radius_visible + self._invisible_range,
