@@ -1,12 +1,9 @@
-
-from simple_playgrounds.playground.collision_handlers import get_colliding_entities
-
 from simple_playgrounds.common.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 
 # Add test Interactions to collisions
 from simple_playgrounds.common.definitions import CollisionTypes
-from .mock_entities import MockHaloTrigger, MockPhysical, MockZoneTriggered, \
+from tests.mock_entities import MockHaloTrigger, MockPhysical, MockZoneTriggered, \
     trigger_triggers_triggered, MockHaloTriggered, MockBarrier
 
 

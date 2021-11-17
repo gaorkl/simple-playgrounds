@@ -1,8 +1,7 @@
-import numpy as np
 import pytest
 
 from simple_playgrounds.playground.playground import EmptyPlayground
-from .mock_entities import MockPhysical, MockZoneTrigger
+from tests.mock_entities import MockPhysical, MockZoneTrigger
 from simple_playgrounds.common.contour import Contour
 from simple_playgrounds.common.position_utils import CoordinateSampler
 

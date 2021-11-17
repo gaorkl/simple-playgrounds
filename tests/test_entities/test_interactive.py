@@ -3,7 +3,7 @@ from simple_playgrounds.common.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.definitions import CollisionTypes
 
-from .mock_entities import MockHaloTrigger, MockHaloTriggered, MockZoneTriggered,\
+from tests.mock_entities import MockHaloTrigger, MockHaloTriggered, MockZoneTriggered,\
     MockZoneTrigger, MockPhysical, trigger_triggers_triggered
 
 

@@ -22,7 +22,7 @@ from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_EN
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
 from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
 
-from simple_playgrounds.common.contour import get_contour, GeometricShapes, get_vertices
+from simple_playgrounds.common.contour import get_contour, GeometricShapes, get_vertices, Contour
 
 
 # pylint: disable=line-too-long
@@ -85,8 +85,8 @@ class Entity(ABC):
         ...
 
     def remove_from_playground(self):
-        self._playground = None
         self._remove_pm_elements()
+        self._playground = None
 
     @abstractmethod
     def _remove_pm_elements(self):
@@ -148,12 +148,17 @@ class EmbodiedEntity(Entity, ABC):
     def __init__(self,
                  texture: Union[Texture, Dict, Tuple[int, int, int]],
                  temporary: Optional[bool] = False,
+                 contour: Optional[Contour] = None,
                  **kwargs,
                  ):
 
         super().__init__(**kwargs)
 
-        self._contour = get_contour(**kwargs)
+        if contour:
+            self._contour = get_contour(**contour._asdict())
+        else:
+            self._contour = get_contour(**kwargs)
+
         self._pm_body: Optional[pymunk.Body] = self._set_pm_body()
         self._pm_shape: pymunk.Shape = self._set_pm_shape()
 
@@ -266,9 +271,15 @@ class EmbodiedEntity(Entity, ABC):
             self._pm_body.space.reindex_shapes_for_body(self._pm_body)
 
     def _set_initial_coordinates(self,
-                                 initial_coordinates: Union[Coordinate, CoordinateSampler, Trajectory],
+                                 initial_coordinates: Optional[Union[Coordinate, CoordinateSampler, Trajectory]] = None,
                                  allow_overlapping: bool = True,
                                  ):
+
+        # if no initial coordinate is provided but they are already set
+        if not initial_coordinates and (self._trajectory
+                                        or self._initial_coordinates
+                                        or self._initial_coordinate_sampler):
+            return
 
         if isinstance(initial_coordinates, Trajectory):
             self._trajectory = initial_coordinates
@@ -283,6 +294,7 @@ class EmbodiedEntity(Entity, ABC):
             self._initial_coordinates = initial_coordinates
 
         self._allow_overlapping = allow_overlapping
+        self._initial_coordinates_set = True
 
     def _move_to_initial_position(self):
         """

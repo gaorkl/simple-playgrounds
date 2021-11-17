@@ -1,9 +1,7 @@
-from typing import Optional
-
 import numpy as np
 
 from simple_playgrounds.playground.playground import EmptyPlayground
-from .mock_entities import MockPhysical
+from tests.mock_entities import MockPhysical
 
 
 def test_traversable_traversable(custom_contour, custom_contour_2):

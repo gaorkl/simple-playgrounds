@@ -198,11 +198,15 @@ class Playground(ABC):
         entity.add_to_playground(self, initial_coordinates=initial_coordinates, **kwargs)
 
     def remove(self,
-               entity: Entity,
+               entity: EmbodiedEntity,
+               definitive: Optional[bool] = False,
                ):
 
         self._entities.remove(entity)
         entity.remove_from_playground()
+
+        if not definitive and not entity.temporary:
+            self._disappeared_entities.append(entity)
 
     @abstractmethod
     def within_playground(self, coordinates):
