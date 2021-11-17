@@ -1,11 +1,10 @@
 
 from simple_playgrounds.common.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
-
-# Add test Interactions to collisions
 from simple_playgrounds.common.definitions import CollisionTypes
 
-from .mock_entities import MockHaloTrigger, MockHaloTriggered, MockZoneTriggered, MockZoneTrigger, MockPhysical, trigger_triggers_triggered
+from .mock_entities import MockHaloTrigger, MockHaloTriggered, MockZoneTriggered,\
+    MockZoneTrigger, MockPhysical, trigger_triggers_triggered
 
 
 def test_halo_halo_in_range(radius, interaction_radius):

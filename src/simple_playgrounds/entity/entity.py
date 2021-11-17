@@ -273,7 +273,7 @@ class EmbodiedEntity(Entity, ABC):
             self._trajectory = initial_coordinates
 
         elif isinstance(initial_coordinates, CoordinateSampler):
-            self._initial_coordinate_sampler = CoordinateSampler
+            self._initial_coordinate_sampler = initial_coordinates
 
         else:
             if not isinstance(initial_coordinates, CoordinateSampler):
@@ -313,19 +313,23 @@ class EmbodiedEntity(Entity, ABC):
     def _overlaps(self, coordinates):
         """ Tests whether new coordinate would lead to physical collision """
 
-        pm_shape = self._pm_shape.copy()
-        pm_shape.sensor = True
-        self._playground.space.add(pm_shape.body, pm_shape)
+        dummy_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        dummy_shape = self._create_pm_shape()
+        dummy_shape.body = dummy_body
+        dummy_shape.sensor = True
 
-        pm_shape.body.position, pm_shape.body.angle = coordinates
+        self._playground.space.add(dummy_shape.body, dummy_shape)
+
+        dummy_shape.body.position, dummy_shape.body.angle = coordinates
         self._playground.space.reindex_static()
 
-        overlaps = self._playground.space.shape_query(pm_shape)
-        self._playground.space.remove(pm_shape.body, pm_shape)
+        overlaps = self._playground.space.shape_query(dummy_shape)
+        self._playground.space.remove(dummy_shape.body, dummy_shape)
 
         # remove sensor shapes
-        overlaps = [elem for elem in overlaps if not elem.shape.sensor]
-        print(overlaps)
+        overlaps = [elem for elem in overlaps if not elem.shape.sensor and elem.shape is not self._pm_shape]
+
+        self._playground.space.reindex_static()
 
         return bool(overlaps)
 
@@ -333,6 +337,7 @@ class EmbodiedEntity(Entity, ABC):
 
         attempt = 0
         coordinates = sampler.sample()
+
         # create temporary shape to check for collision
         while self._overlaps(coordinates) and (attempt <= MAX_ATTEMPTS_OVERLAPPING):
             coordinates = sampler.sample()

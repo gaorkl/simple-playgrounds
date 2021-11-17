@@ -17,12 +17,14 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         self._set_pm_collision_type()
 
     def _set_pm_shape(self):
-        self._pm_shape = self._create_pm_shape()
-        self._pm_shape.sensor = True
+        pm_shape = self._create_pm_shape()
+        pm_shape.sensor = True
 
-        self._pm_shape.filter = pymunk.ShapeFilter(
+        pm_shape.filter = pymunk.ShapeFilter(
             categories=2 ** PymunkCollisionCategories.INTERACTION.value,
             mask=2 ** PymunkCollisionCategories.INTERACTION.value)
+
+        return pm_shape
 
     @abstractmethod
     def _set_pm_collision_type(self):
