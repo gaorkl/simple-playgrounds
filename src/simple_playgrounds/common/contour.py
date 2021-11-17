@@ -59,10 +59,8 @@ def get_contour(shape: Union[str, GeometricShapes],
         center = np.mean(vertices, axis=0)
         vertices = vertices - center
 
-        width = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
-        length = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
+        radius = np.max(np.linalg.norm(vertices, axis=1))
 
-        radius = ((width / 2) ** 2 + (length / 2) ** 2) ** (1 / 2)
         size = (2 * radius, 2 * radius)
 
         vertices = [pymunk.Vec2d(*pt) for pt in vertices]

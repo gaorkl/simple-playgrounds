@@ -74,10 +74,10 @@ class Entity(ABC):
         self._playground.update_teams()
 
         # One new filters have been resolved, add to playground
-        self._add_to_playground(**kwargs)
+        self._add_pm_elements(**kwargs)
 
     @abstractmethod
-    def _add_to_playground(self, **kwargs):
+    def _add_pm_elements(self, **kwargs):
         """
         Add pymunk elements to playground space.
         Add entity to lists or dicts in playground.
@@ -85,10 +85,11 @@ class Entity(ABC):
         ...
 
     def remove_from_playground(self):
-        self._remove_from_playground()
+        self._playground = None
+        self._remove_pm_elements()
 
     @abstractmethod
-    def _remove_from_playground(self):
+    def _remove_pm_elements(self):
         """
         Remove pymunk elements from playground space.
         Remove entity from lists or dicts in playground.

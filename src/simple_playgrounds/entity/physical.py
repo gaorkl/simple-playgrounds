@@ -58,6 +58,10 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         assert grasper in self._held_by
         self._held_by.remove(grasper)
 
+    @property
+    def movable(self):
+        return self._movable
+
     # BODY AND SHAPE
     def _set_pm_body(self):
 
@@ -78,9 +82,9 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     def _set_pm_shape(self):
         return self._create_pm_shape()
 
-    def _add_to_playground(self, **kwargs):
+    def _add_pm_elements(self, **kwargs):
         self._playground.space.add(self._pm_body, self._pm_shape)
-        self._playground.shapes_to_entities[self._pm_shape] = self
+        self._playground._shapes_to_entities[self._pm_shape] = self
 
         self._set_initial_coordinates(**kwargs)
         self._move_to_initial_position()
@@ -88,9 +92,9 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         for interactive in self._interactives:
             interactive.add_to_playground(self._playground)
 
-    def _remove_from_playground(self):
+    def _remove_pm_elements(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)
-        self._playground.shapes_to_entities.pop(self._pm_shape)
+        self._playground._shapes_to_entities.pop(self._pm_shape)
 
         for interactive in self._interactives:
             interactive.remove_from_playground()

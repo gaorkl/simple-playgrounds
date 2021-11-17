@@ -67,19 +67,19 @@ class StandAloneInteractive(InteractiveEntity, ABC):
     def _set_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 
-    def _add_to_playground(self, **kwargs):
+    def _add_pm_elements(self, **kwargs):
         self._playground.space.add(self._pm_body, self._pm_shape)
 
         self._set_initial_coordinates(**kwargs)
         self._move_to_initial_position()
 
-        self._playground.shapes_to_entities[self._pm_shape] = self
-        self._playground.entities.append(self)
+        self._playground._shapes_to_entities[self._pm_shape] = self
+        self._playground._entities.append(self)
 
-    def _remove_from_playground(self):
+    def _remove_pm_elements(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)
-        self._playground.shapes_to_entities.pop(self._pm_shape)
-        self._playground.entities.remove(self)
+        self._playground._shapes_to_entities.pop(self._pm_shape)
+        self._playground._entities.remove(self)
 
 
 class AnchoredInteractive(InteractiveEntity, ABC):
@@ -100,10 +100,10 @@ class AnchoredInteractive(InteractiveEntity, ABC):
     def _set_pm_body(self):
         return self._anchor._pm_body
 
-    def _add_to_playground(self):
+    def _add_pm_elements(self):
         self._playground.space.add(self._pm_shape)
-        self._playground.shapes_to_entities[self._pm_shape] = self
+        self._playground._shapes_to_entities[self._pm_shape] = self
 
-    def _remove_from_playground(self):
+    def _remove_pm_elements(self):
         self._playground.space.remove(self._pm_shape)
-        self._playground.shapes_to_entities.pop(self._pm_shape)
+        self._playground._shapes_to_entities.pop(self._pm_shape)
