@@ -7,13 +7,17 @@ import random
 from collections.abc import Generator
 from typing import Tuple, Optional, Union
 
+from abc import ABC, abstractmethod
+
 import numpy as np
 import pymunk
+
+from simple_playgrounds.common.contour import Contour
 
 Coordinate = Tuple[Tuple[float, float], float]
 
 
-class CoordinateSampler:
+class CoordinateSampler(ABC):
     """ Sampler for a random position within a particular area
 
     Example:
@@ -23,75 +27,45 @@ class CoordinateSampler:
     """
     def __init__(
         self,
-        center: Tuple[float, float],
-        area_shape: str,
-        size: Optional[Tuple[float, float]] = None,
-        radius: Optional[float] = None,
-        std: Optional[float] = None,
-        angle_range: Optional[Tuple[float, float]] = None,
-        min_size: Tuple[float, float] = (0, 0),
-        min_radius: float = 0,
-        angle: float = 0,
+        distribution: str,
+        contour: Optional[Contour] = None,
+        angle: Optional[ Union[float, Tuple[float, float]]] = None,
+        **kwargs,
     ):
-        """
 
-        Args:
-            center (:obj: list of :obj: int): x, y coordinates of the center of the area
-            area_shape (str): 'circle', 'gaussian' or 'rectangle'
-            **kwargs: Keyword arguments depending on the area_shape
-
-        Keyword Arguments:
-            width_length (:obj: list of :obj: int): Width and Length of the rectangle shape
-            radius (int): radius of the gaussian and circle shape
-            std (int): variance of the gaussian
-
-        """
-
-        self._area_shape = area_shape
-
-        assert len(center) == 2
-        self._center = center
-        self._angle = angle
-
-        if angle_range:
-            assert len(angle_range) == 2
-            self._angle_range = angle_range
+        if contour:
+            self._contour = contour
         else:
-            self._angle_range = (-math.pi, math.pi)
+            self._contour = Contour(**kwargs)
 
-        # Area shape
-        if self._area_shape == 'rectangle':
+        self._contour = contour
+        self._pdf = self._get_pdf(distribution, **kwargs)
 
-            assert size and len(size) == 2
+        self._angle_range = (-math.pi, math.pi)
+        if angle:
+            if isinstance(angle, float):
+                self._angle_range = (angle, angle)
+            elif isinstance(angle, tuple):
+                assert len(angle) == 2
+                self._angle_range = angle
 
-            self._width, self._length = size
-            self._min_width, self._min_length = min_size
+    def _get_pdf(self,
+                 distribution: str,
+                 std: Optional[float],
+                 ):
 
-            assert self._width > self._min_width
-            assert self._length > self._min_length
+        width, length = self._contour.size
 
-        elif self._area_shape == 'circle':
+        xx, yy = np.indices((width, length))
+        pdf = np.zeros( (width, length, 1) )
 
-            assert radius
-
-            self._radius = radius
-            self._min_radius = min_radius
-
-            assert self._radius > self._min_radius
-
-        elif self._area_shape == 'gaussian':
-
-            assert radius
+        if distribution == 'gaussian':
             assert std
+            pdf[xx, yy] = xx**2 + yy**2
 
-            self._radius = radius
-            self._min_radius = min_radius
-            assert self._radius > self._min_radius
-
-            self._std = std
-
-        else:
-            raise ValueError('area shape not implemented')
+    @abstractmethod
+    def _get_center(self):
+        ...
 
     def sample(self, coordinates: Optional[Coordinate] = None) -> Coordinate:
 

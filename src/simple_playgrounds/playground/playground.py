@@ -14,6 +14,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
 import pymunk, pygame
+from pymunk import pygame_util
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import InitCoord
@@ -220,6 +221,25 @@ class Playground(ABC):
         assert shape in self._shapes_to_entities.keys()
         return self._shapes_to_entities[shape]
 
+    def _debug_view(self, center: Tuple[float, float], size: Tuple[float, float]):
+
+        debug_space = self.space.copy()
+        min_pos_x = min(shape.bb.left for shape in debug_space.shapes)
+        min_pos_y = min(shape.bb.bottom for shape in debug_space.shapes)
+        for bod in debug_space.bodies:
+            bod.position.x = bod.position.x + min_pos_x
+            bod.position.y = bod.position.y + min_pos_y
+            debug_space.reindex_shapes_for_body(bod)
+
+        max_pos_x = max(shape.bb.right for shape in debug_space.shapes)
+        max_pos_y = max(shape.bb.top for shape in debug_space.shapes)
+
+        surface = pygame.Surface((max_pos_x, max_pos_y))
+        surface.fill(pygame.Color(0, 0, 0))
+        options = pymunk.pygame_util.DrawOptions(surface)
+
+
+
     def view(self,
              center: Tuple[float, float],
              size: Tuple[float, float],
@@ -227,6 +247,7 @@ class Playground(ABC):
                                                 Entity]] = None,
              draw_invisible: bool = False,
              surface: Optional[pygame.Surface] = None,
+             debug: Optional[bool] = False,
     ):
 
         if not surface:
@@ -234,6 +255,10 @@ class Playground(ABC):
 
         else:
             assert surface.get_size() == size
+
+        if debug:
+            img = self._debug_view(center, size)
+            return img
 
         center = (center[0] - size[0]/2, center[1] - size[1]/2)
 

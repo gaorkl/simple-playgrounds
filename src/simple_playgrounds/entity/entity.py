@@ -17,12 +17,12 @@ if TYPE_CHECKING:
 
 import pygame
 import pymunk
-from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY, MAX_ATTEMPTS_OVERLAPPING
+from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
 from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
 
-from simple_playgrounds.common.contour import get_contour, GeometricShapes, get_vertices, Contour
+from simple_playgrounds.common.contour import Contour, GeometricShapes
 
 
 # pylint: disable=line-too-long
@@ -155,9 +155,9 @@ class EmbodiedEntity(Entity, ABC):
         super().__init__(**kwargs)
 
         if contour:
-            self._contour = get_contour(**contour._asdict())
+            self._contour = contour
         else:
-            self._contour = get_contour(**kwargs)
+            self._contour = Contour(**kwargs)
 
         self._pm_body: Optional[pymunk.Body] = self._set_pm_body()
         self._pm_shape: pymunk.Shape = self._set_pm_shape()
@@ -177,6 +177,8 @@ class EmbodiedEntity(Entity, ABC):
 
         self._texture: Texture = texture
         self._texture_surface = self._texture.generate()
+
+        self._set_shape_debug_color()
 
         # To be set when entity is added to playground.
         self._initial_coordinates: Optional[InitCoord] = None
@@ -229,6 +231,10 @@ class EmbodiedEntity(Entity, ABC):
     @property
     def base_color(self):
         return self._texture.base_color
+
+    @abstractmethod
+    def _set_shape_debug_color(self):
+        ...
 
     def _create_pm_shape(self):
 
@@ -352,7 +358,7 @@ class EmbodiedEntity(Entity, ABC):
         coordinates = sampler.sample()
 
         # create temporary shape to check for collision
-        while self._overlaps(coordinates) and (attempt <= MAX_ATTEMPTS_OVERLAPPING):
+        while self._overlaps(coordinates):
             coordinates = sampler.sample()
             attempt += 1
 
@@ -377,7 +383,7 @@ class EmbodiedEntity(Entity, ABC):
                                mask_radius)
 
         else:
-            vert = get_vertices(self._contour, offset_angle=self.angle)
+            vert = self._contour.get_rotated_vertices(angle=self.angle)
             vertices = [v + center for v in vert]
             pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
 
@@ -395,6 +401,3 @@ class EmbodiedEntity(Entity, ABC):
 
     def get_pixel(self, relative_pos):
         return self._texture.get_pixel(relative_pos)
-
-
-

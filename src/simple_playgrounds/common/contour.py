@@ -1,12 +1,9 @@
 from typing import Optional, Tuple, List, Union
-from collections import namedtuple
 from enum import IntEnum, auto
 
 import numpy as np
 import math
 import pymunk
-
-Contour = namedtuple('Contour', 'shape radius size vertices')
 
 
 class GeometricShapes(IntEnum):
@@ -20,118 +17,161 @@ class GeometricShapes(IntEnum):
     POLYGON = auto()
 
 
-def get_contour(shape: Union[str, GeometricShapes],
-                radius: Optional[float] = None,
-                size: Optional[Tuple[float, float]] = None,
-                vertices: Optional[List[Tuple[float, float]]] = None,
-                **kwargs):
+class Contour:
 
-    if isinstance(shape, str):
-        shape = GeometricShapes[shape.upper()]
+    def __init__(self,
+                 shape: Optional[Union[str, GeometricShapes]],
+                 binary_mask: Optional[np.ndarray] = None,
+                 **kwargs,
+                 ):
 
-    assert shape in [i for i in GeometricShapes]
+        self._shape: Union[str, GeometricShapes]
+        self._radius: Optional[float] = None
+        self._size: Optional[Tuple[float, float]] = None
+        self._vertices: Optional[List[Tuple[float, float]]] = None
 
-    # Dimensions of the entity
+        if binary_mask:
+            self._shape = GeometricShapes.POLYGON
+            self._get_contour_from_mask(binary_mask, **kwargs)
 
-    if shape in [
-        GeometricShapes.TRIANGLE,
-        GeometricShapes.SQUARE,
-        GeometricShapes.PENTAGON,
-        GeometricShapes.HEXAGON,
-        GeometricShapes.CIRCLE,
-    ]:
-        assert radius is not None and isinstance(radius, (float, int))
+        else:
+            assert shape
+            if isinstance(shape, str):
+                shape = GeometricShapes[shape.upper()]
+            self._shape = shape
+            self._get_contour_from_shape(**kwargs)
 
-        radius = radius
-        size = (2 * radius, 2 * radius)
+    @property
+    def size(self):
+        return self._size
 
-    elif shape == GeometricShapes.RECTANGLE:
-        assert size is not None and len(size) == 2
+    @property
+    def radius(self):
+        return self._radius
 
-        width, length = size
-        radius = ((width / 2) ** 2 + (length / 2) ** 2) ** (1 / 2)
-        size = size
+    @property
+    def shape(self):
+        return self._shape
 
-    elif shape == GeometricShapes.POLYGON:
-        assert vertices and len(vertices) > 1
+    @property
+    def vertices(self):
+        return self._vertices
 
-        vertices = np.array(vertices)
-        center = np.mean(vertices, axis=0)
-        vertices = vertices - center
+    @property
+    def dict_attributes(self):
+        return {
+            'shape': self._shape,
+            'radius': self._radius,
+            'vertices': self._vertices,
+            'size': self._size
+        }
 
-        radius = np.max(np.linalg.norm(vertices, axis=1))
+    def _get_contour_from_mask(self,
+                               binary_mask,
+                               **kwargs):
+        raise ValueError('Not implemented')
 
-        size = (2 * radius, 2 * radius)
+    def _get_contour_from_shape(self,
+                                radius: Optional[float] = None,
+                                size: Optional[Tuple[float, float]] = None,
+                                vertices: Optional[List[Tuple[float, float]]] = None):
 
-        vertices = [pymunk.Vec2d(*pt) for pt in vertices]
+        # Dimensions of the entity
 
-    else:
-        raise ValueError('Wrong physical shape: {}.'.format(shape))
+        if self._shape in [
+            GeometricShapes.TRIANGLE,
+            GeometricShapes.SQUARE,
+            GeometricShapes.PENTAGON,
+            GeometricShapes.HEXAGON,
+            GeometricShapes.CIRCLE,
+        ]:
+            assert radius is not None and isinstance(radius, (float, int))
 
-    contour = Contour(shape, radius, size, vertices)
+            self._radius = radius
+            self._size = (2 * radius, 2 * radius)
+            self._vertices = self._get_vertices()
 
-    # compute missing vertices
-    vertices = get_vertices(contour)
-    contour = Contour(shape, radius, size, vertices)
+        elif self._shape == GeometricShapes.RECTANGLE:
+            assert size is not None and len(size) == 2
 
-    return contour
+            width, length = size
+            self._radius = ((width / 2) ** 2 + (length / 2) ** 2) ** (1 / 2)
+            self._size = size
+            self._vertices = self._get_vertices()
 
+        elif self._shape == GeometricShapes.POLYGON:
+            assert vertices and len(vertices) > 1
 
-def get_vertices(contour: Contour, offset_angle=0.):
+            vertices = np.array(vertices)
+            center = np.mean(vertices, axis=0)
+            vertices = vertices - center
 
-    vertices = []
+            radius = np.max(np.linalg.norm(vertices, axis=1))
+            self._size = (2 * radius, 2 * radius)
+            self._radius = radius
+            self._vertices = [pymunk.Vec2d(*pt) for pt in vertices]
 
-    if contour.shape == GeometricShapes.RECTANGLE:
+        else:
+            raise ValueError('Wrong physical shape: {}.'.format(self._shape))
 
-        width, length = contour.size
+    def _get_vertices(self):
 
-        points = [
-            pymunk.Vec2d(width / 2., length / 2.),
-            pymunk.Vec2d(width / 2., -length / 2.),
-            pymunk.Vec2d(-width / 2., -length / 2.),
-            pymunk.Vec2d(-width / 2., length / 2.)
-        ]
+        if self._shape == GeometricShapes.RECTANGLE:
 
-    elif contour.shape in [
-        GeometricShapes.TRIANGLE,
-        GeometricShapes.SQUARE,
-        GeometricShapes.PENTAGON,
-        GeometricShapes.HEXAGON,
-    ]:
+            width, length = self._size
 
-        radius = contour.radius
-        number_sides = contour.shape.value
-        orig = pymunk.Vec2d(radius, 0)
+            vertices = [
+                pymunk.Vec2d(width / 2., length / 2.),
+                pymunk.Vec2d(width / 2., -length / 2.),
+                pymunk.Vec2d(-width / 2., -length / 2.),
+                pymunk.Vec2d(-width / 2., length / 2.)
+            ]
 
-        points = []
-        for n_sides in range(number_sides):
-            points.append(
-                orig.rotated(n_sides * 2 * math.pi / number_sides))
+        elif self._shape in [
+            GeometricShapes.TRIANGLE,
+            GeometricShapes.SQUARE,
+            GeometricShapes.PENTAGON,
+            GeometricShapes.HEXAGON,
+        ]:
 
-    elif contour.shape == GeometricShapes.POLYGON:
-        points = contour.vertices
+            radius = self._radius
+            number_sides = self._shape.value
+            orig = pymunk.Vec2d(radius, 0)
 
-    elif contour.shape == GeometricShapes.CIRCLE:
-        return None
+            vertices = []
+            for n_sides in range(number_sides):
+                vertices.append(
+                    orig.rotated(n_sides * 2 * math.pi / number_sides))
 
-    else:
-        raise ValueError
+        elif self._shape == GeometricShapes.POLYGON:
+            vertices = self._vertices
 
-    for pt in points:
-        pt_rotated = pt.rotated(offset_angle)
-        vertices.append(pt_rotated)
+        elif self._shape == GeometricShapes.CIRCLE:
+            return None
 
-    return vertices
+        else:
+            raise ValueError
 
+        return vertices
 
-def expand_contour(contour: Contour, additional_length):
+    def rotate(self, angle: float):
+        self._vertices = self.get_rotated_vertices(angle)
 
-    radius = contour.radius + additional_length
-    size = contour.size[0] + additional_length, contour.size[1] + additional_length
+    def get_rotated_vertices(self, angle: float):
+        vertices_rotated = []
 
-    vertices = None
-    if contour.vertices:
-        vertices = [pymunk.Vec2d(x, y) + pymunk.Vec2d(x, y).normalized() * additional_length for x, y in
-                    contour.vertices]
+        for pt in self._vertices:
+            pt_rotated = pt.rotated(angle)
+            vertices_rotated.append(pt_rotated)
 
-    return Contour(contour.shape, radius, size, vertices)
+        return vertices_rotated
+
+    def expand(self, additional_length):
+
+        self._radius += additional_length
+        self._size = self._size[0] + additional_length, self._size[1] + additional_length
+
+        if self._vertices:
+            self._vertices = [pymunk.Vec2d(x, y) + pymunk.Vec2d(x, y).normalized() * additional_length
+                              for x, y in self._vertices]
+

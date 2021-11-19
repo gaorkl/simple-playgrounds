@@ -28,7 +28,7 @@ def vertices(request):
 
 @pytest.fixture(scope="function")
 def custom_contour(shape, radius, size, vertices):
-    return Contour(shape, radius, size, vertices)
+    return Contour(shape=shape, radius=radius, size=size, vertices=vertices)
 
 
 custom_contour_2 = custom_contour

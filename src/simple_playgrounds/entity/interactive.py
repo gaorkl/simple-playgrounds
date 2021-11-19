@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 
 import pymunk
+import copy
 
-from simple_playgrounds.common.contour import expand_contour
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, DEFAULT_INTERACTION_RANGE
 from simple_playgrounds.entity.entity import EmbodiedEntity
 from simple_playgrounds.entity.physical import PhysicalEntity
-
+from simple_playgrounds.common.contour import Contour
 
 class InteractiveEntity(EmbodiedEntity, ABC):
 
@@ -42,6 +42,9 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         mask_rect = mask.get_rect()
         mask_rect.center = self.position - viewpoint
         surface.blit(mask, mask_rect, None)
+
+    def _set_shape_debug_color(self):
+        self._pm_shape.color = tuple(list(self.base_color) + [INVISIBLE_ALPHA])
 
     def update_team_filter(self):
 
@@ -90,12 +93,10 @@ class AnchoredInteractive(InteractiveEntity, ABC):
                  **kwargs):
 
         self._anchor = anchor
-        anchor_contour = anchor.contour
-        interaction_contour = expand_contour(anchor_contour, interaction_range)
+        interaction_contour = Contour(**anchor.contour.dict_attributes)
+        interaction_contour.expand(interaction_range)
 
-        kwargs = {**interaction_contour._asdict(), **kwargs}
-
-        super().__init__(**kwargs)
+        super().__init__(contour=interaction_contour, **kwargs)
 
     def _set_pm_body(self):
         return self._anchor._pm_body

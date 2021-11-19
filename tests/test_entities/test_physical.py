@@ -10,10 +10,10 @@ def test_traversable_traversable(custom_contour, custom_contour_2):
 
     # Two traversable shouldn't collide with either traversables or non-traversables
 
-    ent_1 = MockPhysical(**custom_contour._asdict(), traversable=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=custom_contour, traversable=True, movable=True, mass=5)
     playground.add(ent_1, ((0, 0), 0))
 
-    ent_2 = MockPhysical(**custom_contour_2._asdict(), traversable=True, movable=True, mass=5)
+    ent_2 = MockPhysical(contour=custom_contour_2, traversable=True, movable=True, mass=5)
     playground.add(ent_2, ((0, 1), 0))
 
     playground.update()
@@ -26,10 +26,10 @@ def test_traversable_basic(custom_contour, custom_contour_2):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(**custom_contour._asdict(), traversable=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=custom_contour, traversable=True, movable=True, mass=5)
     playground.add(ent_1, ((0, 0), 0))
 
-    ent_2 = MockPhysical(**custom_contour_2._asdict(), traversable=False, movable=True, mass=5)
+    ent_2 = MockPhysical(contour=custom_contour_2, traversable=False, movable=True, mass=5)
     playground.add(ent_2, ((0, 1), 0))
 
     playground.update()
@@ -42,10 +42,10 @@ def test_basic_basic(custom_contour, custom_contour_2):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(**custom_contour._asdict(), traversable=False, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=custom_contour, traversable=False, movable=True, mass=5)
     playground.add(ent_1, ((0, 0), 0))
 
-    ent_2 = MockPhysical(**custom_contour_2._asdict(), traversable=False, movable=False)
+    ent_2 = MockPhysical(contour=custom_contour_2, traversable=False, movable=False)
     playground.add(ent_2, ((0, 1), 0))
 
     playground.update()
@@ -58,7 +58,7 @@ def test_transparent(custom_contour):
     playground = EmptyPlayground()
     view_empty = playground.view((0, 0), (50, 50))
 
-    ent_1 = MockPhysical(**custom_contour._asdict(), transparent=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=custom_contour, transparent=True, movable=True, mass=5)
     playground.add(ent_1, ((10, 10), 0))
     view_transparent = playground.view((0, 0), (50, 50))
     assert np.all(view_transparent == view_empty)

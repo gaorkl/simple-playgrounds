@@ -82,6 +82,9 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     def _set_pm_shape(self):
         return self._create_pm_shape()
 
+    def _set_shape_debug_color(self):
+        self._pm_shape.color = tuple(list(self.base_color) + [VISIBLE_ALPHA])
+
     def _add_pm_elements(self, **kwargs):
         self._playground.space.add(self._pm_body, self._pm_shape)
         self._playground._shapes_to_entities[self._pm_shape] = self
