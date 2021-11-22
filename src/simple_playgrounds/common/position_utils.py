@@ -2,15 +2,18 @@
 Module containing classes to generate random positions and trajectories
 
 """
+from __future__ import annotations
 import math
 import random
 from collections.abc import Generator
-from typing import Tuple, Optional, Union
+from typing import Tuple, Optional, Union, List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from simple_playgrounds.entity.entity import EmbodiedEntity
+
 
 from abc import ABC, abstractmethod
 
 import numpy as np
-import pymunk
 
 from simple_playgrounds.common.contour import Contour
 
@@ -51,81 +54,73 @@ class CoordinateSampler(ABC):
 
     def _get_pdf(self,
                  distribution: str,
-                 std: Optional[float],
+                 sigma: Optional[float],
                  ):
 
         width, length = self._contour.size
 
-        xx, yy = np.indices((width, length))
-        pdf = np.zeros( (width, length, 1) )
+        yy, xx = np.indices((width, length))
+        pdf = np.zeros((width, length))
 
         if distribution == 'gaussian':
-            assert std
-            pdf[xx, yy] = xx**2 + yy**2
+            assert sigma
+            pdf[xx, yy] = np.exp(-((xx - width/2)**2 + (yy-length/2)**2)/sigma**2)/math.sqrt(2*math.pi*sigma)
 
+        elif distribution == 'uniform':
+            pdf[xx, yy] = 1/(width*length)
+
+        return pdf
+
+    @property
     @abstractmethod
-    def _get_center(self):
+    def _center(self):
         ...
 
-    def sample(self, coordinates: Optional[Coordinate] = None) -> Coordinate:
+    def sample(self) -> List[Coordinate]:
+        """
+        Sample probabiity for all possible coordinates, then sort them by order of posterior.
+        """
 
-        x, y, theta = 0., 0., 0.
+        uniform_sampling = np.random.uniform(self._contour.size)
+        posterior = uniform_sampling*self._pdf
+        xx, yy = np.indices(self._contour.size)
+        mask = self._contour.mask
+        xx -= self._center[0]
+        yy -= self._center[1]
 
-        if not coordinates:
-            center = self._center
-            theta = random.uniform(*self._angle_range)
+        stacked = np.stack((xx, yy, mask, posterior), axis=-1).reshape(-1, 4)
+        sorted_coordinates = stacked[stacked[:, 2].argsort()]
 
-        else:
-            center, theta = coordinates
+        for coord in sorted_coordinates:
 
-        if self._area_shape == 'rectangle':
-            # split the rectangle to horizontal and vertical pieces,
-            # choose based on h_threshold and then sample uniformly and shift
+            tuple_coord = coord[0], coord[1]
+            in_contour = coord[2]
 
-            found_position = False
+            if in_contour:
+                yield tuple_coord, random.uniform(*self._angle_range)
 
-            while not found_position:
-                x = random.uniform(-self._width / 2, self._width / 2)
-                y = random.uniform(-self._length / 2, self._length / 2)
 
-                if not (-self._min_width / 2 < x < self._min_width / 2
-                        and -self._min_length / 2 < y < self._min_length / 2):
-                    found_position = True
+class FixedCoordinateSampler(CoordinateSampler):
 
-        elif self._area_shape == 'circle':
+    def __init__(self, position: Tuple[float, float], **kwargs):
 
-            assert self._radius
-            found_position = False
+        super().__init__(**kwargs)
+        self._center_position = position
 
-            while not found_position:
-                x = random.uniform(-self._radius, self._radius)
-                y = random.uniform(-self._radius, self._radius)
+    @property
+    def _center(self):
+        return self._center_position
 
-                r = math.sqrt(x**2 + y**2)
-                if self._min_radius < r < self._radius:
-                    found_position = True
 
-        elif self._area_shape == 'gaussian':
+class AnchoredCoordinateSampler(CoordinateSampler):
 
-            found_position = False
+    def __init__(self, anchor: EmbodiedEntity, **kwargs):
+        self._anchor = anchor
+        super().__init__(**kwargs)
 
-            while not found_position:
-                x, y = np.random.multivariate_normal(
-                    (0, 0),
-                    ((self._std**2, 0), (0, self._std**2)),
-                )
-                r = math.sqrt(x**2 + y**2)
-                if self._min_radius < r < self._radius:
-                    found_position = True
-
-        else:
-
-            raise ValueError('Not implemented')
-
-        rel_pos = pymunk.Vec2d(x, y).rotated(self._angle)
-        pos = rel_pos + center
-
-        return (pos.x, pos.y), theta
+    @property
+    def _center(self):
+        return self._anchor.position
 
 
 class Trajectory(Generator):

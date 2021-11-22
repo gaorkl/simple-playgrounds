@@ -5,6 +5,8 @@ import numpy as np
 import math
 import pymunk
 
+import skimage.draw
+
 
 class GeometricShapes(IntEnum):
     LINE = 2
@@ -41,6 +43,8 @@ class Contour:
             self._shape = shape
             self._get_contour_from_shape(**kwargs)
 
+        self._mask = self._compute_mask()
+
     @property
     def size(self):
         return self._size
@@ -66,6 +70,10 @@ class Contour:
             'size': self._size
         }
 
+    @property
+    def mask(self):
+        return self._mask
+
     def _get_contour_from_mask(self,
                                binary_mask,
                                **kwargs):
@@ -90,6 +98,10 @@ class Contour:
             self._radius = radius
             self._size = (2 * radius, 2 * radius)
             self._vertices = self._get_vertices()
+
+            self._mask_size = (2 * rad + 1, 2 * rad + 1)
+            self._mask_center = (rad, rad)
+
 
         elif self._shape == GeometricShapes.RECTANGLE:
             assert size is not None and len(size) == 2
@@ -174,4 +186,23 @@ class Contour:
         if self._vertices:
             self._vertices = [pymunk.Vec2d(x, y) + pymunk.Vec2d(x, y).normalized() * additional_length
                               for x, y in self._vertices]
+
+    def _compute_mask(self):
+
+        print(self._mask_size, self._mask_center)
+
+        if self._shape is GeometricShapes.CIRCLE:
+            mask = np.zeros(self._mask_size)
+            rr, cc = skimage.draw.disk(self._mask_center, self._radius)
+            mask[rr, cc] = 1
+
+        else:
+            polygon = np.asarray(self._vertices)
+            polygon.swapaxes(0, 1)
+            polygon += self._mask_center
+            mask = skimage.draw.polygon2mask(self._mask_size, polygon=polygon)
+
+            print(mask)
+
+        return mask
 
