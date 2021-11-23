@@ -1,99 +1,87 @@
-import pytest
 import time
-import math
 
 from simple_playgrounds.engine import Engine
-from simple_playgrounds.agents.controllers import RandomContinuous
-from simple_playgrounds.agents.agents import BaseAgent
-import simple_playgrounds.agents.sensors as sensors
-from simple_playgrounds.playgrounds.collection.profiling_playgrounds import BasicUnmovable
+from simple_playgrounds.agent.controllers import RandomContinuous
+from simple_playgrounds.agent.agents import BaseAgent
+from simple_playgrounds.playground.playgrounds.profiling_playgrounds import BasicUnmovable
+from simple_playgrounds.device.sensors import SemanticCones, Touch, Position, Lidar
+
+N_RUNS = 5
+RUN_DURATION = 5000
 
 
-@pytest.fixture(scope="module", params=[sensors.RgbCamera,
-                                        sensors.Lidar,
-                                        sensors.SemanticRay,
-                                        sensors.TopdownLocal,
-                                        sensors.TopDownGlobal])
-def type_sensor(request):
-    return request.param
+def run_drones(pg_width, n_agents):
 
+    n_elem_per_dim = int(pg_width / 100)
+    size_elem = 20
 
-@pytest.fixture(scope="module", params=[50, 100, 200, 400, 600, 800, 1000, 5000])
-def range_sensor(request):
-    return request.param
+    fps = 0
 
+    for run in range(N_RUNS):
 
-@pytest.fixture(scope="module", params=[1, 8, 16, 24, 32, 64, 128, 256])
-def res_sensor(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[True, False])
-def invisible_anchor(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[ 200, 400, 800, 1000, 5000])
-def pg_width(request):
-
-    return request.param
-
-
-n_steps = 10000
-n_runs = 10
-
-fname = 'profiling_unmovable.dat'
-
-
-def test_basic_unmovable(pg_width, type_sensor, range_sensor, res_sensor, invisible_anchor):
-
-    times = []
-
-    for run in range(n_runs):
-
-        my_agent = BaseAgent(controller=RandomContinuous(), lateral=True, interactive=False)
-
-        if invisible_anchor:
-            sensor = type_sensor(anchor = my_agent.base_platform,
-                                 invisible_elements = [my_agent.base_platform],
-                                 max_range =range_sensor,
-                                 resolution=res_sensor,
-                                 fov = math.pi)
-
-        else:
-            sensor = type_sensor(anchor=my_agent.base_platform,
-                                 max_range=range_sensor,
-                                 resolution=res_sensor,
-                                 fov=math.pi)
-
-        my_agent.add_sensor(sensor)
-
-        n_elem_per_dim = int(pg_width / 50)
-        size_elem = 20
         pg = BasicUnmovable(size=(pg_width, pg_width), size_elements=size_elem, n_elements_per_dim=n_elem_per_dim)
 
-        pg.add_agent(my_agent)
+        for agent in range(n_agents):
 
-        engine_ = Engine(playground=pg, screen=False, debug=False, time_limit=n_steps)
+            my_agent = BaseAgent(controller=RandomContinuous(), lateral=False, rotate=True, interactive=False)
+
+            sem_cones = SemanticCones(anchor=my_agent.base_platform,
+                                  normalize=False,
+                                  n_cones=36,
+                                  rays_per_cone=4,
+                                  max_range=200,
+                                  fov=360)
+
+            my_agent.add_sensor(sem_cones)
+
+            lidar = Lidar(anchor= my_agent.base_platform,
+                          normalize=False,
+                          resolution=60,
+                          max_range=300,
+                          fov=180,
+                          )
+
+            my_agent.add_sensor(lidar)
+
+            touch = Touch(anchor= my_agent.base_platform,
+                          normalize=True,
+                          fov=360,
+                          max_range=5,
+                          resolution=36)
+
+            my_agent.add_sensor(touch)
+
+            pos = Position(anchor=my_agent.base_platform)
+
+            my_agent.add_sensor(pos)
+
+            pg.add_agent(my_agent)
+
+        engine_ = Engine(playground=pg, time_limit=RUN_DURATION)
 
         t_start = time.time()
         while engine_.game_on:
-            engine_.step(actions=my_agent.controller.generate_actions())
+
+            actions = {}
+            for agent in pg.agents:
+                actions[agent] = agent.controller.generate_actions()
+
+            engine_.step(actions=actions)
             engine_.update_observations()
+
         t_end = time.time()
 
-        times.append(t_end-t_start)
+        fps += (RUN_DURATION/ (t_end - t_start)) / N_RUNS
 
-    with open(fname, 'a') as f:
-
-        for val in [pg_width, type_sensor, range_sensor, res_sensor, invisible_anchor]:
-            f.write( str(val) + ';')
-
-        f.write(str(n_steps/(sum(times)/n_runs))+'\n')
+    return fps
 
 
-with open(fname, 'w') as f:
-    for var_name in test_basic_unmovable.__code__.co_varnames:
-        f.write(var_name + ';')
+if __name__ == '__main__':
 
-    f.write('time\n')
+    for n_agents in [1, 2, 5, 10, 20]:
+
+        for pg_width in [400, 600, 1000]:
+
+            res = run_drones(pg_width, n_agents)
+
+            print(n_agents, pg_width, res)
