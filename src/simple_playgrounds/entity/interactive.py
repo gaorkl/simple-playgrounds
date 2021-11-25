@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 
 import pymunk
-import copy
 
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, DEFAULT_INTERACTION_RANGE
 from simple_playgrounds.entity.entity import EmbodiedEntity
 from simple_playgrounds.entity.physical import PhysicalEntity
 from simple_playgrounds.common.contour import Contour
+
 
 class InteractiveEntity(EmbodiedEntity, ABC):
 
@@ -76,13 +76,8 @@ class StandAloneInteractive(InteractiveEntity, ABC):
         self._set_initial_coordinates(**kwargs)
         self._move_to_initial_position()
 
-        self._playground._shapes_to_entities[self._pm_shape] = self
-        self._playground._entities.append(self)
-
     def _remove_pm_elements(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)
-        self._playground._shapes_to_entities.pop(self._pm_shape)
-        self._playground._entities.remove(self)
 
 
 class AnchoredInteractive(InteractiveEntity, ABC):
@@ -103,8 +98,8 @@ class AnchoredInteractive(InteractiveEntity, ABC):
 
     def _add_pm_elements(self):
         self._playground.space.add(self._pm_shape)
-        self._playground._shapes_to_entities[self._pm_shape] = self
+        self._playground.add_to_mappings(entity=self)
 
     def _remove_pm_elements(self):
         self._playground.space.remove(self._pm_shape)
-        self._playground._shapes_to_entities.pop(self._pm_shape)
+        self.playground.remove_from_mappings(entity=self)

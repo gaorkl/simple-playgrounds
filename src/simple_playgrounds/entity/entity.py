@@ -12,6 +12,8 @@ import math
 from abc import ABC, abstractmethod
 from typing import Union, Tuple, Dict, List, Optional, TYPE_CHECKING
 
+import numpy
+
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
 
@@ -137,7 +139,7 @@ class EmbodiedEntity(Entity, ABC):
     Embodied Entities are entities that are present in the playground.
     They have:
      - a physical body
-     - possibly multiple shapes
+     - a shape that can be visible/invisible traversable/solid
 
     They occupy space, have an appearance.
     They also have a position, angle, velocity.
@@ -159,7 +161,7 @@ class EmbodiedEntity(Entity, ABC):
         else:
             self._contour = Contour(**kwargs)
 
-        self._pm_body: Optional[pymunk.Body] = self._set_pm_body()
+        self._pm_body: pymunk.Body = self._set_pm_body()
         self._pm_shape: pymunk.Shape = self._set_pm_shape()
 
         self._temporary = temporary
@@ -183,8 +185,12 @@ class EmbodiedEntity(Entity, ABC):
         # To be set when entity is added to playground.
         self._initial_coordinates: Optional[InitCoord] = None
         self._trajectory: Optional[Trajectory] = None
-        self._initial_coordinate_sampler = None
+        self._initial_coordinate_sampler: Optional[CoordinateSampler] = None
         self._allow_overlapping = True
+
+    @property
+    def pm_shape(self):
+        return self._pm_shape
 
     @property
     def produced_by(self):
@@ -277,7 +283,9 @@ class EmbodiedEntity(Entity, ABC):
             self._pm_body.space.reindex_shapes_for_body(self._pm_body)
 
     def _set_initial_coordinates(self,
-                                 initial_coordinates: Optional[Union[Coordinate, CoordinateSampler, Trajectory]] = None,
+                                 initial_coordinates: Optional[Union[Coordinate,
+                                                                     CoordinateSampler,
+                                                                     Trajectory]] = None,
                                  allow_overlapping: bool = True,
                                  ):
 
@@ -294,8 +302,7 @@ class EmbodiedEntity(Entity, ABC):
             self._initial_coordinate_sampler = initial_coordinates
 
         else:
-            if not isinstance(initial_coordinates, CoordinateSampler):
-                assert len(initial_coordinates) == 2 and len(
+            assert len(initial_coordinates) == 2 and len(
                     initial_coordinates[0]) == 2
             self._initial_coordinates = initial_coordinates
 
@@ -354,16 +361,9 @@ class EmbodiedEntity(Entity, ABC):
 
     def _sample_valid_location(self, sampler: CoordinateSampler):
 
-        attempt = 0
-        coordinates = sampler.sample()
-
-        # create temporary shape to check for collision
-        while self._overlaps(coordinates):
-            coordinates = sampler.sample()
-            attempt += 1
-
-        if not self._overlaps(coordinates):
-            return coordinates
+        for coordinate in sampler.sample():
+            if not self._overlaps(coordinate):
+                return coordinate
 
         raise ValueError('Entity could not be placed without overlapping')
 

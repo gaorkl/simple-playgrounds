@@ -43,7 +43,7 @@ class Contour:
             self._shape = shape
             self._get_contour_from_shape(**kwargs)
 
-        self._mask = self._compute_mask()
+        self._mask = self.compute_mask()
 
     @property
     def size(self):
@@ -74,6 +74,14 @@ class Contour:
     def mask(self):
         return self._mask
 
+    @property
+    def mask_size(self):
+        return self._mask_size
+
+    @property
+    def mask_center(self):
+        return self._mask_center
+
     def _get_contour_from_mask(self,
                                binary_mask,
                                **kwargs):
@@ -99,10 +107,6 @@ class Contour:
             self._size = (2 * radius, 2 * radius)
             self._vertices = self._get_vertices()
 
-            self._mask_size = (2 * rad + 1, 2 * rad + 1)
-            self._mask_center = (rad, rad)
-
-
         elif self._shape == GeometricShapes.RECTANGLE:
             assert size is not None and len(size) == 2
 
@@ -125,6 +129,9 @@ class Contour:
 
         else:
             raise ValueError('Wrong physical shape: {}.'.format(self._shape))
+
+        self._mask_size = (2 * int(self._radius) + 1, 2 * int(self._radius) + 1)
+        self._mask_center = (int(self._radius), int(self._radius))
 
     def _get_vertices(self):
 
@@ -187,9 +194,7 @@ class Contour:
             self._vertices = [pymunk.Vec2d(x, y) + pymunk.Vec2d(x, y).normalized() * additional_length
                               for x, y in self._vertices]
 
-    def _compute_mask(self):
-
-        print(self._mask_size, self._mask_center)
+    def compute_mask(self, angle: Optional[float] = 0):
 
         if self._shape is GeometricShapes.CIRCLE:
             mask = np.zeros(self._mask_size)
@@ -197,12 +202,9 @@ class Contour:
             mask[rr, cc] = 1
 
         else:
-            polygon = np.asarray(self._vertices)
-            polygon.swapaxes(0, 1)
+            vertices = self.get_rotated_vertices(angle=angle)
+            polygon = np.asarray(vertices)
             polygon += self._mask_center
-            mask = skimage.draw.polygon2mask(self._mask_size, polygon=polygon)
-
-            print(mask)
+            mask = skimage.draw.polygon2mask(self._mask_size, polygon=polygon)*1
 
         return mask
-

@@ -195,19 +195,29 @@ class Playground(ABC):
             **kwargs,
             ):
 
-        self._entities.append(entity)
+        if isinstance(entity, EmbodiedEntity):
+            self.add_to_mappings(entity)
+
         entity.add_to_playground(self, initial_coordinates=initial_coordinates, **kwargs)
+
+    def add_to_mappings(self, entity):
+        self._entities.append(entity)
+        self._shapes_to_entities[entity.pm_shape] = entity
 
     def remove(self,
                entity: EmbodiedEntity,
                definitive: Optional[bool] = False,
                ):
 
-        self._entities.remove(entity)
+        self.remove_from_mappings(entity)
         entity.remove_from_playground()
 
         if not definitive and not entity.temporary:
             self._disappeared_entities.append(entity)
+
+    def remove_from_mappings(self, entity):
+        self._entities.remove(entity)
+        self._shapes_to_entities.pop(entity.pm_shape)
 
     @abstractmethod
     def within_playground(self, coordinates):

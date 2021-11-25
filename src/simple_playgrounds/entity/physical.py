@@ -87,7 +87,6 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
     def _add_pm_elements(self, **kwargs):
         self._playground.space.add(self._pm_body, self._pm_shape)
-        self._playground._shapes_to_entities[self._pm_shape] = self
 
         self._set_initial_coordinates(**kwargs)
         self._move_to_initial_position()
@@ -97,7 +96,6 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
     def _remove_pm_elements(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)
-        self._playground._shapes_to_entities.pop(self._pm_shape)
 
         for interactive in self._interactives:
             interactive.remove_from_playground()

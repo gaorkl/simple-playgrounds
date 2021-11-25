@@ -3,7 +3,7 @@ import pytest
 from simple_playgrounds.playground.playground import EmptyPlayground
 from tests.mock_entities import MockPhysical, MockZoneTrigger
 from simple_playgrounds.common.contour import Contour
-from simple_playgrounds.common.position_utils import CoordinateSampler
+from simple_playgrounds.common.position_utils import FixedCoordinateSampler
 
 
 def test_overlap_fixed():
@@ -77,11 +77,13 @@ def test_overlaps_coordinate_sampler():
     ent_1 = MockPhysical(contour=contour)
     playground.add(ent_1, ((0, 1), 0))
 
-    coord_sampler = CoordinateSampler(center=(0, 0), size=(100, 100), area_shape='rectangle')
-    coord_sampler.sample()
+    contour_sampler = Contour(shape='rectangle', size=(30, 30))
+    coord_sampler = FixedCoordinateSampler(position=(0, 0), contour=contour_sampler, distribution='uniform')
 
     ent_2 = MockPhysical(contour=contour)
     playground.add(ent_2, coord_sampler, allow_overlapping=False)
+
+    assert ent_1._pm_shape.shapes_collide(ent_2._pm_shape)
 
 
 def test_overlaps_coordinate_sampler_many():
@@ -90,19 +92,14 @@ def test_overlaps_coordinate_sampler_many():
 
     # Placing a physical on an interactive (zone) is possible
 
-    contour = Contour(shape='circle', radius=10)
+    contour_entity = Contour(shape='circle', radius=5)
 
-    coord_sampler = CoordinateSampler(center=(0, 0), size=(100, 100), area_shape='rectangle')
-    coord_sampler.sample()
+    contour_sampler = Contour(shape='rectangle', size=(40, 40))
+    coord_sampler = FixedCoordinateSampler(position=(0, 0), contour=contour_sampler, distribution='uniform')
 
-    index = 0
-
+    # We can add many entities until we can't
     with pytest.raises(ValueError):
-
-        for i in range(200):
-            ent = MockPhysical(contour=contour)
+        for i in range(100):
+            ent = MockPhysical(contour=contour_entity)
             playground.add(ent, coord_sampler, allow_overlapping=False)
-            index += 1
-
-    assert index > 25
 

@@ -1,6 +1,3 @@
-import pytest
-
-from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.contour import Contour
 
 
@@ -15,8 +12,11 @@ def test_circle_contour():
 
 def test_rectangle_contour():
 
-    contour = Contour(shape='rectangle', size=(10, 3))
+    # size is width-length
+    contour = Contour(shape='rectangle', size=(11, 3))
     mask = contour.mask
 
+    # but numpy coordinate systems is row, col
     assert mask.shape == (11, 11)
-    assert mask[3, 5] == 0
+    assert mask[5, 3] == 0
+

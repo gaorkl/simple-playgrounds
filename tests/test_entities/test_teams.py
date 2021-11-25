@@ -272,4 +272,3 @@ def test_barrier_allow_multiple_teams(custom_contour):
     playground.update()
 
     assert ent_1.position == (0, -1)
-

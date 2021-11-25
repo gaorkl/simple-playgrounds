@@ -17,6 +17,7 @@ import numpy as np
 
 from simple_playgrounds.common.contour import Contour
 
+
 Coordinate = Tuple[Tuple[float, float], float]
 
 
@@ -32,7 +33,7 @@ class CoordinateSampler(ABC):
         self,
         distribution: str,
         contour: Optional[Contour] = None,
-        angle: Optional[ Union[float, Tuple[float, float]]] = None,
+        angle: Optional[Union[float, Tuple[float, float]]] = None,
         **kwargs,
     ):
 
@@ -54,20 +55,21 @@ class CoordinateSampler(ABC):
 
     def _get_pdf(self,
                  distribution: str,
-                 sigma: Optional[float],
+                 sigma: Optional[float] = None,
                  ):
 
-        width, length = self._contour.size
+        width, length = self._contour.mask_size
+        center_r, center_c = self._contour.mask_center
 
-        yy, xx = np.indices((width, length))
+        rr, cc = np.indices((width, length))
         pdf = np.zeros((width, length))
 
         if distribution == 'gaussian':
             assert sigma
-            pdf[xx, yy] = np.exp(-((xx - width/2)**2 + (yy-length/2)**2)/sigma**2)/math.sqrt(2*math.pi*sigma)
+            pdf[rr, cc] = np.exp(-((rr - center_r)**2 + (cc-center_c)**2)/sigma**2)/math.sqrt(2*math.pi*sigma)
 
         elif distribution == 'uniform':
-            pdf[xx, yy] = 1/(width*length)
+            pdf[rr, cc] = 1/(width*length)
 
         return pdf
 
@@ -81,23 +83,21 @@ class CoordinateSampler(ABC):
         Sample probabiity for all possible coordinates, then sort them by order of posterior.
         """
 
-        uniform_sampling = np.random.uniform(self._contour.size)
+        uniform_sampling = np.random.uniform(size=self._contour.mask_size)
         posterior = uniform_sampling*self._pdf
-        xx, yy = np.indices(self._contour.size)
+        rr, cc = np.indices(self._contour.mask_size)
         mask = self._contour.mask
-        xx -= self._center[0]
-        yy -= self._center[1]
 
-        stacked = np.stack((xx, yy, mask, posterior), axis=-1).reshape(-1, 4)
+        stacked = np.stack((rr, cc, mask, posterior), axis=-1).reshape(-1, 4)
         sorted_coordinates = stacked[stacked[:, 2].argsort()]
 
         for coord in sorted_coordinates:
-
-            tuple_coord = coord[0], coord[1]
             in_contour = coord[2]
-
             if in_contour:
-                yield tuple_coord, random.uniform(*self._angle_range)
+                x = coord[0] - self._contour.mask_center[0] + self._center[0]
+                y = self._contour.mask_center[1] - coord[1] + self._center[1]
+
+                yield (x, y), random.uniform(*self._angle_range)
 
 
 class FixedCoordinateSampler(CoordinateSampler):

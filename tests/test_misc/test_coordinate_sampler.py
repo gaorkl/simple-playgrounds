@@ -1,108 +1,72 @@
-import pytest
+import pymunk
 
-from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_entities import MockPhysical, MockZoneTrigger
 from simple_playgrounds.common.contour import Contour
-from simple_playgrounds.common.position_utils import CoordinateSampler
+from simple_playgrounds.common.position_utils import FixedCoordinateSampler, AnchoredCoordinateSampler
+from simple_playgrounds.playground.playground import EmptyPlayground
+from tests.mock_entities import MockPhysical
 
 
-def test_overlap_fixed():
+def test_circular_uniform_sampler(radius):
 
-    playground = EmptyPlayground()
+    center = (-radius, 3*radius)
+    contour = Contour(shape='circle', radius=radius)
+    sampler = FixedCoordinateSampler(position=center, distribution='uniform', contour=contour)
 
-    # Two fixed entities can be superimposed (Background)
-
-    contour = Contour(shape='circle', radius=10)
-    ent_1 = MockPhysical(contour=contour)
-    playground.add(ent_1, ((0, 0), 0))
-
-    ent_2 = MockPhysical(contour=contour)
-    playground.add(ent_2, ((0, 1), 0))
+    for pos, angle in sampler.sample():
+        pos = pymunk.Vec2d(*pos)
+        assert pos.get_distance(center) <= radius
 
 
-def test_overlap_movable():
+def test_circular_gaussian_sampler(radius):
 
-    playground = EmptyPlayground()
+    center = (-radius, 3*radius)
+    contour = Contour(shape='circle', radius=radius)
+    sampler = FixedCoordinateSampler(position=center, distribution='gaussian', sigma=5, contour=contour)
 
-    # If overlapping is prohibited, then placing an entity on top of a physical entity should raise an error.
-
-    contour = Contour(shape='circle', radius=10)
-    ent_1 = MockPhysical(contour=contour)
-    playground.add(ent_1, ((0, 0), 0))
-
-    ent_2 = MockPhysical(contour=contour)
-    playground.add(ent_2, ((0, 1), 0))
-
-    ent_3 = MockPhysical(contour=contour)
-    with pytest.raises(ValueError):
-        playground.add(ent_3, ((0, 1), 0), allow_overlapping=False)
+    for pos, angle in sampler.sample():
+        pos = pymunk.Vec2d(*pos)
+        assert pos.get_distance(center) <= radius
 
 
-def test_overlap_interactive():
+def test_rectangular_uniform_sampler(radius):
 
-    playground = EmptyPlayground()
+    width = radius
+    length = 2*radius
+    center = (-radius, 4*radius)
 
-    # Placing a physical on an interactive (zone) is possible
+    contour = Contour(shape='rectangle', size=(width, length))
 
-    contour = Contour(shape='circle', radius=10)
-    ent_1 = MockZoneTrigger(contour=contour, texture=(10, 10, 10))
-    playground.add(ent_1, ((0, 1), 0))
+    sampler = FixedCoordinateSampler(position=center, distribution='uniform', contour=contour)
 
-    ent_2 = MockPhysical(contour=contour)
-    playground.add(ent_2, ((0, 0), 0), allow_overlapping=False)
+    for (x, y), angle in sampler.sample():
+        assert center[0] - width/2 <= x <= center[0] + width/2
+        assert center[1] - length/2 <= y <= center[1] + length/2
 
 
-def test_overlaps_physical():
+def test_anchor_sampler(radius):
+
+    width = radius
+    length = 2 * radius
+    center = (-radius, 4 * radius)
 
     playground = EmptyPlayground()
 
-    # Placing a physical on an interactive (zone) is possible
+    # Two traversable shouldn't collide with either traversables or non-traversables
 
-    contour = Contour(shape='circle', radius=10)
-    ent_1 = MockPhysical(contour=contour)
-    playground.add(ent_1, ((0, 1), 0))
+    contour_ent = Contour(shape='circle', radius=4)
+    ent_1 = MockPhysical(contour=contour_ent)
+    playground.add(ent_1, (center, 0))
 
-    ent_2 = MockPhysical(contour=contour)
-    with pytest.raises(ValueError):
-        playground.add(ent_2, ((0, 0), 0), allow_overlapping=False)
+    contour_sampler = Contour(shape='rectangle', size=(width, length))
+    sampler = AnchoredCoordinateSampler(anchor=ent_1, distribution='uniform', contour=contour_sampler)
 
+    for (x, y), angle in sampler.sample():
+        assert center[0] - width / 2 <= x <= center[0] + width / 2
+        assert center[1] - length / 2 <= y <= center[1] + length / 2
 
-def test_overlaps_coordinate_sampler():
+    new_center = (3*radius, -4*radius)
+    ent_1.move_to((new_center, 0))
 
-    playground = EmptyPlayground()
-
-    # Placing a physical on an interactive (zone) is possible
-
-    contour = Contour(shape='circle', radius=10)
-    ent_1 = MockPhysical(contour=contour)
-    playground.add(ent_1, ((0, 1), 0))
-
-    coord_sampler = CoordinateSampler(center=(0, 0), size=(100, 100), area_shape='rectangle')
-    coord_sampler.sample()
-
-    ent_2 = MockPhysical(contour=contour)
-    playground.add(ent_2, coord_sampler, allow_overlapping=False)
-
-
-def test_overlaps_coordinate_sampler_many():
-
-    playground = EmptyPlayground()
-
-    # Placing a physical on an interactive (zone) is possible
-
-    contour = Contour(shape='circle', radius=10)
-
-    coord_sampler = CoordinateSampler(center=(0, 0), size=(100, 100), area_shape='rectangle')
-    coord_sampler.sample()
-
-    index = 0
-
-    with pytest.raises(ValueError):
-
-        for i in range(200):
-            ent = MockPhysical(contour=contour)
-            playground.add(ent, coord_sampler, allow_overlapping=False)
-            index += 1
-
-    assert index > 25
-
+    for (x, y), angle in sampler.sample():
+        assert new_center[0] - width / 2 <= x <= new_center[0] + width / 2
+        assert new_center[1] - length / 2 <= y <= new_center[1] + length / 2

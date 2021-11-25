@@ -100,7 +100,6 @@ def test_standalone_standalone():
 
     playground.update()
 
-
     # static objects don't generate collisions
     assert not zone_1.activated and not zone_2.activated
 
