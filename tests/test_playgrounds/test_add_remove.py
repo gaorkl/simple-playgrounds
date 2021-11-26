@@ -11,7 +11,7 @@ def test_add_remove_reset():
 
     playground = EmptyPlayground()
 
-    contour = Contour('circle', 10, None, None)
+    contour = Contour(shape='circle', radius=10)
 
     # Two traversable shouldn't collide with either traversables or non-traversables
 
@@ -31,7 +31,7 @@ def test_add_temporary_remove_reset():
 
     playground = EmptyPlayground()
 
-    contour = Contour('circle', 10, None, None)
+    contour = Contour(shape='circle', radius=10)
 
     # Two traversable shouldn't collide with either traversables or non-traversables
 

@@ -115,7 +115,7 @@ for playground_name, pg_class in PlaygroundRegister.playgrounds['demo'].items():
                                                 'actions'))[:,:,::-1])
         cv2.imshow(
             'playground',
-            engine.generate_playground_image()[:,:,::-1])
+            engine.generate_playground_image()[:, :, ::-1])
 
         cv2.waitKey(1)
 

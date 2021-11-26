@@ -15,7 +15,7 @@ from simple_playgrounds.element.elements.gem import Key, Coin
 from simple_playgrounds.element.elements.teleport import VisibleBeamHoming, InvisibleBeam, Portal, PortalColor
 from simple_playgrounds.element.elements.zone import DeathZone, GoalZone, HealingZone, ToxicZone
 from simple_playgrounds.common.spawner import Spawner
-from simple_playgrounds.common.texture import RandomTilesTexture
+from simple_playgrounds.common.appearance import RandomTilesTexture
 from simple_playgrounds.element.elements.modifier import SensorDisabler, ActuatorDisabler
 from simple_playgrounds.device.sensor import SensorDevice
 from simple_playgrounds.agent.actuators import ActuatorDevice, AngularVelocity

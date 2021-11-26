@@ -4,7 +4,6 @@ Module containing classes to generate random positions and trajectories
 """
 from __future__ import annotations
 import math
-import random
 from collections.abc import Generator
 from typing import Tuple, Optional, Union, List, TYPE_CHECKING
 if TYPE_CHECKING:
@@ -42,6 +41,8 @@ class CoordinateSampler(ABC):
         else:
             self._contour = Contour(**kwargs)
 
+        self._rng = np.random.default_rng()
+
         self._contour = contour
         self._pdf = self._get_pdf(distribution, **kwargs)
 
@@ -74,6 +75,14 @@ class CoordinateSampler(ABC):
         return pdf
 
     @property
+    def rng(self):
+        return self._rng
+
+    @rng.setter
+    def rng(self, rng):
+        self._rng = rng
+
+    @property
     @abstractmethod
     def _center(self):
         ...
@@ -83,7 +92,7 @@ class CoordinateSampler(ABC):
         Sample probabiity for all possible coordinates, then sort them by order of posterior.
         """
 
-        uniform_sampling = np.random.uniform(size=self._contour.mask_size)
+        uniform_sampling = self._rng.uniform(size=self._contour.mask_size)
         posterior = uniform_sampling*self._pdf
         rr, cc = np.indices(self._contour.mask_size)
         mask = self._contour.mask
@@ -97,7 +106,7 @@ class CoordinateSampler(ABC):
                 x = coord[0] - self._contour.mask_center[0] + self._center[0]
                 y = self._contour.mask_center[1] - coord[1] + self._center[1]
 
-                yield (x, y), random.uniform(*self._angle_range)
+                yield (x, y), self._rng.uniform(*self._angle_range)
 
 
 class FixedCoordinateSampler(CoordinateSampler):

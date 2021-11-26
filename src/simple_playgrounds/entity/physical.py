@@ -1,8 +1,12 @@
 from __future__ import annotations
 from abc import ABC
 from typing import Optional, List, TYPE_CHECKING
+
+import numpy as np
+
 if TYPE_CHECKING:
     from simple_playgrounds.entity.interactive import InteractiveEntity
+    from simple_playgrounds.common.position_utils import Coordinate
 
 import pymunk
 
@@ -89,7 +93,7 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         self._playground.space.add(self._pm_body, self._pm_shape)
 
         self._set_initial_coordinates(**kwargs)
-        self._move_to_initial_position()
+        self._move_to_initial_coordinates()
 
         for interactive in self._interactives:
             interactive.add_to_playground(self._playground)
@@ -165,17 +169,24 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         """
         Reset the trajectory and initial position
         """
-        self._move_to_initial_position()
+        self._move_to_initial_coordinates()
 
-    def draw(self, surface, viewpoint, draw_transparent=False):
+    def draw_on_image(self,
+                      image: np.ndarray,
+                      point_of_view: Coordinate,
+                      image_ratio: Optional[float] = 1,
+                      draw_transparent: Optional[bool] = False):
 
         if self._transparent and not draw_transparent:
             return
 
+        mask = self._contour.compute_mask(angle=self.angle)
+        appearance = self._appearance.generate_image_mask(angle=self.angle)
+
         if self._transparent:
-            mask = self._create_mask(alpha=INVISIBLE_ALPHA)
+            appearance[:, :, 3] = INVISIBLE_ALPHA
         else:
-            mask = self._create_mask(alpha=VISIBLE_ALPHA)
+            appearance[:, :, 3] = VISIBLE_ALPHA
 
         mask_rect = mask.get_rect()
         mask_rect.center = self.position - viewpoint

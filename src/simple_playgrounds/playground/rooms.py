@@ -4,7 +4,7 @@ import numpy as np
 import pymunk
 
 from simple_playgrounds.common.position_utils import Coordinate, CoordinateSampler
-from simple_playgrounds.common.texture import Texture
+from simple_playgrounds.common.appearance import Texture
 from simple_playgrounds.element.elements.basic import Wall, Door
 from simple_playgrounds.element.element import SceneElement
 

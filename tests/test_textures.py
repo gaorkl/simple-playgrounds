@@ -2,7 +2,7 @@
 # Call with name, or instance, and apply size once asspciated with object.
 
 
-from simple_playgrounds.common.texture import UniqueRandomTilesTexture
+from simple_playgrounds.common.appearance import UniqueRandomTilesTexture
 from simple_playgrounds.playground.layouts import GridRooms
 from simple_playgrounds.engine import Engine
 

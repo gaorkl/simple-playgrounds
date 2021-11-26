@@ -74,7 +74,7 @@ class StandAloneInteractive(InteractiveEntity, ABC):
         self._playground.space.add(self._pm_body, self._pm_shape)
 
         self._set_initial_coordinates(**kwargs)
-        self._move_to_initial_position()
+        self._move_to_initial_coordinates()
 
     def _remove_pm_elements(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)

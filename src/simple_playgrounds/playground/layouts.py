@@ -14,7 +14,7 @@ from simple_playgrounds.playground.playground import Playground
 from simple_playgrounds.playground.rooms import Doorstep, RectangleRoom
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.configs import parse_configuration
-from simple_playgrounds.common.texture import TextureGenerator, ColorTexture, Texture
+from simple_playgrounds.common.appearance import TextureGenerator, ColorTexture, Texture
 from simple_playgrounds.common.definitions import WALL_DEPTH
 
 class GridRooms(Playground):

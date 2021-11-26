@@ -10,11 +10,14 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Tuple, Union, List, Dict, Optional, Type, TYPE_CHECKING
 
-import pymunk, pygame
-from pymunk import pygame_util
+import copy
+from abc import ABC, abstractmethod
+from typing import List, Dict, Optional, Type, TYPE_CHECKING, Union
+
+import pymunk
+import numpy as np
+import pickle
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import InitCoord
@@ -33,11 +36,36 @@ from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes,
 from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.entity.entity import Entity, EmbodiedEntity
 from simple_playgrounds.entity.physical import PhysicalEntity
-from simple_playgrounds.entity.interactive import StandAloneInteractive
+from simple_playgrounds.agent.actuators import ActuatorDevice
+from simple_playgrounds.device.sensors.semantic import Detection
+from simple_playgrounds.device.sensor import SensorDevice
 
+from simple_playgrounds.device.communication import Stream
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
+
+Timestep = int
+ScalarReward = int
+Message = Union[np.ndarray, str]
+
+AgentIdentifier = Union[str, Agent]
+ActuatorIdentifier = Union[str, ActuatorDevice]
+SensorIdentifier = Union[str, SensorDevice]
+
+Action = Union[float, Message]
+AgentAction = Union[
+    Dict[ActuatorIdentifier, Action ],
+    np.ndarray]
+ActionDict = Dict[AgentIdentifier, AgentAction]
+
+Observation = Union[np.ndarray, List[Detection], Message]
+AgentObservation = Union[
+    Dict[SensorIdentifier, Observation],
+    np.ndarray]
+ObservationDict = Dict[AgentIdentifier, AgentObservation]
+
+RewardDict = Dict[AgentIdentifier, ScalarReward]
 
 
 class Playground(ABC):
@@ -62,7 +90,15 @@ class Playground(ABC):
 
     def __init__(
         self,
+        seed: Optional[int] = None,
     ):
+
+        # Random number generator for replication, rewind, etc.
+        self._rng = np.random.default_rng(seed)
+
+        # Checkpoints for easy rewind
+        self._checkpoints: Dict[Timestep, bytes] = {}
+        self._actions: Dict[Timestep, ActionDict] = {}
 
         # By default, size is infinite and center is at (0,0)
         self._size = None
@@ -82,11 +118,15 @@ class Playground(ABC):
         self.initial_agent_coordinates: Optional[InitCoord] = None
 
         self._handle_interactions()
-        self._timestep = 0
+        self._timestep: Timestep = 0
 
         self._shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
 
         self._teams = {}
+
+        # Save Initial Checkpoint
+        self._initial_checkpoint = self._get_checkpoint()
+        self._checkpoints[0] = self._initial_checkpoint
 
     @staticmethod
     def _initialize_space() -> pymunk.Space:
@@ -100,6 +140,10 @@ class Playground(ABC):
         space.damping = SPACE_DAMPING
 
         return space
+
+    @property
+    def rng(self):
+        return self._rng
 
     @property
     def size(self):
@@ -134,7 +178,95 @@ class Playground(ABC):
         for entity in self._entities:
             entity.update_team_filter()
 
-    def update(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
+    def step(
+        self,
+        actions: Optional[ActionDict] = None,
+        **kwargs,
+    ):
+
+        actions = self._apply_actions(actions)
+        self._save_actions_for_replay(actions)
+
+        self._update_playground(**kwargs)
+
+        obs = self._compute_observations(**kwargs)
+        rew = self._compute_rewards(**kwargs)
+
+        return obs, rew, self.done
+
+    def _apply_actions(self, actions: ActionDict) -> ActionDict:
+
+        action_dict : ActionDict = {}
+
+        for agent in self._agents:
+
+            if agent in actions:
+                agent.set_actions(actions[agent])
+
+            elif agent.name in actions:
+                agent.set_actions(actions[agent.name])
+
+            else:
+                agent.set_actions()
+
+            action_dict[agent] = agent.actuator_action_dict
+
+        return action_dict
+
+    def _save_actions_for_replay(self,
+                                 actions,
+                                 save_messages: Optional[bool] = False,
+                                 **kwargs):
+
+        actions_str = {}
+        for agent, actuator_dict in actions.items():
+            actions_str[agent.name] = {}
+
+            for actuator, command in actuator_dict.items():
+                actions_str[agent.name][actuator.name] = command
+
+        self._actions[self._timestep] = command
+
+    def _compute_observations(self,
+                              compute_observations: Optional[bool] = True,
+                              keys_are_str: Optional[bool] = False,
+                              return_np_arrays: Optional[bool] = False,
+                              **kwargs):
+
+        obs = {}
+        if not compute_observations:
+            return obs
+
+        for agent in self._agents:
+
+            if keys_are_str:
+                key_ = agent.name
+            else:
+                key_ = agent
+
+            agent.compute_observations()
+
+            if return_np_arrays:
+                obs[key_] = agent.np_observations
+            else:
+                obs[key_] = agent.observations
+
+
+
+    def save_checkpoint(self):
+        # noinspection PyTypeChecker
+        self._checkpoints[self._timestep] = self._get_checkpoint()
+
+    def delete_checkpoints(self, timestep: int):
+        if timestep == 0:
+            raise ValueError('Can not remove initial checkpoint')
+        self._checkpoints.remove = { 0: self._init_checkpoint }
+
+    def _get_checkpoint(self):
+        pg = copy.copy(self)
+        return pickle.dumps(pg)
+
+    def _update_playground(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
         """ Update the Playground
 
         Updates the Playground.
@@ -189,6 +321,10 @@ class Playground(ABC):
         self._timestep = 0
         self.done = False
 
+        # Save Initial Checkpoint
+        self._initial_checkpoint = self._get_checkpoint()
+        self._checkpoints[0] = self._initial_checkpoint
+
     def add(self,
             entity: Entity,
             initial_coordinates: Optional[InitCoord] = None,
@@ -230,72 +366,6 @@ class Playground(ABC):
     def get_entity_from_shape(self, shape: pymunk.Shape):
         assert shape in self._shapes_to_entities.keys()
         return self._shapes_to_entities[shape]
-
-    def _debug_view(self, center: Tuple[float, float], size: Tuple[float, float]):
-
-        debug_space = self.space.copy()
-        min_pos_x = min(shape.bb.left for shape in debug_space.shapes)
-        min_pos_y = min(shape.bb.bottom for shape in debug_space.shapes)
-        for bod in debug_space.bodies:
-            bod.position.x = bod.position.x + min_pos_x
-            bod.position.y = bod.position.y + min_pos_y
-            debug_space.reindex_shapes_for_body(bod)
-
-        max_pos_x = max(shape.bb.right for shape in debug_space.shapes)
-        max_pos_y = max(shape.bb.top for shape in debug_space.shapes)
-
-        surface = pygame.Surface((max_pos_x, max_pos_y))
-        surface.fill(pygame.Color(0, 0, 0))
-        options = pymunk.pygame_util.DrawOptions(surface)
-
-
-
-    def view(self,
-             center: Tuple[float, float],
-             size: Tuple[float, float],
-             invisible_elements: Optional[Union[List[Entity],
-                                                Entity]] = None,
-             draw_invisible: bool = False,
-             surface: Optional[pygame.Surface] = None,
-             debug: Optional[bool] = False,
-    ):
-
-        if not surface:
-            surface = pygame.Surface(size)
-
-        else:
-            assert surface.get_size() == size
-
-        if debug:
-            img = self._debug_view(center, size)
-            return img
-
-        center = (center[0] - size[0]/2, center[1] - size[1]/2)
-
-        surface.fill(pygame.Color(0, 0, 0))
-
-        max_range = pymunk.Vec2d(*size).length
-
-        shapes_in_range = self.space.point_query(center,
-                                                 max_range,
-                                                 shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
-
-        elems = set([self._shapes_to_entities[shape.shape] for shape in shapes_in_range])
-
-        # First, draw Interactives
-        elems_interactive = [elem for elem in elems if not isinstance(elem, StandAloneInteractive)]
-        elems_physical = [elem for elem in elems if not isinstance(elem, PhysicalEntity)]
-
-        if not invisible_elements:
-            invisible_elements = []
-
-        for elem in elems_interactive + elems_physical:
-            if elem not in invisible_elements:
-                elem.draw(surface, viewpoint=center, draw_transparent=draw_invisible)
-
-        img = pygame.surfarray.pixels3d(surface).astype(float)[:, :, ::-1]
-
-        return img
 
     def _handle_interactions(self):
 

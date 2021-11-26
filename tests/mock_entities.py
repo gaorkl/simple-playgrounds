@@ -2,18 +2,17 @@ from typing import Optional
 
 import pymunk
 
-from simple_playgrounds.common.position_utils import Coordinate, InitCoord
 from simple_playgrounds.entity.interactive import StandAloneInteractive, AnchoredInteractive
 from simple_playgrounds.entity.physical import PhysicalEntity
 from simple_playgrounds.common.definitions import CollisionTypes, PymunkCollisionCategories
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
+from simple_playgrounds.common.appearance.texture import ColorTexture
 
 
 class MockPhysical(PhysicalEntity):
 
     def __init__(self, **kwargs):
-
-        super().__init__(texture = (10, 10, 10), **kwargs)
+        super().__init__(appearance=ColorTexture(color=(10, 10, 10)), **kwargs)
 
     def update(self):
         pass
@@ -22,7 +21,7 @@ class MockPhysical(PhysicalEntity):
 class MockHaloTrigger(AnchoredInteractive):
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(appearance=ColorTexture(color=(10, 10, 10)), **kwargs)
         self.activated = False
 
     def pre_step(self):
@@ -50,7 +49,7 @@ class MockHaloTriggered(MockHaloTrigger):
 class MockZoneTrigger(StandAloneInteractive):
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(appearance=ColorTexture(color=(10, 10, 10)), **kwargs)
         self.activated = False
 
     def _set_pm_collision_type(self):
@@ -76,6 +75,9 @@ class MockZoneTriggered(MockZoneTrigger):
 
 
 class MockBarrier(PhysicalEntity):
+
+    def __init__(self, **kwargs):
+        super().__init__(appearance=ColorTexture(color=(10, 10, 10)), **kwargs)
 
     def update_team_filter(self):
 

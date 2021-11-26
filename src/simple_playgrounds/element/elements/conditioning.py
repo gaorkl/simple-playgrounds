@@ -7,7 +7,7 @@ from typing import List, Union, Dict, Tuple
 from simple_playgrounds.element.element import InteractiveElement
 from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
-from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
+from simple_playgrounds.common.appearance import Texture, TextureGenerator, ColorTexture
 from simple_playgrounds.common.timer import Timer
 from simple_playgrounds.configs.parser import parse_configuration
 

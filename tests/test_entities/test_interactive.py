@@ -65,13 +65,13 @@ def test_halo_standalone(radius, interaction_radius):
     contour = Contour(shape='circle', radius=radius)
 
     ent_1 = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
-    halo_1 = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius, texture=(10, 10, 10))
+    halo_1 = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
     ent_1.add_interactive(halo_1)
 
     playground.add(ent_1, ((0, 0), 0))
 
     contour = Contour(shape='square', radius=radius)
-    zone = MockZoneTriggered(**contour.dict_attributes, texture=(10, 10, 10))
+    zone = MockZoneTriggered(**contour.dict_attributes)
 
     playground.add(zone, ((0, 2*radius + interaction_radius - 1), 0))
 
@@ -90,8 +90,8 @@ def test_standalone_standalone():
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
     contour = Contour(shape='circle', radius=10)
-    zone_1 = MockZoneTrigger(**contour.dict_attributes, texture=(10, 10, 10))
-    zone_2 = MockZoneTriggered(**contour.dict_attributes, texture=(10, 10, 10))
+    zone_1 = MockZoneTrigger(**contour.dict_attributes)
+    zone_2 = MockZoneTriggered(**contour.dict_attributes)
 
     playground.add(zone_1, ((0, 5), 0))
     playground.add(zone_2, ((0, -5), 0))

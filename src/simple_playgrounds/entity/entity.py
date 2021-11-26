@@ -10,19 +10,17 @@ objects in simple-playgrounds.
 from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
-from typing import Union, Tuple, Dict, List, Optional, TYPE_CHECKING
+from typing import Union, List, Optional, TYPE_CHECKING
 
-import numpy
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
 
-import pygame
 import pymunk
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
-from simple_playgrounds.common.texture import Texture, TextureGenerator, ColorTexture
+from simple_playgrounds.common.appearance.appearance import Appearance
 
 from simple_playgrounds.common.contour import Contour, GeometricShapes
 
@@ -148,7 +146,7 @@ class EmbodiedEntity(Entity, ABC):
     """
 
     def __init__(self,
-                 texture: Union[Texture, Dict, Tuple[int, int, int]],
+                 appearance: Appearance,
                  temporary: Optional[bool] = False,
                  contour: Optional[Contour] = None,
                  **kwargs,
@@ -167,19 +165,8 @@ class EmbodiedEntity(Entity, ABC):
         self._temporary = temporary
         self._produced_by: Optional[Entity] = None
 
-        if isinstance(texture, Dict):
-            texture = TextureGenerator.create(**texture)
-
-        elif isinstance(texture, (tuple, list)):
-            texture = ColorTexture(color=texture)
-
-        assert isinstance(texture, Texture)
-
-        texture.size = self._contour.size
-
-        self._texture: Texture = texture
-        self._texture_surface = self._texture.generate()
-
+        self._appearance = appearance
+        self._appearance.set_contour(self._contour)
         self._set_shape_debug_color()
 
         # To be set when entity is added to playground.
@@ -211,9 +198,6 @@ class EmbodiedEntity(Entity, ABC):
 
     @property
     def coordinates(self):
-        """
-        Tuple ( (x,y), angle ).
-        """
         return self.position, self.angle
 
     @property
@@ -236,11 +220,7 @@ class EmbodiedEntity(Entity, ABC):
 
     @property
     def base_color(self):
-        return self._texture.base_color
-
-    @abstractmethod
-    def _set_shape_debug_color(self):
-        ...
+        return self._appearance.base_color
 
     def _create_pm_shape(self):
 
@@ -254,6 +234,10 @@ class EmbodiedEntity(Entity, ABC):
         pm_shape.elasticity = ELASTICITY_ENTITY
 
         return pm_shape
+
+    @abstractmethod
+    def _set_shape_debug_color(self):
+        ...
 
     @abstractmethod
     def _set_pm_shape(self):
@@ -300,6 +284,7 @@ class EmbodiedEntity(Entity, ABC):
 
         elif isinstance(initial_coordinates, CoordinateSampler):
             self._initial_coordinate_sampler = initial_coordinates
+            self._initial_coordinate_sampler.rng = self._playground.rng
 
         else:
             assert len(initial_coordinates) == 2 and len(
@@ -309,7 +294,7 @@ class EmbodiedEntity(Entity, ABC):
         self._allow_overlapping = allow_overlapping
         self._initial_coordinates_set = True
 
-    def _move_to_initial_position(self):
+    def _move_to_initial_coordinates(self):
         """
         Initial coordinates of the Entity.
         Can be tuple of (x,y), angle, or PositionAreaSampler object
@@ -320,7 +305,7 @@ class EmbodiedEntity(Entity, ABC):
             coordinates = self._initial_coordinates
 
         elif self._initial_coordinate_sampler:
-            coordinates = self._sample_valid_location(self._initial_coordinate_sampler)
+            coordinates = self._sample_valid_coordinate(self._initial_coordinate_sampler)
 
         elif self._trajectory:
             self._trajectory.reset()
@@ -359,7 +344,7 @@ class EmbodiedEntity(Entity, ABC):
 
         return bool(overlaps)
 
-    def _sample_valid_location(self, sampler: CoordinateSampler):
+    def _sample_valid_coordinate(self, sampler: CoordinateSampler):
 
         for coordinate in sampler.sample():
             if not self._overlaps(coordinate):
@@ -367,37 +352,5 @@ class EmbodiedEntity(Entity, ABC):
 
         raise ValueError('Entity could not be placed without overlapping')
 
-    def _create_mask(self, alpha):
-
-        # pylint: disable-all
-
-        mask_radius = self._contour.radius + 1
-
-        center = (mask_radius,) * 2
-        mask_size = (int(2 * mask_radius),) * 2
-        mask = pygame.Surface(mask_size, pygame.SRCALPHA)
-        mask.fill((0, 0, 0, 0))
-
-        if self._contour.shape == GeometricShapes.CIRCLE:
-            pygame.draw.circle(mask, (255, 255, 255, alpha), center,
-                               mask_radius)
-
-        else:
-            vert = self._contour.get_rotated_vertices(angle=self.angle)
-            vertices = [v + center for v in vert]
-            pygame.draw.polygon(mask, (255, 255, 255, alpha), vertices)
-
-        texture_surface = self._texture_surface.copy()
-
-        # Pygame / numpy conversion
-        mask_angle = math.pi / 2 - self.angle
-        texture_surface = pygame.transform.rotate(texture_surface,
-                                                  mask_angle * 180 / math.pi)
-        mask_rect = texture_surface.get_rect()
-        mask_rect.center = center
-        mask.blit(texture_surface, mask_rect, None, pygame.BLEND_MULT)
-
-        return mask
-
     def get_pixel(self, relative_pos):
-        return self._texture.get_pixel(relative_pos)
+        return self._appearance.get_pixel(relative_pos)

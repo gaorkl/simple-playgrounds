@@ -93,7 +93,7 @@ class Agent(ABC):
         self._current_actions: Optional[Dict[ActuatorDevice, float]] = None
 
         # Actuators
-        self.actuators: List[ActuatorDevice] = []
+        self._actuators: List[ActuatorDevice] = []
 
         self._controller: Optional[Controller] = None
 
@@ -117,6 +117,11 @@ class Agent(ABC):
         self._screen = None
         self._quit_key_ready = True
         self._surface_screen = None
+
+    @property
+    def actuator_action_dict(self):
+        return {act: act.command for act in self._actuators}
+
 
     @property
     def playground(self):
@@ -159,7 +164,7 @@ class Agent(ABC):
     def controller(self, controller: Controller):
 
         self._controller = controller
-        self._controller.controlled_actuators = self.actuators
+        self._controller.controlled_actuators = self._actuators
         self._current_actions = controller.generate_null_actions()
 
         self._controller.agent = self
