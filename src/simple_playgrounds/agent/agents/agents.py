@@ -19,12 +19,12 @@ from typing import Optional
 from pygame import K_UP, K_DOWN, K_RIGHT, K_LEFT, K_v, K_b, K_g, K_a, K_n, K_m, K_d, K_f, K_h, K_j, \
     K_r, K_t, K_y, K_u, K_i, K_o, K_l, K_k
 
-from .agent import Agent
-from simple_playgrounds.agent.actuators import ActuatorDevice, AngularVelocity, LongitudinalForce, LateralForce, \
+from simple_playgrounds.agent.agent import Agent
+from simple_playgrounds.agent.actuator.actuators import ActuatorDevice, AngularVelocity, LongitudinalForce, LateralForce, \
     Grasp, Activate, AngularRelativeVelocity
 from simple_playgrounds.agent.controllers import Controller
 from simple_playgrounds.agent.parts import Platform, Head, Hand, Eye, Arm, FixedPlatform, MobilePlatform
-from ..common.definitions import KeyTypes
+from simple_playgrounds.common.definitions import KeyTypes
 
 # pylint: disable=undefined-variable
 

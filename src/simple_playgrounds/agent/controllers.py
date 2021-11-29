@@ -7,7 +7,7 @@ from typing import List, Dict
 
 import pygame
 
-from .actuators import ActuatorDevice, DiscreteActuator, ContinuousActuator
+from simple_playgrounds.agent.actuator.actuators import ActuatorDevice, DiscreteActuator, ContinuousActuator
 from simple_playgrounds.common.definitions import KeyTypes
 
 

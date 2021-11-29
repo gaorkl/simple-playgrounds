@@ -14,7 +14,7 @@ from enum import IntEnum, auto
 from typing import Tuple, TYPE_CHECKING, Optional, List
 if TYPE_CHECKING:
     from simple_playgrounds.agent.agent import Agent
-    from simple_playgrounds.agent.actuators import ActuatorDevice
+    from simple_playgrounds.agent.actuator.actuators import ActuatorDevice
 
 import pymunk
 

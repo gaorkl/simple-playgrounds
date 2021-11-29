@@ -12,7 +12,7 @@ import pygame
 from skimage import draw
 from skimage.transform import resize, rotate
 
-from simple_playgrounds.device.sensor import ImageBasedSensor
+from simple_playgrounds.agent.sensor.sensor import ImageBasedSensor
 from simple_playgrounds.common.definitions import SensorTypes
 from simple_playgrounds.configs.parser import parse_configuration
 

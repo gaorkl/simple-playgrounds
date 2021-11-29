@@ -24,7 +24,7 @@ import pygame.locals
 from skimage.transform import rescale
 
 from simple_playgrounds.agent.agent import Agent
-from simple_playgrounds.agent.actuators import ActuatorDevice, Activate
+from simple_playgrounds.agent.actuator.actuators import ActuatorDevice, Activate
 from simple_playgrounds.device.communication import Stream
 from .common.definitions import SIMULATION_STEPS
 from simple_playgrounds.playground.playground import Playground

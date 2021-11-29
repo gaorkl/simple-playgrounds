@@ -9,7 +9,7 @@ from simple_playgrounds.element.elements.teleport import TeleportElement
 from simple_playgrounds.element.elements.modifier import ModifierElement
 
 from simple_playgrounds.agent.agent import Agent, Part
-from simple_playgrounds.agent.actuators import Grasp, Activate
+from simple_playgrounds.agent.actuator.actuators import Grasp, Activate
 
 from simple_playgrounds.device.device import Device
 

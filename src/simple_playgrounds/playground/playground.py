@@ -36,11 +36,11 @@ from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes,
 from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.entity.entity import Entity, EmbodiedEntity
 from simple_playgrounds.entity.physical import PhysicalEntity
-from simple_playgrounds.agent.actuators import ActuatorDevice
-from simple_playgrounds.device.sensors.semantic import Detection
-from simple_playgrounds.device.sensor import SensorDevice
 
-from simple_playgrounds.device.communication import Stream
+from simple_playgrounds.agent.actuator.actuator import Actuator
+
+from simple_playgrounds.agent.sensor.sensors.semantic import Detection
+from simple_playgrounds.agent.sensor.sensor import SensorDevice
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -50,7 +50,7 @@ ScalarReward = int
 Message = Union[np.ndarray, str]
 
 AgentIdentifier = Union[str, Agent]
-ActuatorIdentifier = Union[str, ActuatorDevice]
+ActuatorIdentifier = Union[str, Actuator]
 SensorIdentifier = Union[str, SensorDevice]
 
 Action = Union[float, Message]
@@ -81,6 +81,9 @@ class Playground(ABC):
     Notes:
           In the case of multi-agent setting, individual initial positions can be defined when
           instantiating the playground.
+
+          Always reset the playground before starting a run.
+
     """
 
     # pylint: disable=too-many-instance-attributes
@@ -123,10 +126,6 @@ class Playground(ABC):
         self._shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
 
         self._teams = {}
-
-        # Save Initial Checkpoint
-        self._initial_checkpoint = self._get_checkpoint()
-        self._checkpoints[0] = self._initial_checkpoint
 
     @staticmethod
     def _initialize_space() -> pymunk.Space:
@@ -194,6 +193,9 @@ class Playground(ABC):
 
         return obs, rew, self.done
 
+    def _save_actions_for_replay(self, actions):
+        self._actions[self._timestep] = actions
+
     def _apply_actions(self, actions: ActionDict) -> ActionDict:
 
         action_dict : ActionDict = {}
@@ -213,20 +215,6 @@ class Playground(ABC):
 
         return action_dict
 
-    def _save_actions_for_replay(self,
-                                 actions,
-                                 save_messages: Optional[bool] = False,
-                                 **kwargs):
-
-        actions_str = {}
-        for agent, actuator_dict in actions.items():
-            actions_str[agent.name] = {}
-
-            for actuator, command in actuator_dict.items():
-                actions_str[agent.name][actuator.name] = command
-
-        self._actions[self._timestep] = command
-
     def _compute_observations(self,
                               compute_observations: Optional[bool] = True,
                               keys_are_str: Optional[bool] = False,
@@ -244,29 +232,40 @@ class Playground(ABC):
             else:
                 key_ = agent
 
-            agent.compute_observations()
+            obs[key_] = agent.compute_observations(keys_are_str, return_np_arrays)
 
-            if return_np_arrays:
-                obs[key_] = agent.np_observations
+    def _compute_rewards(self,
+                         compute_observations: Optional[bool] = True,
+                         keys_are_str: Optional[bool] = False,
+                         return_np_arrays: Optional[bool] = False,
+                         **kwargs):
+
+        obs = {}
+        if not compute_observations:
+            return obs
+
+        for agent in self._agents:
+
+            if keys_are_str:
+                key_ = agent.name
             else:
-                obs[key_] = agent.observations
+                key_ = agent
 
-
+            obs[key_] = agent.compute_observations(keys_are_str, return_np_arrays)
 
     def save_checkpoint(self):
         # noinspection PyTypeChecker
         self._checkpoints[self._timestep] = self._get_checkpoint()
 
-    def delete_checkpoints(self, timestep: int):
-        if timestep == 0:
-            raise ValueError('Can not remove initial checkpoint')
-        self._checkpoints.remove = { 0: self._init_checkpoint }
+    def delete_checkpoints(self):
+        self._checkpoints = {}
 
     def _get_checkpoint(self):
         pg = copy.copy(self)
+        pg._checkpoints = {}
         return pickle.dumps(pg)
 
-    def _update_playground(self, pymunk_steps: Optional[int] = PYMUNK_STEPS):
+    def _update_playground(self, pymunk_steps: Optional[int] = PYMUNK_STEPS, **kwargs):
         """ Update the Playground
 
         Updates the Playground.
@@ -294,7 +293,30 @@ class Playground(ABC):
 
         self._timestep += 1
 
-    def reset(self):
+    def rewind(self, timesteps_rewind, **kwargs):
+
+        # load pg
+        valid_checkpoints = [ts for ts in self._checkpoints.keys() if ts <= self._timestep - timesteps_rewind]
+        if not valid_checkpoints:
+            raise ValueError('no checkpoints were saved for rewind')
+
+        ts_checkpoint = max(valid_checkpoints)
+        pg = pickle.loads(self._checkpoints[ts_checkpoint])
+
+        # Save future actions before overriding playground
+        future_actions = [self._actions[ts] for ts in range(ts_checkpoint, self._timestep-timesteps_rewind)]
+        self.__dict__.update(pg.__dict__)
+
+        # Apply all action between checkpoint and rewind point
+        for act in future_actions:
+            self.step(actions=act, compute_observations=False)
+
+        obs = self._compute_observations(**kwargs)
+        rew = self._compute_rewards(**kwargs)
+
+        return obs, rew, self.done
+
+    def reset(self, **kwargs):
         """
         Reset the Playground to its initial state.
         """
@@ -305,9 +327,6 @@ class Playground(ABC):
                 entity.held_by.release_grasp()
 
             self.remove(entity)
-
-            if not entity.temporary:
-                self._disappeared_entities.append(entity)
 
         # reset entities that are non physical
         for entity in self._entities:
@@ -321,9 +340,10 @@ class Playground(ABC):
         self._timestep = 0
         self.done = False
 
-        # Save Initial Checkpoint
-        self._initial_checkpoint = self._get_checkpoint()
-        self._checkpoints[0] = self._initial_checkpoint
+        obs = self._compute_observations(**kwargs)
+        rew = self._compute_rewards(**kwargs)
+
+        return obs, rew, self.done
 
     def add(self,
             entity: Entity,

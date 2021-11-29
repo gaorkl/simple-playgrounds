@@ -13,7 +13,7 @@ from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
     from simple_playgrounds.device.sensor import SensorDevice
-    from simple_playgrounds.agent.actuators import ActuatorDevice
+    from simple_playgrounds.agent.actuator.actuators import ActuatorDevice
     from simple_playgrounds.agent.controllers import Controller
     from simple_playgrounds.playground.playground import Playground
     from pymunk import Shape
@@ -27,7 +27,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate
 from simple_playgrounds.agent.parts import Part, Platform, AnchoredPart
-from simple_playgrounds.agent.actuators import Grasp
+from simple_playgrounds.agent.actuator.actuators import Grasp
 from simple_playgrounds.element.elements.teleport import TeleportElement
 
 # pylint: disable=too-many-instance-attributes
@@ -118,10 +118,15 @@ class Agent(ABC):
         self._quit_key_ready = True
         self._surface_screen = None
 
+    def compute_observations(self, keys_are_string, return_np_array):
+        return {}
+
+    def set_actions(self, actions = None):
+        pass
+
     @property
     def actuator_action_dict(self):
         return {act: act.command for act in self._actuators}
-
 
     @property
     def playground(self):

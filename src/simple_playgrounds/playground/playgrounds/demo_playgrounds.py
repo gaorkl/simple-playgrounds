@@ -18,7 +18,7 @@ from simple_playgrounds.common.spawner import Spawner
 from simple_playgrounds.common.appearance import RandomTilesTexture
 from simple_playgrounds.element.elements.modifier import SensorDisabler, ActuatorDisabler
 from simple_playgrounds.device.sensor import SensorDevice
-from simple_playgrounds.agent.actuators import ActuatorDevice, AngularVelocity
+from simple_playgrounds.agent.actuator.actuators import ActuatorDevice, AngularVelocity
 from simple_playgrounds.device.sensors import RgbCamera
 from simple_playgrounds.device.sensor import ImageBasedSensor
 

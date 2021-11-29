@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 import pymunk
 
-from simple_playgrounds.agent.actuators import Grasp
+from simple_playgrounds.agent.actuator.actuators import Grasp
 from simple_playgrounds.common.contour import GeometricShapes
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, \
     VISIBLE_ALPHA

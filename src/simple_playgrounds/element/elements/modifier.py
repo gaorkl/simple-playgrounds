@@ -11,8 +11,8 @@ from simple_playgrounds.element.element import SceneElement
 
 from simple_playgrounds.device.device import Device
 from simple_playgrounds.device.communication import CommunicationDevice
-from simple_playgrounds.device.sensor import SensorDevice
-from simple_playgrounds.agent.actuators import ActuatorDevice
+from simple_playgrounds.agent.sensor.sensor import SensorDevice
+from simple_playgrounds.agent.actuator.actuators import ActuatorDevice
 
 
 class ModifierElement(SceneElement, ABC):

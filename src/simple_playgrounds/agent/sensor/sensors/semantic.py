@@ -16,7 +16,7 @@ import numpy as np
 from pymunk import Shape, ShapeFilter
 from skimage.draw import line, disk, set_color
 
-from simple_playgrounds.device.sensor import RayBasedSensor
+from simple_playgrounds.agent.sensor.sensor import RayBasedSensor
 from simple_playgrounds.common.definitions import SensorTypes, Detection
 from simple_playgrounds.configs import parse_configuration
 

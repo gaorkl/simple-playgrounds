@@ -9,7 +9,7 @@ from simple_playgrounds.device.communication import CommunicationDevice
 from simple_playgrounds.element.elements.modifier import CommunicationDisabler, SensorDisabler
 
 from simple_playgrounds.device.sensors.robotic import Lidar, RgbCamera
-from simple_playgrounds.device.sensors.semantic import SemanticRay
+from simple_playgrounds.agent.sensor.sensors.semantic import SemanticRay
 from simple_playgrounds.device.sensor import SensorDevice
 
 
