@@ -10,19 +10,26 @@ objects in simple-playgrounds.
 from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
-from typing import Union, List, Optional, TYPE_CHECKING
+from typing import Dict, Union, List, Optional, TYPE_CHECKING
 
+import numpy as np
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
+    from simple_playgrounds.common.view import View
 
 import pymunk
+import matplotlib.patches as mpatches
+
+
+
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
 from simple_playgrounds.common.appearance.appearance import Appearance
 
 from simple_playgrounds.common.contour import Contour, GeometricShapes
+from simple_playgrounds.common.view import FixedGlobalView, AnchoredView
 
 
 # pylint: disable=line-too-long
@@ -166,14 +173,16 @@ class EmbodiedEntity(Entity, ABC):
         self._produced_by: Optional[Entity] = None
 
         self._appearance = appearance
-        self._appearance.set_contour(self._contour)
-        self._set_shape_debug_color()
+        self._appearance.contour = self._contour
 
         # To be set when entity is added to playground.
         self._initial_coordinates: Optional[InitCoord] = None
         self._trajectory: Optional[Trajectory] = None
         self._initial_coordinate_sampler: Optional[CoordinateSampler] = None
         self._allow_overlapping = True
+
+        # artists for matplotlib rendering
+        self._artists: Dict[View, mpatches.Patch] = {}
 
     @property
     def pm_shape(self):
@@ -191,6 +200,10 @@ class EmbodiedEntity(Entity, ABC):
     @property
     def temporary(self):
         return self._temporary
+
+    @property
+    def movable(self):
+        return not isinstance(self._pm_body, pymunk.Body.STATIC) and not self._trajectory
 
     @property
     def contour(self):
@@ -235,9 +248,68 @@ class EmbodiedEntity(Entity, ABC):
 
         return pm_shape
 
-    @abstractmethod
-    def _set_shape_debug_color(self):
-        ...
+    def update_view(self, view: View):
+
+        if view not in self._artists:
+            self._create_artist(view)
+
+        artist = self._artists[view]
+
+        # if entity disappear, remove it
+        if not self._playground:
+            self._artists.pop(view)
+            artist.remove()
+            return
+
+        if isinstance(view, FixedGlobalView) and not self.movable:
+            return
+
+        self._update_artist_position(view)
+        self._update_artist_appearance(view)
+
+        view.canvas.figure.draw_artist(artist)
+
+    def _create_artist(self, view):
+
+        if self._contour.shape == GeometricShapes.CIRCLE:
+            artist = mpatches.Circle((0, 0), self._contour.radius * view.zoom, fill=True)
+
+        elif self._contour.shape == GeometricShapes.POLYGON:
+            vertices = np.asarray(self._contour.vertices) * view.zoom
+            artist = mpatches.Polygon(xy=vertices, fill=True)
+
+        else:
+            artist = mpatches.RegularPolygon((0, 0),
+                                           radius=self._contour.radius * view.zoom,
+                                           numVertices=self._contour.shape.value,
+                                           fill=True)
+        artist.set_animated(True)
+        artist.set_antialiased(False)
+        self._artists[view] = artist
+        view.add_patch(artist)
+
+    def _update_artist_position(self, view):
+
+        relative_position = (self.position - view.position).rotated(-view.angle)
+        relative_position *= view.zoom
+
+        if self._contour.shape == GeometricShapes.POLYGON:
+
+            vertices = self._contour.get_rotated_vertices(self.angle - view.angle)
+            vertices = np.asarray(vertices)*view.zoom + relative_position
+            self._artists[view].set(xy=vertices)
+
+        elif self._contour.shape == GeometricShapes.CIRCLE:
+
+            self._artists[view].set(center=relative_position)
+
+        else:
+            self._artists[view].xy = relative_position
+            self._artists[view].orientation = self.angle - view.angle
+
+    def _update_artist_appearance(self, view):
+        # Should be modified to apply images, textures, ony when asked.
+        self._artists[view].set(color=(0.2, 0.1, 0.3))
 
     @abstractmethod
     def _set_pm_shape(self):
@@ -253,7 +325,11 @@ class EmbodiedEntity(Entity, ABC):
                 coordinates: Coordinate,
                 velocity: Optional[Coordinate] = None,
                 allow_overlapping: bool = True,
+                initial_positioning: bool = False,
                 ):
+
+        if not initial_positioning and not self.movable:
+            raise ValueError('Trying to move something that is not movable!')
 
         if not allow_overlapping:
             assert not self._overlaps(coordinates)
@@ -319,7 +395,7 @@ class EmbodiedEntity(Entity, ABC):
         if not self._allow_overlapping and self._overlaps(coordinates):
             raise ValueError('Entity could not be placed without overlapping')
 
-        self.move_to(coordinates, vel)
+        self.move_to(coordinates, vel, initial_positioning=True)
 
     def _overlaps(self, coordinates):
         """ Tests whether new coordinate would lead to physical collision """

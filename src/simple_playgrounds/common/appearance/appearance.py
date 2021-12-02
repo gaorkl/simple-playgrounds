@@ -54,23 +54,22 @@ class Appearance(ABC):
     def generate_image_mask(self, angle: float):
         return rotate(self._image_mask, angle*180/math.pi, order=1)
 
+    @property
+    def contour(self):
+        return self._contour
+
+    @contour.setter
+    def contour(self, cont):
+        self._contour = cont
 
 
-    def set_contour(self, contour):
-        self._contour = contour
-        self._image_mask = self._generate_image_mask()
-
-    @abstractmethod
-    def _generate_image_mask(self):
-        ...
-
-    def get_pixel(self, rel_pos: Tuple[float, float]):
-        x = int(rel_pos[0]) + self._contour.mask_size[0]
-        y = int(rel_pos[1]) + self._contour.mask_size[1]
-
-        x = min(max(0, x), self._contour.mask_size[0] - 1)
-        y = min(max(0, y), self._contour.mask_size[1] - 1)
-
-        return self._image_mask[x, y]
+    # def get_pixel(self, rel_pos: Tuple[float, float]):
+    #     x = int(rel_pos[0]) + self._contour.mask_size[0]
+    #     y = int(rel_pos[1]) + self._contour.mask_size[1]
+    #
+    #     x = min(max(0, x), self._contour.mask_size[0] - 1)
+    #     y = min(max(0, y), self._contour.mask_size[1] - 1)
+    #
+    #     return self._image_mask[x, y]
 
 

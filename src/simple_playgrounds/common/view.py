@@ -1,11 +1,15 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from simple_playgrounds.playground.playground import Playground
+    from simple_playgrounds.common.position_utils import Coordinate
+    from simple_playgrounds.entity.entity import EmbodiedEntity
 
 import numpy as np
+from matplotlib import pyplot as plt
 
-from simple_playgrounds.playground.playground import Playground
-from simple_playgrounds.common.position_utils import Coordinate
-from simple_playgrounds.entity.entity import EmbodiedEntity
 
 class View(ABC):
 
@@ -13,47 +17,82 @@ class View(ABC):
                  playground: Playground,
                  size_on_playground: Optional[Tuple[int, int]] = None,
                  view_size: Optional[Tuple[int, int]] = None,
-                 zoom_ratio: Optional[float] = None,
                  ):
 
         self._playground = playground
 
         # Define the size of the view on the playground
-        if not size_on_playground:
-            if not self._playground.size:
-                raise ValueError('Size of view should be set')
+        if size_on_playground:
+            self._size_on_playground = size_on_playground
+        elif self._playground.size:
             self._size_on_playground = self._playground.size
-
-        # Define the output size
-        if view_size and zoom_ratio:
-            raise ValueError('Both view_size and zoom_factor are set')
+        else:
+            raise ValueError('Size of view should be set')
 
         if view_size:
             self._view_size = view_size
-        elif zoom_ratio:
-            self._view_size = (size*zoom_ratio for size in size_on_playground)
         else:
-            raise ValueError('Either view_size and zoom_factor are set')
+            self._view_size = self._size_on_playground
 
-        self._center_coordinate: Optional[Coordinate] = None
-        self._image_view = np.ndarray(shape=(*self._view_size, 3), dtype=np.uint8)
+        # check that input and output have same scale ratio
+        if self._view_size[0] / self._size_on_playground[0] != self._view_size[1] / self._size_on_playground[1]:
+            raise ValueError('Size of area covered on playground and output image should be the same.')
+        self._zoom = self._view_size[0] / self._size_on_playground[0]
 
-    @property
-    @abstractmethod
-    def _center_coordinates(self):
-        ...
+        # Matplotlib things
+        fig, ax = plt.subplots()
+        size = (self._size_on_playground[0]/100, self._size_on_playground[1]/100)
+        fig.set_dpi(100)
+        fig.set_size_inches(size, forward=True)
+
+        lim_x = self._view_size[0]/2
+        lim_y = self._view_size[1]/2
+
+        ax.set_ylim(-lim_y, lim_y)
+        ax.set_xlim(-lim_x, lim_x)
+        ax.set_facecolor('orange')
+
+        ax.axis('off')
+
+        self._ax = ax
+        self._canvas = fig.canvas
+
+        self._fig = fig
+
+        self._canvas.draw()
+
+    def add_patch(self, patch):
+
+        self._ax.add_patch(patch)
 
     @abstractmethod
     def update_view(self):
         ...
 
     @property
-    def shape(self):
-        return self._image_view.shape
-
-    @property
     def size(self):
         return self._view_size
+
+    @property
+    def zoom(self):
+        return self._zoom
+
+    @property
+    @abstractmethod
+    def center_coordinates(self):
+        ...
+
+    @property
+    def position(self):
+        return self.center_coordinates[0]
+
+    @property
+    def angle(self):
+        return self.center_coordinates[1]
+
+    @property
+    def canvas(self):
+        return self._canvas
 
 
 class FixedGlobalView(View):
@@ -64,10 +103,31 @@ class FixedGlobalView(View):
         super().__init__(**kwargs)
 
     def update_view(self):
-        pass
+        self._ax.axis('off')
+
+        self._ax.set_facecolor('grey')
+
+        self._canvas.draw()
+        self._ax.set_facecolor('grey')
+
+        for entity in self._playground._physical_entities:
+            entity.update_view(self)
+
+        self._ax.set_facecolor('grey')
+
+        self._canvas.blit(self._fig.bbox)
+
+        self._ax.set_facecolor('grey')
+
+        self._canvas.flush_events()
+        self._ax.axis('off')
+        image_from_plot = np.frombuffer(self._canvas.tostring_rgb(), dtype=np.uint8)
+        image_from_plot = image_from_plot.reshape(self._canvas.get_width_height()[::-1] + (3,))
+
+        return image_from_plot
 
     @property
-    def _center_coordinates(self):
+    def center_coordinates(self):
         return self._coordinates
 
 
@@ -82,5 +142,5 @@ class AnchoredView(View):
         pass
 
     @property
-    def _center_coordinates(self):
+    def center_coordinates(self):
         return self._anchor.coordinates

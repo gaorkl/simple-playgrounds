@@ -9,6 +9,8 @@ from abc import ABC
 from typing import Tuple, Dict, Callable, Optional
 
 import numpy as np
+import pymunk
+
 from skimage.transform import resize
 from skimage import draw
 
@@ -37,6 +39,13 @@ class ColorTexture(Appearance):
 
     def generate_image_mask(self, angle: float):
         return self._image_mask
+
+    def get_pixel(self,
+                  orig: pymunk.Vec2d,
+                  normal: pymunk.Vec2d
+                  ):
+        return self._color
+
 
 #
 # class UniqueCenteredStripeTexture(ColorTexture):

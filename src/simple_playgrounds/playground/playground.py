@@ -55,7 +55,7 @@ SensorIdentifier = Union[str, SensorDevice]
 
 Action = Union[float, Message]
 AgentAction = Union[
-    Dict[ActuatorIdentifier, Action ],
+    Dict[ActuatorIdentifier, Action],
     np.ndarray]
 ActionDict = Dict[AgentIdentifier, AgentAction]
 
@@ -198,7 +198,7 @@ class Playground(ABC):
 
     def _apply_actions(self, actions: ActionDict) -> ActionDict:
 
-        action_dict : ActionDict = {}
+        action_dict: ActionDict = {}
 
         for agent in self._agents:
 
@@ -219,7 +219,7 @@ class Playground(ABC):
                               compute_observations: Optional[bool] = True,
                               keys_are_str: Optional[bool] = False,
                               return_np_arrays: Optional[bool] = False,
-                              **kwargs):
+                              **_):
 
         obs = {}
         if not compute_observations:
@@ -238,7 +238,7 @@ class Playground(ABC):
                          compute_observations: Optional[bool] = True,
                          keys_are_str: Optional[bool] = False,
                          return_np_arrays: Optional[bool] = False,
-                         **kwargs):
+                         **_):
 
         obs = {}
         if not compute_observations:
@@ -254,7 +254,6 @@ class Playground(ABC):
             obs[key_] = agent.compute_observations(keys_are_str, return_np_arrays)
 
     def save_checkpoint(self):
-        # noinspection PyTypeChecker
         self._checkpoints[self._timestep] = self._get_checkpoint()
 
     def delete_checkpoints(self):
@@ -265,7 +264,7 @@ class Playground(ABC):
         pg._checkpoints = {}
         return pickle.dumps(pg)
 
-    def _update_playground(self, pymunk_steps: Optional[int] = PYMUNK_STEPS, **kwargs):
+    def _update_playground(self, pymunk_steps: Optional[int] = PYMUNK_STEPS, **_):
         """ Update the Playground
 
         Updates the Playground.
@@ -293,7 +292,7 @@ class Playground(ABC):
 
         self._timestep += 1
 
-    def rewind(self, timesteps_rewind, **kwargs):
+    def rewind(self, timesteps_rewind, random_alternate: Optional[bool] = False, **kwargs):
 
         # load pg
         valid_checkpoints = [ts for ts in self._checkpoints.keys() if ts <= self._timestep - timesteps_rewind]
@@ -303,13 +302,22 @@ class Playground(ABC):
         ts_checkpoint = max(valid_checkpoints)
         pg = pickle.loads(self._checkpoints[ts_checkpoint])
 
-        # Save future actions before overriding playground
+        # Save before overriding playground
         future_actions = [self._actions[ts] for ts in range(ts_checkpoint, self._timestep-timesteps_rewind)]
+        rng = self._rng
+        checkpoints = self._checkpoints
+
+        # Time travel
         self.__dict__.update(pg.__dict__)
+        if random_alternate:
+            self._rng = rng
 
         # Apply all action between checkpoint and rewind point
         for act in future_actions:
             self.step(actions=act, compute_observations=False)
+
+        self._checkpoints = {ts: checkpoint for ts, checkpoint in checkpoints.items() if ts <= self._timestep}
+        self._actions = {ts: action for ts, action in self._actions.items() if ts <= self._timestep}
 
         obs = self._compute_observations(**kwargs)
         rew = self._compute_rewards(**kwargs)

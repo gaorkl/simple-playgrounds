@@ -4,3 +4,4 @@ numpy
 scikit-image
 pillow
 pytest
+matplotlib
