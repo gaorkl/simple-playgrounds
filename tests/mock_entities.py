@@ -12,7 +12,7 @@ from simple_playgrounds.common.appearance.texture import ColorTexture
 class MockPhysical(PhysicalEntity):
 
     def __init__(self, **kwargs):
-        super().__init__(appearance=ColorTexture(color=(10, 10, 10)), **kwargs)
+        super().__init__(appearance=ColorTexture(color=(11, 10, 10)), **kwargs)
 
     def update(self):
         pass

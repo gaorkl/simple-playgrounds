@@ -294,13 +294,11 @@ class EmbodiedEntity(Entity, ABC):
         relative_position *= view.zoom
 
         if self._contour.shape == GeometricShapes.POLYGON:
-
             vertices = self._contour.get_rotated_vertices(self.angle - view.angle)
             vertices = np.asarray(vertices)*view.zoom + relative_position
             self._artists[view].set(xy=vertices)
 
         elif self._contour.shape == GeometricShapes.CIRCLE:
-
             self._artists[view].set(center=relative_position)
 
         else:
@@ -308,8 +306,10 @@ class EmbodiedEntity(Entity, ABC):
             self._artists[view].orientation = self.angle - view.angle
 
     def _update_artist_appearance(self, view):
-        # Should be modified to apply images, textures, ony when asked.
-        self._artists[view].set(color=(0.2, 0.1, 0.3))
+        # Should be modified to apply images, textures, only when asked.
+
+        color = [c/255 for c in self._appearance.base_color]
+        self._artists[view].set(color=color)
 
     @abstractmethod
     def _set_pm_shape(self):

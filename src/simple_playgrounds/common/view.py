@@ -17,6 +17,7 @@ class View(ABC):
                  playground: Playground,
                  size_on_playground: Optional[Tuple[int, int]] = None,
                  view_size: Optional[Tuple[int, int]] = None,
+                 background_color: Optional[str] = 'black'
                  ):
 
         self._playground = playground
@@ -40,20 +41,27 @@ class View(ABC):
         self._zoom = self._view_size[0] / self._size_on_playground[0]
 
         # Matplotlib things
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(facecolor=background_color)
+
         size = (self._size_on_playground[0]/100, self._size_on_playground[1]/100)
+        # fig.set_frameon(False)
         fig.set_dpi(100)
         fig.set_size_inches(size, forward=True)
+        # fig.frameon = False
 
-        lim_x = self._view_size[0]/2
-        lim_y = self._view_size[1]/2
-
-        ax.set_ylim(-lim_y, lim_y)
-        ax.set_xlim(-lim_x, lim_x)
-        ax.set_facecolor('orange')
+        lim_x = self._size_on_playground[0]/2
+        lim_y = self._size_on_playground[1]/2
 
         ax.axis('off')
+        #
+        ax.autoscale_view('tight')
+        ax = plt.axes([0, 0, 1, 1], frameon=False)
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
 
+        ax.set_facecolor(background_color)
+        ax.set_ylim(-lim_y, lim_y)
+        ax.set_xlim(-lim_x, lim_x)
         self._ax = ax
         self._canvas = fig.canvas
 
@@ -103,24 +111,15 @@ class FixedGlobalView(View):
         super().__init__(**kwargs)
 
     def update_view(self):
-        self._ax.axis('off')
-
-        self._ax.set_facecolor('grey')
 
         self._canvas.draw()
-        self._ax.set_facecolor('grey')
 
         for entity in self._playground._physical_entities:
             entity.update_view(self)
 
-        self._ax.set_facecolor('grey')
-
         self._canvas.blit(self._fig.bbox)
 
-        self._ax.set_facecolor('grey')
-
         self._canvas.flush_events()
-        self._ax.axis('off')
         image_from_plot = np.frombuffer(self._canvas.tostring_rgb(), dtype=np.uint8)
         image_from_plot = image_from_plot.reshape(self._canvas.get_width_height()[::-1] + (3,))
 
