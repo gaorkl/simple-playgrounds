@@ -27,7 +27,7 @@ def test_halo_halo_in_range(radius, interaction_radius):
 
     assert not halo_1.activated and not halo_2.activated
 
-    playground.update()
+    playground.step()
 
     assert halo_1.activated and halo_2.activated
 
@@ -52,7 +52,7 @@ def test_halo_halo_out_range(radius, interaction_radius):
 
     assert not halo_1.activated and not halo_2.activated
 
-    playground.update()
+    playground.step()
 
     assert not halo_1.activated and not halo_2.activated
 
@@ -77,7 +77,7 @@ def test_halo_standalone(radius, interaction_radius):
 
     assert not halo_1.activated and not zone.activated
 
-    playground.update()
+    playground.step()
 
     assert halo_1.activated and zone.activated
     assert halo_1.position == (0, 0)
@@ -98,12 +98,7 @@ def test_standalone_standalone():
 
     assert not zone_1.activated and not zone_2.activated
 
-    playground.update()
+    playground.step()
 
     # static objects don't generate collisions
     assert not zone_1.activated and not zone_2.activated
-
-
-
-
-

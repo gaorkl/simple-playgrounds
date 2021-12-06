@@ -27,7 +27,7 @@ def test_same_team(radius, interaction_radius):
 
     playground.add(zone, ((0, 2*radius + interaction_radius - 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert halo.activated and zone.activated
 
@@ -52,7 +52,7 @@ def test_different_team(radius, interaction_radius):
 
     playground.add(zone, ((0, 2*radius + interaction_radius - 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert not halo.activated and not zone.activated
 
@@ -84,7 +84,7 @@ def test_multiple_team(radius, interaction_radius):
     playground.add(ent_2, ((0, 0), 0))
     ent_2.add_to_team('team_3')
 
-    playground.update()
+    playground.step()
 
     assert halo.activated and zone_1.activated and not halo_2.activated
 
@@ -118,7 +118,7 @@ def test_multiple_triggered(radius, interaction_radius):
 
     playground.add(zone_3, ((0, 0), 0))
 
-    playground.update()
+    playground.step()
 
     assert halo.activated and zone_1.activated and zone_2.activated
     assert not zone_3.activated
@@ -138,7 +138,7 @@ def test_teams_collide_same_team(custom_contour):
     playground.add(ent_2, ((0, 1), 0))
     ent_2.add_to_team('team_1')
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position != (0, 0)
     assert ent_2.position != (0, 1)
@@ -157,7 +157,7 @@ def test_teams_collide_other_team(custom_contour):
     playground.add(ent_2, ((0, 1), 0))
     ent_2.add_to_team('team_2')
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position != (0, 0)
     assert ent_2.position != (0, 1)
@@ -175,7 +175,7 @@ def test_teams_collide_no_team(custom_contour):
     ent_2 = MockPhysical(contour=custom_contour, movable=True, mass=5)
     playground.add(ent_2, ((0, 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position != (0, 0)
     assert ent_2.position != (0, 1)
@@ -195,7 +195,7 @@ def test_barrier_let_team_through(custom_contour):
 
     playground.add(barrier, ((0, 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position == (0, -1)
 
@@ -214,7 +214,7 @@ def test_barrier_doesnt_block_no_team(custom_contour, custom_contour_2):
 
     playground.add(barrier, ((0, 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position == (0, -1)
 
@@ -231,7 +231,7 @@ def test_barrier_without_team_blocks_team(custom_contour, custom_contour_2):
 
     playground.add(barrier, ((0, 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position != (0, -1)
 
@@ -249,7 +249,7 @@ def test_barrier_block_other_teams(custom_contour, custom_contour_2):
 
     playground.add(barrier, ((0, 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position != (0, -1)
 
@@ -269,6 +269,6 @@ def test_barrier_allow_multiple_teams(custom_contour):
 
     playground.add(barrier, ((0, 1), 0))
 
-    playground.update()
+    playground.step()
 
     assert ent_1.position == (0, -1)
