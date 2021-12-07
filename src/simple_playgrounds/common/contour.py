@@ -27,7 +27,7 @@ class Contour:
                  **kwargs,
                  ):
 
-        self._shape: Union[str, GeometricShapes]
+        self._shape: GeometricShapes
         self._radius: Optional[float] = None
         self._size: Optional[Tuple[float, float]] = None
         self._vertices: Optional[List[Tuple[float, float]]] = None

@@ -73,6 +73,10 @@ class View(ABC):
 
         self._ax.add_patch(patch)
 
+    def draw_patch(self, patch):
+
+        self._ax.draw_artist(patch)
+
     @abstractmethod
     def update_view(self):
         ...
@@ -101,7 +105,7 @@ class View(ABC):
     @property
     def canvas(self):
         return self._canvas
-
+    
 
 class FixedGlobalView(View):
 

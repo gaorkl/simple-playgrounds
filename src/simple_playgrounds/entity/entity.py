@@ -10,6 +10,7 @@ objects in simple-playgrounds.
 from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
+import re
 from typing import Dict, Union, List, Optional, TYPE_CHECKING
 
 import numpy as np
@@ -19,8 +20,6 @@ if TYPE_CHECKING:
     from simple_playgrounds.common.view import View
 
 import pymunk
-import matplotlib.patches as mpatches
-
 
 
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY
@@ -30,6 +29,7 @@ from simple_playgrounds.common.appearance.appearance import Appearance
 
 from simple_playgrounds.common.contour import Contour, GeometricShapes
 from simple_playgrounds.common.view import FixedGlobalView, AnchoredView
+from simple_playgrounds.entity.patch import Patch
 
 
 # pylint: disable=line-too-long
@@ -154,8 +154,8 @@ class EmbodiedEntity(Entity, ABC):
 
     def __init__(self,
                  appearance: Appearance,
-                 temporary: Optional[bool] = False,
                  contour: Optional[Contour] = None,
+                 temporary: Optional[bool] = False,
                  **kwargs,
                  ):
 
@@ -181,8 +181,8 @@ class EmbodiedEntity(Entity, ABC):
         self._initial_coordinate_sampler: Optional[CoordinateSampler] = None
         self._allow_overlapping = True
 
-        # artists for matplotlib rendering
-        self._artists: Dict[View, mpatches.Patch] = {}
+        # Patch to display the entity in TopDown view
+        self._patches: Dict[View, Patch] = {}
 
     @property
     def pm_shape(self):
@@ -208,6 +208,10 @@ class EmbodiedEntity(Entity, ABC):
     @property
     def contour(self):
         return self._contour
+
+    @property
+    def appearance(self):
+        return self._appearance
 
     @property
     def coordinates(self):
@@ -250,66 +254,22 @@ class EmbodiedEntity(Entity, ABC):
 
     def update_view(self, view: View):
 
-        if view not in self._artists:
-            self._create_artist(view)
+        if view not in self._patches:
+            patch = Patch(entity=self, view=view)
+            self._patches[view] = patch
 
-        artist = self._artists[view]
+        patch = self._patches[view]
 
         # if entity disappear, remove it
         if not self._playground:
-            self._artists.pop(view)
-            artist.remove()
+            self._patches.pop(view)
+            patch.remove_patch()
             return
 
         if isinstance(view, FixedGlobalView) and not self.movable:
             return
 
-        self._update_artist_position(view)
-        self._update_artist_appearance(view)
-
-        view.canvas.figure.draw_artist(artist)
-
-    def _create_artist(self, view):
-
-        if self._contour.shape == GeometricShapes.CIRCLE:
-            artist = mpatches.Circle((0, 0), self._contour.radius * view.zoom, fill=True)
-
-        elif self._contour.shape == GeometricShapes.POLYGON:
-            vertices = np.asarray(self._contour.vertices) * view.zoom
-            artist = mpatches.Polygon(xy=vertices, fill=True)
-
-        else:
-            artist = mpatches.RegularPolygon((0, 0),
-                                           radius=self._contour.radius * view.zoom,
-                                           numVertices=self._contour.shape.value,
-                                           fill=True)
-        artist.set_animated(True)
-        artist.set_antialiased(False)
-        self._artists[view] = artist
-        view.add_patch(artist)
-
-    def _update_artist_position(self, view):
-
-        relative_position = (self.position - view.position).rotated(-view.angle)
-        relative_position *= view.zoom
-
-        if self._contour.shape == GeometricShapes.POLYGON:
-            vertices = self._contour.get_rotated_vertices(self.angle - view.angle)
-            vertices = np.asarray(vertices)*view.zoom + relative_position
-            self._artists[view].set(xy=vertices)
-
-        elif self._contour.shape == GeometricShapes.CIRCLE:
-            self._artists[view].set(center=relative_position)
-
-        else:
-            self._artists[view].xy = relative_position
-            self._artists[view].orientation = self.angle - view.angle
-
-    def _update_artist_appearance(self, view):
-        # Should be modified to apply images, textures, only when asked.
-
-        color = [c/255 for c in self._appearance.base_color]
-        self._artists[view].set(color=color)
+        patch.update()
 
     @abstractmethod
     def _set_pm_shape(self):
