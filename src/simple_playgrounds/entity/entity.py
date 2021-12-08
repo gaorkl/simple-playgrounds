@@ -10,7 +10,6 @@ objects in simple-playgrounds.
 from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
-import re
 from typing import Dict, Union, List, Optional, TYPE_CHECKING
 
 import numpy as np

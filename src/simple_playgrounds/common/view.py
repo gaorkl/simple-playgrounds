@@ -39,12 +39,11 @@ class View(ABC):
         if self._view_size[0] / self._size_on_playground[0] != self._view_size[1] / self._size_on_playground[1]:
             raise ValueError('Size of area covered on playground and output image should be the same.')
         self._zoom = self._view_size[0] / self._size_on_playground[0]
-
         # Matplotlib things
         fig, ax = plt.subplots(facecolor=background_color)
 
-        size = (self._size_on_playground[0]/100, self._size_on_playground[1]/100)
-        # fig.set_frameon(False)
+        size = (self._view_size[0]/100, self._view_size[1]/100)
+        # fig.set_frameon(False)``
         fig.set_dpi(100)
         fig.set_size_inches(size, forward=True)
         # fig.frameon = False

@@ -117,7 +117,7 @@ class Playground(ABC):
         self._disappeared_entities: List[Entity] = []
 
         # Timers to handle periodic events
-        self.done = False
+        self._done: bool = False
         self.initial_agent_coordinates: Optional[InitCoord] = None
 
         self._handle_interactions()
@@ -126,7 +126,7 @@ class Playground(ABC):
         self._shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
 
         self._teams = {}
-
+        
     @staticmethod
     def _initialize_space() -> pymunk.Space:
         """ Method to initialize Pymunk empty space for 2D physics.
@@ -167,6 +167,10 @@ class Playground(ABC):
     @property
     def _agents(self):
         return [ent for ent in self._entities if isinstance(ent, Agent)]
+
+    @property
+    def done(self):
+        return self._done
 
     def add_team(self, team):
         assert team not in self._teams

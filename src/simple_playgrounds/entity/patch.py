@@ -61,11 +61,10 @@ class Patch():
     def _update_patch_position(self):
 
         relative_position = (self._entity.position - self._view.position).rotated(-self._view.angle)
-        relative_position *= self._view.zoom
 
         if self._entity.contour.shape == GeometricShapes.POLYGON:
             vertices = self._entity.contour.get_rotated_vertices(self._entity.angle - self._view.angle)
-            vertices = np.asarray(vertices)*self._view.zoom + relative_position
+            vertices = np.asarray(vertices)
             self._patch.set(xy=vertices)
 
         elif self._entity.contour.shape == GeometricShapes.CIRCLE:
