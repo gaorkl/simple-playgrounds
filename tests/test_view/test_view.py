@@ -6,48 +6,13 @@ import pytest
 import numpy as np
 from matplotlib.colors import to_rgb
 from skimage import transform
+from simple_playgrounds.common import view
 
 from simple_playgrounds.playground.playground import EmptyPlayground
-from simple_playgrounds.common.view import FixedGlobalView
+from simple_playgrounds.common.view import AnchoredView, FixedGlobalView
 from simple_playgrounds.common.contour import Contour
 
 from ..mock_entities import MockPhysical
-
-
-@pytest.fixture(scope="module", params=[5, 10, 21])
-def radius(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[(0, 0), (20, 20), (-20, 20)])
-def position(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[0, math.pi/7])
-def angle(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=['circle', 'square', 'pentagon', 'triangle', 'hexagon'])
-def shape(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[(100, 100), (300, 300)])
-def size_on_pg(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[(50, 50), (150, 150)])
-def view_size(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=['black', 'white', 'orange', 'purple', 'grey'])
-def color_bg(request):
-    return request.param
-
 
 def test_empty_pg(size_on_pg, color_bg):
     """ Tests that background is set correctly """
@@ -67,7 +32,7 @@ def test_add_big_shape(size_on_pg, color_bg):
                            coordinates=((0, 0), 0), background_color=color_bg)
 
     contour = Contour(shape='circle', radius=size_on_pg[0]*2)
-    ent_1 = MockPhysical(contour=contour, transparent=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
     playground.add(ent_1, ((0, 0), 0))
 
     img = view.update_view()
@@ -83,7 +48,7 @@ def test_view_symmetric(shape, position, angle, radius, size_on_pg):
                                  coordinates=((0, 0), 0))
 
     contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, transparent=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
 
     playground.add(ent_1, (position, angle))
 
@@ -104,7 +69,7 @@ def test_view_random_rotation(shape, position, angle, radius, size_on_pg):
                            coordinates=((0, 0), 0))
 
     contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, transparent=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
 
     playground.add(ent_1, (position, angle))
     img = view.update_view()
@@ -117,13 +82,12 @@ def test_view_random_rotation(shape, position, angle, radius, size_on_pg):
     if shape != 'circle':
         assert np.any(img_rotated != img)
 
-# @pytest.fixture()
 
 def test_view_scale(shape, position, angle, radius, size_on_pg, view_size):
     
     playground = EmptyPlayground()
     contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, transparent=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
 
     playground.add(ent_1, (position, angle))
 
@@ -136,16 +100,25 @@ def test_view_scale(shape, position, angle, radius, size_on_pg, view_size):
     assert view_no_rescale.shape == (*size_on_pg, 3)
     assert view_rescale.shape == (*view_size, 3)
 
-    resized_view = transform.resize(view_no_rescale, view_size, anti_aliasing=False, preserve_range=True, order=0)
-    
-    # Because of approximations when resizing, we approximate also for testing.
-    total_pixels_equal = np.sum( ((resized_view == view_rescale) * 
-                                 (resized_view != np.zeros(resized_view.shape) )).prod(axis=2))
-    total_pixels_resized = np.sum( (resized_view != np.zeros(resized_view.shape)).prod(axis=2))
-    total_pixels_rescale = np.sum( (view_rescale != np.zeros(resized_view.shape)).prod(axis=2))
-   
 
-    assert resized_view.shape == view_rescale.shape
-    if radius > 10:
-        assert 2*total_pixels_equal/(total_pixels_rescale + total_pixels_resized) > 0.9
+def test_anchored(shape, position, angle, radius, size_on_pg):
+
+    playground = EmptyPlayground()
+    contour = Contour(shape=shape, radius=radius)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+
+    playground.add(ent_1, (position, angle))
+
+    view_anchored = AnchoredView(anchor=ent_1, size_on_playground=size_on_pg).update_view()
+
+    view_global = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
+                           coordinates=((0, 0), 0)).update_view()
+
+    if ent_1.position == (0,0) and (ent_1.angle == 0 or shape=='circle'): 
+        assert np.all(view_global == view_anchored)
+
+    else:
+        assert np.any(view_anchored != view_global)
+
+    assert np.all(view_anchored[int(size_on_pg[0]/2), int(size_on_pg[1]/2)] == ent_1.base_color)
     

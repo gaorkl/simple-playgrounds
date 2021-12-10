@@ -66,6 +66,10 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     def movable(self):
         return self._movable
 
+    @property
+    def transparent(self):
+        return self._transparent
+
     # BODY AND SHAPE
     def _set_pm_body(self):
 

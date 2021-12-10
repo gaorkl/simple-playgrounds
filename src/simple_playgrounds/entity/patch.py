@@ -5,6 +5,7 @@ import matplotlib.patches as mpatches
 import numpy as np
 
 from simple_playgrounds.common.contour import GeometricShapes
+from simple_playgrounds.common.definitions import VISIBLE_ALPHA, INVISIBLE_ALPHA
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.view import View
@@ -47,7 +48,13 @@ class Patch():
         self._view.add_patch(patch)
         return patch
 
-    def update(self):
+    def update(self, draw_invisible: bool = True):
+       
+        if self._entity.transparent:
+            if draw_invisible:
+                self._patch.set_alpha(INVISIBLE_ALPHA/255.)
+            else:
+                self._patch.set_alpha(0)
 
         self._update_patch_position()
         self._update_patch_appearance()

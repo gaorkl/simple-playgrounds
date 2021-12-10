@@ -1,17 +1,37 @@
+import random
+import math
+
+import pytest
+
 import numpy as np
+from matplotlib.colors import to_rgb
+from skimage import transform
+from simple_playgrounds.common import view
 
 from simple_playgrounds.playground.playground import EmptyPlayground
+from simple_playgrounds.common.view import AnchoredView, FixedGlobalView
+from simple_playgrounds.common.contour import Contour
+
 from ..mock_entities import MockPhysical
 
 
-def test_transparent(custom_contour):
+def test_transparent(shape, position, angle, radius, size_on_pg):
+    """ Rotating elements by the correct angle should lead to the same image """
+
     playground = EmptyPlayground()
-    view_empty = playground.view((0, 0), (50, 50))
+    view_global = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
+                                 coordinates=((0, 0), 0))
 
-    ent_1 = MockPhysical(contour=custom_contour, transparent=True, movable=True, mass=5)
-    playground.add(ent_1, ((10, 10), 0))
-    view_transparent = playground.view((0, 0), (50, 50))
-    assert np.all(view_transparent == view_empty)
+    view_empty = view_global.update_view()
+    
+    contour = Contour(shape=shape, radius=radius)
+    ent_1 = MockPhysical(contour=contour, transparent=True, movable=True, mass=5)
 
-    view_transparent_visible = playground.view((0, 0), (50, 50), draw_invisible=True)
-    assert not np.all(view_transparent == view_transparent_visible)
+    playground.add(ent_1, (position, angle))
+
+    view_draw_invisible = view_global.update_view(draw_invisible=True)
+    view_not_draw_invisible = view_global.update_view()
+    
+    assert np.all(view_empty == view_not_draw_invisible)
+    assert np.all(view_empty != view_draw_invisible)
+    

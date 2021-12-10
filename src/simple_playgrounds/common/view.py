@@ -9,26 +9,19 @@ if TYPE_CHECKING:
 
 import numpy as np
 from matplotlib import pyplot as plt
+# plt.rcParams.update({'figure.max_open_warning': 0})
 
 
 class View(ABC):
 
     def __init__(self,
-                 playground: Playground,
-                 size_on_playground: Optional[Tuple[int, int]] = None,
+                 size_on_playground: Tuple[int, int],
                  view_size: Optional[Tuple[int, int]] = None,
                  background_color: Optional[str] = 'black'
                  ):
 
-        self._playground = playground
-
-        # Define the size of the view on the playground
-        if size_on_playground:
-            self._size_on_playground = size_on_playground
-        elif self._playground.size:
-            self._size_on_playground = self._playground.size
-        else:
-            raise ValueError('Size of view should be set')
+        self._size_on_playground = size_on_playground
+        self._playground: Optional[Playground] = None
 
         if view_size:
             self._view_size = view_size
@@ -76,9 +69,21 @@ class View(ABC):
 
         self._ax.draw_artist(patch)
 
-    @abstractmethod
-    def update_view(self):
-        ...
+    def update_view(self, **kwargs):
+
+        self._canvas.draw()
+
+        assert self._playground
+        for entity in self._playground._physical_entities:
+            entity.update_view(self, **kwargs)
+
+        self._canvas.blit(self._fig.bbox)
+
+        self._canvas.flush_events()
+        image_from_plot = np.frombuffer(self._canvas.tostring_rgb(), dtype=np.uint8)
+        image_from_plot = image_from_plot.reshape(self._canvas.get_width_height()[::-1] + (3,))
+
+        return image_from_plot
 
     @property
     def size(self):
@@ -104,29 +109,26 @@ class View(ABC):
     @property
     def canvas(self):
         return self._canvas
-    
+   
+    def __del__(self):
+        plt.close(self._fig)
 
 class FixedGlobalView(View):
 
-    def __init__(self, coordinates: Coordinate, **kwargs):
+    def __init__(self, playground: Playground, coordinates: Coordinate, **kwargs):
 
+
+        # Define the size of the view on the playground
+        if not kwargs.get('size_on_playground', None):
+            if playground.size:
+                kwargs['size_on_playground'] = playground.size
+            else:
+                raise ValueError('Size of view should be set')
+        
         self._coordinates = coordinates
         super().__init__(**kwargs)
 
-    def update_view(self):
-
-        self._canvas.draw()
-
-        for entity in self._playground._physical_entities:
-            entity.update_view(self)
-
-        self._canvas.blit(self._fig.bbox)
-
-        self._canvas.flush_events()
-        image_from_plot = np.frombuffer(self._canvas.tostring_rgb(), dtype=np.uint8)
-        image_from_plot = image_from_plot.reshape(self._canvas.get_width_height()[::-1] + (3,))
-
-        return image_from_plot
+        self._playground = playground
 
     @property
     def center_coordinates(self):
@@ -138,10 +140,10 @@ class AnchoredView(View):
     def __init__(self, anchor: EmbodiedEntity, **kwargs):
 
         self._anchor = anchor
-        super().__init__(**kwargs)
+        assert self._anchor.playground
 
-    def update_view(self):
-        pass
+        super().__init__(**kwargs)
+        self._playground = self._anchor.playground
 
     @property
     def center_coordinates(self):

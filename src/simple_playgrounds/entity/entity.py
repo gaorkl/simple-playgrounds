@@ -251,7 +251,7 @@ class EmbodiedEntity(Entity, ABC):
 
         return pm_shape
 
-    def update_view(self, view: View):
+    def update_view(self, view: View, **kwargs):
 
         if view not in self._patches:
             patch = Patch(entity=self, view=view)
@@ -267,8 +267,8 @@ class EmbodiedEntity(Entity, ABC):
 
         if isinstance(view, FixedGlobalView) and not self.movable:
             return
-
-        patch.update()
+        
+        patch.update(**kwargs)
 
     @abstractmethod
     def _set_pm_shape(self):
