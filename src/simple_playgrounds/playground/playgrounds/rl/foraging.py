@@ -12,11 +12,6 @@ class CandyPosion(SingleRoom):
 
         super().__init__(size=(200, 200))
 
-        fireball_texture = {
-            'texture_type': 'centered_random_tiles',
-            'size_tiles': 4
-        }
-
         # Foraging
         area_prod = CoordinateSampler(center=(100, 100),
                                       area_shape='rectangle',
