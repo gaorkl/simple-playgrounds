@@ -2,8 +2,37 @@ from simple_playgrounds.playground.layouts import SingleRoom
 from simple_playgrounds.playground.playground import PlaygroundRegister
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory
 from simple_playgrounds.element.elements.aura import Fireball
-from simple_playgrounds.element.elements.contact import Candy
+from simple_playgrounds.element.elements.contact import Candy, Poison
 from simple_playgrounds.common.spawner import Spawner
+
+
+@PlaygroundRegister.register('basic_rl', 'candy_poison')
+class CandyPosion(SingleRoom):
+    def __init__(self, time_limit=100, probability_production=0.4):
+
+        super().__init__(size=(200, 200))
+
+        fireball_texture = {
+            'texture_type': 'centered_random_tiles',
+            'size_tiles': 4
+        }
+
+        # Foraging
+        area_prod = CoordinateSampler(center=(100, 100),
+                                      area_shape='rectangle',
+                                      size=(150, 150))
+
+        spawner = Spawner(Candy,
+                          production_area=area_prod,
+                          probability=probability_production)
+        self.add_spawner(spawner)
+
+        spawner = Spawner(Poison,
+                          production_area=area_prod,
+                          probability=probability_production)
+        self.add_spawner(spawner)
+
+        self.time_limit = time_limit
 
 
 @PlaygroundRegister.register('basic_rl', 'candy_fireballs')
