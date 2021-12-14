@@ -1,11 +1,16 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from abc import ABC, abstractmethod
 
 import pymunk
 
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, DEFAULT_INTERACTION_RANGE
 from simple_playgrounds.entity.entity import EmbodiedEntity
-from simple_playgrounds.entity.physical import PhysicalEntity
-from simple_playgrounds.common.contour import Contour
+if TYPE_CHECKING:
+    from simple_playgrounds.entity.physical import PhysicalEntity
+    from simple_playgrounds.common.contour import Contour
+    from simple_playgrounds.common.view import View
 
 
 class InteractiveEntity(EmbodiedEntity, ABC):
@@ -33,16 +38,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         """
         ...
 
-    def draw(self, surface, viewpoint, draw_transparent=False):
-
-        if not draw_transparent:
-            return
-
-        mask = self._create_mask(alpha=INVISIBLE_ALPHA)
-        mask_rect = mask.get_rect()
-        mask_rect.center = self.position - viewpoint
-        surface.blit(mask, mask_rect, None)
-
     def _set_shape_debug_color(self):
         self._pm_shape.color = tuple(list(self.base_color) + [INVISIBLE_ALPHA])
 
@@ -64,9 +59,10 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
+    def update_view(self, view: View, **kwargs):
+        return super().update_view(view, invisible= True, **kwargs)
 
 class StandAloneInteractive(InteractiveEntity, ABC):
-
     def _set_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 

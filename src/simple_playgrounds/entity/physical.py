@@ -1,14 +1,14 @@
 from __future__ import annotations
 from abc import ABC
 from typing import Optional, List, TYPE_CHECKING
+import pymunk
 
 import numpy as np
 
 if TYPE_CHECKING:
     from simple_playgrounds.entity.interactive import InteractiveEntity
-    from simple_playgrounds.common.position_utils import Coordinate
+    from simple_playgrounds.common.view import View
 
-import pymunk
 
 from simple_playgrounds.agent.actuator.actuators import Grasp
 from simple_playgrounds.common.contour import GeometricShapes
@@ -162,6 +162,11 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         if self._teams:
             entity.add_to_team(self._teams)
 
+    def update_view(self, view: View, **kwargs):
+        
+        return super().update_view(view, invisible = self._transparent, **kwargs)
+
+
     def pre_step(self):
         """
         Performs calculation before the physical environment steps.
@@ -175,23 +180,3 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         """
         self._move_to_initial_coordinates()
 
-    def draw_on_image(self,
-                      image: np.ndarray,
-                      point_of_view: Coordinate,
-                      image_ratio: Optional[float] = 1,
-                      draw_transparent: Optional[bool] = False):
-
-        if self._transparent and not draw_transparent:
-            return
-
-        mask = self._contour.compute_mask(angle=self.angle)
-        appearance = self._appearance.generate_image_mask(angle=self.angle)
-
-        if self._transparent:
-            appearance[:, :, 3] = INVISIBLE_ALPHA
-        else:
-            appearance[:, :, 3] = VISIBLE_ALPHA
-
-        mask_rect = mask.get_rect()
-        mask_rect.center = self.position - viewpoint
-        surface.blit(mask, mask_rect, None)

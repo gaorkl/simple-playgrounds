@@ -14,6 +14,7 @@ from simple_playgrounds.common.contour import Contour
 
 from ..mock_entities import MockPhysical
 
+
 def test_empty_pg(size_on_pg, color_bg):
     """ Tests that background is set correctly """
 
@@ -101,24 +102,4 @@ def test_view_scale(shape, position, angle, radius, size_on_pg, view_size):
     assert view_rescale.shape == (*view_size, 3)
 
 
-def test_anchored(shape, position, angle, radius, size_on_pg):
-
-    playground = EmptyPlayground()
-    contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
-
-    playground.add(ent_1, (position, angle))
-
-    view_anchored = AnchoredView(anchor=ent_1, size_on_playground=size_on_pg).update_view()
-
-    view_global = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                           coordinates=((0, 0), 0)).update_view()
-
-    if ent_1.position == (0,0) and (ent_1.angle == 0 or shape=='circle'): 
-        assert np.all(view_global == view_anchored)
-
-    else:
-        assert np.any(view_anchored != view_global)
-
-    assert np.all(view_anchored[int(size_on_pg[0]/2), int(size_on_pg[1]/2)] == ent_1.base_color)
-    
+   

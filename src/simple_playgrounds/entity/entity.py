@@ -202,7 +202,7 @@ class EmbodiedEntity(Entity, ABC):
 
     @property
     def movable(self):
-        return not isinstance(self._pm_body, pymunk.Body.STATIC) and not self._trajectory
+        return not self._pm_body.body_type == pymunk.Body.STATIC and not self._trajectory
 
     @property
     def contour(self):
@@ -254,7 +254,7 @@ class EmbodiedEntity(Entity, ABC):
     def update_view(self, view: View, **kwargs):
 
         if view not in self._patches:
-            patch = Patch(entity=self, view=view)
+            patch = Patch(entity=self, view=view, **kwargs)
             self._patches[view] = patch
 
         patch = self._patches[view]
@@ -265,10 +265,7 @@ class EmbodiedEntity(Entity, ABC):
             patch.remove_patch()
             return
 
-        if isinstance(view, FixedGlobalView) and not self.movable:
-            return
-        
-        patch.update(**kwargs)
+        patch.update()
 
     @abstractmethod
     def _set_pm_shape(self):

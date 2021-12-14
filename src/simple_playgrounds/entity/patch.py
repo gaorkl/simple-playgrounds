@@ -17,11 +17,23 @@ class Patch():
     def __init__(self,
                  entity: EmbodiedEntity,
                  view: View,
+                 **kwargs,
                  ) -> None:
 
         self._entity = entity
         self._view = view
         self._patch = self._create_patch()
+        self._set_alpha(**kwargs)
+
+    def _set_alpha(self, invisible = False, **kwargs):
+
+        if invisible:
+            alpha = INVISIBLE_ALPHA
+        else:
+            alpha = VISIBLE_ALPHA
+
+        self._patch.set_alpha(alpha/255.)
+    
 
     def _create_patch(self):
 
@@ -48,14 +60,8 @@ class Patch():
         self._view.add_patch(patch)
         return patch
 
-    def update(self, draw_invisible: bool = True):
+    def update(self):
        
-        if self._entity.transparent:
-            if draw_invisible:
-                self._patch.set_alpha(INVISIBLE_ALPHA/255.)
-            else:
-                self._patch.set_alpha(0)
-
         self._update_patch_position()
         self._update_patch_appearance()
 

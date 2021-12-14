@@ -17,8 +17,9 @@ class View(ABC):
     def __init__(self,
                  size_on_playground: Tuple[int, int],
                  view_size: Optional[Tuple[int, int]] = None,
-                 background_color: Optional[str] = 'black'
-                 ):
+                 draw_transparent: Optional[bool] = False,
+                 draw_interaction: Optional[bool] = False,
+                 **kwargs):
 
         self._size_on_playground = size_on_playground
         self._playground: Optional[Playground] = None
@@ -27,6 +28,13 @@ class View(ABC):
             self._view_size = view_size
         else:
             self._view_size = self._size_on_playground
+
+        self._create_fig(**kwargs)
+
+        self._draw_transparent = draw_transparent
+        self._draw_interaction = draw_interaction
+
+    def _create_fig(self, background_color: Optional[str] = 'black'):
 
         # check that input and output have same scale ratio
         if self._view_size[0] / self._size_on_playground[0] != self._view_size[1] / self._size_on_playground[1]:
@@ -69,17 +77,25 @@ class View(ABC):
 
         self._ax.draw_artist(patch)
 
-    def update_view(self, **kwargs):
+    def update_view(self):
 
         self._canvas.draw()
 
         assert self._playground
-        for entity in self._playground._physical_entities:
-            entity.update_view(self, **kwargs)
+        for entity in self._playground.physical_entities:
+            if entity.transparent:
+                if self._draw_transparent:
+                    entity.update_view(self)
+            else:
+                entity.update_view(self)
+
+        if self._draw_interaction:
+            for entity in self._playground.interactive_entities:
+                entity.update_view(self)
 
         self._canvas.blit(self._fig.bbox)
-
         self._canvas.flush_events()
+
         image_from_plot = np.frombuffer(self._canvas.tostring_rgb(), dtype=np.uint8)
         image_from_plot = image_from_plot.reshape(self._canvas.get_width_height()[::-1] + (3,))
 

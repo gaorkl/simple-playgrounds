@@ -19,6 +19,8 @@ import pymunk
 import numpy as np
 import pickle
 
+from simple_playgrounds.entity.interactive import InteractiveEntity
+
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import InitCoord
 
@@ -161,8 +163,12 @@ class Playground(ABC):
         return self._teams
 
     @property
-    def _physical_entities(self):
+    def physical_entities(self):
         return [ent for ent in self._entities if isinstance(ent, PhysicalEntity)]
+    
+    @property
+    def interactive_entities(self):
+        return [ent for ent in self._entities if isinstance(ent, InteractiveEntity)]
 
     @property
     def _agents(self):
