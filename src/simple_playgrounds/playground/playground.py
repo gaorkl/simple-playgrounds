@@ -19,7 +19,7 @@ import pymunk
 import numpy as np
 import pickle
 
-from simple_playgrounds.entity.interactive import InteractiveEntity
+from simple_playgrounds.entity.entities.interactive import InteractiveEntity
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import InitCoord
@@ -37,7 +37,7 @@ from simple_playgrounds.playground.collision_handlers import (gem_activates_elem
 from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, PymunkCollisionCategories
 from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.entity.entity import Entity, EmbodiedEntity
-from simple_playgrounds.entity.physical import PhysicalEntity
+from simple_playgrounds.entity.entities.physical import PhysicalEntity
 
 from simple_playgrounds.agent.actuator.actuator import Actuator
 

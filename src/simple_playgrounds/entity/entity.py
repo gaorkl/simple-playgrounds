@@ -24,9 +24,9 @@ import pymunk
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY
 
 from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
-from simple_playgrounds.common.appearance.appearance import Appearance
+from simple_playgrounds.entity.appearance.appearance import Appearance
 
-from simple_playgrounds.common.contour import Contour, GeometricShapes
+from simple_playgrounds.entity.contour import Contour, GeometricShapes
 from simple_playgrounds.common.view import FixedGlobalView, AnchoredView
 from simple_playgrounds.entity.patch import Patch
 

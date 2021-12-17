@@ -2,6 +2,7 @@ import random
 import math
 
 import pytest
+import pymunk
 
 import numpy as np
 from matplotlib.colors import to_rgb
@@ -10,9 +11,11 @@ from simple_playgrounds.common import view
 
 from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.view import AnchoredView, FixedGlobalView
-from simple_playgrounds.common.contour import Contour
+from simple_playgrounds.entity.contour import Contour
 
 from ..mock_entities import MockPhysical
+
+import matplotlib.pyplot as plt
 
 
 def test_anchored(shape, position, angle, radius, size_on_pg):
@@ -44,23 +47,20 @@ def test_anchored_relative(shape):
 
     ent_1 = MockPhysical(contour=contour, mass=5, movable=True)
     playground.add(ent_1, ((0,0), 0))
-    view_anchored_1 = AnchoredView(anchor=ent_1, size_on_playground=(200, 200))
+    view_anchored_1 = AnchoredView(anchor=ent_1, draw_transparent=True, size_on_playground=(200, 200))
 
     ent_2 = MockPhysical(contour=contour)
     playground.add(ent_2, ((50, 50), 0))
-    view_anchored_2 = AnchoredView(anchor=ent_1, size_on_playground=(200, 200))
     
-    img_orig_1 = view_anchored_1.update_view()
-    img_orig_2 = view_anchored_2.update_view()
-
+    view_anchored_2 = AnchoredView(anchor=ent_2, draw_transparent=True, size_on_playground=(200, 200))
+    
     for angle in range(1, contour.shape.value):
 
-        ent_1.move_to(((0,0), angle*math.pi/contour.shape.value))
+        angle_rad = angle*2*math.pi/contour.shape.value
+        ent_1.move_to(((0,0), angle_rad ))
         img_rotated_1 = view_anchored_1.update_view()
-        img_rotated_2 = view_anchored_2.update_view()
 
-        assert np.all( img_rotated_2 == img_orig_2 )
-        assert np.any( img_rotated_1 != img_orig_1 )
+        x, y = ent_2.position.rotated(-angle_rad).int_tuple
+        r, c = 100-y, 100+x
 
-        
-        
+        assert np.all(img_rotated_1[r, c] == ent_1.base_color)

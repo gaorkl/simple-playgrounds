@@ -5,7 +5,7 @@ from typing import Optional, Tuple, TYPE_CHECKING
 import pymunk
 
 if TYPE_CHECKING:
-    from simple_playgrounds.common.contour import Contour
+    from simple_playgrounds.entity.contour import Contour
 
 from abc import ABC, abstractmethod
 import numpy as np

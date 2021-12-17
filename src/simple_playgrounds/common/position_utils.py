@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from simple_playgrounds.common.contour import Contour
+from simple_playgrounds.entity.contour import Contour
 
 
 Coordinate = Tuple[Tuple[float, float], float]

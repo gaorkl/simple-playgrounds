@@ -1,12 +1,13 @@
-from simple_playgrounds.engine import Engine
-from simple_playgrounds.playground.layouts import SingleRoom
 from simple_playgrounds.agent.agents import BaseAgent
 from simple_playgrounds.agent.controllers import External
+from simple_playgrounds.playground.playground import EmptyPlayground
+from simple_playgrounds.entity.contour import Contour
 
+from tests.mock_entities import MockPhysical
 
-def test_moving_element(basic_element):
-    playground = SingleRoom(size=(200, 200))
-
+def test_moving_element():
+    playground = EmptyPlayground()
+    
     agent = BaseAgent(
         controller=External(),
         interactive=False,
@@ -15,7 +16,15 @@ def test_moving_element(basic_element):
     )
     actions = {agent: {agent.longitudinal_force: 1.}}
 
-    playground.add_agent(agent, ((50, 100), 0))
+    playground.add(agent, ((50, 100), 0))
+    
+    
+    contour = Contour(shape='circle', radius=size_on_pg[0]*2)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+    playground.add(ent_1, ((0, 0), 0))
+
+
+
     playground.add_element(basic_element, ((100, 100), 0))
 
     engine = Engine(playground, time_limit=100)

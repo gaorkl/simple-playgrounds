@@ -6,12 +6,12 @@ import pymunk
 import numpy as np
 
 if TYPE_CHECKING:
-    from simple_playgrounds.entity.interactive import InteractiveEntity
+    from simple_playgrounds.entity.entities.interactive import InteractiveEntity
     from simple_playgrounds.common.view import View
 
 
 from simple_playgrounds.agent.actuator.actuators import Grasp
-from simple_playgrounds.common.contour import GeometricShapes
+from simple_playgrounds.entity.contour import GeometricShapes
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, \
     VISIBLE_ALPHA
 

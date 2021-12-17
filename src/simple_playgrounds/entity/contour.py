@@ -1,8 +1,8 @@
 from typing import Optional, Tuple, List, Union
 from enum import IntEnum, auto
 
-import numpy as np
 import math
+import numpy as np
 import pymunk
 
 import skimage.draw

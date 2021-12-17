@@ -22,6 +22,11 @@ def shape(request):
     return request.param
 
 
+@pytest.fixture(scope="module", params=['square', 'pentagon', 'triangle', 'hexagon'])
+def poly_shape(request):
+    return request.param
+
+
 @pytest.fixture(scope="module", params=[(100, 100), (300, 300)])
 def size_on_pg(request):
     return request.param
