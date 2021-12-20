@@ -67,13 +67,13 @@ class StandAloneInteractive(InteractiveEntity, ABC):
     def _set_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 
-    def _add_pm_elements(self, **kwargs):
+    def _add_to_playground(self, **kwargs):
         self._playground.space.add(self._pm_body, self._pm_shape)
 
         self._set_initial_coordinates(**kwargs)
         self._move_to_initial_coordinates()
 
-    def _remove_pm_elements(self):
+    def _remove_from_playground(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)
 
 
@@ -93,10 +93,10 @@ class AnchoredInteractive(InteractiveEntity, ABC):
     def _set_pm_body(self):
         return self._anchor._pm_body
 
-    def _add_pm_elements(self):
+    def _add_to_playground(self):
         self._playground.space.add(self._pm_shape)
         self._playground.add_to_mappings(entity=self)
 
-    def _remove_pm_elements(self):
+    def _remove_from_playground(self):
         self._playground.space.remove(self._pm_shape)
         self.playground.remove_from_mappings(entity=self)

@@ -93,7 +93,7 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     def _set_shape_debug_color(self):
         self._pm_shape.color = tuple(list(self.base_color) + [VISIBLE_ALPHA])
 
-    def _add_pm_elements(self, **kwargs):
+    def _add_to_playground(self, **kwargs):
         self._playground.space.add(self._pm_body, self._pm_shape)
 
         self._set_initial_coordinates(**kwargs)
@@ -102,7 +102,7 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         for interactive in self._interactives:
             interactive.add_to_playground(self._playground)
 
-    def _remove_pm_elements(self):
+    def _remove_from_playground(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)
 
         for interactive in self._interactives:
