@@ -6,11 +6,11 @@ from abc import ABC, abstractmethod
 import pymunk
 
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, DEFAULT_INTERACTION_RANGE
-from simple_playgrounds.entity.entity import EmbodiedEntity
-from simple_playgrounds.entity.contour import Contour
+from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
+from simple_playgrounds.entity.embodied.contour import Contour
 
 if TYPE_CHECKING:
-    from simple_playgrounds.entity.entities.physical import PhysicalEntity
+    from simple_playgrounds.entity.embodied.physical import PhysicalEntity
     from simple_playgrounds.common.view import View
 
 

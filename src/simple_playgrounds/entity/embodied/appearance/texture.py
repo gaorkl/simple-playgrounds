@@ -14,7 +14,7 @@ import pymunk
 from skimage.transform import resize
 from skimage import draw
 
-from simple_playgrounds.entity.appearance.appearance import Appearance
+from simple_playgrounds.entity.embodied.appearance.appearance import Appearance
 
 
 class ColorTexture(Appearance):

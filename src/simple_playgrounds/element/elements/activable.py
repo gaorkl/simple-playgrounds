@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from abc import ABC
 
 from simple_playgrounds.common.definitions import CollisionTypes, ElementTypes
-from simple_playgrounds.common.timer import Timer, CountDownTimer
+from simple_playgrounds.entity.timer.timer import Timer, CountDownTimer
 from simple_playgrounds.common.position_utils import CoordinateSampler
 from simple_playgrounds.configs.parser import parse_configuration
 

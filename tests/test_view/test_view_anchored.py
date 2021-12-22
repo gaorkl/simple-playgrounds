@@ -11,7 +11,7 @@ from simple_playgrounds.common import view
 
 from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.view import AnchoredView, FixedGlobalView
-from simple_playgrounds.entity.contour import Contour
+from simple_playgrounds.entity.embodied.contour import Contour
 
 from ..mock_entities import MockPhysical
 

@@ -2,11 +2,11 @@ from typing import Optional
 
 import pymunk
 
-from simple_playgrounds.entity.entities.interactive import StandAloneInteractive, AnchoredInteractive
-from simple_playgrounds.entity.entities.physical import PhysicalEntity
+from simple_playgrounds.entity.embodied.interactive import StandAloneInteractive, AnchoredInteractive
+from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 from simple_playgrounds.common.definitions import CollisionTypes, PymunkCollisionCategories
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
-from simple_playgrounds.entity.appearance.texture import ColorTexture
+from simple_playgrounds.entity.embodied.appearance.texture import ColorTexture
 
 
 class MockPhysical(PhysicalEntity):
@@ -14,7 +14,7 @@ class MockPhysical(PhysicalEntity):
     def __init__(self, **kwargs):
         super().__init__(appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
 
-    def update(self):
+    def post_step(self):
         pass
 
 
@@ -27,7 +27,7 @@ class MockHaloTrigger(AnchoredInteractive):
     def pre_step(self):
         self.activated = False
 
-    def update(self):
+    def post_step(self):
         pass
 
     def reset(self):
@@ -58,7 +58,7 @@ class MockZoneTrigger(StandAloneInteractive):
     def pre_step(self):
         self.activated = False
 
-    def update(self):
+    def post_step(self):
         pass
 
     def reset(self):
@@ -97,7 +97,7 @@ class MockBarrier(PhysicalEntity):
 
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
-    def update(self):
+    def post_step(self):
         pass
 
 

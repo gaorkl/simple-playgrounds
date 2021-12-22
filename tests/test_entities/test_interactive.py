@@ -1,4 +1,4 @@
-from simple_playgrounds.entity.contour import Contour
+from simple_playgrounds.entity.embodied.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.definitions import CollisionTypes
 

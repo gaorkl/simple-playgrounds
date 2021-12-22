@@ -1,7 +1,7 @@
 from simple_playgrounds.agent.agents import BaseAgent
 from simple_playgrounds.agent.controllers import External
 from simple_playgrounds.playground.playground import EmptyPlayground
-from simple_playgrounds.entity.contour import Contour
+from simple_playgrounds.entity.embodied.contour import Contour
 
 from tests.mock_entities import MockPhysical
 

@@ -1,11 +1,13 @@
 """
 Module that defines Base Class SceneElement
 """
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, TYPE_CHECKING
 
-from ..entity.entities.physical import PhysicalEntity
-from ..common.position_utils import InitCoord
+if TYPE_CHECKING:
+    from simple_playgrounds.common.position_utils import InitCoord
+from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 
 
 class SceneElement(PhysicalEntity, ABC):

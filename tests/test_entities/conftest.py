@@ -1,6 +1,6 @@
 import pytest
 
-from simple_playgrounds.entity.contour import Contour
+from simple_playgrounds.entity.embodied.contour import Contour
 
 
 @pytest.fixture(scope="module", params=['circle', 'square', 'rectangle', 'polygon'])

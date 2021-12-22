@@ -7,14 +7,14 @@ import math
 from collections.abc import Generator
 from typing import Tuple, Optional, Union, List, TYPE_CHECKING
 if TYPE_CHECKING:
-    from simple_playgrounds.entity.entity import EmbodiedEntity
+    from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
 
 from abc import ABC, abstractmethod
 
 import numpy as np
 
-from simple_playgrounds.entity.contour import Contour
+from simple_playgrounds.entity.embodied.contour import Contour
 
 
 Coordinate = Tuple[Tuple[float, float], float]
@@ -263,7 +263,7 @@ class Trajectory(Generator):
 
         return trajectory_points
 
-    def send(self, ignored_args):
+    def send(self, ignored_args) -> Coordinate:
         """ Function for generator. Sends current position, then changes current position depending on rotation side.
 
         Args:

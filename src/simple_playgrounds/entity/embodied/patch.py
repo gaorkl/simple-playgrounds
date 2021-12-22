@@ -4,12 +4,12 @@ from typing import Optional, TYPE_CHECKING
 import matplotlib.patches as mpatches
 import numpy as np
 
-from simple_playgrounds.entity.contour import GeometricShapes
+from simple_playgrounds.entity.embodied.contour import GeometricShapes
 from simple_playgrounds.common.definitions import VISIBLE_ALPHA, INVISIBLE_ALPHA
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.view import View
-    from simple_playgrounds.entity.entity import EmbodiedEntity
+    from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
 
 class Patch():

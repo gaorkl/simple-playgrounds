@@ -19,7 +19,7 @@ import pymunk
 import numpy as np
 import pickle
 
-from simple_playgrounds.entity.entities.interactive import InteractiveEntity
+from simple_playgrounds.entity.embodied.interactive import InteractiveEntity
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import InitCoord
@@ -36,8 +36,9 @@ from simple_playgrounds.playground.collision_handlers import (gem_activates_elem
 
 from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, PymunkCollisionCategories
 from simple_playgrounds.agent.agent import Agent
-from simple_playgrounds.entity.entity import Entity, EmbodiedEntity
-from simple_playgrounds.entity.entities.physical import PhysicalEntity
+from simple_playgrounds.entity.entity import Entity
+from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
+from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 
 from simple_playgrounds.agent.actuator.actuator import Actuator
 
@@ -126,6 +127,7 @@ class Playground(ABC):
         self._timestep: Timestep = 0
 
         self._shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
+        self._entity_name_count: Dict[type, int] = {}
 
         self._teams = {}
         
@@ -163,16 +165,23 @@ class Playground(ABC):
         return self._teams
 
     @property
+    def entities(self):
+        return self._entities
+
+    @property
     def physical_entities(self):
-        return [ent for ent in self._entities if isinstance(ent, PhysicalEntity)]
+        return [ent for ent in self._entities 
+                if isinstance(ent, PhysicalEntity)]
     
     @property
     def interactive_entities(self):
-        return [ent for ent in self._entities if isinstance(ent, InteractiveEntity)]
+        return [ent for ent in self._entities 
+                if isinstance(ent, InteractiveEntity)]
 
     @property
     def _agents(self):
-        return [ent for ent in self._entities if isinstance(ent, Agent)]
+        return [ent for ent in self._entities 
+                if isinstance(ent, Agent)]
 
     @property
     def done(self):
@@ -182,6 +191,12 @@ class Playground(ABC):
         assert team not in self._teams
         team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
         self._teams[team] = team_index
+
+    def get_name(self, entity: Entity):
+        index = self._entity_name_count.get(type(entity), 0)
+        self._entity_name_count[type(entity)] = index + 1
+        name = type(entity).__name__ + '_' + str(index)
+        return name
 
     def update_teams(self):
         for entity in self._entities:
@@ -298,7 +313,7 @@ class Playground(ABC):
             self.space.step(1. / pymunk_steps)
 
         for entity in self._entities:
-            entity.update()
+            entity.post_step()
 
         self._timestep += 1
 

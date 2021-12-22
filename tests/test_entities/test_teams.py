@@ -1,4 +1,4 @@
-from simple_playgrounds.entity.contour import Contour
+from simple_playgrounds.entity.embodied.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 
 # Add test Interactions to collisions

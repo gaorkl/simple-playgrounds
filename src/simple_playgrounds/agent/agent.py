@@ -20,12 +20,12 @@ if TYPE_CHECKING:
     from pygame import Surface
     from simple_playgrounds.device.communication import CommunicationDevice
 
+    from simple_playgrounds.playground.playground import Action, ActionDict
 from abc import ABC, abstractmethod
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from simple_playgrounds.entity import Entity
-from simple_playgrounds.playground.playground import Action, ActionDict
+from simple_playgrounds.entity.entity import Entity
 
 from simple_playgrounds.common.position_utils import (CoordinateSampler,
                                                       Coordinate,
@@ -257,11 +257,9 @@ class Agent(Entity, ABC):
     def move(self, coord: Coordinate):
 
         position, angle = coord
-        
-        
 
         for part in self._parts:
-            if part isinstance(part, Platform):
+            if isinstance(part, Platform):
                 part.position, part.angle = position, angle
             elif isinstance(part, AnchoredPart):
                 part.set_relative_coordinates()

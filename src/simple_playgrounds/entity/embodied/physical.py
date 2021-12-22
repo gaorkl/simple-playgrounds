@@ -6,16 +6,16 @@ import pymunk
 import numpy as np
 
 if TYPE_CHECKING:
-    from simple_playgrounds.entity.entities.interactive import InteractiveEntity
+    from simple_playgrounds.entity.embodied.interactive import InteractiveEntity
     from simple_playgrounds.common.view import View
 
 
 from simple_playgrounds.agent.actuator.actuators import Grasp
-from simple_playgrounds.entity.contour import GeometricShapes
+from simple_playgrounds.entity.embodied.contour import GeometricShapes
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, \
     VISIBLE_ALPHA
 
-from simple_playgrounds.entity.entity import EmbodiedEntity
+from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
 
 class PhysicalEntity(EmbodiedEntity, ABC):
