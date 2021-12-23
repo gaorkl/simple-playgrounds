@@ -5,3 +5,4 @@ scikit-image
 pillow
 pytest
 matplotlib
+gym

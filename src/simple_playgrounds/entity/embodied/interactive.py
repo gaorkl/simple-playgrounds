@@ -20,8 +20,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         super().__init__(**kwargs)
 
-        self._set_pm_collision_type()
-
     def _set_pm_shape(self):
         pm_shape = self._create_pm_shape()
         pm_shape.sensor = True
@@ -32,17 +30,12 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         return pm_shape
 
-    @abstractmethod
-    def _set_pm_collision_type(self):
-        """
-        Set the collision handler for the interactive shape.
-        """
-        ...
-
     def _set_shape_debug_color(self):
         self._pm_shape.color = tuple(list(self.base_color) + [INVISIBLE_ALPHA])
 
     def update_team_filter(self):
+
+        assert self._playground
 
         if not self._teams:
             return
@@ -61,7 +54,7 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
     def update_view(self, view: View, **kwargs):
-        return super().update_view(view, invisible= True, **kwargs)
+        return super().update_view(view, invisible=True, **kwargs)
 
 class StandAloneInteractive(InteractiveEntity, ABC):
     def _set_pm_body(self):

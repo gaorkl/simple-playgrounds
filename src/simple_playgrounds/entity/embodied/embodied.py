@@ -70,6 +70,15 @@ class EmbodiedEntity(Entity, ABC):
         # Patch to display the entity in TopDown view
         self._patches: Dict[View, Patch] = {}
 
+        self._set_pm_collision_type()
+
+    @abstractmethod
+    def _set_pm_collision_type(self):
+        """
+        Set the collision handler for the interactive shape.
+        """
+        ...
+
     @property
     def pm_shape(self):
         return self._pm_shape

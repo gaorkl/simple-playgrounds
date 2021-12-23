@@ -10,6 +10,8 @@ Examples can be found in simple_playgrounds/agents/agents.py
 from __future__ import annotations
 
 from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
+from gym.spaces import space
+
 
 if TYPE_CHECKING:
     from simple_playgrounds.device.sensor import SensorDevice
@@ -117,7 +119,7 @@ class Agent(Entity, ABC):
         return obs
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> Dict[SensorDevice, space.Space]:
         return {sens: sens.observation_space for sens in self._sensors}
 
     ################
@@ -125,8 +127,8 @@ class Agent(Entity, ABC):
     ################
 
     @property
-    def action_space(self):
-        return {sens: sens.action_space for sens in self._sensors}
+    def action_space(self) -> Dict[Part, space.Space]:
+        return {part: part.action_space for part in self._parts}
 
     @property
     def null_actions(self):
