@@ -19,20 +19,20 @@ import pymunk
 import numpy as np
 import pickle
 
-from simple_playgrounds.entity.embodied.interactive import InteractiveEntity
+from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive, InteractiveEntity, StandAloneInteractive
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import InitCoord
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
-from simple_playgrounds.playground.collision_handlers import (gem_activates_element,
-                                                              agent_activates_element,
-                                                              agent_touches_element,
-                                                              agent_grasps_element,
-                                                              agent_teleports,
-                                                              modifier_modifies_device
-                                                              )
+# from simple_playgrounds.playground.collision_handlers import (gem_activates_element,
+#                                                               agent_activates_element,
+#                                                               agent_touches_element,
+#                                                               agent_grasps_element,
+#                                                               agent_teleports,
+#                                                               modifier_modifies_device
+#                                                               )
 
 from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, PymunkCollisionCategories
 from simple_playgrounds.agent.agent import Agent
@@ -40,7 +40,8 @@ from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 
-from simple_playgrounds.agent.actuator.actuator import Actuator
+from simple_playgrounds.agent.part.part import Part
+from simple_playgrounds.agent.command import Command
 
 from simple_playgrounds.agent.sensor.sensors.semantic import Detection
 from simple_playgrounds.agent.sensor.sensor import SensorDevice
@@ -53,12 +54,12 @@ ScalarReward = int
 Message = Union[np.ndarray, str]
 
 AgentIdentifier = Union[str, Agent]
-ActuatorIdentifier = Union[str, Actuator]
+CommandIdentifier = Union[str, Command]
 SensorIdentifier = Union[str, SensorDevice]
 
 Action = Union[float, Message]
 AgentAction = Union[
-    Dict[ActuatorIdentifier, Action],
+    Dict[CommandIdentifier, Action],
     np.ndarray]
 ActionDict = Dict[AgentIdentifier, AgentAction]
 
@@ -114,23 +115,20 @@ class Playground(ABC):
         self.space = self._initialize_space()
 
         # Public attributes for entities in the playground
-        self._entities: List[Entity] = []
-
-        # Private attributes for managing interactions in playground
+        self._embodied_entities: List[EmbodiedEntity] = []
+        self._agents: List[Agent] = []
         self._disappeared_entities: List[Entity] = []
-
-        # Timers to handle periodic events
+        self._teams = {}
+        
+        # Private attributes for managing interactions in playground
         self._done: bool = False
-        self.initial_agent_coordinates: Optional[InitCoord] = None
-
-        self._handle_interactions()
         self._timestep: Timestep = 0
 
         self._shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
         self._entity_name_count: Dict[type, int] = {}
 
-        self._teams = {}
-        
+        # self._handle_interactions()
+
     @staticmethod
     def _initialize_space() -> pymunk.Space:
         """ Method to initialize Pymunk empty space for 2D physics.
@@ -143,6 +141,15 @@ class Playground(ABC):
         space.damping = SPACE_DAMPING
 
         return space
+
+    ##################
+    # Playground
+    ##################
+
+    @property
+    @abstractmethod
+    def initial_agent_coordinates(self):
+        ...
 
     @property
     def rng(self):
@@ -161,36 +168,40 @@ class Playground(ABC):
         return self._timestep
 
     @property
+    def done(self):
+        return self._done
+
+    ###############
+    # Entities
+    ###############
+
+    @property
     def teams(self):
         return self._teams
 
     @property
-    def entities(self):
-        return self._entities
-
-    @property
     def physical_entities(self):
-        return [ent for ent in self._entities 
+        return [ent for ent in self._embodied_entities 
                 if isinstance(ent, PhysicalEntity)]
     
     @property
     def interactive_entities(self):
-        return [ent for ent in self._entities 
+        return [ent for ent in self._embodied_entities 
                 if isinstance(ent, InteractiveEntity)]
 
     @property
-    def _agents(self):
-        return [ent for ent in self._entities 
-                if isinstance(ent, Agent)]
+    def agents(self):
+        return self._agents
 
     @property
-    def done(self):
-        return self._done
+    def _entities(self):
+        return self._embodied_entities + self._agents
 
     def add_team(self, team):
         assert team not in self._teams
         team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
         self._teams[team] = team_index
+        self._update_teams()
 
     def get_name(self, entity: Entity):
         index = self._entity_name_count.get(type(entity), 0)
@@ -198,7 +209,7 @@ class Playground(ABC):
         name = type(entity).__name__ + '_' + str(index)
         return name
 
-    def update_teams(self):
+    def _update_teams(self):
         for entity in self._entities:
             entity.update_team_filter()
 
@@ -355,11 +366,11 @@ class Playground(ABC):
         """
 
         # remove physical entities from playground to replace them later.
-        for entity in self._physical_entities:
+        for entity in self.physical_entities:
             if entity.held_by:
                 entity.held_by.release_grasp()
 
-            self.remove(entity)
+            self.remove(entity, definitive=False)
 
         # reset entities that are non physical
         for entity in self._entities:
@@ -378,34 +389,45 @@ class Playground(ABC):
 
         return obs, rew, self.done
 
-    def add(self,
-            entity: Entity,
-            initial_coordinates: Optional[InitCoord] = None,
-            **kwargs,
-            ):
+    def add_to_mappings(self, entity, **_):
+        
+        if isinstance(entity, Agent):
+            self._agents.append(entity)
 
-        if isinstance(entity, EmbodiedEntity):
-            self.add_to_mappings(entity)
+        elif isinstance(entity, PhysicalEntity):
+            self._embodied_entities.append(entity)
 
-        entity.add_to_playground(self, initial_coordinates=initial_coordinates, **kwargs)
+        elif isinstance(entity, StandAloneInteractive):
+            self._embodied_entities.append(entity)
 
-    def add_to_mappings(self, entity):
-        self._entities.append(entity)
+        else: 
+            if not isinstance(entity, AnchoredInteractive):
+                raise ValueError
+            
         self._shapes_to_entities[entity.pm_shape] = entity
-
+       
     def remove(self,
                entity: EmbodiedEntity,
-               definitive: Optional[bool] = False,
+               definitive: Optional[bool] = True,
                ):
 
         self.remove_from_mappings(entity)
-        entity.remove_from_playground()
+        entity.remove_from_pymunk_space()
 
         if not definitive and not entity.temporary:
             self._disappeared_entities.append(entity)
 
     def remove_from_mappings(self, entity):
-        self._entities.remove(entity)
+        
+        if isinstance(entity, Agent):
+            self._agents.remove(entity)
+
+        elif isinstance(entity, PhysicalEntity):
+            self._embodied_entities.remove(entity)
+
+        elif isinstance(entity, StandAloneInteractive):
+            self._embodied_entities.remove(entity)
+        
         self._shapes_to_entities.pop(entity.pm_shape)
 
     @abstractmethod
@@ -418,25 +440,33 @@ class Playground(ABC):
 
     def get_entity_from_shape(self, shape: pymunk.Shape):
         assert shape in self._shapes_to_entities.keys()
-        return self._shapes_to_entities[shape]
+        
+        entity = self._shapes_to_entities[shape]
 
-    def _handle_interactions(self):
+        if isinstance(entity, Part):
+            return entity.agent
 
-        # Order is important
+        return entity
+        
 
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.GRASPABLE,
-                             agent_grasps_element)
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
-                             agent_touches_element)
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.ACTIVABLE,
-                             agent_activates_element)
-        self.add_interaction(CollisionTypes.GEM,
-                             CollisionTypes.ACTIVABLE_BY_GEM,
-                             gem_activates_element)
-        self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
-                             agent_teleports)
-        self.add_interaction(CollisionTypes.MODIFIER, CollisionTypes.DEVICE,
-                             modifier_modifies_device)
+
+#     def _handle_interactions(self):
+
+#         # Order is important
+
+#         self.add_interaction(CollisionTypes.PART, CollisionTypes.GRASPABLE,
+#                              agent_grasps_element)
+#         self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
+#                              agent_touches_element)
+#         self.add_interaction(CollisionTypes.PART, CollisionTypes.ACTIVABLE,
+#                              agent_activates_element)
+#         self.add_interaction(CollisionTypes.GEM,
+#                              CollisionTypes.ACTIVABLE_BY_GEM,
+#                              gem_activates_element)
+#         self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
+#                              agent_teleports)
+#         self.add_interaction(CollisionTypes.MODIFIER, CollisionTypes.DEVICE,
+#                              modifier_modifies_device)
 
     def add_interaction(
         self,
@@ -492,6 +522,10 @@ class PlaygroundRegister:
 
 
 class EmptyPlayground(Playground):
+
+    @property
+    def initial_agent_coordinates(self):
+        return (0, 0), 0
 
     def within_playground(self, coordinates):
         return True

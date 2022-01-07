@@ -1,7 +1,22 @@
 import pytest
-from simple_playgrounds.playground.playground import EmptyPlayground
 
-from tests.mock_entities import MockPhysical, MockBarrier, MockAgent
+from simple_playgrounds.playground.playground import EmptyPlayground
+from tests.mock_agents import MockAgent
+from tests.mock_entities import MockBarrier, MockPhysical
+from simple_playgrounds.entity.embodied.contour import Contour
+
+def test_agent_in_playground():
+
+    agent = MockAgent()
+    playground = EmptyPlayground()
+    
+    playground.add(agent)
+    assert agent in playground.agents
+
+    playground.remove(agent)
+    assert agent not in playground.agents
+    assert not playground.space.shapes
+    assert playground._shapes_to_entities == {}
 
 
 def test_agent_initial_position():
@@ -11,12 +26,24 @@ def test_agent_initial_position():
     
     playground.add(agent)
 
-    assert agent.position == (0,0)
+    assert agent.position == (0, 0)
     assert agent.angle == 0
 
 
 def test_agent_forward_movable():
-    pass
+ 
+    agent = MockAgent()
+    playground = EmptyPlayground()
+    
+    playground.add(agent)
+
+    contour = Contour(shape='circle', radius=10)
+    obstacle = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
+    playground.add(obstacle, ((50, 0), 0))
+
+    actions = {}
+    for command in agent.commands:
+        actions[command] = command.max
 
 
 def test_agent_forward_obstacle():

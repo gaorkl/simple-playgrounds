@@ -9,7 +9,8 @@ objects in simple-playgrounds.
 """
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Optional, TYPE_CHECKING
+from typing import Any, List, Optional, TYPE_CHECKING, Union
+import numpy as np
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
@@ -22,76 +23,62 @@ class Entity(ABC):
     Entity can belong to one or multiple teams.
     """
 
-    def __init__(self, name: Optional[str] = None, **kwargs):
+    def __init__(self, 
+                 playground: Playground,
+                 name: Optional[str] = None,
+                 **kwargs):
 
-        self._name: Optional[str] = name
-        self._playground: Optional[Playground] = None
+        self._playground = playground
         self._teams: List[str] = []
+
+        self._name = name
+        if not name:
+            self._name = self._playground.get_name(self)
+
+        self._add_to_teams(**kwargs)
+        self._playground.add_to_mappings(self, **kwargs)
 
     @property
     def playground(self):
         return self._playground
 
     @property
+    def rng(self):
+        return self._playground.rng
+
+    @property
     def name(self):
         return self._name
 
-    def add_to_playground(self, playground: Playground, **kwargs):
-        if self._playground:
-            assert self in playground.entities
-            raise ValueError('Entity {} already in a Playground'.format(
-                self._name))
+    def _add_to_teams(self, teams: List[Any] = [], **kwargs):
 
-        self._playground = playground
+        for team in teams:
 
-        # If in a team when added to the playground, add the team.
-        for team in self._teams:
-            if team not in self._playground.teams:
+            self._teams.append(team)
+            if team not in self._playground.teams.keys():
                 self._playground.add_team(team)
+                self._playground.update_team_filter()
 
-        self._playground.update_teams()
+    def remove(self, definitive: bool = True):
 
-        if not self._name:
-            self._name = self._playground.get_name(self)
+        self._remove_from_pymunk_space()
+        
+        if disappear
 
-        # One new filters have been resolved, add to playground
-        self._add_to_playground(**kwargs)
-
-    @abstractmethod
-    def _add_to_playground(self, **kwargs):
-        """
-        In the case of basic entities, Add pymunk elements to playground space.
-        In the case of complex entities (e.g agents), add entities that compose
-        this entity.
-
-        Add entity to lists or dicts in playground.
-        """
-        ...
-
-    def remove_from_playground(self):
-        self._remove_from_playground()
-        self._playground = None
 
     @abstractmethod
-    def _remove_from_playground(self):
+    def remove_from_pymunk_space(self):
         """
         Remove pymunk elements from playground space.
         Remove entity from lists or dicts in playground.
         """
 
-    def add_to_team(self, team):
-        self._teams.append(team)
-
-        # If already in playground, add the team
-        if self._playground:
-
-            if team not in self._playground.teams.keys():
-                self._playground.add_team(team)
-
-            self._playground.update_teams()
-
+    @abstractmethod
     def update_team_filter(self):
-        pass
+        """
+        Apply mask filter to the shape of interest of the entity.
+        """
+        ...
 
     @abstractmethod
     def pre_step(self, **kwargs):

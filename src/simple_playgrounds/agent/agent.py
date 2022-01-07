@@ -8,49 +8,41 @@ Examples can be found in simple_playgrounds/agents/agents.py
 
 """
 from __future__ import annotations
+from abc import ABC, abstractmethod
+from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 
-from typing import List, Optional, Dict, Union, TYPE_CHECKING, Tuple
 from gym.spaces import space
+import numpy as np
+from simple_playgrounds.agent.command import Command
+
+from simple_playgrounds.common.position_utils import (
+    Coordinate,
+    CoordinateSampler,
+    InitCoord,
+)
+from simple_playgrounds.element.elements.teleport import TeleportElement
+from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 
 
 if TYPE_CHECKING:
-    from simple_playgrounds.device.sensor import SensorDevice
-    from simple_playgrounds.agent.actuator.actuators import ActuatorDevice
-    from simple_playgrounds.agent.controllers import Controller
-    from simple_playgrounds.playground.playground import Playground
-    from pymunk import Shape
-    from pygame import Surface
-    from simple_playgrounds.device.communication import CommunicationDevice
-
-    from simple_playgrounds.playground.playground import Action, ActionDict
-from abc import ABC, abstractmethod
-import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-
-from simple_playgrounds.entity.entity import Entity
-
-from simple_playgrounds.common.position_utils import (CoordinateSampler,
-                                                      Coordinate,
-                                                      InitCoord)
-
-from simple_playgrounds.agent.parts import Part, AnchoredPart
-from simple_playgrounds.agent.actuator.actuators import Grasp
-from simple_playgrounds.element.elements.teleport import TeleportElement
-
-# pylint: disable=too-many-instance-attributes
-# pylint: disable=no-member
+    from simple_playgrounds.agent.sensor.sensor import SensorDevice
+    
+from simple_playgrounds.agent.part.part import Part
 
 _BORDER_IMAGE = 3
 
 
-class Agent(Entity, ABC):
+class Agent(Part, ABC):
     """
     Base class for building agents.
-    Agents are composed of a base and parts which are attached to each other.
-    Each part has actuators allowing for control of the agent. 
+    Agents are composed of a base and parts which are attached to the base
+    or to each other.
+    Each part has actuators allowing for control of the agent.
+    The base has no actuator.
 
     Attributes:
-        name: name of the agent. Either provided by the user or generated using internal counter.
+        name: name of the agent. 
+            Either provided by the user or generated using internal counter.
         base: Main part of the agent. Can be mobile or fixed.
         parts: Different parts attached to the base or to other parts.
         actuators:
@@ -80,7 +72,6 @@ class Agent(Entity, ABC):
         self._sensors: List[SensorDevice] = []
 
         # Body parts
-        self._base: Part = self._set_base()
         self._parts: List[Part] = []
 
         # To be set when entity is added to playground.
@@ -96,16 +87,8 @@ class Agent(Entity, ABC):
                                             TeleportElement]] = None
 
     @property
-    def playground(self):
-        return self._playground
-
-    @abstractmethod
-    def _set_base(self) -> Part:
-        ...
-
-    @property
-    def all_parts(self):
-        return [self._base] + self._parts
+    def parts(self):
+        return self._parts
 
     ################
     # Observations
@@ -123,27 +106,21 @@ class Agent(Entity, ABC):
         return {sens: sens.observation_space for sens in self._sensors}
 
     ################
-    # Actions
+    # Commands 
     ################
 
     @property
-    def action_space(self) -> Dict[Part, space.Space]:
-        return {part: part.action_space for part in self._parts}
+    def commands(self) -> List[Command]:
+        return [command for part in self._parts for command in part.commands]
 
     @property
-    def null_actions(self):
-        actions = {}
-        for part in self._parts:
-            actions[part] = part.null_actions
-        return actions
-    
+    def default_commands(self):
+        return {command: command.default for command in self.commands}
+
     @property
-    def random_actions(self):
-        actions = {}
-        for part in self._parts:
-            actions[part] = part.random_actions()
-        return actions
-   
+    def random_commands(self):
+        return {command: command.sample for command in self.commands}
+
     ################
     # Rewards
     ################
@@ -155,63 +132,17 @@ class Agent(Entity, ABC):
     @reward.setter
     def reward(self, rew):
         self._reward = rew
-    
-    ################
-    # Position and Coordinate
-    ################
-    @property
-    def coordinates(self):
-        return self._base.coordinates
-   
-    @property
-    def angle(self):
-        return self._base.angle
-
-    @angle.setter
-    def angle(self, theta: float):
-        self.coordinates = self.position, theta
-
-    @property
-    def position(self):
-        return self._base.position
-
-    @position.setter
-    def position(self, pos: Tuple[float, float]):
-        self.coordinates = pos, self.angle
 
     def reindex_shapes(self):
         for part in self._parts:
             part.reindex_shapes()
-            # self._playground.space.reindex_shapes_for_body(part.pm_body)
-
-    @property
-    def velocity(self):
-        """
-        Velocity of the agent.
-        In case of an Agent with multiple Parts, its velocity is the velocity of the base_platform.
-        """
-        return self._base.velocity
-
-    @property
-    def angular_velocity(self):
-        """
-        Velocity of the agent.
-        In case of an Agent with multiple Parts, its velocity is the velocity of the base_platform.
-        """
-        return self._base.angular_velocity
 
     #############
     # ADD PARTS AND SENSORS 
     #############
 
-    def add(self, 
-            component: Union[SensorDevice, Part], anchor: Part, **kwargs):
-       
-        if anchor not in self._parts:
-            raise ValueError('Anchor should be in Parts.')
+    def add(self, component: Union[SensorDevice, Part]):
 
-        anchor.attach(component, **kwargs)
-    
         if isinstance(component, SensorDevice):
             self._sensors.append(component)
 
@@ -221,32 +152,29 @@ class Agent(Entity, ABC):
         else:
             raise ValueError('Not Implemented')
 
-        component.agent = self
-
     ##############
     # CONTROL
     ##############
 
-    def pre_step(self):
+    def pre_step(self, **kwargs):
         """
         Reset actuators and reward to 0 before a new step of the environment.
         """
 
         self._reward = 0
 
-        self._update_teleport()
+        self._update_teleport(**kwargs)
 
         for part in self._parts:
-            part.pre_step()
+            part.pre_step(**kwargs)
 
         for sensor in self._sensors:
-            sensor.pre_step()
+            sensor.pre_step(**kwargs)
 
-
-    def step(self, actions: Optional[ActionDict]=None):
+    def step(self, **kwargs):
 
         for part in self._parts:
-            part.step(actions)
+            part.step(**kwargs)
 
     def reset(self):
         for part in self._parts:

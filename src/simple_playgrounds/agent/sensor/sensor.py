@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Union
 import math
 from abc import abstractmethod, ABC
 from operator import attrgetter
+from gym.spaces import space
 
 import numpy as np
 import pymunk
@@ -16,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
 from simple_playgrounds.device.device import Device
-from simple_playgrounds.agent.parts import Part
+from simple_playgrounds.agent.part.part import PhysicalPart
 from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.element.element import SceneElement
 
@@ -38,7 +39,7 @@ class SensorDevice(Device):
     _index_sensor = 0
 
     def __init__(self,
-                 anchor: Union[Part, SceneElement],
+                 anchor: Union[PhysicalPart, SceneElement],
                  noise_params: Optional[Dict] = None,
                  normalize: Optional[bool] = False,
                  name: Optional[str] = None,
@@ -97,8 +98,10 @@ class SensorDevice(Device):
         # Sensor max value is used for noise and normalization calculation
         self._sensor_max_value: float = 0.
 
-        # If it requires a topdown representation of the playground
-        # to compute the sensor values
+    @property
+    @abstractmethod
+    def observation_space(self) -> space.Space:
+        ...
 
     def update(self):
 

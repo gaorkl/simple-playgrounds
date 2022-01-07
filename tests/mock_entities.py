@@ -1,8 +1,5 @@
 from typing import Optional, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from simple_playgrounds.agent.part.part import Part
-
 import pymunk
 
 from simple_playgrounds.entity.embodied.interactive import StandAloneInteractive, AnchoredInteractive
@@ -11,7 +8,6 @@ from simple_playgrounds.common.definitions import CollisionTypes, PymunkCollisio
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
 from simple_playgrounds.entity.embodied.appearance.texture import ColorTexture
 from simple_playgrounds.agent.agent import Agent
-from simple_playgrounds.agent.part.platform import MobilePlatform
 
 
 class MockPhysical(PhysicalEntity):
@@ -22,6 +18,8 @@ class MockPhysical(PhysicalEntity):
     def post_step(self):
         pass
 
+    def _set_pm_collision_type(self):
+        pass
 
 class MockHaloTrigger(AnchoredInteractive):
 
@@ -105,13 +103,8 @@ class MockBarrier(PhysicalEntity):
     def post_step(self):
         pass
 
-
-class MockAgent(Agent):
-
-    def _set_base(self) -> Part:
-        
-        base = MobilePlatform()
-        return base
+    def _set_pm_collision_type(self):
+        pass
 
 
 def trigger_triggers_triggered(arbiter, space, data):

@@ -45,8 +45,6 @@ class EmbodiedEntity(Entity, ABC):
                  **kwargs,
                  ):
 
-        super().__init__(**kwargs)
-
         if contour:
             self._contour = contour
         else:
@@ -54,6 +52,10 @@ class EmbodiedEntity(Entity, ABC):
 
         self._pm_body: pymunk.Body = self._set_pm_body()
         self._pm_shape: pymunk.Shape = self._set_pm_shape()
+
+        super().__init__(**kwargs)
+        
+        self._add_to_pymunk_space()
 
         self._temporary = temporary
         self._produced_by: Optional[Entity] = None
@@ -66,6 +68,9 @@ class EmbodiedEntity(Entity, ABC):
         self._trajectory: Optional[Trajectory] = None
         self._initial_coordinate_sampler: Optional[CoordinateSampler] = None
         self._allow_overlapping = True
+
+        self._set_initial_coordinates(**kwargs)
+        self._move_to_initial_coordinates()
 
         # Patch to display the entity in TopDown view
         self._patches: Dict[View, Patch] = {}
@@ -154,6 +159,14 @@ class EmbodiedEntity(Entity, ABC):
 
         return pm_shape
 
+    def _add_to_pymunk_space(self, **_):
+        self._playground.space.add(self._pm_body, self._pm_shape)
+
+
+
+    def remove_from_playground(self):
+        self._playground.space.remove(self._pm_body, self._pm_shape)
+
     def update_view(self, view: View, **kwargs):
 
         if view not in self._patches:
@@ -206,6 +219,7 @@ class EmbodiedEntity(Entity, ABC):
         initial_coordinates: Optional[
             Union[Coordinate, CoordinateSampler, Trajectory]] = None,
         allow_overlapping: bool = True,
+        **_,
     ):
 
         # if no initial coordinate is provided but they are already set

@@ -90,7 +90,9 @@ class Contour:
     def _get_contour_from_shape(self,
                                 radius: Optional[float] = None,
                                 size: Optional[Tuple[float, float]] = None,
-                                vertices: Optional[List[Tuple[float, float]]] = None):
+                                vertices: Optional[List[Tuple[float, float]]] = None,
+                                **kwargs):
+
 
         # Dimensions of the entity
 

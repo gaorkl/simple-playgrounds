@@ -35,8 +35,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
     def update_team_filter(self):
 
-        assert self._playground
-
         if not self._teams:
             return
 
@@ -56,18 +54,10 @@ class InteractiveEntity(EmbodiedEntity, ABC):
     def update_view(self, view: View, **kwargs):
         return super().update_view(view, invisible=True, **kwargs)
 
+
 class StandAloneInteractive(InteractiveEntity, ABC):
     def _set_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
-
-    def _add_to_playground(self, **kwargs):
-        self._playground.space.add(self._pm_body, self._pm_shape)
-
-        self._set_initial_coordinates(**kwargs)
-        self._move_to_initial_coordinates()
-
-    def _remove_from_playground(self):
-        self._playground.space.remove(self._pm_body, self._pm_shape)
 
 
 class AnchoredInteractive(InteractiveEntity, ABC):
@@ -81,15 +71,21 @@ class AnchoredInteractive(InteractiveEntity, ABC):
         interaction_contour = Contour(**anchor.contour.dict_attributes)
         interaction_contour.expand(interaction_range)
 
-        super().__init__(contour=interaction_contour, **kwargs)
+        super().__init__(playground=anchor.playground, 
+                         contour=interaction_contour,
+                         initial_coordinates=anchor.coordinates,
+                         **kwargs)
+
+    @property
+    def anchor(self):
+        return self._anchor
 
     def _set_pm_body(self):
         return self._anchor._pm_body
 
-    def _add_to_playground(self):
+    def _add_to_pymunk_space(self):
         self._playground.space.add(self._pm_shape)
         self._playground.add_to_mappings(entity=self)
 
-    def _remove_from_playground(self):
+    def remove_from_pymunk_space(self):
         self._playground.space.remove(self._pm_shape)
-        self.playground.remove_from_mappings(entity=self)

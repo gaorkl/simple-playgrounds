@@ -5,12 +5,14 @@ import pymunk
 
 import numpy as np
 
+from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive
+
 if TYPE_CHECKING:
     from simple_playgrounds.entity.embodied.interactive import InteractiveEntity
     from simple_playgrounds.common.view import View
 
 
-from simple_playgrounds.agent.actuator.actuators import Grasp
+# from simple_playgrounds.agent.actuator.actuators import Grasp
 from simple_playgrounds.entity.embodied.contour import GeometricShapes
 from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, \
     VISIBLE_ALPHA
@@ -47,20 +49,19 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         self._traversable = traversable
         self._set_shape_collision_filter()
 
-        self._held_by: List[Grasp] = []
-        self._interactives: List[InteractiveEntity] = []
+        # self._held_by: List[Grasp] = []
 
-    @property
-    def held_by(self):
-        return self._held_by
+    # @property
+    # def held_by(self):
+    #     return self._held_by
 
-    @held_by.setter
-    def held_by(self, grasper: Grasp):
-        self._held_by.append(grasper)
+    # @held_by.setter
+    # def held_by(self, grasper: Grasp):
+    #     self._held_by.append(grasper)
 
-    def released_by(self, grasper):
-        assert grasper in self._held_by
-        self._held_by.remove(grasper)
+    # def released_by(self, grasper):
+    #     assert grasper in self._held_by
+    #     self._held_by.remove(grasper)
 
     @property
     def movable(self):
@@ -79,10 +80,12 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         assert isinstance(self._mass, (float, int))
 
         if self._contour.shape == GeometricShapes.CIRCLE:
+            assert self._contour.radius
             moment = pymunk.moment_for_circle(self._mass, 0,
                                               self._contour.radius)
 
         else:
+            assert self._contour.vertices
             moment = pymunk.moment_for_poly(self._mass, self._contour.vertices)
 
         return pymunk.Body(self._mass, moment)
@@ -92,21 +95,6 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
     def _set_shape_debug_color(self):
         self._pm_shape.color = tuple(list(self.base_color) + [VISIBLE_ALPHA])
-
-    def _add_to_playground(self, **kwargs):
-        self._playground.space.add(self._pm_body, self._pm_shape)
-
-        self._set_initial_coordinates(**kwargs)
-        self._move_to_initial_coordinates()
-
-        for interactive in self._interactives:
-            interactive.add_to_playground(self._playground)
-
-    def _remove_from_playground(self):
-        self._playground.space.remove(self._pm_body, self._pm_shape)
-
-        for interactive in self._interactives:
-            interactive.remove_from_playground()
 
     def _set_shape_collision_filter(self):
 
@@ -130,14 +118,11 @@ class PhysicalEntity(EmbodiedEntity, ABC):
                                                        mask=pymunk.ShapeFilter.ALL_MASKS() ^
                                                        (2 ** PymunkCollisionCategories.SENSOR.value))
 
-    def add_to_team(self, team):
-        super().add_to_team(team)
-
-        for interactive in self._interactives:
-            interactive.add_to_team(team)
-
     def update_team_filter(self):
 
+        if not self._teams:
+            return
+        
         categ = self._pm_shape.filter.categories
         for team in self._teams:
             categ = categ | 2 ** self._playground.teams[team]
@@ -150,21 +135,9 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
-        for interactive in self._interactives:
-            interactive.update_team_filter()
-
-    def add_interactive(self, entity: InteractiveEntity):
-        self._interactives.append(entity)
-
-        if not entity.playground and self._playground:
-            entity.add_to_playground(self._playground)
-
-        if self._teams:
-            entity.add_to_team(self._teams)
-
     def update_view(self, view: View, **kwargs):
         
-        return super().update_view(view, invisible = self._transparent, **kwargs)
+        return super().update_view(view, invisible=self._transparent, **kwargs)
 
 
     def pre_step(self):
