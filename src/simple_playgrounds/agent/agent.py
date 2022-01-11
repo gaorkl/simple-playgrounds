@@ -103,7 +103,6 @@ class Agent(ABC):
 
         # Teleport
         self._teleported_to: Optional[Coordinate, TeleportElement] = None
-        self._has_teleported: bool = False
 
         # Used to set an element which is not supposed to overlap
         self._allow_overlapping: bool = False
@@ -419,13 +418,9 @@ class Agent(ABC):
     def teleported_to(self):
         return self._teleported_to
 
-    def has_teleported_to(self, destination):
+    @teleported_to.setter
+    def teleported_to(self, destination):
         self._teleported_to = destination
-        self._has_teleported = True
-
-    @property
-    def has_teleported(self):
-        return self._has_teleported
 
     def pre_step(self):
         """
@@ -441,8 +436,6 @@ class Agent(ABC):
 
     def _update_teleport(self):
 
-        self._has_teleported = False
-
         if isinstance(self._teleported_to, TeleportElement):
             if self._overlaps(self._teleported_to):
                 return
@@ -454,12 +447,15 @@ class Agent(ABC):
         entity: Entity,
     ) -> bool:
 
+        space = entity.pm_body.space
         for part in self.parts:
 
-            if entity.pm_visible_shape and part.pm_visible_shape.shapes_collide(entity.pm_visible_shape):
+            if entity.pm_visible_shape and part.pm_visible_shape.shapes_collide(entity.pm_visible_shape).points:
+                space.reindex_shape(entity.pm_visible_shape)
+
                 return True
 
-            if entity.pm_invisible_shape and part.pm_visible_shape.shapes_collide(entity.pm_invisible_shape):
+            if entity.pm_invisible_shape and part.pm_visible_shape.shapes_collide(entity.pm_invisible_shape).points:
                 return True
 
         return False
@@ -470,6 +466,8 @@ class Agent(ABC):
         """
         self.velocity = [0, 0]
 
+        self._teleported_to = None
+        
         for part in self.parts:
             part.reset()
 

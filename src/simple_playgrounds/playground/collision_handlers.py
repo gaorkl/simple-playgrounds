@@ -136,8 +136,9 @@ def agent_teleports(arbiter, space, data):
     (_, agent), (teleport, _) = get_colliding_entities(playground, arbiter)
 
     assert isinstance(teleport, TeleportElement)
+    assert isinstance(agent, Agent)
 
-    if agent.has_teleported:
+    if agent.teleported_to:
         return True
 
     teleport.energize(agent)

@@ -57,9 +57,9 @@ class TeleportElement(SceneElement, ABC):
             agent.velocity = (0, 0)
 
         if isinstance(self._destination, TeleportElement):
-            agent.has_teleported_to(self._destination)
+            agent.teleported_to = self._destination
         else:
-            agent.has_teleported_to( (new_position, new_angle) )
+            agent.teleported_to = (new_position, new_angle)
 
     @abstractmethod
     def _calculate_new_coordinates(self, agent: Agent):
@@ -226,15 +226,16 @@ class Portal(TeleportElement):
 
     def _calculate_new_coordinates(self, agent: Agent):
 
-        relative_position = Vec2d(*agent.position) - self.position
+        relative_position = (Vec2d(*agent.position) - self.position).rotated(self.angle)
 
         if not self.destination:
             raise ValueError("Destination should be set")
 
         assert isinstance(self.destination, Portal)
 
+        rel_pos_teleport = Vec2d(relative_position.x, -relative_position.y)
         new_pos = self.destination.position \
-                  + relative_position.rotated(self.destination.angle - self.angle)
+                  - rel_pos_teleport.rotated(pi + self.destination.angle)
         new_orientation = agent.angle - self.angle + self.destination.angle + pi
 
         return tuple(new_pos), new_orientation
