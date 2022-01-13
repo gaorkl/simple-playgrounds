@@ -15,7 +15,7 @@ def test_add_remove_reset():
 
     # Two traversable shouldn't collide with either traversables or non-traversables
 
-    ent_1 = MockPhysical(contour=contour, traversable=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0)
     playground.add(ent_1, ((0, 0), 0))
 
     playground.remove(ent_1)
@@ -35,7 +35,7 @@ def test_add_temporary_remove_reset():
 
     # Two traversable shouldn't collide with either traversables or non-traversables
 
-    ent_1 = MockPhysical(contour=contour, traversable=True, movable=True, mass=5, temporary=True)
+    ent_1 = MockPhysical(contour=contour, traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0, temporary=True)
     playground.add(ent_1, ((0, 0), 0))
 
     playground.remove(ent_1)

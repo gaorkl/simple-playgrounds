@@ -20,7 +20,7 @@ def test_moving_element():
     
     
     contour = Contour(shape='circle', radius=size_on_pg[0]*2)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
     playground.add(ent_1, ((0, 0), 0))
 
 

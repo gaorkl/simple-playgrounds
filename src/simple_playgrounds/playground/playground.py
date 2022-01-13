@@ -115,9 +115,7 @@ class Playground(ABC):
         self.space = self._initialize_space()
 
         # Public attributes for entities in the playground
-        self._embodied_entities: List[EmbodiedEntity] = []
-        self._agents: List[Agent] = []
-        self._disappeared_entities: List[Entity] = []
+        self._entities: List[Entity] = []
         self._teams = {}
         
         # Private attributes for managing interactions in playground
@@ -178,30 +176,23 @@ class Playground(ABC):
     @property
     def teams(self):
         return self._teams
-
-    @property
-    def physical_entities(self):
-        return [ent for ent in self._embodied_entities 
-                if isinstance(ent, PhysicalEntity)]
     
     @property
-    def interactive_entities(self):
-        return [ent for ent in self._embodied_entities 
-                if isinstance(ent, InteractiveEntity)]
-
-    @property
     def agents(self):
-        return self._agents
+        return [ent for ent in self._entities if isinstance(ent, Agent) if not ent.removed]
 
     @property
-    def _entities(self):
-        return self._embodied_entities + self._agents
+    def entities(self):
+        return [ent for ent in self._entities if not ent.removed]
 
     def add_team(self, team):
-        assert team not in self._teams
+        
+        if team in self._teams.keys():
+            return
+
         team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
         self._teams[team] = team_index
-        self._update_teams()
+        self._update_entity_team_filter()
 
     def get_name(self, entity: Entity):
         index = self._entity_name_count.get(type(entity), 0)
@@ -209,7 +200,7 @@ class Playground(ABC):
         name = type(entity).__name__ + '_' + str(index)
         return name
 
-    def _update_teams(self):
+    def _update_entity_team_filter(self):
         for entity in self._entities:
             entity.update_team_filter()
 
@@ -236,7 +227,7 @@ class Playground(ABC):
 
         action_dict: ActionDict = {}
 
-        for agent in self._agents:
+        for agent in self.agents:
 
             if agent in actions:
                 agent.set_actions(actions[agent])
@@ -261,7 +252,7 @@ class Playground(ABC):
         if not compute_observations:
             return obs
 
-        for agent in self._agents:
+        for agent in self.agents:
 
             if keys_are_str:
                 key_ = agent.name
@@ -280,7 +271,7 @@ class Playground(ABC):
         if not compute_observations:
             return obs
 
-        for agent in self._agents:
+        for agent in self.agents:
 
             if keys_are_str:
                 key_ = agent.name
@@ -365,24 +356,12 @@ class Playground(ABC):
         Reset the Playground to its initial state.
         """
 
-        # remove physical entities from playground to replace them later.
-        for entity in self.physical_entities:
-            if entity.held_by:
-                entity.held_by.release_grasp()
-
-            self.remove(entity, definitive=False)
-
-        # reset entities that are non physical
+        # reset entities that are still in playground
         for entity in self._entities:
             entity.reset()
 
-        # replace physical entities in the playground
-        for entity in self._disappeared_entities.copy():
-            self.add(entity)
-            entity.reset()
-
         self._timestep = 0
-        self.done = False
+        self._done = False
 
         obs = self._compute_observations(**kwargs)
         rew = self._compute_rewards(**kwargs)
@@ -391,43 +370,16 @@ class Playground(ABC):
 
     def add_to_mappings(self, entity, **_):
         
-        if isinstance(entity, Agent):
-            self._agents.append(entity)
+        if not isinstance(entity, AnchoredInteractive):
+            self._entities.append(entity)
 
-        elif isinstance(entity, PhysicalEntity):
-            self._embodied_entities.append(entity)
-
-        elif isinstance(entity, StandAloneInteractive):
-            self._embodied_entities.append(entity)
-
-        else: 
-            if not isinstance(entity, AnchoredInteractive):
-                raise ValueError
-            
         self._shapes_to_entities[entity.pm_shape] = entity
        
-    def remove(self,
-               entity: EmbodiedEntity,
-               definitive: Optional[bool] = True,
-               ):
-
-        self.remove_from_mappings(entity)
-        entity.remove_from_pymunk_space()
-
-        if not definitive and not entity.temporary:
-            self._disappeared_entities.append(entity)
-
     def remove_from_mappings(self, entity):
         
-        if isinstance(entity, Agent):
-            self._agents.remove(entity)
+        if not isinstance(entity, AnchoredInteractive):
+            self._entities.remove(entity)
 
-        elif isinstance(entity, PhysicalEntity):
-            self._embodied_entities.remove(entity)
-
-        elif isinstance(entity, StandAloneInteractive):
-            self._embodied_entities.remove(entity)
-        
         self._shapes_to_entities.pop(entity.pm_shape)
 
     @abstractmethod
@@ -435,7 +387,7 @@ class Playground(ABC):
         ...
 
     def get_closest_agent(self, entity: EmbodiedEntity) -> Agent:
-        return min(self._agents,
+        return min(self.agents,
                    key=lambda a: entity.position.get_dist_sqrd(a.position))
 
     def get_entity_from_shape(self, shape: pymunk.Shape):

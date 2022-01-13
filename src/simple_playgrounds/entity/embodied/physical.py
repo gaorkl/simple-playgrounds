@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC
+from tests.test_entities.conftest import interaction_radius
 from typing import Optional, List, TYPE_CHECKING
 import pymunk
 
@@ -37,6 +38,8 @@ class PhysicalEntity(EmbodiedEntity, ABC):
             **kwargs,
     ):
 
+        self._interactives: List[AnchoredInteractive] = []
+        
         if movable:
             assert mass
         self._movable = movable
@@ -48,6 +51,7 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         self._transparent = transparent
         self._traversable = traversable
         self._set_shape_collision_filter()
+
 
         # self._held_by: List[Grasp] = []
 
@@ -90,9 +94,6 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
         return pymunk.Body(self._mass, moment)
 
-    def _set_pm_shape(self):
-        return self._create_pm_shape()
-
     def _set_shape_debug_color(self):
         self._pm_shape.color = tuple(list(self.base_color) + [VISIBLE_ALPHA])
 
@@ -118,10 +119,14 @@ class PhysicalEntity(EmbodiedEntity, ABC):
                                                        mask=pymunk.ShapeFilter.ALL_MASKS() ^
                                                        (2 ** PymunkCollisionCategories.SENSOR.value))
 
+    def add_interactive(self, interactive):
+
+        self._interactives.append(interactive)
+
     def update_team_filter(self):
 
-        if not self._teams:
-            return
+        # if not self._teams:
+        #     return
         
         categ = self._pm_shape.filter.categories
         for team in self._teams:
@@ -136,7 +141,10 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
     def update_view(self, view: View, **kwargs):
-        
+       
+        for interactive in self._interactives:
+            interactive.update_view(view=view, **kwargs)
+
         return super().update_view(view, invisible=self._transparent, **kwargs)
 
 
@@ -147,9 +155,16 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         if self._trajectory:
             self.move_to(next(self._trajectory))
 
-    def reset(self):
-        """
-        Reset the trajectory and initial position
-        """
-        self._move_to_initial_coordinates()
+        for interactive in self._interactives:
+            interactive.pre_step()
 
+
+    def remove(self, **kwargs):
+        super().remove(**kwargs)
+        for interactive in self._interactives:
+            interactive.remove(**kwargs)
+
+    def reset(self, **kwargs):
+        super().reset()
+        for interactive in self._interactives:
+            interactive.reset(**kwargs)

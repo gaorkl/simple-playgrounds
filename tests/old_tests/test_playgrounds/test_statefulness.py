@@ -45,7 +45,7 @@ def test_set_seed(seed):
         sampler = FixedCoordinateSampler(position=(0, 0), distribution='uniform', contour=contour_sampler)
 
         for _ in range(20):
-            ent = MockPhysical(contour=contour, traversable=True, movable=True, mass=5)
+            ent = MockPhysical(contour=contour, traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0)
             playground.add(ent, sampler)
 
         playground.reset()
@@ -78,7 +78,7 @@ def test_rewind(ts_rewind, ts_checkpoint):
     sampler = FixedCoordinateSampler(position=(0, 0), distribution='uniform', contour=contour_sampler)
 
     for _ in range(10):
-        ent = MockPhysical(contour=contour, traversable=True, movable=True, mass=5)
+        ent = MockPhysical(contour=contour, traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0)
         playground.add(ent, sampler)
 
     apply_random_impulse(playground)
@@ -115,7 +115,7 @@ def test_rewind_alternate(ts_rewind, ts_checkpoint):
     sampler = FixedCoordinateSampler(position=(0, 0), distribution='uniform', contour=contour_sampler)
 
     for _ in range(10):
-        ent = MockPhysical(contour=contour, traversable=True, movable=True, mass=5)
+        ent = MockPhysical(contour=contour, traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0)
         playground.add(ent, sampler)
 
     # Apply random perturbation and go to end

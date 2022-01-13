@@ -22,7 +22,7 @@ def test_anchored(shape, position, angle, radius, size_on_pg):
 
     playground = EmptyPlayground()
     contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
 
     playground.add(ent_1, (position, angle))
 
@@ -45,7 +45,7 @@ def test_anchored_relative(shape):
     playground = EmptyPlayground()
     contour = Contour(shape=shape, radius=20)
 
-    ent_1 = MockPhysical(contour=contour, mass=5, movable=True)
+    ent_1 = MockPhysical(contour=contour, mass=5, initial_coordinates=((0,0), 0, movable=True)
     playground.add(ent_1, ((0,0), 0))
     view_anchored_1 = AnchoredView(anchor=ent_1, draw_transparent=True, size_on_playground=(200, 200))
 

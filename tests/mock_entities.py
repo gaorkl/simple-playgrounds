@@ -1,6 +1,7 @@
 from typing import Optional, TYPE_CHECKING
 
 import pymunk
+from simple_playgrounds import playground
 
 from simple_playgrounds.entity.embodied.interactive import StandAloneInteractive, AnchoredInteractive
 from simple_playgrounds.entity.embodied.physical import PhysicalEntity
@@ -12,8 +13,8 @@ from simple_playgrounds.agent.agent import Agent
 
 class MockPhysical(PhysicalEntity):
 
-    def __init__(self, **kwargs):
-        super().__init__(appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
+    def __init__(self, pg, coord, **kwargs):
+        super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
 
     def post_step(self):
         pass
@@ -23,17 +24,14 @@ class MockPhysical(PhysicalEntity):
 
 class MockHaloTrigger(AnchoredInteractive):
 
-    def __init__(self, **kwargs):
-        super().__init__(appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
+    def __init__(self, anchor, **kwargs):
+        super().__init__(anchor=anchor, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
         self.activated = False
 
     def pre_step(self):
         self.activated = False
 
     def post_step(self):
-        pass
-
-    def reset(self):
         pass
 
     def _set_pm_collision_type(self):
@@ -51,8 +49,8 @@ class MockHaloTriggered(MockHaloTrigger):
 
 class MockZoneTrigger(StandAloneInteractive):
 
-    def __init__(self, **kwargs):
-        super().__init__(appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
+    def __init__(self, pg, coord, **kwargs):
+        super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
         self.activated = False
 
     def _set_pm_collision_type(self):
@@ -62,9 +60,6 @@ class MockZoneTrigger(StandAloneInteractive):
         self.activated = False
 
     def post_step(self):
-        pass
-
-    def reset(self):
         pass
 
     def trigger(self):
@@ -79,8 +74,8 @@ class MockZoneTriggered(MockZoneTrigger):
 
 class MockBarrier(PhysicalEntity):
 
-    def __init__(self, **kwargs):
-        super().__init__(appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
+    def __init__(self, pg, coord, **kwargs):
+        super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
 
     def update_team_filter(self):
 

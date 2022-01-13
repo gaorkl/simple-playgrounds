@@ -9,7 +9,7 @@ def test_mappings(radius, interaction_radius):
 
     contour = Contour(shape='circle', radius=radius)
     ent_1 = MockPhysical(playground=playground, **contour.dict_attributes, 
-                         movable=True, mass=5,
+                         movable=True, mass=5, initial_coordinates=((0,0), 0,
                          initial_coordinates=((0, 0), 0))
     halo = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
 
@@ -28,10 +28,10 @@ def test_traversable_traversable(custom_contour, custom_contour_2):
 
     # Two traversable shouldn't collide with either traversables or non-traversables
 
-    ent_1 = MockPhysical(playground= playground, contour=custom_contour, traversable=True, movable=True, mass=5, initial_coordinates = ((0, 0), 0))
+    ent_1 = MockPhysical(playground= playground, contour=custom_contour, traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0, initial_coordinates = ((0, 0), 0))
 
     ent_2 = MockPhysical(playground=playground, contour=custom_contour_2, 
-                         traversable=True, movable=True, mass=5, 
+                         traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0, 
                          initial_coordinates = ((0, 1), 0))
 
     playground.step()
@@ -44,10 +44,10 @@ def test_traversable_basic(custom_contour, custom_contour_2):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(playground= playground, contour=custom_contour, traversable=True, movable=True, mass=5, 
+    ent_1 = MockPhysical(playground= playground, contour=custom_contour, traversable=True, movable=True, mass=5, initial_coordinates=((0,0), 0, 
                          initial_coordinates = ((0, 0), 0))
 
-    ent_2 = MockPhysical(playground= playground, contour=custom_contour_2, traversable=False, movable=True, mass=5,
+    ent_2 = MockPhysical(playground= playground, contour=custom_contour_2, traversable=False, movable=True, mass=5, initial_coordinates=((0,0), 0,
                          initial_coordinates = ((0, 1), 0))
 
     playground.step()
@@ -60,7 +60,7 @@ def test_basic_basic(custom_contour, custom_contour_2):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(contour=custom_contour, traversable=False, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=custom_contour, traversable=False, movable=True, mass=5, initial_coordinates=((0,0), 0)
     playground.add(ent_1, ((0, 0), 0))
 
     ent_2 = MockPhysical(contour=custom_contour_2, traversable=False, movable=False)

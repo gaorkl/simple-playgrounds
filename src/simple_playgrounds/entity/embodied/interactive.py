@@ -21,7 +21,7 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         super().__init__(**kwargs)
 
     def _set_pm_shape(self):
-        pm_shape = self._create_pm_shape()
+        pm_shape = super()._set_pm_shape()
         pm_shape.sensor = True
 
         pm_shape.filter = pymunk.ShapeFilter(
@@ -35,8 +35,8 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
     def update_team_filter(self):
 
-        if not self._teams:
-            return
+        # if not self._teams:
+        #     return
 
         categ = 0
         for team in self._teams:
@@ -56,6 +56,7 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
 
 class StandAloneInteractive(InteractiveEntity, ABC):
+    
     def _set_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 
@@ -74,7 +75,10 @@ class AnchoredInteractive(InteractiveEntity, ABC):
         super().__init__(playground=anchor.playground, 
                          contour=interaction_contour,
                          initial_coordinates=anchor.coordinates,
+                         teams=self._anchor._teams,
                          **kwargs)
+
+        self._anchor.add_interactive(self)
 
     @property
     def anchor(self):
@@ -85,7 +89,6 @@ class AnchoredInteractive(InteractiveEntity, ABC):
 
     def _add_to_pymunk_space(self):
         self._playground.space.add(self._pm_shape)
-        self._playground.add_to_mappings(entity=self)
 
-    def remove_from_pymunk_space(self):
+    def _remove_from_pymunk_space(self):
         self._playground.space.remove(self._pm_shape)

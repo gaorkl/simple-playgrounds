@@ -41,7 +41,7 @@ class EmbodiedEntity(Entity, ABC):
     def __init__(self,
                  appearance: Appearance,
                  contour: Optional[Contour] = None,
-                 temporary: Optional[bool] = False,
+                 temporary: bool = False,
                  **kwargs,
                  ):
 
@@ -77,12 +77,9 @@ class EmbodiedEntity(Entity, ABC):
 
         self._set_pm_collision_type()
 
-    @abstractmethod
-    def _set_pm_collision_type(self):
-        """
-        Set the collision handler for the interactive shape.
-        """
-        ...
+    #############
+    # Properties
+    #############
 
     @property
     def pm_shape(self):
@@ -144,7 +141,19 @@ class EmbodiedEntity(Entity, ABC):
     def base_color(self):
         return self._appearance.base_color
 
-    def _create_pm_shape(self):
+    @abstractmethod
+    def _set_pm_collision_type(self):
+        """
+        Set the collision handler for the interactive shape.
+        """
+        ...
+    
+    @abstractmethod
+    def _set_pm_body(self) -> pymunk.Body:
+        """ Shapes must be attached to a body."""
+        ...
+
+    def _set_pm_shape(self):
 
         if self._contour.shape == GeometricShapes.CIRCLE:
             assert self._contour.radius
@@ -162,9 +171,7 @@ class EmbodiedEntity(Entity, ABC):
     def _add_to_pymunk_space(self, **_):
         self._playground.space.add(self._pm_body, self._pm_shape)
 
-
-
-    def remove_from_playground(self):
+    def _remove_from_pymunk_space(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)
 
     def update_view(self, view: View, **kwargs):
@@ -182,16 +189,6 @@ class EmbodiedEntity(Entity, ABC):
             return
 
         patch.update()
-
-    @abstractmethod
-    def _set_pm_shape(self) -> pymunk.Shape:
-        """ Shape must be set. Interactive or Not. """
-        ...
-
-    @abstractmethod
-    def _set_pm_body(self) -> pymunk.Body:
-        """ Shapes must be attached to a body."""
-        ...
 
     def move_to(self,
                 coordinates: Coordinate,
@@ -273,6 +270,7 @@ class EmbodiedEntity(Entity, ABC):
         
         self.move_to(coordinates, vel, initial_positioning=True)
 
+    # TODO: Move to playground
     def _overlaps(self, coordinates):
         """ Tests whether new coordinate would lead to physical collision """
 
@@ -310,3 +308,19 @@ class EmbodiedEntity(Entity, ABC):
 
     def get_pixel(self, **kwargs):
         return self._appearance.get_pixel(**kwargs)
+
+    def remove(self, definitive: bool = False):
+        self._remove_from_pymunk_space()
+        super().remove(definitive=definitive or self._temporary)
+
+    def reset(self):
+
+        # Remove completely if temporary
+        if self.temporary:
+            self.remove()
+            return
+
+        if self._removed:
+            self._add_to_pymunk_space()
+        self._move_to_initial_coordinates()
+        self._removed = False

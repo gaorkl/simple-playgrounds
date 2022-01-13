@@ -7,6 +7,9 @@ from tests.mock_entities import MockHaloTrigger, MockPhysical, MockZoneTriggered
     trigger_triggers_triggered, MockHaloTriggered, MockBarrier
 
 
+coord_0 = ((0, 0), 0)
+
+
 def test_same_team(radius, interaction_radius):
 
     playground = EmptyPlayground()
@@ -14,18 +17,11 @@ def test_same_team(radius, interaction_radius):
 
     contour = Contour(shape='circle', radius=radius)
 
-    ent_1 = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
-    halo = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
-    ent_1.add_interactive(halo)
-    playground.add(ent_1, ((0, 0), 0))
-
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams='team_1')
+    halo = MockHaloTrigger(ent_1, interaction_range=interaction_radius)
 
     contour = Contour(shape='square', radius=radius)
-    zone = MockZoneTriggered(**contour.dict_attributes)
-    zone.add_to_team('team_1')
-
-    playground.add(zone, ((0, 2*radius + interaction_radius - 1), 0))
+    zone = MockZoneTriggered(playground, ((0, 2*radius + interaction_radius - 1), 0), **contour.dict_attributes, teams=['team_1'])
 
     playground.step()
 
@@ -39,18 +35,11 @@ def test_different_team(radius, interaction_radius):
 
     contour = Contour(shape='circle', radius=radius)
 
-    ent_1 = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
-    halo = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
-    ent_1.add_interactive(halo)
-    playground.add(ent_1, ((0, 0), 0))
-
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams='team_1')
+    halo = MockHaloTrigger(ent_1, interaction_range=interaction_radius)
 
     contour = Contour(shape='square', radius=radius)
-    zone = MockZoneTriggered(**contour.dict_attributes)
-    zone.add_to_team('team_2')
-
-    playground.add(zone, ((0, 2*radius + interaction_radius - 1), 0))
+    zone = MockZoneTriggered(playground, ((0, 2*radius + interaction_radius - 1), 0), **contour.dict_attributes, teams='team_2')
 
     playground.step()
 
@@ -64,25 +53,14 @@ def test_multiple_team(radius, interaction_radius):
 
     contour = Contour(shape='circle', radius=radius)
 
-    ent_1 = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
+    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams=['team_1', 'team_2'])
     halo = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
-    ent_1.add_interactive(halo)
-    playground.add(ent_1, ((0, 0), 0))
-    ent_1.add_to_team('team_1')
-    ent_1.add_to_team('team_2')
 
     contour = Contour(shape='square', radius=radius)
-    zone_1 = MockZoneTriggered(contour=contour)
-    zone_1.add_to_team('team_1')
-    zone_1.add_to_team('team_3')
+    zone_1 = MockZoneTriggered(playground, coord_0, contour=contour, teams=['team_1', 'team_3'])
 
-    playground.add(zone_1, ((0, 2*radius + interaction_radius - 1), 0))
-
-    ent_2 = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
-    halo_2 = MockHaloTriggered(anchor=ent_2, interaction_range=interaction_radius)
-    ent_2.add_interactive(halo_2)
-    playground.add(ent_2, ((0, 0), 0))
-    ent_2.add_to_team('team_3')
+    ent_2 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams='team_3')
+    halo_2 = MockHaloTriggered(ent_2, interaction_range=interaction_radius)
 
     playground.step()
 
@@ -96,27 +74,15 @@ def test_multiple_triggered(radius, interaction_radius):
 
     contour = Contour(shape='circle', radius=radius)
 
-    ent_1 = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
+    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams = 'team_1')
     halo = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
-    ent_1.add_interactive(halo)
-    playground.add(ent_1, ((0, 0), 0))
-    ent_1.add_to_team('team_1')
 
     contour = Contour(shape='square', radius=radius)
-    zone_1 = MockZoneTriggered(**contour.dict_attributes)
-    zone_1.add_to_team('team_1')
+    zone_1 = MockZoneTriggered(playground, coord_0, **contour.dict_attributes, teams='team_1')
 
-    playground.add(zone_1, ((0, 0), 0))
+    zone_2 = MockZoneTriggered(playground, coord_0, **contour.dict_attributes, teams='team_1')
 
-    zone_2 = MockZoneTriggered(**contour.dict_attributes)
-    zone_2.add_to_team('team_1')
-
-    playground.add(zone_2, ((0, 0), 0))
-
-    zone_3 = MockZoneTriggered(**contour.dict_attributes)
-    zone_3.add_to_team('team_2')
-
-    playground.add(zone_3, ((0, 0), 0))
+    zone_3 = MockZoneTriggered(playground, coord_0, **contour.dict_attributes, teams='team_2')
 
     playground.step()
 
@@ -130,13 +96,9 @@ def test_teams_collide_same_team(custom_contour):
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, 0), 0))
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, coord_0, **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
 
-    ent_2 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_2, ((0, 1), 0))
-    ent_2.add_to_team('team_1')
+    ent_2 = MockPhysical(playground, ((0, 1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
 
     playground.step()
 
@@ -149,13 +111,9 @@ def test_teams_collide_other_team(custom_contour):
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, 0), 0))
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, coord_0, **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
 
-    ent_2 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_2, ((0, 1), 0))
-    ent_2.add_to_team('team_2')
+    ent_2 = MockPhysical(playground, ((0, 1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_2')
 
     playground.step()
 
@@ -168,12 +126,9 @@ def test_teams_collide_no_team(custom_contour):
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, 0), 0))
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, coord_0, **custom_contour.dict_attributes, movable=True, mass=5, teams = 'team_1')
 
-    ent_2 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_2, ((0, 1), 0))
+    ent_2 = MockPhysical(playground, ((0, 1), 0), **custom_contour.dict_attributes, movable=True, mass=5)
 
     playground.step()
 
@@ -185,15 +140,10 @@ def test_barrier_let_team_through(custom_contour):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, -1), 0))
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
 
     contour_barrier = Contour(shape='rectangle', size=(10, 10))
-    barrier = MockBarrier(contour=contour_barrier, movable=False)
-    barrier.add_to_team('team_1')
-
-    playground.add(barrier, ((0, 1), 0))
+    barrier = MockBarrier(playground, ((0, 1), 0), contour=contour_barrier, movable=False, teams='team_1')
 
     playground.step()
 
@@ -206,13 +156,9 @@ def test_barrier_doesnt_block_no_team(custom_contour, custom_contour_2):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, -1), 0))
+    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5)
 
-    barrier = MockBarrier(**custom_contour_2.dict_attributes)
-    barrier.add_to_team('team_1')
-
-    playground.add(barrier, ((0, 1), 0))
+    barrier = MockBarrier(playground, ((0, 1), 0), **custom_contour_2.dict_attributes, teams='team_1')
 
     playground.step()
 
@@ -223,13 +169,9 @@ def test_barrier_without_team_blocks_team(custom_contour, custom_contour_2):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, -1), 0))
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
 
-    barrier = MockBarrier(contour=custom_contour_2)
-
-    playground.add(barrier, ((0, 1), 0))
+    MockBarrier(playground, ((0, 1), 0), **custom_contour_2.dict_attributes)
 
     playground.step()
 
@@ -240,14 +182,9 @@ def test_barrier_block_other_teams(custom_contour, custom_contour_2):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, -1), 0))
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
 
-    barrier = MockBarrier(contour=custom_contour_2)
-    barrier.add_to_team('team_2')
-
-    playground.add(barrier, ((0, 1), 0))
+    barrier = MockBarrier(playground, ((0, 1), 0), contour=custom_contour_2, teams='team_2')
 
     playground.step()
 
@@ -258,16 +195,10 @@ def test_barrier_allow_multiple_teams(custom_contour):
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(contour=custom_contour, movable=True, mass=5)
-    playground.add(ent_1, ((0, -1), 0))
-    ent_1.add_to_team('team_1')
+    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
 
     contour_barrier = Contour(shape='rectangle', size=(10, 10))
-    barrier = MockBarrier(contour=contour_barrier)
-    barrier.add_to_team('team_1')
-    barrier.add_to_team('team_2')
-
-    playground.add(barrier, ((0, 1), 0))
+    barrier = MockBarrier(playground, ((0, 1), 0), contour=contour_barrier, teams=['team_1', 'team_2'])
 
     playground.step()
 

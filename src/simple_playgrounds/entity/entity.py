@@ -34,9 +34,11 @@ class Entity(ABC):
         self._name = name
         if not name:
             self._name = self._playground.get_name(self)
-
+        
         self._add_to_teams(**kwargs)
         self._playground.add_to_mappings(self, **kwargs)
+
+        self._removed = False 
 
     @property
     def playground(self):
@@ -50,27 +52,39 @@ class Entity(ABC):
     def name(self):
         return self._name
 
-    def _add_to_teams(self, teams: List[Any] = [], **kwargs):
+    @property
+    def teams(self):
+        return self._teams
+
+    @property
+    def removed(self):
+        return self._removed
+
+    def _add_to_teams(self, teams: Optional[Union[str, List[str]]] = None, **_):
+
+        if not teams:
+            return
+
+        if isinstance(teams, str):
+            teams = [teams]
 
         for team in teams:
-
             self._teams.append(team)
-            if team not in self._playground.teams.keys():
-                self._playground.add_team(team)
-                self._playground.update_team_filter()
-
-    def remove(self, definitive: bool = True):
-
-        self._remove_from_pymunk_space()
+            self._playground.add_team(team)
         
-        if disappear
+        self.update_team_filter()
 
+    def remove(self, definitive: bool=False):
+
+        if definitive:
+            self._playground.remove_from_mappings(entity=self)
+        self._removed = True
 
     @abstractmethod
-    def remove_from_pymunk_space(self):
+    def reset(self, **_):
         """
-        Remove pymunk elements from playground space.
-        Remove entity from lists or dicts in playground.
+        Upon reset of the Playgroung,
+        revert the entity back to its original state.
         """
 
     @abstractmethod
@@ -81,23 +95,17 @@ class Entity(ABC):
         ...
 
     @abstractmethod
-    def pre_step(self, **kwargs):
+    def pre_step(self, **_):
         """
         Preliminary calculations before the pymunk engine steps.
         """
         ...
 
     @abstractmethod
-    def post_step(self, **kwargs):
+    def post_step(self, **_):
         """
         Updates the entity state after pymunk engine steps.
         """
         ...
 
-    @abstractmethod
-    def reset(self, **kwargs):
-        """
-        Upon reset of the Playgroung,
-        revert the entity back to its original state.
-        """
-        ...
+

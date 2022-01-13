@@ -27,7 +27,7 @@ def test_transparent():
     view_empty = view_global.update_view()
     
     contour = Contour(shape='circle', radius=10)
-    ent_1 = MockPhysical(contour=contour, transparent=True, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, transparent=True, movable=True, mass=5, initial_coordinates=((0,0), 0)
 
     playground.add(ent_1, ((0,0), 0))
 
@@ -41,7 +41,7 @@ def test_transparent():
 
     playground.remove(ent_1)
 
-    ent_2 = MockPhysical(contour=contour, transparent=False, movable=True, mass=5)
+    ent_2 = MockPhysical(contour=contour, transparent=False, movable=True, mass=5, initial_coordinates=((0,0), 0)
     playground.add(ent_2, ((0,0), 0))
     
     view_visible_entity = view_global.update_view()

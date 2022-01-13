@@ -32,7 +32,7 @@ def test_add_big_shape(size_on_pg, color_bg):
                            coordinates=((0, 0), 0), background_color=color_bg)
 
     contour = Contour(shape='circle', radius=size_on_pg[0]*2)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
     playground.add(ent_1, ((0, 0), 0))
 
     img = view.update_view()
@@ -48,7 +48,7 @@ def test_view_symmetric(poly_shape, position, angle, radius, size_on_pg):
                                  coordinates=((0, 0), 0))
 
     contour = Contour(shape=poly_shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
 
     playground.add(ent_1, (position, angle))
 
@@ -69,7 +69,7 @@ def test_view_random_rotation(poly_shape, position, angle, radius, size_on_pg):
                            coordinates=((0, 0), 0))
 
     contour = Contour(shape=poly_shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
 
     playground.add(ent_1, (position, angle))
     img = view.update_view()
@@ -86,7 +86,7 @@ def test_view_scale(shape, position, angle, radius, size_on_pg, view_size):
     
     playground = EmptyPlayground()
     contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5)
+    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
 
     playground.add(ent_1, (position, angle))
 

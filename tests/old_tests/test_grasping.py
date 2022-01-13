@@ -23,7 +23,7 @@ def test_grasping():
     )
     playground.add_agent(agent_1, ((100, 100), 0))
 
-    elem = Physical(config_key='circle', mass=5, radius=10, graspable=True)
+    elem = Physical(config_key='circle', mass=5, initial_coordinates=((0,0), 0, radius=10, graspable=True)
     initial_position_elem = ((100 + agent_1.base_platform.radius + elem.radius + 2, 100), 0)
     playground.add_element(elem, initial_position_elem)
 
@@ -53,7 +53,7 @@ def test_grasping_non_graspable():
     )
     playground.add_agent(agent_1, ((100, 100), 0))
 
-    elem = Physical(config_key='circle', mass=5, radius=10, graspable=False)
+    elem = Physical(config_key='circle', mass=5, initial_coordinates=((0,0), 0, radius=10, graspable=False)
     initial_position_elem = ((100 + agent_1.base_platform.radius + elem.radius + 2, 100), 0)
     playground.add_element(elem, initial_position_elem)
 
@@ -83,7 +83,7 @@ def test_grasping_sensor():
 
     playground.add_agent(agent_1, ((100, 100), 0))
 
-    elem = Physical(config_key='circle', mass=5, radius=10, graspable=True)
+    elem = Physical(config_key='circle', mass=5, initial_coordinates=((0,0), 0, radius=10, graspable=True)
     initial_position_elem = ((100 + agent_1.base_platform.radius + elem.radius + 2, 100), 0)
     playground.add_element(elem, initial_position_elem)
 

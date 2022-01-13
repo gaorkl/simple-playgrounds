@@ -38,7 +38,7 @@ def test_agent_forward_movable():
     playground.add(agent)
 
     contour = Contour(shape='circle', radius=10)
-    obstacle = MockPhysical(**contour.dict_attributes, movable=True, mass=5)
+    obstacle = MockPhysical(**contour.dict_attributes, movable=True, mass=5, initial_coordinates=((0,0), 0)
     playground.add(obstacle, ((50, 0), 0))
 
     actions = {}

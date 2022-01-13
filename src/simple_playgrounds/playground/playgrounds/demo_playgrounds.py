@@ -47,18 +47,18 @@ class Basics(SingleRoom):
         pentagon_01 = Physical(config_key='pentagon', radius=15)
         self.add_element(pentagon_01, ((50, 160), math.pi / 2))
 
-        tri_01 = Physical(config_key='triangle', movable=False, mass=5)
+        tri_01 = Physical(config_key='triangle', movable=False, mass=5, initial_coordinates=((0,0), 0)
         self.add_element(tri_01, ((100, 100), math.pi / 4))
 
         tri_01 = Physical(config_key='triangle',
                           movable=False,
-                          mass=5,
+                          mass=5, initial_coordinates=((0,0), 0,
                           radius=20)
         self.add_element(tri_01, ((300, 66), 0))
 
         tri_01 = Physical(config_key='triangle',
                           movable=False,
-                          mass=5,
+                          mass=5, initial_coordinates=((0,0), 0,
                           radius=20)
         self.add_element(tri_01, ((300, 133), math.pi / 3))
 
@@ -91,18 +91,18 @@ class Basics(SingleRoom):
         pentagon_01 = Physical(config_key='pentagon', radius=15)
         self.add_element(pentagon_01, ((50, 160), math.pi / 2))
 
-        tri_01 = Physical(config_key='triangle', movable=False, mass=5)
+        tri_01 = Physical(config_key='triangle', movable=False, mass=5, initial_coordinates=((0,0), 0)
         self.add_element(tri_01, ((100, 100), math.pi / 4))
 
         tri_01 = Physical(config_key='triangle',
                           movable=False,
-                          mass=5,
+                          mass=5, initial_coordinates=((0,0), 0,
                           radius=20)
         self.add_element(tri_01, ((300, 66), 0))
 
         tri_01 = Physical(config_key='triangle',
                           movable=False,
-                          mass=5,
+                          mass=5, initial_coordinates=((0,0), 0,
                           radius=20)
         self.add_element(tri_01, ((300, 133), math.pi / 3))
 
@@ -207,7 +207,7 @@ class BasicsPoly(SingleRoom):
                                      color_max=(100, 150, 200),
                                      rng=default_rng(10))
 
-        poly_07 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, movable=True)
+        poly_07 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, initial_coordinates=((0,0), 0, movable=True)
         self.add_element(poly_07,
                          initial_coordinates=((100, 300), 0))
 
@@ -215,7 +215,7 @@ class BasicsPoly(SingleRoom):
                                      color_min=(50, 100, 150),
                                      color_max=(100, 150, 200),
                                      rng=default_rng(10))
-        poly_08 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, movable=True)
+        poly_08 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, initial_coordinates=((0,0), 0, movable=True)
         self.add_element(poly_08,
                          initial_coordinates=((200, 300), math.pi / 4))
 
@@ -223,7 +223,7 @@ class BasicsPoly(SingleRoom):
                                      color_min=(50, 100, 150),
                                      color_max=(100, 150, 200),
                                      rng=default_rng(10))
-        poly_09 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, movable=True)
+        poly_09 = Physical(physical_shape='polygon', vertices=vertices, texture=texture, mass=5, initial_coordinates=((0,0), 0, movable=True)
         self.add_element(poly_09,
                          initial_coordinates=((300, 300), math.pi / 2))
 
@@ -425,7 +425,7 @@ class Dispensers(SingleRoom):
         pentagon_01 = Physical(config_key='pentagon',
                                radius=15,
                                graspable=True,
-                               mass=5)
+                               mass=5, initial_coordinates=((0,0), 0)
         self.add_element(pentagon_01, ((x_area, 350), math.pi / 2))
 
         dispenser = Dispenser(element_produced=Candy,
@@ -538,7 +538,7 @@ class Doors(GridRooms):
             lock, self.grid_rooms[1,
                                   0].get_random_position_on_wall('left', lock))
 
-        key = Key(locked_elem=lock, graspable=True, mass=5)
+        key = Key(locked_elem=lock, graspable=True, mass=5, initial_coordinates=((0,0), 0)
         center, size = self.grid_rooms[1, 0].get_partial_area('left-down')
         area_sampler = CoordinateSampler(center=center,
                                          size=size,
