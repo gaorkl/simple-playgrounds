@@ -76,6 +76,7 @@ class EmbodiedEntity(Entity, ABC):
         self._patches: Dict[View, Patch] = {}
 
         self._set_pm_collision_type()
+        self.update_team_filter()
 
     #############
     # Properties
@@ -170,6 +171,24 @@ class EmbodiedEntity(Entity, ABC):
 
     def _add_to_pymunk_space(self, **_):
         self._playground.space.add(self._pm_body, self._pm_shape)
+
+    def update_team_filter(self):
+
+        # if not self._teams:
+        #     return
+        
+        categ = self._pm_shape.filter.categories
+
+        for team in self._teams:
+            categ = categ | 2 ** self._playground.teams[team]
+
+        mask = self._pm_shape.filter.mask
+        for team in self._playground.teams:
+
+            if team not in self._teams:
+                mask = mask | 2 ** self._playground.teams[team] ^ 2 ** self._playground.teams[team]
+
+        self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
     def _remove_from_pymunk_space(self):
         self._playground.space.remove(self._pm_body, self._pm_shape)

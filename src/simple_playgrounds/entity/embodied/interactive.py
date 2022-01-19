@@ -35,8 +35,8 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
     def update_team_filter(self):
 
-        # if not self._teams:
-        #     return
+        if not self._teams:
+            return
 
         categ = 0
         for team in self._teams:

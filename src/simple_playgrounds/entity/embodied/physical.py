@@ -47,11 +47,12 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         self._mass = mass
 
         super().__init__(**kwargs)
-
+        
         self._transparent = transparent
         self._traversable = traversable
+        
         self._set_shape_collision_filter()
-
+        self.update_team_filter()
 
         # self._held_by: List[Grasp] = []
 
@@ -123,23 +124,7 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
         self._interactives.append(interactive)
 
-    def update_team_filter(self):
-
-        # if not self._teams:
-        #     return
-        
-        categ = self._pm_shape.filter.categories
-        for team in self._teams:
-            categ = categ | 2 ** self._playground.teams[team]
-
-        mask = self._pm_shape.filter.mask
-        for team in self._playground.teams:
-
-            if team not in self._teams:
-                mask = mask | 2 ** self._playground.teams[team] ^ 2 ** self._playground.teams[team]
-
-        self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
-
+    
     def update_view(self, view: View, **kwargs):
        
         for interactive in self._interactives:

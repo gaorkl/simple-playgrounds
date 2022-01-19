@@ -1,6 +1,7 @@
 from typing import Optional, TYPE_CHECKING
 
 import pymunk
+from pymunk.shape_filter import ShapeFilter
 from simple_playgrounds import playground
 
 from simple_playgrounds.entity.embodied.interactive import StandAloneInteractive, AnchoredInteractive
@@ -79,21 +80,21 @@ class MockBarrier(PhysicalEntity):
 
     def update_team_filter(self):
 
-        if not self._teams:
-            return
+        # if not self._teams:
+        #     return
 
-        categ = 0
+        categ = 2 ** PymunkCollisionCategories.DEFAULT.value
         for team in self._teams:
             categ = categ | 2 ** self._playground.teams[team]
 
-        mask = pymunk.ShapeFilter.ALL_MASKS() ^ 2**PymunkCollisionCategories.DEFAULT
+        mask = 0
         for team in self._playground.teams:
 
-            if team in self._teams:
-                # mask = mask | 2 ** self._playground.teams[team]
-                mask = mask ^ 2 ** self._playground.teams[team]
+            if team not in self._teams:
+                mask = mask | 2 ** self._playground.teams[team]
 
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
+
 
     def post_step(self):
         pass

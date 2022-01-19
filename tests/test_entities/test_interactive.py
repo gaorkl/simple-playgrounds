@@ -13,11 +13,11 @@ def test_halo_halo_in_range(radius, interaction_radius):
 
     contour = Contour(shape='circle', radius=radius)
 
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0))
-    halo_1 = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
+    ent_1 = MockPhysical(playground, ((0, 0), 0), contour=contour, movable=True, mass=5)
+    halo_1 = MockHaloTrigger(ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
 
-    ent_2 = MockPhysical(contour=contour, initial_coordinates = ((0, 2*radius + 2*interaction_radius - 1), 0))
-    halo_2 = MockHaloTriggered(anchor=ent_2, interaction_range=interaction_radius, texture=(2, 3, 4))
+    ent_2 = MockPhysical(playground, ((0, 2*radius + 2*interaction_radius - 1), 0), contour=contour)
+    halo_2 = MockHaloTriggered(ent_2, interaction_range=interaction_radius, texture=(2, 3, 4))
 
     assert not halo_1.activated and not halo_2.activated
 
@@ -31,15 +31,13 @@ def test_halo_halo_out_range(radius, interaction_radius):
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-
     contour = Contour(shape='circle', radius=radius)
 
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0))
-    halo_1 = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
+    ent_1 = MockPhysical(playground, ((0, 0), 0), contour=contour, movable=True, mass=5)
+    halo_1 = MockHaloTrigger(ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
 
-    ent_2 = MockPhysical(contour=contour, initial_coordinates= ((0, 2*radius + 2*interaction_radius + 1), 0))
+    ent_2 = MockPhysical(playground, ((0, 2*radius + 2*interaction_radius + 1), 0), contour=contour)
     halo_2 = MockHaloTriggered(anchor=ent_2, interaction_range=interaction_radius, texture=(2, 3, 4))
-    ent_2.add_interactive(halo_2)
 
     assert not halo_1.activated and not halo_2.activated
 
@@ -56,15 +54,11 @@ def test_halo_standalone(radius, interaction_radius):
 
     contour = Contour(shape='circle', radius=radius)
 
-    ent_1 = MockPhysical(**contour.dict_attributes, movable=True, mass=5, initial_coordinates=((0,0), 0))
-    halo_1 = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
-    ent_1.add_interactive(halo_1)
-
+    ent_1 = MockPhysical(playground, ((0, 0), 0), contour=contour, movable=True, mass=5)
+    halo_1 = MockHaloTrigger(ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
 
     contour = Contour(shape='square', radius=radius)
-    zone = MockZoneTriggered(**contour.dict_attributes)
-
-    playground.add(zone, ((0, 2*radius + interaction_radius - 1), 0))
+    zone = MockZoneTriggered(playground, ((0, 2*radius + interaction_radius - 1), 0), **contour.dict_attributes)
 
     assert not halo_1.activated and not zone.activated
 
@@ -81,11 +75,8 @@ def test_standalone_standalone():
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
     contour = Contour(shape='circle', radius=10)
-    zone_1 = MockZoneTrigger(**contour.dict_attributes)
-    zone_2 = MockZoneTriggered(**contour.dict_attributes)
-
-    playground.add(zone_1, ((0, 5), 0))
-    playground.add(zone_2, ((0, -5), 0))
+    zone_1 = MockZoneTrigger(playground, ((0, 5), 0), **contour.dict_attributes)
+    zone_2 = MockZoneTriggered(playground, ((0, -5), 0), **contour.dict_attributes)
 
     assert not zone_1.activated and not zone_2.activated
 

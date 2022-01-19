@@ -38,7 +38,7 @@ class Entity(ABC):
         self._add_to_teams(**kwargs)
         self._playground.add_to_mappings(self, **kwargs)
 
-        self._removed = False 
+        self._removed = False
 
     @property
     def playground(self):
@@ -71,8 +71,6 @@ class Entity(ABC):
         for team in teams:
             self._teams.append(team)
             self._playground.add_team(team)
-        
-        self.update_team_filter()
 
     def remove(self, definitive: bool=False):
 
@@ -86,13 +84,6 @@ class Entity(ABC):
         Upon reset of the Playgroung,
         revert the entity back to its original state.
         """
-
-    @abstractmethod
-    def update_team_filter(self):
-        """
-        Apply mask filter to the shape of interest of the entity.
-        """
-        ...
 
     @abstractmethod
     def pre_step(self, **_):
