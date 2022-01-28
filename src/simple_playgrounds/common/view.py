@@ -5,7 +5,7 @@ from typing import Optional, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
     from simple_playgrounds.common.position_utils import Coordinate
-    from simple_playgrounds.entity.entity import EmbodiedEntity
+    from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
 import numpy as np
 from matplotlib import pyplot as plt

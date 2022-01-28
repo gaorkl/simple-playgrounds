@@ -104,7 +104,7 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         if self._transparent and self._traversable:
             raise ValueError('Physical Object can not be transparent and traversable')
 
-        self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.DEFAULT.value,
+        self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.NO_TEAM.value,
                                                    mask=pymunk.ShapeFilter.ALL_MASKS() ^
                                                    2 ** PymunkCollisionCategories.TRAVERSABLE.value)
 

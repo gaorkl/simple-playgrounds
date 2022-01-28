@@ -214,7 +214,7 @@ class EmbodiedEntity(Entity, ABC):
                 velocity: Optional[Coordinate] = None,
                 allow_overlapping: bool = True,
                 initial_positioning: bool = False,
-                ):
+                keep_velocity: bool = False):
 
         if not initial_positioning and not self.movable:
             raise ValueError('Trying to move something that is not movable!')
@@ -222,11 +222,25 @@ class EmbodiedEntity(Entity, ABC):
         if not allow_overlapping:
             assert not self._overlaps(coordinates)
 
-        self._pm_body.position, self._pm_body.angle = coordinates
+        position, angle = coordinates
 
-        if velocity:
-            self._pm_body.velocity, self._pm_body.angular_velocity = velocity
+        # Calculate Velocities
+        if keep_velocity:
+            relative_velocity = self._pm_body.velocity.rotated(-self._pm_body.angle)
+            absolute_velocity = relative_velocity.rotated(angle)    
+            angular_velocity = self._pm_body.angular_velocity
+            
+        elif velocity:
+            absolute_velocity, angular_velocity = velocity
 
+        else:
+            absolute_velocity, angular_velocity = (0, 0), 0
+
+        # Apply new position and velocities
+        self._pm_body.position, self._pm_body.angle = position, angle
+        self._pm_body.velocity = absolute_velocity
+        self._pm_body.angular_velocity = angular_velocity
+        
         if self._pm_body.space:
             self._pm_body.space.reindex_shapes_for_body(self._pm_body)
 

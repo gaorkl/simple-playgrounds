@@ -14,12 +14,15 @@ from simple_playgrounds.entity.embodied.contour import Contour
 
 from ..mock_entities import MockPhysical
 
+
+coord_center = (0, 0), 0
+
 def test_empty_pg(size_on_pg, color_bg):
     """ Tests that background is set correctly """
 
     playground = EmptyPlayground()
-    view = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                           coordinates=((0, 0), 0), background_color=color_bg)
+    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg,
+                           background_color=color_bg)
 
     img = view.update_view()
     assert np.all(img[0, 0]/255 == to_rgb(color_bg))
@@ -28,13 +31,12 @@ def test_empty_pg(size_on_pg, color_bg):
 def test_add_big_shape(size_on_pg, color_bg):
 
     playground = EmptyPlayground()
-    view = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                           coordinates=((0, 0), 0), background_color=color_bg)
+    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg,
+                           background_color=color_bg)
 
     contour = Contour(shape='circle', radius=size_on_pg[0]*2)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
-    playground.add(ent_1, ((0, 0), 0))
-
+    ent_1 = MockPhysical(playground, coord_center, contour=contour, movable=True, mass=5)  
+    
     img = view.update_view()
 
     assert np.all(img[0, 0] == ent_1.base_color)
@@ -44,13 +46,10 @@ def test_view_symmetric(poly_shape, position, angle, radius, size_on_pg):
     """ Rotating elements by the correct angle should lead to the same image """
 
     playground = EmptyPlayground()
-    view = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                                 coordinates=((0, 0), 0))
+    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg)
 
     contour = Contour(shape=poly_shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
-
-    playground.add(ent_1, (position, angle))
+    ent_1 = MockPhysical(playground, (position, angle), contour=contour, movable=True, mass=5)
 
     img = view.update_view()
 
@@ -65,13 +64,11 @@ def test_view_random_rotation(poly_shape, position, angle, radius, size_on_pg):
     """ Rotating elements by the correct angle should lead to the different image """
 
     playground = EmptyPlayground()
-    view = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                           coordinates=((0, 0), 0))
+    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg)
 
     contour = Contour(shape=poly_shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
+    ent_1 = MockPhysical(playground, coord_center, contour=contour, movable=True, mass=5)
 
-    playground.add(ent_1, (position, angle))
     img = view.update_view()
 
     angle_rot = math.pi / contour.shape.value
@@ -86,15 +83,12 @@ def test_view_scale(shape, position, angle, radius, size_on_pg, view_size):
     
     playground = EmptyPlayground()
     contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
+    ent_1 = MockPhysical(playground, coord_center, contour=contour, movable=True, mass=5)
 
-    playground.add(ent_1, (position, angle))
+    view_no_rescale = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg).update_view()
 
-    view_no_rescale = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                           coordinates=((0, 0), 0)).update_view()
-
-    view_rescale = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                           coordinates=((0, 0), 0), view_size=view_size).update_view()
+    view_rescale = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg,
+                                   view_size=view_size).update_view()
 
     assert view_no_rescale.shape == (*size_on_pg, 3)
     assert view_rescale.shape == (*view_size, 3)

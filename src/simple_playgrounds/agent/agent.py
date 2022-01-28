@@ -2,7 +2,7 @@
 
 Agent class should be inherited to create agents.
 It is possible to define custom Agent with
-body parts, sensors and corresponding Keyboard commands.
+body parts, sensors and corresponding Keyboard controllers.
 
 Examples can be found in simple_playgrounds/agents/agents.py
 
@@ -13,7 +13,8 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 
 from gym.spaces import space
 import numpy as np
-from simple_playgrounds.agent.command import Command
+from numpy.lib.function_base import append
+from simple_playgrounds.agent.controller import Command, Controller
 
 from simple_playgrounds.common.position_utils import (
     Coordinate,
@@ -21,18 +22,21 @@ from simple_playgrounds.common.position_utils import (
     InitCoord,
 )
 from simple_playgrounds.element.elements.teleport import TeleportElement
+from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 from simple_playgrounds.entity.embodied.physical import PhysicalEntity
+from simple_playgrounds.entity.entity import Entity
 
 
 if TYPE_CHECKING:
     from simple_playgrounds.agent.sensor.sensor import SensorDevice
-    
+    from simple_playgrounds.playground.playground import Commands
+
 from simple_playgrounds.agent.part.part import Part
 
 _BORDER_IMAGE = 3
 
 
-class Agent(Part, ABC):
+class Agent(Entity):
     """
     Base class for building agents.
     Agents are composed of a base and parts which are attached to the base
@@ -54,30 +58,24 @@ class Agent(Part, ABC):
 
     def __init__(
         self,
+        temporary: Optional[bool] = False,
         **kwargs,
     ):
-        """
-        Base class for agents.
 
-        Args:
-            base_platform: Platform object, required to initialize an agent.
-                All agents have a Platform.
-            name: Name of the agent. 
-                If not provide, a name will be added by default.
-
-        """
         super().__init__(**kwargs)
+     
+        self._name_count = {}
+        self._name_to_controller = {}
 
-        # List of sensors
-        self._sensors: List[SensorDevice] = []
+        # Controllers
+        self._controllers: List[Controller] = []
 
         # Body parts
         self._parts: List[Part] = []
+        self._base = self._add_base(**kwargs)
 
-        # To be set when entity is added to playground.
-        self._initial_coordinates: Optional[InitCoord] = None
-        self._initial_coordinate_sampler: Optional[CoordinateSampler] = None
-        self._allow_overlapping = True
+        # List of sensors
+        self._sensors: List[SensorDevice] = []
 
         # Reward
         self._reward: float = 0
@@ -86,9 +84,25 @@ class Agent(Part, ABC):
         self._teleported_to: Optional[Union[Coordinate,
                                             TeleportElement]] = None
 
+        self._temporary = temporary
+
+    def get_name(self, obj: Controller):
+        index = self._name_count.get(type(obj), 0)
+        self._name_count[type(obj)] = index + 1
+        name = type(obj).__name__ + '_' + str(index)
+        return name
+
+    ################
+    # Properties
+    ################
+
     @property
-    def parts(self):
-        return self._parts
+    def position(self):
+        return self._base.position
+
+    @property
+    def angle(self):
+        return self._base.angle
 
     ################
     # Observations
@@ -96,30 +110,50 @@ class Agent(Part, ABC):
 
     @property
     def observations(self):
-        obs = {}
-        for sens in self._sensors:
-            obs[sens] = sens.update()
-        return obs
+        return {sens: sens.sensor_values for sens in self._sensors}
 
     @property
     def observation_space(self) -> Dict[SensorDevice, space.Space]:
         return {sens: sens.observation_space for sens in self._sensors}
 
+    def compute_observations(self,
+                             keys_are_str: bool = True,
+                             return_np_arrays: bool = True):
+        pass
+
     ################
-    # Commands 
+    # Commands
     ################
+    
+    @property
+    def parts(self):
+        return self._parts
 
     @property
-    def commands(self) -> List[Command]:
-        return [command for part in self._parts for command in part.commands]
+    def controllers(self) -> List[Controller]:
+        return self._controllers
 
     @property
-    def default_commands(self):
-        return {command: command.default for command in self.commands}
+    def default_commands(self) -> Commands:
+        return {controller: controller.default for controller in self._controllers}
 
-    @property
-    def random_commands(self):
-        return {command: command.sample for command in self.commands}
+    def apply_commands(self, commands: Commands):
+        
+        # Set command values
+        if isinstance(commands, np.ndarray):
+            for index, controller in enumerate(self.controllers):
+                controller.set_command(commands[index])
+            return
+
+        for controller, command in commands.items():
+            if isinstance(controller, str):
+                controller = self._name_to_controller[controller]
+
+            controller.set_command(command)
+
+        # Apply command to playground physics
+        for part in self._parts:
+            part.apply_commands()
 
     ################
     # Rewards
@@ -133,24 +167,28 @@ class Agent(Part, ABC):
     def reward(self, rew):
         self._reward = rew
 
-    def reindex_shapes(self):
-        for part in self._parts:
-            part.reindex_shapes()
-
     #############
-    # ADD PARTS AND SENSORS 
+    # ADD PARTS AND SENSORS
     #############
 
-    def add(self, component: Union[SensorDevice, Part]):
+    @abstractmethod
+    def _add_base(self, **kwargs) -> Part:
+        """
+        Create a base.
+        This should pass the parameters for the base 
+        and its initial position for when created.
+        """
+        ...
 
-        if isinstance(component, SensorDevice):
-            self._sensors.append(component)
+    def add_part(self, part: Part):
+        if part in self._parts:
+            raise ValueError('Part already in agent')
 
-        elif isinstance(component, Part):
-            self._parts.append(component)
+        self._parts.append(part)
 
-        else:
-            raise ValueError('Not Implemented')
+        for controller in part.controllers:
+            self._controllers.append(controller)
+            self._name_to_controller[controller.name] = controller
 
     ##############
     # CONTROL
@@ -171,77 +209,103 @@ class Agent(Part, ABC):
         for sensor in self._sensors:
             sensor.pre_step(**kwargs)
 
-    def step(self, **kwargs):
-
-        for part in self._parts:
-            part.step(**kwargs)
-
     def reset(self):
+        
+        # Remove completely if temporary
+        if self._temporary:
+            self.remove()
+            return
+        
+        self._removed = False
         for part in self._parts:
             part.reset()
+
+    def post_step(self, **kwargs):
+        
+        for part in self._parts:
+            part.post_step(**kwargs)
+
+        for sensor in self._sensors:
+            sensor.post_step(**kwargs)
 
     ###############
     # PLAYGROUND INTERACTIONS
     ###############
- 
-    def move(self, coord: Coordinate):
+
+    def remove(self, definitive: Optional[bool] = True):
+        for part in self._parts:
+            part.remove(definitive=definitive)
+        self._removed = True
+
+        # self._playground.remove_from_mappings(self)
+
+    def move_to(self,
+                coord: Coordinate,
+                keep_velocity: bool = True,
+                keep_joints: bool = True):
+        
+        """
+        After moving, the agent body is back in its original configuration.
+        Default angle, etc.
+        """
 
         position, angle = coord
 
-        for part in self._parts:
-            if isinstance(part, Platform):
-                part.position, part.angle = position, angle
-            elif isinstance(part, AnchoredPart):
-                part.set_relative_coordinates()
-            else:
-                raise ValueError("Part type not implemented")
+        if keep_joints:
+            relative_positions = {part: part.relative_position for part in self._parts}
+            relative_angles = {part: part.relative_angle for part in self._parts}
 
+        if not keep_joints and keep_velocity:
+            relative_velocities = {part: part.relative_velocity for part in self._parts}
+            relative_ang_velocities = {part: part.angular_velocity for part in self._parts}
+
+        self._base.move_to(coord, keep_velocity=keep_velocity)
+
+        for part in self._parts:
+            if part is not self._base:
+                coord = relative_positions[part], relative_angles[part]
+                vel = relative_velocities[part], relative_ang_velocities[part]
+                part.move_to(coord, velocity=vel)
 
     @property
     def teleported_to(self):
         return self._teleported_to
 
-    def has_teleported_to(self, destination):
+    @teleported_to.setter
+    def teleported_to(self, destination):
         self._teleported_to = destination
-        self._has_teleported = True
-
-    @property
-    def has_teleported(self):
-        return self._has_teleported
 
     def _update_teleport(self):
-
-        self._has_teleported = False
 
         if isinstance(self._teleported_to, TeleportElement):
             if self._overlaps(self._teleported_to):
                 return
 
         self._teleported_to = None
- 
-    @property
-    def grasped_elements(self):
-        list_hold = []
-        for part in self._parts:
-            list_hold.append(part.grasped_elements)
-        return list_hold
-   
 
     def _overlaps(
         self,
-        entity: Entity,
+        entity: EmbodiedEntity,
     ) -> bool:
 
         for part in self.parts:
 
-            if entity.pm_visible_shape and part.pm_visible_shape.shapes_collide(entity.pm_visible_shape):
+            if entity.pm_shape and part.pm_shape.shapes_collide(entity.pm_shape).points:
                 return True
 
-            if entity.pm_invisible_shape and part.pm_visible_shape.shapes_collide(entity.pm_invisible_shape):
+            if entity.pm_shape and part.pm_shape.shapes_collide(entity.pm_shape).points:
                 return True
 
         return False
 
+    # @property
+    # def grasped_elements(self):
+    #     list_hold = []
+    #     for part in self._parts:
+    #         if isinstance(part, GraspPart):
+    #             list_hold + part.grasped_elements
+    #     return list_hold
+   
     def generate_sensor_image(self,
                               width_sensor: int = 200,
                               height_sensor: int = 30,

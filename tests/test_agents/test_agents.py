@@ -1,61 +1,169 @@
 import pytest
+from simple_playgrounds.agent.controller import ContinuousController, DiscreteController, RangeController
 
 from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_agents import MockAgent
+from tests.mock_agents import MockAgent, MockBase
 from tests.mock_entities import MockBarrier, MockPhysical
 from simple_playgrounds.entity.embodied.contour import Contour
 
+
 def test_agent_in_playground():
 
-    agent = MockAgent()
     playground = EmptyPlayground()
+    agent = MockAgent(playground)
     
-    playground.add(agent)
     assert agent in playground.agents
+    assert playground.entities == []
+    assert agent._base in playground._shapes_to_entities.values()
+    assert agent._base in agent.parts
+    
+    for part in agent.parts:
+        assert part in playground._shapes_to_entities.values()
+        assert part.agent == agent
 
-    playground.remove(agent)
+    agent.remove()
+    
     assert agent not in playground.agents
     assert not playground.space.shapes
     assert playground._shapes_to_entities == {}
 
-
-def test_agent_initial_position():
-
-    agent = MockAgent()
-    playground = EmptyPlayground()
+    playground.reset()
     
-    playground.add(agent)
+    assert agent in playground.agents
 
+
+@pytest.fixture(scope='module', params=[1, 5])
+def range_controller(request):
+    return request.param
+
+
+def test_range_controller(range_controller):
+
+    playground = EmptyPlayground()
+    agent = MockAgent(playground)
+    controller = RangeController(part=agent._base, n=range_controller)
+
+    for _ in range(200):
+        assert controller.sample() in list(range(range_controller))
+
+    controller.set_command(command=controller.sample())
+
+    with pytest.raises(ValueError):
+        controller.set_command(range_controller, hard_check=True)
+
+
+@pytest.fixture(scope='module', params = [-2.12, 1.4, 0, 1.5, 2.43]) 
+def min_controller(request):
+    return request.param
+
+
+@pytest.fixture(scope='module', params = [-2.42, 1.5, 0, 1.3, 2.83]) 
+def max_controller(request):
+    return request.param
+
+
+def test_cont_controller(min_controller, max_controller):
+    
+    playground = EmptyPlayground()
+    agent = MockAgent(playground)
+    
+    if min_controller > max_controller:
+        with pytest.raises(ValueError):
+            ContinuousController(min_controller, max_controller, part=agent._base)
+
+    else:
+
+        controller = ContinuousController(min_controller, max_controller, part=agent._base)
+
+        with pytest.raises(ValueError):
+            controller.set_command(min_controller-0.1, hard_check=True)
+
+        with pytest.raises(ValueError):
+            controller.set_command(max_controller+0.1, hard_check=True)
+
+
+def test_controller_forward():
+    
+    playground = EmptyPlayground()
+    agent = MockAgent(playground)
+
+    commands = {agent: {agent._base.forward_controller: 1}}
+    
+    assert agent.position == (0, 0)
+
+    playground.step(commands=commands)
+
+    assert agent.position != (0, 0)
+    assert agent.position.x > 0
+    assert agent.position.y == 0
+
+
+def test_controller_rotate():
+    
+    playground = EmptyPlayground()
+    agent = MockAgent(playground)
+
+    commands = {agent: {agent._base.angular_vel_controller: 1}}
+    
     assert agent.position == (0, 0)
     assert agent.angle == 0
 
+    playground.step(commands=commands)
 
-def test_agent_forward_movable():
- 
-    agent = MockAgent()
+    assert agent.position == (0, 0)
+    assert agent.angle > 0
+
+
+def test_command_interface():
+
     playground = EmptyPlayground()
+    agent = MockAgent(playground)
+
+    agent_id = [agent, agent.name]
+    controller_id = [agent._base.forward_controller, agent._base.forward_controller.name]
+
+    commands = {agent: {agent._base.angular_vel_controller: 1}}
     
-    playground.add(agent)
-
-    contour = Contour(shape='circle', radius=10)
-    obstacle = MockPhysical(**contour.dict_attributes, movable=True, mass=5, initial_coordinates=((0,0), 0)
-    playground.add(obstacle, ((50, 0), 0))
-
-    actions = {}
-    for command in agent.commands:
-        actions[command] = command.max
 
 
-def test_agent_forward_obstacle():
-    pass
+
+# def test_agent_initial_position():
+
+#     agent = MockAgent()
+#     playground = EmptyPlayground()
+    
+#     playground.add(agent)
+
+#     assert agent.position == (0, 0)
+#     assert agent.angle == 0
 
 
-def test_agent_control():
-    pass
+# def test_agent_forward_movable():
+ 
+#     agent = MockAgent()
+#     playground = EmptyPlayground()
+    
+#     playground.add(agent)
+
+#     contour = Contour(shape='circle', radius=10)
+#     obstacle = MockPhysical(**contour.dict_attributes, movable=True, mass=5, initial_coordinates=((0,0), 0)
+#     playground.add(obstacle, ((50, 0), 0))
+
+#     actions = {}
+#     for controller in agent.controllers:
+#         actions[controller] = controller.max
 
 
-def test_seed():
-    pass
+# def test_agent_forward_obstacle():
+#     pass
+
+
+# def test_agent_control():
+#     pass
+
+
+# def test_seed():
+#     pass
 
 
 # def run_engine(base_agent, pg_class, **pg_params):

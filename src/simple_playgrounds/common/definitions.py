@@ -23,8 +23,6 @@ DEFAULT_INTERACTION_RANGE = 5
 
 class PymunkCollisionCategories(IntEnum):
 
-    DEFAULT = auto()
-
     # Must start at one:
     TRAVERSABLE = auto()
     TRANSPARENT = auto()

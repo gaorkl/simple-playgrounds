@@ -17,19 +17,17 @@ from ..mock_entities import MockPhysical
 
 import matplotlib.pyplot as plt
 
+coord_center = (0, 0), 0
 
 def test_anchored(shape, position, angle, radius, size_on_pg):
 
     playground = EmptyPlayground()
     contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(contour=contour, movable=True, mass=5, initial_coordinates=((0,0), 0)
-
-    playground.add(ent_1, (position, angle))
+    ent_1 = MockPhysical(playground, (position, angle), contour=contour, movable=True, mass=5)
 
     view_anchored = AnchoredView(anchor=ent_1, size_on_playground=size_on_pg).update_view()
 
-    view_global = FixedGlobalView(playground=playground, size_on_playground=size_on_pg,
-                           coordinates=((0, 0), 0)).update_view()
+    view_global = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg).update_view()
 
     if ent_1.position == (0,0) and (ent_1.angle == 0 or shape=='circle'): 
         assert np.all(view_global == view_anchored)
@@ -45,19 +43,15 @@ def test_anchored_relative(shape):
     playground = EmptyPlayground()
     contour = Contour(shape=shape, radius=20)
 
-    ent_1 = MockPhysical(contour=contour, mass=5, initial_coordinates=((0,0), 0, movable=True)
-    playground.add(ent_1, ((0,0), 0))
+    ent_1 = MockPhysical(playground, coord_center, contour=contour, mass=5, movable=True)
     view_anchored_1 = AnchoredView(anchor=ent_1, draw_transparent=True, size_on_playground=(200, 200))
 
-    ent_2 = MockPhysical(contour=contour)
-    playground.add(ent_2, ((50, 50), 0))
-    
-    view_anchored_2 = AnchoredView(anchor=ent_2, draw_transparent=True, size_on_playground=(200, 200))
+    ent_2 = MockPhysical(playground, ((50, 50), 0), contour=contour)
     
     for angle in range(1, contour.shape.value):
 
         angle_rad = angle*2*math.pi/contour.shape.value
-        ent_1.move_to(((0,0), angle_rad ))
+        ent_1.move_to(((0, 0), angle_rad))
         img_rotated_1 = view_anchored_1.update_view()
 
         x, y = ent_2.position.rotated(-angle_rad).int_tuple

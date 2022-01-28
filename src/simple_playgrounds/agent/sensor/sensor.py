@@ -17,12 +17,15 @@ from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
 from simple_playgrounds.device.device import Device
-from simple_playgrounds.agent.part.part import PhysicalPart
+from simple_playgrounds.agent.part.part import Part
 from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.element.element import SceneElement
 
 
-class SensorDevice(Device):
+SensorValue = Union[np.ndarray, List[np.ndarray]]
+
+
+class Sensor(Device):
     """ Base class Sensor, used as an Interface for all sensors.
 
     Attributes:
@@ -39,7 +42,7 @@ class SensorDevice(Device):
     _index_sensor = 0
 
     def __init__(self,
-                 anchor: Union[PhysicalPart, SceneElement],
+                 anchor: Union[Part, SceneElement],
                  noise_params: Optional[Dict] = None,
                  normalize: Optional[bool] = False,
                  name: Optional[str] = None,
@@ -73,8 +76,8 @@ class SensorDevice(Device):
             self.name = name
         else:
             self.name = self.__class__.__name__.lower() + '_' + str(
-                SensorDevice._index_sensor)
-            SensorDevice._index_sensor += 1
+                Sensor._index_sensor)
+            Sensor._index_sensor += 1
 
         self.sensor_values = None
 
@@ -159,7 +162,7 @@ class SensorDevice(Device):
 # External Sensors
 ##################
 
-class ExternalSensor(SensorDevice, ABC):
+class ExternalSensor(Sensor, ABC):
 
     def __init__(self,
                  anchor,
@@ -451,7 +454,7 @@ class ImageBasedSensor(ExternalSensor, ABC):
 ##################
 
 
-class InternalSensor(SensorDevice, ABC):
+class InternalSensor(Sensor, ABC):
 
     """
     Base Class for Internal Sensors.

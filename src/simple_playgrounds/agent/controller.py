@@ -1,21 +1,20 @@
 from __future__ import annotations
+from collections import defaultdict
 import random
 from abc import ABC, abstractmethod
 from typing import Tuple, Optional, Dict, TYPE_CHECKING, Union, List
 if TYPE_CHECKING:
     from simple_playgrounds.element.element import SceneElement
+    from simple_playgrounds.agent.part.part import Part
 
 import numpy as np
 import pymunk
 from PIL import ImageFont, ImageDraw
 
-from simple_playgrounds.agent.part.part import Part
+Command = Union[float, int, bool]
 
 
-CommandValue = Union[float, int, bool]
-
-
-class Command(ABC):
+class Controller(ABC):
     """
     Command classes define how parts can be controlled.
     It is used to control parts of an agent:
@@ -25,42 +24,59 @@ class Command(ABC):
     def __init__(
         self,
         part: Part,
-        **kwargs
+        name: Optional[str] = None,
+        **_
     ):
         self._part: Part = part
-        self._command: CommandValue = self.default
+
+        if not name:
+            name = part.agent.get_name(self)
+        self._name = name
+
         self._noise: bool = False
         self._disabled: bool = False
-    
+
+        self._command = self.default
+
     @property
     def rng(self):
         return self._part.rng
 
     @property
     @abstractmethod
-    def default(self) -> CommandValue:
+    def default(self) -> Command:
         ...
- 
+
+    @property
+    def command(self):
+        return self._command
+
+    @property
+    def name(self):
+        return self._name
+
+    def pre_step(self):
+        self._command = self.default
+
+    def reset(self):
+        self.pre_step()
+
     @abstractmethod
-    def _check(self, command, hard_check=True) -> CommandValue:
+    def _check(self, command, hard_check=True, **_) -> Command:
         ...
 
     @abstractmethod
-    def _apply_noise(self, command, no_noise=False) -> CommandValue:
+    def _apply_noise(self, command, no_noise=False, **_) -> Command:
         ...
-    
-    def get_command(self, command_input, **kwargs):
-        
-        command = self._check(command_input, **kwargs)
-        
+
+    def set_command(self, command, **kwargs):
+        command = self._check(command, **kwargs)
+        self._command = command
+
+    def sample(self, **kwargs) -> Command:
         if self._noise:
-            command = self._apply_noise(command, **kwargs)
-
-        return command
-    
-    @abstractmethod
-    def sample(self) -> CommandValue:
-        ...
+            return self._apply_noise(self._command, **kwargs)
+        return self._command
 
     @abstractmethod
     def draw(self, drawer_action_image: ImageDraw, img_width: int,
@@ -72,7 +88,7 @@ class Command(ABC):
 ####################
 
 
-class DiscreteCommand(Command):
+class DiscreteController(Controller):
     """
     Discrete Commands.
     Command values can take a number within a list of integers.
@@ -93,8 +109,8 @@ class DiscreteCommand(Command):
         self._change_proba: float = self._get_noise_params(**kwargs)
 
     def _get_noise_params(self, 
-                          error_probability: Optional[float] = None
-                          ) -> float:
+                          error_probability: Optional[float] = None,
+                          **_) -> float:
 
         if not error_probability:
             self._noise = False
@@ -103,7 +119,7 @@ class DiscreteCommand(Command):
         self._noise = True
         return error_probability
 
-    def _check(self, command, hard_check) -> CommandValue:
+    def _check(self, command, hard_check=True, **_) -> Command:
         if command in self._valid_command_values:
             return command
 
@@ -116,6 +132,7 @@ class DiscreteCommand(Command):
         self,
         command: int,
         no_noise: Optional[bool] = False,
+        **_,
     ) -> int:
 
         if no_noise:
@@ -129,16 +146,15 @@ class DiscreteCommand(Command):
         return command
 
     @property
-    def default(self):
+    def default(self) -> int:
         return 0
 
     @property
     def valid_commands(self):
         return self._valid_command_values
 
-    def sample(self) -> int:
-        return self.rng.choice(self._valid_command_values)
-
+    def draw(self, drawer_action_image: ImageDraw, img_width: int, position_height: int, height_action: int, fnt: ImageFont):
+        pass
     # def draw(self, drawer_action_image, img_width, position_height,
     #          height_action, fnt):
 
@@ -156,13 +172,15 @@ class DiscreteCommand(Command):
     #                              fill=(0, 0, 0))
 
 
-class BoolCommand(DiscreteCommand):
+class BoolController(DiscreteController):
 
     def __init__(self, **kwargs):
         super().__init__(command_values=[0, 1], **kwargs)
 
+    def default(self) -> int:
+        return 0
 
-class RangeCommand(DiscreteCommand):
+class RangeController(DiscreteController):
 
     def __init__(self, n: int, **kwargs):
         super().__init__(command_values=list(range(n)), **kwargs)
@@ -171,16 +189,19 @@ class RangeCommand(DiscreteCommand):
 # ContinuousCommand
 ###################
 
-class ContinuousCommand(Command, ABC):
+class ContinuousController(Controller, ABC):
 
     def __init__(self, min_value: float, max_value: float, **kwargs):
         
         super().__init__(**kwargs)
 
+        if min_value > max_value:
+            raise ValueError
+
         self._min = min_value
         self._max = max_value
     
-    def _check(self, command, hard_check) -> CommandValue:
+    def _check(self, command, hard_check=False, **_) -> Command:
         
         if self._min <= command <= self._max:
             return command
@@ -191,7 +212,7 @@ class ContinuousCommand(Command, ABC):
         if command < self._min:
             return self._min
         return self._max
-        
+
     @property
     def default(self) -> float:
         return 0
@@ -204,11 +225,11 @@ class ContinuousCommand(Command, ABC):
     def max(self) -> float:
         return self._max
 
-    def _apply_noise(self, command, no_noise) -> CommandValue:
+    def _apply_noise(self, command, no_noise, **_) -> Command:
 
         if self._noise == 'gaussian':
 
-            value += random.gauss(self._mean, self._scale)
+            value = random.gauss(self._mean, self._scale)
 
             value = value if value > self.min else self.min
             value = value if value < self.max else self.max
@@ -220,7 +241,7 @@ class ContinuousCommand(Command, ABC):
 
     def _parse_noise_params(
         self,
-        noise_params: Dict[str, float],
+        noise_params: Dict[str, float], **_,
     ):
 
         if self._noise == 'gaussian':
@@ -230,6 +251,20 @@ class ContinuousCommand(Command, ABC):
 
         else:
             raise ValueError('Noise type not implemented')
+
+    def draw(self, drawer_action_image: ImageDraw, img_width: int, position_height: int, height_action: int, fnt: ImageFont):
+        pass
+
+class CenteredContinuousController(ContinuousController):
+
+    def __init__(self, **kwargs):
+        super().__init__(min_value=-1, max_value=1, **kwargs)
+
+
+class NormalContinuousController(ContinuousController):
+
+    def __init__(self, **kwargs):
+        super().__init__(min_value=0, max_value=1, **kwargs)
 
     # def draw(self, drawer_action_image, img_width, position_height,
     #          height_action, fnt):

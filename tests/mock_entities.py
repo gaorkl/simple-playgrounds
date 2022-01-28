@@ -83,7 +83,7 @@ class MockBarrier(PhysicalEntity):
         # if not self._teams:
         #     return
 
-        categ = 2 ** PymunkCollisionCategories.DEFAULT.value
+        categ = 2 ** PymunkCollisionCategories.NO_TEAM.value
         for team in self._teams:
             categ = categ | 2 ** self._playground.teams[team]
 

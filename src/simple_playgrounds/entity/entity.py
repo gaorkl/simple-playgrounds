@@ -31,10 +31,10 @@ class Entity(ABC):
         self._playground = playground
         self._teams: List[str] = []
 
-        self._name = name
         if not name:
-            self._name = self._playground.get_name(self)
-        
+            name = self._playground.get_name(self)
+        self._name = name
+
         self._add_to_teams(**kwargs)
         self._playground.add_to_mappings(self, **kwargs)
 
