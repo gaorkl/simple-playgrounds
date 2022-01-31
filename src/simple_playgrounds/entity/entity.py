@@ -99,4 +99,6 @@ class Entity(ABC):
         """
         ...
 
-
+    @abstractmethod
+    def update_team_filter(self, **_):
+        pass

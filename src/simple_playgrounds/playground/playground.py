@@ -202,12 +202,11 @@ class Playground(ABC):
 
     def add_team(self, team):
         
-        if team in self._teams.keys():
-            return
+        if not team in self._teams.keys():
+            team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
+            self._teams[team] = team_index
 
-        team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
-        self._teams[team] = team_index
-        self._update_entity_team_filter()
+        self._update_team_filter()
 
     def get_name(self, entity: Entity):
         index = self._entity_name_count.get(type(entity), 0)
@@ -215,9 +214,14 @@ class Playground(ABC):
         name = type(entity).__name__ + '_' + str(index)
         return name
 
-    def _update_entity_team_filter(self):
+    def _update_team_filter(self):
+
         for entity in self._entities:
             entity.update_team_filter()
+
+        for agent in self._agents:
+            agent.update_team_filter()
+
 
     def step(
         self,
@@ -249,10 +253,15 @@ class Playground(ABC):
 
 
     def _apply_commands(self, commands):
+        
         if not commands:
             return
 
         for agent, _commands in commands.items():
+
+            if isinstance(agent, str):
+                agent = self._name_to_agents[agent]
+
             agent.apply_commands(_commands)
    
     def _transmit_messages(self, messages):
@@ -415,7 +424,7 @@ class Playground(ABC):
             self._agents.remove(entity)
             self._name_to_agents.pop(entity.name)
 
-        if not isinstance(entity, (AnchoredInteractive, Part)):
+        elif not isinstance(entity, (AnchoredInteractive, Part)):
             self._entities.remove(entity)
 
         if not isinstance(entity, Agent):
@@ -433,9 +442,6 @@ class Playground(ABC):
         assert shape in self._shapes_to_entities.keys()
         
         entity = self._shapes_to_entities[shape]
-
-        if isinstance(entity, Part):
-            return entity.agent
 
         return entity
         

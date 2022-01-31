@@ -1,6 +1,7 @@
 import pytest
 from simple_playgrounds.agent.controller import ContinuousController, DiscreteController, RangeController
 
+import numpy as np
 from simple_playgrounds.playground.playground import EmptyPlayground
 from tests.mock_agents import MockAgent, MockBase
 from tests.mock_entities import MockBarrier, MockPhysical
@@ -21,7 +22,17 @@ def test_agent_in_playground():
         assert part in playground._shapes_to_entities.values()
         assert part.agent == agent
 
-    agent.remove()
+    agent.remove(definitive=False)
+    
+    assert agent not in playground.agents
+    assert not playground.space.shapes
+    assert playground._shapes_to_entities != {}
+
+    playground.reset()
+    
+    assert agent in playground.agents
+    
+    agent.remove(definitive=True)
     
     assert agent not in playground.agents
     assert not playground.space.shapes
@@ -29,7 +40,8 @@ def test_agent_in_playground():
 
     playground.reset()
     
-    assert agent in playground.agents
+    assert agent not in playground.agents
+
 
 
 @pytest.fixture(scope='module', params=[1, 5])
@@ -119,11 +131,17 @@ def test_command_interface():
     playground = EmptyPlayground()
     agent = MockAgent(playground)
 
-    agent_id = [agent, agent.name]
-    controller_id = [agent._base.forward_controller, agent._base.forward_controller.name]
+    agent_identifier = [agent, agent.name]
+    controller_identifier = [agent._base.forward_controller,
+                             agent._base.forward_controller.name]
 
-    commands = {agent: {agent._base.angular_vel_controller: 1}}
-    
+    for ag_id in agent_identifier:
+        for cont_id in controller_identifier:
+            commands = {ag_id: {cont_id: 1}}
+            playground.step(commands=commands)
+
+
+
 
 
 

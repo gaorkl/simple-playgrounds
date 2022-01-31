@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from simple_playgrounds.agent.sensor.sensor import SensorDevice
     from simple_playgrounds.playground.playground import Commands
 
-from simple_playgrounds.agent.part.part import Part
+from simple_playgrounds.agent.part.part import Part, InteractivePart
 
 _BORDER_IMAGE = 3
 
@@ -190,6 +190,10 @@ class Agent(Entity):
             self._controllers.append(controller)
             self._name_to_controller[controller.name] = controller
 
+    def update_team_filter(self):
+        for part in self._parts:
+            part.update_team_filter()
+
     ##############
     # CONTROL
     ##############
@@ -232,12 +236,15 @@ class Agent(Entity):
     # PLAYGROUND INTERACTIONS
     ###############
 
-    def remove(self, definitive: Optional[bool] = True):
+    def remove(self, definitive: bool = True):
         for part in self._parts:
-            part.remove(definitive=definitive)
+            # InteractiveParts are removed by their anchor
+            if not isinstance(part, InteractivePart):
+                part.remove(definitive=definitive)
         self._removed = True
 
-        # self._playground.remove_from_mappings(self)
+        if definitive:
+            self._playground.remove_from_mappings(self)
 
     def move_to(self,
                 coord: Coordinate,
@@ -252,12 +259,20 @@ class Agent(Entity):
         position, angle = coord
 
         if keep_joints:
-            relative_positions = {part: part.relative_position for part in self._parts}
-            relative_angles = {part: part.relative_angle for part in self._parts}
+            relative_positions = {part: part.relative_position 
+                                  for part in self._parts
+                                  if part is not self._base}
+            relative_angles = {part: part.relative_angle 
+                               for part in self._parts
+                               if part is not self._base}
 
         if not keep_joints and keep_velocity:
-            relative_velocities = {part: part.relative_velocity for part in self._parts}
-            relative_ang_velocities = {part: part.angular_velocity for part in self._parts}
+            relative_velocities = {part: part.relative_velocity  
+                               for part in self._parts
+                               if part is not self._base}
+            relative_ang_velocities = {part: part.angular_velocity  
+                               for part in self._parts
+                               if part is not self._base}
 
         self._base.move_to(coord, keep_velocity=keep_velocity)
 
