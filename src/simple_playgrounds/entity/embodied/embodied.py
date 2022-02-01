@@ -227,7 +227,7 @@ class EmbodiedEntity(Entity, ABC):
         # Calculate Velocities
         if keep_velocity:
             relative_velocity = self._pm_body.velocity.rotated(-self._pm_body.angle)
-            absolute_velocity = relative_velocity.rotated(angle)    
+            absolute_velocity = relative_velocity.rotated(angle)
             angular_velocity = self._pm_body.angular_velocity
             
         elif velocity:
@@ -301,7 +301,7 @@ class EmbodiedEntity(Entity, ABC):
         if not self._allow_overlapping and self._overlaps(coordinates):
             raise ValueError('Entity could not be placed without overlapping')
         
-        self.move_to(coordinates, vel, initial_positioning=True)
+        self.move_to(coordinates, velocity=vel, initial_positioning=True)
 
     # TODO: Move to playground
     def _overlaps(self, coordinates):

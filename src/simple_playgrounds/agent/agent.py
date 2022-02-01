@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from simple_playgrounds.agent.sensor.sensor import SensorDevice
     from simple_playgrounds.playground.playground import Commands
 
-from simple_playgrounds.agent.part.part import Part, InteractivePart
+from simple_playgrounds.agent.part.part import Part, AnchoredPart, InteractivePart
 
 _BORDER_IMAGE = 3
 
@@ -241,6 +241,7 @@ class Agent(Entity):
             # InteractiveParts are removed by their anchor
             if not isinstance(part, InteractivePart):
                 part.remove(definitive=definitive)
+
         self._removed = True
 
         if definitive:
@@ -255,32 +256,10 @@ class Agent(Entity):
         After moving, the agent body is back in its original configuration.
         Default angle, etc.
         """
-
-        position, angle = coord
-
-        if keep_joints:
-            relative_positions = {part: part.relative_position 
-                                  for part in self._parts
-                                  if part is not self._base}
-            relative_angles = {part: part.relative_angle 
-                               for part in self._parts
-                               if part is not self._base}
-
-        if not keep_joints and keep_velocity:
-            relative_velocities = {part: part.relative_velocity  
-                               for part in self._parts
-                               if part is not self._base}
-            relative_ang_velocities = {part: part.angular_velocity  
-                               for part in self._parts
-                               if part is not self._base}
-
-        self._base.move_to(coord, keep_velocity=keep_velocity)
-
-        for part in self._parts:
-            if part is not self._base:
-                coord = relative_positions[part], relative_angles[part]
-                vel = relative_velocities[part], relative_ang_velocities[part]
-                part.move_to(coord, velocity=vel)
+        
+        self._base.move_to(coordinates=coord,
+                           keep_velocity=keep_velocity,
+                           keep_joints=keep_joints)
 
     @property
     def teleported_to(self):

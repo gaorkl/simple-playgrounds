@@ -1,7 +1,6 @@
 
 import math
 import pymunk
-import random
 
 import pytest
 from simple_playgrounds.agent.part.part import AnchoredPart
@@ -15,12 +14,12 @@ def pos(request):
     return request.param
 
 
-@pytest.fixture(scope='module', params=[-1,  0, 1])
+@pytest.fixture(scope='module', params=[2,   0, 3, 9])
 def angle(request):
     return request.param
 
 
-@pytest.fixture(scope='module', params=[-4, -1, 0, 1, 4])
+@pytest.fixture(scope='module', params=[0])
 def offset_angle(request):
     return request.param
 
@@ -35,7 +34,8 @@ def pos_on_anchor(request):
     return request.param
 
 
-def test_move(pos, angle, pos_on_part, pos_on_anchor, offset_angle):
+def test_add_before_moving(pos, angle, pos_on_part, pos_on_anchor, offset_angle):
+
 
     angle = angle % (2*math.pi)
     playground = EmptyPlayground()
@@ -54,9 +54,7 @@ def test_move(pos, angle, pos_on_part, pos_on_anchor, offset_angle):
     # for _ in range(100):
     #     playground.step()
 
-    assert math.isclose(agent.position.x, pos[0], abs_tol=1e-10)
-    assert math.isclose(agent.position.y, pos[1], abs_tol=1e-10)
-
+    assert agent._base.position == pos
     part_pos = (pymunk.Vec2d(*pos)
                 + pymunk.Vec2d(*pos_on_anchor).rotated(angle)
                 - pymunk.Vec2d(*pos_on_part).rotated(angle+offset_angle))
@@ -64,19 +62,11 @@ def test_move(pos, angle, pos_on_part, pos_on_anchor, offset_angle):
     assert math.isclose(part.position.x, part_pos.x)
     assert math.isclose(part.position.y, part_pos.y)
 
-    random_pos = (random.uniform(-10, 10), random.uniform(-10, 10))
-    random_angle = random.randint(-10, 10)
-    agent.move_to((random_pos, random_angle))
+#     agent.move_to((pos, 0))
+#     part_pos_after_move = (pymunk.Vec2d(*pos) + pymunk.Vec2d(*pos_on_anchor)
+#                            - pymunk.Vec2d(*pos_on_part).rotated(offset_angle))
 
-    # for _ in range(100):
-    #     playground.step()
+#     assert math.isclose(part.position.x, part_pos_after_move.x)
+#     assert math.isclose(part.position.y, part_pos_after_move.y)
 
-    part_pos_after_move = (pymunk.Vec2d(*random_pos)
-                + pymunk.Vec2d(*pos_on_anchor).rotated(random_angle)
-                - pymunk.Vec2d(*pos_on_part).rotated(random_angle+offset_angle))
 
-    assert math.isclose(part.position.x, part_pos_after_move.x)
-    assert math.isclose(part.position.y, part_pos_after_move.y)
-
-def test_reset_position(pos, angle, pos_on_part, pos_on_anchor, offset_angle):
-    pass

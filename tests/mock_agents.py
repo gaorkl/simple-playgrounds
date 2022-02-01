@@ -48,7 +48,8 @@ class MockBase(Platform):
 class MockAnchoredPart(AnchoredPart):
 
     def __init__(self, anchor: Part, **kwargs):
-        super().__init__(anchor, appearance=ColorTexture((10, 20, 30)), **kwargs)
+        super().__init__(anchor, appearance=ColorTexture((10, 20, 30)), 
+                         mass=5, movable=True, **kwargs)
         self.joint_controller = self._controllers[0]
 
     def post_step(self, **_):
@@ -113,7 +114,7 @@ class MockAgent(Agent):
             initial_coordinates=coordinates,
             appearance=ColorTexture(color=(121, 10, 220)), 
             shape='circle',
-            radius=4,
+            radius=40,
             movable=True,
             mass=10,
             **kwargs)

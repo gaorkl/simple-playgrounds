@@ -10,8 +10,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
+from numpy.lib.arraysetops import isin
 
 import pymunk
+import math
 from simple_playgrounds import playground
 
 from simple_playgrounds.agent.controller import (
@@ -54,7 +56,8 @@ class Part(_Base):
         self._controllers: List[Controller] = self._set_controllers(**kwargs)
 
         self._agent.add_part(self)
-        
+        self._anchored_parts: List[AnchoredPart] = []
+
         super().__init__(**kwargs)
 
     def _set_pm_collision_type(self):
@@ -67,6 +70,9 @@ class Part(_Base):
     @abstractmethod
     def apply_commands(self, **kwargs):
         ...
+
+    def add_anchored(self, anchored: AnchoredPart):
+        self._anchored_parts.append(anchored)
 
     @property
     def agent(self):
@@ -92,7 +98,29 @@ class Part(_Base):
         for controller in self._controllers:
             controller.pre_step()
 
-    
+    def move_to(self, coordinates: Coordinate, keep_joints: bool = True, **kwargs):
+
+        position, angle = coordinates
+
+        # If joint config are not kept, move base then parts are moved according to anchor position.
+        if not keep_joints:
+
+            super().move_to(coordinates=coordinates, **kwargs)
+            for part in self._anchored_parts:
+                part_coord = part.get_init_coordinates()
+                part.move_to(coordinates=part_coord, keep_joints=keep_joints, **kwargs)
+
+        # Else, we move first the anchored part then the base.
+        else:
+            for part in self._anchored_parts:
+                new_angle = angle + part.relative_angle
+                new_position = position + part.relative_position.rotated(angle + part.relative_angle)
+
+                part.move_to(coordinates=(new_position, new_angle), **kwargs)
+
+            super().move_to(coordinates=coordinates, **kwargs)
+
+
 class Platform(Part, PhysicalEntity, ABC):
 
     def __init__(self, agent: Agent, **kwargs):
@@ -105,14 +133,16 @@ class Platform(Part, PhysicalEntity, ABC):
         allow_overlapping: bool = True,
         **_,
     ):
-        
+
         if not initial_coordinates:
 
             if not self._playground.initial_agent_coordinates:
                 raise ValueError('Initial coordinates must be set')
             initial_coordinates = self._playground.initial_agent_coordinates
-            
-        super()._set_initial_coordinates(initial_coordinates=initial_coordinates, allow_overlapping=allow_overlapping, **_)
+
+        super()._set_initial_coordinates(initial_coordinates=initial_coordinates,
+                                         allow_overlapping=allow_overlapping,
+                                         **_)
 
 
 class AnchoredPart(Part, PhysicalEntity, ABC):
@@ -126,13 +156,15 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
                  **kwargs):
 
         self._anchor = anchor
+        self._anchor.add_anchored(self)
 
         self._anchor_point = pymunk.Vec2d(*pivot_position_on_anchor)
         self._part_point = pymunk.Vec2d(*pivot_position_on_part)
-        self._angle_offset = relative_angle
+        self._angle_offset = relative_angle 
+
         self._rotation_range = rotation_range
 
-        init_coord = self._get_relative_coordinates()
+        init_coord = self.get_init_coordinates()
 
         super().__init__(agent=anchor.agent,
                          playground=anchor.playground,
@@ -141,17 +173,18 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
         
         self._attach_to_anchor()
         
-
+    @property
     def relative_position(self):
 
         return (self.position - self._anchor.position).rotated(
-                -self._anchor.angle)
+                self._anchor.angle)
 
+    @property
     def relative_angle(self):
 
         return self.angle - self._anchor.angle
 
-    def _get_relative_coordinates(self):
+    def get_init_coordinates(self):
         """
         Calculates the position of a Part relative to its Anchor.
         Sets the position of the Part.
@@ -172,13 +205,14 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
         self._joint = pymunk.PivotJoint(self._anchor.pm_body, self.pm_body,
                                         self._anchor_point, self._part_point)
         self._joint.collide_bodies = False
-        self._limit = pymunk.RotaryLimitJoint(
-            self._anchor.pm_body, self._pm_body,
-            self._angle_offset - self._rotation_range / 2,
-            self._angle_offset + self._rotation_range / 2)
+        # self._limit = pymunk.RotaryLimitJoint(
+        #     self._anchor.pm_body, self._pm_body,
+        #     self._angle_offset - self._rotation_range / 2,
+        #     self._angle_offset + self._rotation_range / 2)
 
-        self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
+        # self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
 
+        self._playground.space.add(self._joint)
 
 class InteractivePart(Part, AnchoredInteractive):
 
