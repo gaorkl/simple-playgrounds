@@ -229,7 +229,7 @@ class EmbodiedEntity(Entity, ABC):
             relative_velocity = self._pm_body.velocity.rotated(-self._pm_body.angle)
             absolute_velocity = relative_velocity.rotated(angle)
             angular_velocity = self._pm_body.angular_velocity
-            
+
         elif velocity:
             absolute_velocity, angular_velocity = velocity
 
@@ -240,7 +240,7 @@ class EmbodiedEntity(Entity, ABC):
         self._pm_body.position, self._pm_body.angle = position, angle
         self._pm_body.velocity = absolute_velocity
         self._pm_body.angular_velocity = angular_velocity
-        
+
         if self._pm_body.space:
             self._pm_body.space.reindex_shapes_for_body(self._pm_body)
 

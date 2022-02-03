@@ -78,7 +78,7 @@ class MockAnchoredPart(AnchoredPart):
             self._motor.rate = 0
 
         else:
-            self._motor.rate = -value * ANGULAR_VELOCITY * self._action_range
+            self._motor.rate = -value * ANGULAR_VELOCITY
 
 class MockTriggerPart(InteractivePart):
 

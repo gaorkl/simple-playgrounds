@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 from numpy.lib.arraysetops import isin
 
 import pymunk
+import pdb
 import math
 from simple_playgrounds import playground
 
@@ -104,7 +105,7 @@ class Part(_Base):
 
         # If joint config are not kept, move base then parts are moved according to anchor position.
         if not keep_joints:
-
+            
             super().move_to(coordinates=coordinates, **kwargs)
             for part in self._anchored_parts:
                 part_coord = part.get_init_coordinates()
@@ -114,12 +115,12 @@ class Part(_Base):
         else:
             for part in self._anchored_parts:
                 new_angle = angle + part.relative_angle
-                new_position = position + part.relative_position.rotated(angle + part.relative_angle)
+                new_position = position + part.relative_position.rotated(angle)
 
                 part.move_to(coordinates=(new_position, new_angle), **kwargs)
-
+    
             super().move_to(coordinates=coordinates, **kwargs)
-
+        
 
 class Platform(Part, PhysicalEntity, ABC):
 
@@ -166,18 +167,22 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
 
         init_coord = self.get_init_coordinates()
 
+        self._motor = None   
+        self._joint = None
+        self._limit = None
+
         super().__init__(agent=anchor.agent,
                          playground=anchor.playground,
                          initial_coordinates=init_coord,
                          **kwargs)
         
         self._attach_to_anchor()
-        
+
     @property
     def relative_position(self):
 
         return (self.position - self._anchor.position).rotated(
-                self._anchor.angle)
+                -self._anchor.angle)
 
     @property
     def relative_angle(self):
@@ -205,15 +210,32 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
         self._joint = pymunk.PivotJoint(self._anchor.pm_body, self.pm_body,
                                         self._anchor_point, self._part_point)
         self._joint.collide_bodies = False
-        # self._limit = pymunk.RotaryLimitJoint(
-        #     self._anchor.pm_body, self._pm_body,
-        #     self._angle_offset - self._rotation_range / 2,
-        #     self._angle_offset + self._rotation_range / 2)
+        self._limit = pymunk.RotaryLimitJoint(
+            self._anchor.pm_body, self._pm_body,
+            self._angle_offset - self._rotation_range / 2,
+            self._angle_offset + self._rotation_range / 2)
 
-        # self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
+        self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
 
-        self._playground.space.add(self._joint)
+        self._playground.space.add(self._joint, self._limit, self._motor)
 
+    def move_to(self, coordinates: Coordinate, keep_joints: bool = True, **kwargs):
+
+        super().move_to(coordinates, keep_joints=keep_joints, **kwargs)
+        if self._motor:
+            self._motor.rate = 0
+
+    def remove(self, definitive: bool):
+        self._playground.space.remove(self._motor, self._joint, self._limit)
+        return super().remove(definitive=definitive)
+
+    def reset(self):
+        super().reset()
+        
+        if self._removed:
+            self._add_to_pymunk_space()
+            self._playground.space.add(self._joint, self._limit, self._motor)
+ 
 class InteractivePart(Part, AnchoredInteractive):
 
     def __init__(self, anchor: Part, **kwargs):

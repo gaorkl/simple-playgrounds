@@ -224,6 +224,8 @@ class Agent(Entity):
         for part in self._parts:
             part.reset()
 
+        self._base._move_to_initial_coordinates()
+
     def post_step(self, **kwargs):
         
         for part in self._parts:
@@ -251,12 +253,12 @@ class Agent(Entity):
                 coord: Coordinate,
                 keep_velocity: bool = True,
                 keep_joints: bool = True):
-        
+
         """
         After moving, the agent body is back in its original configuration.
         Default angle, etc.
         """
-        
+
         self._base.move_to(coordinates=coord,
                            keep_velocity=keep_velocity,
                            keep_joints=keep_joints)
