@@ -253,17 +253,18 @@ class Playground(ABC):
 
 
     def _apply_commands(self, commands):
-        
-        if not commands:
-            return
 
-        for agent, _commands in commands.items():
+        if commands:
+            for agent, _commands in commands.items():
 
-            if isinstance(agent, str):
-                agent = self._name_to_agents[agent]
+                if isinstance(agent, str):
+                    agent = self._name_to_agents[agent]
 
-            agent.apply_commands(_commands)
-   
+                agent.receive_commands(_commands)
+  
+        for agent in self._agents:
+            agent.apply_commands()
+
     def _transmit_messages(self, messages):
         pass
 

@@ -44,7 +44,6 @@ class MockBase(Platform):
     def post_step(self, **_):
         pass
 
-
 class MockAnchoredPart(AnchoredPart):
 
     def __init__(self, anchor: Part, **kwargs):
@@ -79,6 +78,7 @@ class MockAnchoredPart(AnchoredPart):
 
         else:
             self._motor.rate = -value * ANGULAR_VELOCITY
+
 
 class MockTriggerPart(InteractivePart):
 

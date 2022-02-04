@@ -99,28 +99,27 @@ class Part(_Base):
         for controller in self._controllers:
             controller.pre_step()
 
-    def move_to(self, coordinates: Coordinate, keep_joints: bool = True, **kwargs):
+    def move_to(self, coordinates: Coordinate, keep_velocity: bool = True, **kwargs):
 
         position, angle = coordinates
 
         # If joint config are not kept, move base then parts are moved according to anchor position.
-        if not keep_joints:
-            
+        if not keep_velocity:
+
             super().move_to(coordinates=coordinates, **kwargs)
             for part in self._anchored_parts:
                 part_coord = part.get_init_coordinates()
-                part.move_to(coordinates=part_coord, keep_joints=keep_joints, **kwargs)
+                part.move_to(coordinates=part_coord, keep_velocity=keep_velocity, **kwargs)
 
         # Else, we move first the anchored part then the base.
         else:
             for part in self._anchored_parts:
                 new_angle = angle + part.relative_angle
                 new_position = position + part.relative_position.rotated(angle)
+                part.move_to(coordinates=(new_position, new_angle), keep_velocity=keep_velocity, **kwargs)
 
-                part.move_to(coordinates=(new_position, new_angle), **kwargs)
-    
-            super().move_to(coordinates=coordinates, **kwargs)
-        
+            super().move_to(coordinates=coordinates, keep_velocity=keep_velocity, **kwargs)
+
 
 class Platform(Part, PhysicalEntity, ABC):
 
@@ -218,12 +217,6 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
         self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
 
         self._playground.space.add(self._joint, self._limit, self._motor)
-
-    def move_to(self, coordinates: Coordinate, keep_joints: bool = True, **kwargs):
-
-        super().move_to(coordinates, keep_joints=keep_joints, **kwargs)
-        if self._motor:
-            self._motor.rate = 0
 
     def remove(self, definitive: bool):
         self._playground.space.remove(self._motor, self._joint, self._limit)

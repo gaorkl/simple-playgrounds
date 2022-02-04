@@ -137,7 +137,7 @@ class Agent(Entity):
     def default_commands(self) -> Commands:
         return {controller: controller.default for controller in self._controllers}
 
-    def apply_commands(self, commands: Commands):
+    def receive_commands(self, commands: Commands):
         
         # Set command values
         if isinstance(commands, np.ndarray):
@@ -150,7 +150,8 @@ class Agent(Entity):
                 controller = self._name_to_controller[controller]
 
             controller.set_command(command)
-
+    
+    def apply_commands(self):
         # Apply command to playground physics
         for part in self._parts:
             part.apply_commands()
@@ -251,17 +252,18 @@ class Agent(Entity):
 
     def move_to(self,
                 coord: Coordinate,
-                keep_velocity: bool = True,
-                keep_joints: bool = True):
+                keep_velocity: bool = False,
+                **kwargs):
 
         """
         After moving, the agent body is back in its original configuration.
         Default angle, etc.
         """
 
-        self._base.move_to(coordinates=coord,
-                           keep_velocity=keep_velocity,
-                           keep_joints=keep_joints)
+        self._base.move_to(coordinates=coord, keep_velocity=keep_velocity, **kwargs)
+
+        # for part in self._parts:
+        #     self._playground.space.reindex_shapes_for_body(part.pm_body)
 
     @property
     def teleported_to(self):

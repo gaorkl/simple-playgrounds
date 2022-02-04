@@ -211,7 +211,6 @@ class EmbodiedEntity(Entity, ABC):
 
     def move_to(self,
                 coordinates: Coordinate,
-                velocity: Optional[Coordinate] = None,
                 allow_overlapping: bool = True,
                 initial_positioning: bool = False,
                 keep_velocity: bool = False):
@@ -229,10 +228,6 @@ class EmbodiedEntity(Entity, ABC):
             relative_velocity = self._pm_body.velocity.rotated(-self._pm_body.angle)
             absolute_velocity = relative_velocity.rotated(angle)
             angular_velocity = self._pm_body.angular_velocity
-
-        elif velocity:
-            absolute_velocity, angular_velocity = velocity
-
         else:
             absolute_velocity, angular_velocity = (0, 0), 0
 
@@ -280,7 +275,6 @@ class EmbodiedEntity(Entity, ABC):
         Can be tuple of (x,y), angle, or PositionAreaSampler object
         """
 
-        vel = ((0, 0), 0)
         if self._initial_coordinates:
             coordinates = self._initial_coordinates
 
@@ -301,14 +295,14 @@ class EmbodiedEntity(Entity, ABC):
         if not self._allow_overlapping and self._overlaps(coordinates):
             raise ValueError('Entity could not be placed without overlapping')
         
-        self.move_to(coordinates, velocity=vel, initial_positioning=True)
+        self.move_to(coordinates, keep_velocity=False, initial_positioning=True)
 
     # TODO: Move to playground
     def _overlaps(self, coordinates):
         """ Tests whether new coordinate would lead to physical collision """
 
         dummy_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        dummy_shape = self._create_pm_shape()
+        dummy_shape = self._set_pm_shape()
         dummy_shape.body = dummy_body
         dummy_shape.sensor = True
        

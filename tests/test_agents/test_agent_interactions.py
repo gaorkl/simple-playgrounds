@@ -8,7 +8,7 @@ from tests.mock_entities import MockBarrier, MockPhysical, MockZoneTriggered, tr
 from simple_playgrounds.entity.embodied.contour import Contour
 from simple_playgrounds.common.definitions import CollisionTypes
 
-coord_obst = (40, 0), 0
+coord_obst = (100, 0), 0
 
 
 def test_agent_barrier_no_team():
@@ -48,10 +48,10 @@ def test_agent_team_barrier_no_team():
         playground.step(commands=commands)
 
     assert agent.position.x > 0
-    assert agent.position.x < 40
+    assert agent.position.x < coord_obst[0][0]
 
 
-def test_agent_team_barrier_team():
+def test_agent_team_barrier_otherteam():
 
     playground = EmptyPlayground()
     agent = MockAgent(playground, teams='test_1')
@@ -69,7 +69,29 @@ def test_agent_team_barrier_team():
         playground.step(commands=commands)
 
     assert agent.position.x > 0
-    assert agent.position.x < 40
+    assert agent.position.x < coord_obst[0][0]
+
+
+def test_agent_team_barrier_team():
+
+    playground = EmptyPlayground()
+    agent = MockAgent(playground, teams='test_1')
+
+    assert agent._base._teams == ['test_1']
+
+    contour_barrier = Contour(shape='rectangle', size=(10, 400))
+    barrier = MockBarrier(playground, coord_obst, contour=contour_barrier, teams=['test_1'])
+
+    commands = {agent: {agent._base.forward_controller: 1}}
+    
+    assert agent.position == (0, 0)
+
+    for _ in range(1000):
+        playground.step(commands=commands)
+
+    assert agent.position.x > 0
+    assert agent.position.x > coord_obst[0][0]
+
 
 def test_agent_movable():
 
