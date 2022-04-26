@@ -1,82 +1,74 @@
 from __future__ import annotations
+
+
 from abc import ABC
 from typing import Optional
 
 import pymunk
 
+from PIL import Image
+
 from simple_playgrounds.entity import Entity
-from simple_playgrounds.entity.embodied.appearance.appearance import Appearance
-from simple_playgrounds.entity.embodied.contour import Contour
 
 import math
 from abc import ABC, abstractmethod
-from typing import Dict, Union, List, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
+from arcade import Texture, Sprite
 
-import numpy as np
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
-    from simple_playgrounds.common.view import View
-
-import pymunk
-
 
 from simple_playgrounds.common.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY
 
-from simple_playgrounds.common.position_utils import CoordinateSampler, Trajectory, InitCoord, Coordinate
-
-from simple_playgrounds.entity.embodied.contour import GeometricShapes
-from simple_playgrounds.entity.embodied.patch import Patch
+from simple_playgrounds.common.position_utils import CoordinateSampler, InitCoord, Coordinate
 
 
 class EmbodiedEntity(Entity, ABC):
 
     """
-    Embodied Entities are elementary entities that present in the playground.
+    Embodied Entities are elementary entities physically present in the playground.
     They can interact with other Embodied Entities through
     pymunk collisions.
 
     """
 
     def __init__(self,
-                 appearance: Appearance,
-                 contour: Optional[Contour] = None,
+                 playground: Playground,
+                 initial_coordinates: InitCoord,
+                 filename: Optional[str] = None,
+                 texture: Optional[Texture] = None,
+                 scale: float = 1,
+                 mass: Optional[float] = None,
                  temporary: bool = False,
+                 allow_overlapping: bool = True,
                  **kwargs,
                  ):
 
-        if contour:
-            self._contour = contour
-        else:
-            self._contour = Contour(**kwargs)
-
-        self._pm_body: pymunk.Body = self._set_pm_body()
-        self._pm_shape: pymunk.Shape = self._set_pm_shape()
-
-        super().__init__(**kwargs)
+        super().__init__(playground, **kwargs)
         
+        # Shape, body and appearance
+        self._base_sprite = self._get_base_sprite(filename, texture, scale)
+        self._mass = mass
+
+        self._pm_body: pymunk.Body = self._get_pm_body()
+        self._pm_shape: pymunk.Shape = self._get_pm_shape()
         self._add_to_pymunk_space()
 
+        # Initial Positioning of the entities.
+        self._allow_overlapping = allow_overlapping
+        self._initial_coordinates = initial_coordinates
+        self._moved = False
+        self._move_to_initial_coordinates()
+
+        # Interactions and collisions
+        self._set_pm_collision_type()
+        self.update_team_filter()
+
+        # Flags 
         self._temporary = temporary
         self._produced_by: Optional[Entity] = None
 
-        self._appearance = appearance
-        self._appearance.contour = self._contour
-
-        # To be set when entity is added to playground.
-        self._initial_coordinates: Optional[InitCoord] = None
-        self._trajectory: Optional[Trajectory] = None
-        self._initial_coordinate_sampler: Optional[CoordinateSampler] = None
-        self._allow_overlapping = True
-
-        self._set_initial_coordinates(**kwargs)
-        self._move_to_initial_coordinates()
-
-        # Patch to display the entity in TopDown view
-        self._patches: Dict[View, Patch] = {}
-
-        self._set_pm_collision_type()
-        self.update_team_filter()
 
     #############
     # Properties
@@ -94,27 +86,9 @@ class EmbodiedEntity(Entity, ABC):
     def produced_by(self):
         return self._produced_by
 
-    @produced_by.setter
-    def produced_by(self, producer: Entity):
-        self._produced_by = producer
-        self._temporary = True
-
     @property
     def temporary(self):
         return self._temporary
-
-    @property
-    def movable(self):
-        return (not self._pm_body.body_type == pymunk.Body.STATIC 
-                and not self._trajectory)
-
-    @property
-    def contour(self):
-        return self._contour
-
-    @property
-    def appearance(self):
-        return self._appearance
 
     @property
     def coordinates(self):
@@ -139,43 +113,99 @@ class EmbodiedEntity(Entity, ABC):
         return self._pm_body.angular_velocity
 
     @property
-    def base_color(self):
-        return self._appearance.base_color
+    def color_uid(self):
+        return self._uid&255, (self._uid>>8)&255, (self._uid>>16)&255, 255
+
+
+    ##############
+    # Sprites
+    ##############
+
+    def _get_base_sprite(self, texture, filename, scale):
+        
+        if not (bool(filename) ^ bool(texture)):
+            raise ValueError("Either filename or texture should be specified")
+
+        return Sprite(texture=texture, filename=filename,
+                      scale=scale, hit_box_algorithm='Detailed', hit_box_detail=0.1)
+
+    def _get_sprite(self, zoom: float = 1) -> Sprite:
+
+        texture = self._base_sprite.texture
+        assert isinstance(texture, Texture)
+
+        base_scale = self._base_sprite.scale
+
+        return Sprite(texture=texture, scale=zoom*base_scale,
+                      hit_box_algorithm='Detailed', hit_box_detail=0.1)
+
+    def _get_id_sprite(self, zoom: float = 1) -> Sprite:
+        
+        base_texture = self._base_sprite.texture
+        assert isinstance(base_texture, Texture)
+
+        img_uid = Image.new('RGBA', base_texture.size)
+        pixels = img_uid.load()
+        pixels_texture = base_texture.image.load()
+
+        for i in range(img_uid.size[0]):
+            for j in range(img_uid.size[1]):
+
+                if pixels_texture[i, j] != (0, 0, 0, 0): #type: ignore
+                    pixels[i, j] = self.color_uid #type: ignore
+            
+        texture = Texture(name=str(self._uid), image=img_uid,
+                          hit_box_algorithm='Detailed', hit_box_detail=0.1)
+
+        base_scale = self._base_sprite.scale
+
+        return Sprite(texture=texture, scale=zoom*base_scale,
+                      hit_box_algorithm='Detailed', hit_box_detail=0.1)
+
+    ###################
+    # Pymunk objects
+    ###################
 
     @abstractmethod
-    def _set_pm_collision_type(self):
+    def _get_pm_body(self) -> pymunk.Body:
         """
-        Set the collision handler for the interactive shape.
+        Set pymunk body. Shapes are attached to a body.
         """
         ...
-    
-    @abstractmethod
-    def _set_pm_body(self) -> pymunk.Body:
-        """ Shapes must be attached to a body."""
-        ...
 
-    def _set_pm_shape(self):
+    def _get_pm_shape(self):
 
-        if self._contour.shape == GeometricShapes.CIRCLE:
-            assert self._contour.radius
-            pm_shape = pymunk.Circle(self._pm_body, self._contour.radius)
+        base_sprite = self._base_sprite
+        scale = base_sprite.scale
 
-        else:
-            assert self._contour.vertices
-            pm_shape = pymunk.Poly(self._pm_body, self._contour.vertices)
-
+        vertices = [(x*scale, y*scale) for x,y in base_sprite.get_hit_box()]
+        pm_shape = pymunk.Poly(body = self._pm_body, vertices=vertices)
+        
         pm_shape.friction = FRICTION_ENTITY
         pm_shape.elasticity = ELASTICITY_ENTITY
 
         return pm_shape
 
-    def _add_to_pymunk_space(self, **_):
+
+    def _add_to_pymunk_space(self):
         self._playground.space.add(self._pm_body, self._pm_shape)
 
-    def update_team_filter(self):
+    def _remove_from_pymunk_space(self):
+        self._playground.space.remove(self._pm_body, self._pm_shape)
 
-        # if not self._teams:
-        #     return
+
+    ##############
+    # COLLISIONS AND TEAMS
+    ##############
+
+    @abstractmethod
+    def _set_pm_collision_type(self):
+        """
+        Set the collision handler for the shape.
+        """
+        ...
+    
+    def update_team_filter(self):
         
         categ = self._pm_shape.filter.categories
 
@@ -189,37 +219,21 @@ class EmbodiedEntity(Entity, ABC):
                 mask = mask | 2 ** self._playground.teams[team] ^ 2 ** self._playground.teams[team]
 
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
-
-    def _remove_from_pymunk_space(self):
-        self._playground.space.remove(self._pm_body, self._pm_shape)
-
-    def update_view(self, view: View, **kwargs):
-
-        if view not in self._patches:
-            patch = Patch(entity=self, view=view, **kwargs)
-            self._patches[view] = patch
-
-        patch = self._patches[view]
-
-        # if entity disappear, remove it
-        if not self._playground:
-            self._patches.pop(view)
-            patch.remove_patch()
-            return
-
-        patch.update()
+    
+    ###################
+    # Position and Move
+    ###################
 
     def move_to(self,
                 coordinates: Coordinate,
                 allow_overlapping: bool = True,
-                initial_positioning: bool = False,
                 keep_velocity: bool = False):
 
-        if not initial_positioning and not self.movable:
-            raise ValueError('Trying to move something that is not movable!')
+        if (not allow_overlapping) and self._playground.overlaps(self, coordinates):
+            raise ValueError("Entity overlaps but should not")
 
-        if not allow_overlapping:
-            assert not self._overlaps(coordinates)
+        if self._playground.within_playground(coordinates):
+            raise ValueError("Entity is not placed within Playground boundaries")
 
         position, angle = coordinates
 
@@ -239,35 +253,7 @@ class EmbodiedEntity(Entity, ABC):
         if self._pm_body.space:
             self._pm_body.space.reindex_shapes_for_body(self._pm_body)
 
-    def _set_initial_coordinates(
-        self,
-        initial_coordinates: Optional[
-            Union[Coordinate, CoordinateSampler, Trajectory]] = None,
-        allow_overlapping: bool = True,
-        **_,
-    ):
-
-        # if no initial coordinate is provided but they are already set
-        if not initial_coordinates and (self._trajectory
-                                        or self._initial_coordinates
-                                        or self._initial_coordinate_sampler):
-            return
-
-        if isinstance(initial_coordinates, Trajectory):
-            self._trajectory = initial_coordinates
-
-        elif isinstance(initial_coordinates, CoordinateSampler):
-            self._initial_coordinate_sampler = initial_coordinates
-            assert self._playground
-            self._initial_coordinate_sampler.rng = self._playground.rng
-
-        else:
-            assert initial_coordinates
-            assert len(initial_coordinates) == 2 and len(
-                    initial_coordinates[0]) == 2
-            self._initial_coordinates = initial_coordinates
-
-        self._allow_overlapping = allow_overlapping
+        self._moved = True
 
     def _move_to_initial_coordinates(self):
         """
@@ -275,75 +261,45 @@ class EmbodiedEntity(Entity, ABC):
         Can be tuple of (x,y), angle, or PositionAreaSampler object
         """
 
-        if self._initial_coordinates:
+        if isinstance(self._initial_coordinates, (tuple, list)):
             coordinates = self._initial_coordinates
 
-        elif self._initial_coordinate_sampler:
-            coordinates = self._sample_valid_coordinate(
-                self._initial_coordinate_sampler)
-
-        elif self._trajectory:
-            self._trajectory.reset()
-            coordinates = next(self._trajectory)
+        elif isinstance(self._initial_coordinates, CoordinateSampler):
+            coordinates = self._sample_valid_coordinate()
 
         else:
             raise ValueError('Initial Coordinate is not set')
 
-        assert (self._playground and
-                self._playground.within_playground(coordinates))
+        self.move_to(coordinates, keep_velocity=False)
+    
+    def _sample_valid_coordinate(self) -> Coordinate:
 
-        if not self._allow_overlapping and self._overlaps(coordinates):
-            raise ValueError('Entity could not be placed without overlapping')
-        
-        self.move_to(coordinates, keep_velocity=False, initial_positioning=True)
-
-    # TODO: Move to playground
-    def _overlaps(self, coordinates):
-        """ Tests whether new coordinate would lead to physical collision """
-
-        dummy_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        dummy_shape = self._set_pm_shape()
-        dummy_shape.body = dummy_body
-        dummy_shape.sensor = True
-       
-        assert self._playground
-        self._playground.space.add(dummy_shape.body, dummy_shape)
-
-        dummy_shape.body.position, dummy_shape.body.angle = coordinates
-        self._playground.space.reindex_static()
-
-        overlaps = self._playground.space.shape_query(dummy_shape)
-        self._playground.space.remove(dummy_shape.body, dummy_shape)
-
-        # remove sensor shapes
-        overlaps = [elem for elem in overlaps 
-                    if elem.shape and not elem.shape.sensor 
-                    and elem.shape is not self._pm_shape]
-
-        self._playground.space.reindex_static()
-
-        return bool(overlaps)
-
-    def _sample_valid_coordinate(self, 
-                                 sampler: CoordinateSampler) -> Coordinate:
+        sampler = self._initial_coordinates
+        assert isinstance(sampler, CoordinateSampler)
 
         for coordinate in sampler.sample():
-            if not self._overlaps(coordinate):
+            if not self._playground.overlaps(self, coordinate):
                 return coordinate
 
         raise ValueError('Entity could not be placed without overlapping')
 
-    def get_pixel(self, **kwargs):
-        return self._appearance.get_pixel(**kwargs)
+    ##############
+    # PLayground Interactions
+    ################
+
+    def pre_step(self):
+
+        self._moved = False
 
     def remove(self, definitive: bool = False):
+        
         self._remove_from_pymunk_space()
         super().remove(definitive=definitive or self._temporary)
-
+        
     def reset(self):
 
         # Remove completely if temporary
-        if self.temporary:
+        if self._temporary:
             self.remove()
             return
 

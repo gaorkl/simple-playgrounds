@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
@@ -8,31 +8,67 @@ if TYPE_CHECKING:
     from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
 import numpy as np
-from matplotlib import pyplot as plt
-# plt.rcParams.update({'figure.max_open_warning': 0})
+import arcade
 
 
 class View(ABC):
 
     def __init__(self,
-                 size_on_playground: Tuple[int, int],
-                 view_size: Optional[Tuple[int, int]] = None,
-                 draw_transparent: Optional[bool] = False,
-                 draw_interaction: Optional[bool] = False,
+                 playground: Playground,
+                 size: Tuple[int, int],
+                 center: Tuple[int, int] = (0, 0),
+                 zoom: float = 1,
+                 draw_transparent: Optional[int] = None,
+                 draw_interaction: Optional[int] = None,
+                 draw_uids: Optional[bool] = False,
                  **kwargs):
 
-        self._size_on_playground = size_on_playground
-        self._playground: Optional[Playground] = None
+        self._playground = playground
 
-        if view_size:
-            self._view_size = view_size
-        else:
-            self._view_size = self._size_on_playground
-
-        self._create_fig(**kwargs)
+        self._size = size
+        self._center = center
+        self._zoom = zoom
 
         self._draw_transparent = draw_transparent
         self._draw_interaction = draw_interaction
+        self._draw_uids = draw_uids
+
+        self._playground.add_view(self)
+
+    def add_sprite(self, view: View):
+
+        if view in self._sprites:
+            raise ValueError('Sprite already added to view')
+
+        sprite = self._get_sprite(view.zoom, view.color_with_uid)
+        self._sprites[view] = sprite
+        self._update_sprite_position(view)
+        
+        return sprite
+
+
+    def update_sprites(self, force=False):
+      
+        moving = False
+        if self.velocity != (0, 0) or self.angular_velocity != 0:
+            moving = True
+
+                if self._moved or moving or force:
+
+            for view in self._sprites:
+                self._update_sprite_position(view)
+
+
+    def _update_sprite_position(self, view):
+
+        sprite = self._sprites[view]
+
+        pos_x = (self.position.x - view.center[0])*view.zoom + view.width // 2
+        pos_y = (self.position.y - view.center[1])*view.zoom + view.height // 2
+        
+        sprite.set_position(pos_x, pos_y)
+        sprite.angle = int(self.angle*180/math.pi)
+
 
     def _create_fig(self, background_color: Optional[str] = 'black'):
 

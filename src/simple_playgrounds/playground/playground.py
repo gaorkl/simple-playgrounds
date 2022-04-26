@@ -14,16 +14,12 @@ from __future__ import annotations
 import copy
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Type, TYPE_CHECKING, Union, Tuple
-from numpy.lib.arraysetops import isin
 
 import pymunk
 import numpy as np
-import pickle
 
 from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive, InteractiveEntity, StandAloneInteractive
 
-if TYPE_CHECKING:
-    from simple_playgrounds.common.position_utils import InitCoord
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
@@ -39,41 +35,22 @@ from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes,
 from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 
 from simple_playgrounds.agent.part.part import Part
 from simple_playgrounds.agent.controller import Controller, Command
 from simple_playgrounds.agent.communication import Receiver, Transmitter, Message
 
-from simple_playgrounds.common.definitions import Detection
 from simple_playgrounds.agent.sensor.sensor import Sensor, SensorValue
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
 
-Timestep = int
-ScalarReward = float
+CommandsDict = Dict[Agent, Dict[Controller, Command]]
+SentMessagesDict = Dict[Agent, Dict[Transmitter, Message]]
 
-AgentIdentifier = Union[str, Agent]
-ControllerIdentifier = Union[str, Controller]
-TransmitterIdentifier = Union[str, Transmitter]
-SensorIdentifier = Union[str, Sensor]
-
-Commands = Union[
-    Dict[ControllerIdentifier, Command],
-    np.ndarray]
-AgentCommandsDict = Dict[AgentIdentifier, Commands]
-
-Messages = Dict[TransmitterIdentifier, Message]
-AgentMessagesDict = Dict[AgentIdentifier, Message]
-
-SensorValues = Union[
-    Dict[SensorIdentifier, SensorValue],
-    np.ndarray]
-
-ReceivedMessages = Dict[AgentIdentifier, Messages]
-
-Rewards = Dict[AgentIdentifier, ScalarReward]
+ObservationsDict = Dict[Agent, Dict[Sensor, SensorValue]]
+ReceivedMessagesDict = Dict[Agent, Dict[Receiver, Message]]
+RewardsDict = Dict[Agent, float]
 
 
 class Playground(ABC):
@@ -107,16 +84,12 @@ class Playground(ABC):
         # Random number generator for replication, rewind, etc.
         self._rng = np.random.default_rng(seed)
 
-        # Checkpoints for easy rewind
-        self._checkpoints: Dict[Timestep, bytes] = {}
-        self._actions: Dict[Timestep, Tuple[AgentCommandsDict, AgentMessagesDict]] = {}
-
         # By default, size is infinite and center is at (0,0)
         self._size = None
         self._center = (0, 0)
 
         # Initialization of the pymunk space, modelling all the physics
-        self.space = self._initialize_space()
+        self._space = self._initialize_space()
 
         # Lists containing entities in the playground
         self._entities: List[Entity] = []
@@ -125,36 +98,14 @@ class Playground(ABC):
 
         # Private attributes for managing interactions in playground
         self._done: bool = False
-        self._timestep: Timestep = 0
+        self._timestep: int = 0
 
         # Mappings
         self._shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
-        self._entity_name_count: Dict[type, int] = {}
         self._name_to_agents: Dict[str, Agent] = {}
+        self._uids_to_entities: Dict[int, Entity] = {}
 
         # self._handle_interactions()
-
-    @staticmethod
-    def _initialize_space() -> pymunk.Space:
-        """ Method to initialize Pymunk empty space for 2D physics.
-
-        Returns: Pymunk Space
-
-        """
-        space = pymunk.Space()
-        space.gravity = pymunk.Vec2d(0., 0.)
-        space.damping = SPACE_DAMPING
-
-        return space
-
-    ##################
-    # Playground
-    ##################
-
-    @property
-    @abstractmethod
-    def initial_agent_coordinates(self):
-        ...
 
     @property
     def rng(self):
@@ -176,14 +127,48 @@ class Playground(ABC):
     def done(self):
         return self._done
 
+
+    #################
+    # Pymunk space
+    #################
+
+    @property
+    def space(self):
+        return self._space
+
+    @staticmethod
+    def _initialize_space() -> pymunk.Space:
+        """ Method to initialize Pymunk empty space for 2D physics.
+
+        Returns: Pymunk Space
+
+        """
+        space = pymunk.Space()
+        space.gravity = pymunk.Vec2d(0., 0.)
+        space.damping = SPACE_DAMPING
+
+        return space
+
     ###############
     # Entities
     ###############
 
-    @property
-    def teams(self):
-        return self._teams
-    
+    def _get_uid_name(self, entity: Entity, name: Optional[str] = None):
+ 
+        while True:
+            a = self._rng.integers(0, 2**24)
+            if a not in self._uids_to_entities:
+                uid = a
+                break
+
+        if not name:
+            name = type(entity).__name__ + '_' + str(id)
+        
+        if name in [ent.name for ent in self.entities]:
+            raise ValueError("Entity with this name already in Playground")
+
+        return uid, name
+   
     @property
     def agents(self):
         return [agent for agent in self._agents if not agent.removed]
@@ -191,15 +176,15 @@ class Playground(ABC):
     @property
     def entities(self):
         return [ent for ent in self._entities if not ent.removed]
+  
+    ###########
+    # TEAMS
+    ###########
 
     @property
-    def physical_entities(self):
-        return [ent for ent in self.entities if isinstance(ent, PhysicalEntity)]
-
-    @property
-    def interactive_entities(self):
-        return [ent for ent in self.entities if isinstance(ent, InteractiveEntity)]
-
+    def teams(self):
+        return self._teams
+ 
     def add_team(self, team):
         
         if not team in self._teams.keys():
@@ -207,12 +192,6 @@ class Playground(ABC):
             self._teams[team] = team_index
 
         self._update_team_filter()
-
-    def get_name(self, entity: Entity):
-        index = self._entity_name_count.get(type(entity), 0)
-        self._entity_name_count[type(entity)] = index + 1
-        name = type(entity).__name__ + '_' + str(index)
-        return name
 
     def _update_team_filter(self):
 
@@ -222,53 +201,18 @@ class Playground(ABC):
         for agent in self._agents:
             agent.update_team_filter()
 
+    
+    ###############
+    # STEP
+    ###############
 
     def step(
         self,
-        commands: Optional[AgentCommandsDict] = None,
-        messages: Optional[AgentMessagesDict] = None,
-        **kwargs,
+        commands: Optional[CommandsDict] = None,
+        messages: Optional[SentMessagesDict] = None,
+        skip_state_compute: bool = False,
+        pymunk_steps: int = PYMUNK_STEP
     ):
-
-        self._save_actions_for_replay(commands, messages)
-        self._pre_step()
-        
-        self._apply_commands(commands)
-        self._transmit_messages(messages)
-
-        self._update_playground(**kwargs)
-
-        obs = self._compute_observations(**kwargs)
-        rew = self._compute_rewards(**kwargs)
-
-        return obs, rew, self._done
-
-    def _pre_step(self):
-
-        for entity in self.entities:
-            entity.pre_step()
-
-        for agent in self.agents:
-            agent.pre_step()
-
-
-    def _apply_commands(self, commands):
-
-        if commands:
-            for agent, _commands in commands.items():
-
-                if isinstance(agent, str):
-                    agent = self._name_to_agents[agent]
-
-                agent.receive_commands(_commands)
-  
-        for agent in self._agents:
-            agent.apply_commands()
-
-    def _transmit_messages(self, messages):
-        pass
-
-    def _update_playground(self, pymunk_steps: int = PYMUNK_STEPS, **_):
         """ Update the Playground
 
         Updates the Playground.
@@ -285,8 +229,34 @@ class Playground(ABC):
 
         """
 
+        self._pre_step()
+        self._apply_commands(commands)
+
         for _ in range(pymunk_steps):
             self.space.step(1. / pymunk_steps)
+
+        self._post_step()
+        
+        if not skip_state_compute:
+            obs = self._compute_observations()
+            rew = self._compute_rewards()
+            mess = self._transmit_messages(messages)
+        else:
+            obs, mess, rew = None, None, None
+
+        self._timestep += 1
+        
+        return obs, mess, rew, self._done
+
+    def _pre_step(self):
+
+        for entity in self.entities:
+            entity.pre_step()
+
+        for agent in self.agents:
+            agent.pre_step()
+    
+    def _post_step(self):
 
         for entity in self.entities:
             entity.post_step()
@@ -294,98 +264,40 @@ class Playground(ABC):
         for agent in self.agents:
             agent.post_step()
 
-        self._timestep += 1
+
+    def _apply_commands(self, commands):
+
+        if not commands:
+            return
+
+        for agent, command_dict in commands.items():
+            agent.receive_commands(command_dict)
+  
+        for agent in self._agents:
+            agent.apply_commands()
+
+    def _transmit_messages(self, messages):
+        
+        if not messages:
+            return
 
 
-    def _compute_observations(self,
-                              compute_observations: Optional[bool] = True,
-                              keys_are_str: Optional[bool] = False,
-                              return_np_arrays: Optional[bool] = False,
-                              **_):
 
-        obs = {}
-        if not compute_observations:
-            return obs
-
-        for agent in self.agents:
-
-            if keys_are_str:
-                key_ = agent.name
-            else:
-                key_ = agent
-
-            obs[key_] = agent.compute_observations(keys_are_str, return_np_arrays)
-
-    def _compute_rewards(self,
-                         compute_observations: Optional[bool] = True,
-                         keys_are_str: Optional[bool] = False,
-                         return_np_arrays: Optional[bool] = False,
-                         **_):
+    def _compute_observations(self):
 
         obs = {}
-        if not compute_observations:
-            return obs
-
         for agent in self.agents:
+             obs[agent] = agent.compute_observations()
 
-            if keys_are_str:
-                key_ = agent.name
-            else:
-                key_ = agent
+        return obs
 
-            obs[key_] = agent.compute_observations(keys_are_str, return_np_arrays)
+    def _compute_rewards(self):
 
-    ################
-    # Checkpoints
-    ################
-
-    def save_checkpoint(self):
-        self._checkpoints[self._timestep] = self._get_checkpoint()
-
-    def delete_checkpoints(self):
-        self._checkpoints = {}
-
-    def _get_checkpoint(self):
-        pg = copy.copy(self)
-        pg._checkpoints = {}
-        return pickle.dumps(pg)
-
- 
-    def _save_actions_for_replay(self, commands, messages):
-        self._actions[self._timestep] = commands, messages
-
-   
-    def rewind(self, timesteps_rewind, random_alternate: bool = False, **kwargs):
-
-        # load pg
-        valid_checkpoints = [ts for ts in self._checkpoints.keys() if ts <= self._timestep - timesteps_rewind]
-        if not valid_checkpoints:
-            raise ValueError('no checkpoints were saved for rewind')
-
-        ts_checkpoint = max(valid_checkpoints)
-        pg = pickle.loads(self._checkpoints[ts_checkpoint])
-
-        # Save before overriding playground
-        future_actions = [self._actions[ts] for ts in range(ts_checkpoint, self._timestep-timesteps_rewind)]
-        rng = self._rng
-        checkpoints = self._checkpoints
-
-        # Time travel
-        self.__dict__.update(pg.__dict__)
-        if random_alternate:
-            self._rng = np.random.default_rng(seed=rng.integers(1000))
-
-        # Apply all action between checkpoint and rewind point
-        for act in future_actions:
-            self.step(actions=act, compute_observations=False)
-
-        self._checkpoints = {ts: checkpoint for ts, checkpoint in checkpoints.items() if ts <= self._timestep}
-        self._actions = {ts: action for ts, action in self._actions.items() if ts <= self._timestep}
-
-        obs = self._compute_observations(**kwargs)
-        rew = self._compute_rewards(**kwargs)
-
-        return obs, rew, self.done
+        rew = {}
+        for agent in self.agents:
+            rew[agent] = agent.compute_rewards()
+        
+        return rew
 
     def reset(self, **kwargs):
         """
@@ -407,8 +319,10 @@ class Playground(ABC):
 
         return obs, rew, self.done
 
-    def add_to_mappings(self, entity, **_):
+    def add_to_mappings(self, entity):
 
+        self._uids_to_entities[entity.uid] = entity
+        
         if isinstance(entity, Agent):
             self._agents.append(entity)
             self._name_to_agents[entity.name] = entity
@@ -420,6 +334,8 @@ class Playground(ABC):
             self._shapes_to_entities[entity.pm_shape] = entity
 
     def remove_from_mappings(self, entity):
+
+        self._uids_to_entities.pop(entity.uid)
 
         if isinstance(entity, Agent):
             self._agents.remove(entity)
@@ -434,6 +350,33 @@ class Playground(ABC):
     @abstractmethod
     def within_playground(self, coordinates):
         ...
+
+
+    def overlaps(self, entity: EmbodiedEntity, coordinates):
+        """ Tests whether new coordinate would lead to physical collision """
+
+        dummy_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        dummy_shape = entity.pm_shape.copy()
+        dummy_shape.body = dummy_body
+        dummy_shape.sensor = True
+       
+        self.space.add(dummy_shape.body, dummy_shape)
+
+        dummy_shape.body.position, dummy_shape.body.angle = coordinates
+        self.space.reindex_static()
+
+        overlaps = self.space.shape_query(dummy_shape)
+        self.space.remove(dummy_shape.body, dummy_shape)
+
+        # remove sensor shapes
+        overlaps = [elem for elem in overlaps 
+                    if elem.shape and not elem.shape.sensor 
+                    and elem.shape is not entity.pm_shape]
+
+        self.space.reindex_static()
+
+        return bool(overlaps)
+
 
     def get_closest_agent(self, entity: EmbodiedEntity) -> Agent:
         return min(self.agents,
@@ -527,3 +470,10 @@ class EmptyPlayground(Playground):
 
     def within_playground(self, coordinates):
         return True
+
+    @property
+    @abstractmethod
+    def initial_agent_coordinates(self):
+        ...
+
+

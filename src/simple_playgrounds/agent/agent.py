@@ -119,6 +119,15 @@ class Agent(Entity):
     def compute_observations(self,
                              keys_are_str: bool = True,
                              return_np_arrays: bool = True):
+        
+        # For sensor in sensors:
+        # test if view has been updated withon sensors
+        # calculate observation
+        # return dict of Sensor:SensorValue
+
+        pass
+
+    def compute_rewards(self):
         pass
 
     ################

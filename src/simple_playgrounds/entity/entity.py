@@ -9,11 +9,13 @@ objects in simple-playgrounds.
 """
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, TYPE_CHECKING, Union
-import numpy as np
+from typing import List, Optional, TYPE_CHECKING, Union
+
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
+
+Teams = Union[str, List[str]]
 
 
 class Entity(ABC):
@@ -26,27 +28,21 @@ class Entity(ABC):
     def __init__(self, 
                  playground: Playground,
                  name: Optional[str] = None,
-                 **kwargs):
+                 teams: Optional[Teams] = None):
 
         self._playground = playground
-        self._teams: List[str] = []
 
-        if not name:
-            name = self._playground.get_name(self)
-        self._name = name
+        self._uid, self._name = self._playground._get_uid_name(self, name)
 
-        self._add_to_teams(**kwargs)
-        self._playground.add_to_mappings(self, **kwargs)
+        self._teams: List[str] = self._add_to_teams(teams)
+        
+        self._playground.add_to_mappings(self)
 
         self._removed = False
 
     @property
-    def playground(self):
-        return self._playground
-
-    @property
-    def rng(self):
-        return self._playground.rng
+    def uid(self):
+        return self._uid
 
     @property
     def name(self):
@@ -60,22 +56,25 @@ class Entity(ABC):
     def removed(self):
         return self._removed
 
-    def _add_to_teams(self, teams: Optional[Union[str, List[str]]] = None, **_):
+    def _add_to_teams(self, teams: Optional[Teams] = None):
 
         if not teams:
-            return
+            return []
 
         if isinstance(teams, str):
             teams = [teams]
 
         for team in teams:
-            self._teams.append(team)
             self._playground.add_team(team)
 
+        return teams
+
+    @abstractmethod
     def remove(self, definitive: bool=False):
 
         if definitive:
             self._playground.remove_from_mappings(entity=self)
+    
         self._removed = True
 
     @abstractmethod
