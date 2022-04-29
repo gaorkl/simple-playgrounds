@@ -1,65 +1,105 @@
 from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_entities import MockPhysical, MockHaloTrigger, MockZoneTriggered
-from simple_playgrounds.entity.embodied.contour import Contour
+from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
 
+coord_center = (0, 0), 0
+coord_shift = (0, 1), 0.3
 
-def test_mappings(radius, interaction_radius):
+def test_add_remove_entities():
 
     playground = EmptyPlayground()
 
-    contour = Contour(shape='circle', radius=radius)
-    ent_1 = MockPhysical(playground, ((0, 0), 0), **contour.dict_attributes, 
-                         movable=True, mass=5)
-    halo = MockHaloTrigger(ent_1, interaction_range=interaction_radius)
-
-    contour = Contour(shape='square', radius=radius)
-    pos = ((0, 2*radius + interaction_radius - 1), 0)
-    zone = MockZoneTriggered(playground, pos, **contour.dict_attributes)
+    ent_1 = MockPhysicalMovable(playground, coord_center)
 
     assert ent_1 in playground._entities
-    assert halo not in playground._entities
-    assert zone in playground._entities
+    assert ent_1 not in playground._agents
+
+    ent_1.remove()
+
+    assert ent_1 in playground._entities
+    assert ent_1.removed
+    assert ent_1 not in playground.entities
+
+    playground.reset()
+    assert ent_1 in playground.entities
 
 
-def test_traversable_traversable(custom_contour, custom_contour_2):
+def test_size_entities(radius):
+
+    playground = EmptyPlayground()
+    ent_1 = MockPhysicalMovable(playground, coord_center, radius=radius)
+
+    vertices = ent_1.pm_shape.get_vertices()
+    rad = max( pt.length for pt in vertices ) 
+
+    assert rad == radius
+
+def test_traversable_traversable():
 
     playground = EmptyPlayground()
 
     # Two traversable shouldn't collide with either traversables or non-traversables
 
-    ent_1 = MockPhysical(playground, ((0, 0), 0), contour=custom_contour, traversable=True, movable=True, mass=5)
-    ent_2 = MockPhysical(playground, ((0, 1), 0), contour=custom_contour_2, 
-                         traversable=True, movable=True, mass=5)
+    ent_1 = MockPhysicalMovable(playground, coord_center, traversable = True)
+    ent_2 = MockPhysicalMovable(playground, coord_shift, traversable = True)
 
     playground.step()
 
-    assert ent_1.coordinates == ((0, 0), 0)
-    assert ent_2.coordinates == ((0, 1), 0)
+    assert ent_1.coordinates == coord_center
+    assert ent_2.coordinates == coord_shift
 
 
-def test_traversable_basic(custom_contour, custom_contour_2):
+def test_traversable_basic():
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(playground, ((0, 0), 0), contour=custom_contour, traversable=True, movable=True, mass=5)
-    ent_2 = MockPhysical(playground, ((0, 1), 0), contour=custom_contour_2, traversable=False, movable=True, mass=5)
+    # Traversable shouldn't collide with non-traversables
+
+    ent_1 = MockPhysicalMovable(playground, coord_center)
+    ent_2 = MockPhysicalMovable(playground, coord_shift, traversable = True)
+
     playground.step()
 
-    assert ent_1.coordinates == ((0, 0), 0)
-    assert ent_2.coordinates == ((0, 1), 0)
+    assert ent_1.coordinates == coord_center
+    assert ent_2.coordinates == coord_shift
 
 
-def test_basic_basic(custom_contour, custom_contour_2):
+def test_basic_basic():
 
     playground = EmptyPlayground()
 
-    ent_1 = MockPhysical(playground, ((0, 0), 0), contour=custom_contour, traversable=False, movable=True, mass=5)
-
-    ent_2 = MockPhysical(playground, ((0, 1), 0), contour=custom_contour_2, traversable=False, movable=False)
+    ent_1 = MockPhysicalMovable(playground, coord_center)
+    ent_2 = MockPhysicalUnmovable(playground, coord_shift)
 
     playground.step()
 
-    assert ent_1.coordinates != ((0, 0), 0)
-    assert ent_2.coordinates == ((0, 1), 0)
+    assert ent_1.coordinates != coord_center
+    assert ent_2.coordinates == coord_shift
 
 
+def test_transparent_basic():
+
+    playground = EmptyPlayground()
+
+    ent_1 = MockPhysicalMovable(playground, coord_center, transparent=True)
+    ent_2 = MockPhysicalUnmovable(playground, coord_shift)
+
+    playground.step()
+
+    assert ent_1.coordinates != coord_center
+    assert ent_2.coordinates == coord_shift
+
+
+def test_transparent_transparent():
+
+    playground = EmptyPlayground()
+
+    ent_1 = MockPhysicalMovable(playground, coord_center, transparent=True)
+    ent_2 = MockPhysicalUnmovable(playground, coord_shift, transparent=True)
+
+    playground.step()
+    assert ent_1.coordinates != coord_center
+    assert ent_2.coordinates == coord_shift
+
+
+def test_entity_position_orientation():
+    pass

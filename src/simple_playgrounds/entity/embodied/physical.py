@@ -1,22 +1,16 @@
 from __future__ import annotations
 from abc import ABC
-from tests.test_entities.conftest import interaction_radius
 from typing import Optional, List, TYPE_CHECKING
 import pymunk
 
-import numpy as np
 
 from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive
 
 if TYPE_CHECKING:
-    from simple_playgrounds.entity.embodied.interactive import InteractiveEntity
-    from simple_playgrounds.common.view import View
+    from simple_playgrounds.playground.playground import Playground
+    from simple_playgrounds.common.position_utils import InitCoord
 
-
-# from simple_playgrounds.agent.actuator.actuators import Grasp
-from simple_playgrounds.entity.embodied.contour import GeometricShapes
-from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, \
-    VISIBLE_ALPHA
+from simple_playgrounds.common.definitions import PymunkCollisionCategories
 
 from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
@@ -31,118 +25,85 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
     def __init__(
             self,
-            movable: bool = False,
+            playground: Playground,
+            initial_coordinates: InitCoord,
             mass: Optional[float] = None,
             traversable: bool = False,
             transparent: bool = False,
             **kwargs,
     ):
 
-        self._interactives: List[AnchoredInteractive] = []
-        
-        if movable:
-            assert mass
-        self._movable = movable
-
         self._mass = mass
-
-        super().__init__(**kwargs)
-        
         self._transparent = transparent
         self._traversable = traversable
+        
+        super().__init__(playground=playground, initial_coordinates=initial_coordinates, **kwargs)
         
         self._set_shape_collision_filter()
         self.update_team_filter()
 
-        # self._held_by: List[Grasp] = []
-
-    # @property
-    # def held_by(self):
-    #     return self._held_by
-
-    # @held_by.setter
-    # def held_by(self, grasper: Grasp):
-    #     self._held_by.append(grasper)
-
-    # def released_by(self, grasper):
-    #     assert grasper in self._held_by
-    #     self._held_by.remove(grasper)
-
-    @property
-    def movable(self):
-        return self._movable
-
+        self._interactives: List[AnchoredInteractive] = []
+    
     @property
     def transparent(self):
         return self._transparent
 
-    # BODY AND SHAPE
-    def _set_pm_body(self):
+    @property
+    def traversable(self):
+        return self._traversable
 
-        if not self._movable:
+    ########################
+    # BODY AND SHAPE
+    ########################
+
+    def _get_pm_body(self):
+
+        if not self._mass:
             return pymunk.Body(body_type=pymunk.Body.STATIC)
 
-        assert isinstance(self._mass, (float, int))
+        vertices = self._base_sprite.get_hit_box()
+        moment = pymunk.moment_for_poly(self._mass, vertices)
 
-        if self._contour.shape == GeometricShapes.CIRCLE:
-            assert self._contour.radius
-            moment = pymunk.moment_for_circle(self._mass, 0,
-                                              self._contour.radius)
-
-        else:
-            assert self._contour.vertices
-            moment = pymunk.moment_for_poly(self._mass, self._contour.vertices)
-
-        return pymunk.Body(self._mass, moment)
-
-    def _set_shape_debug_color(self):
-        self._pm_shape.color = tuple(list(self.base_color) + [VISIBLE_ALPHA])
+        return pymunk.Body(self._mass, moment, body_type= pymunk.Body.DYNAMIC)
 
     def _set_shape_collision_filter(self):
 
         # By default, a physical entity collides with all
         if self._transparent and self._traversable:
-            raise ValueError('Physical Object can not be transparent and traversable')
+            raise ValueError('Physical Entity can not be transparent and traversable. Use Interactive Entity.')
 
-        self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.NO_TEAM.value,
-                                                   mask=pymunk.ShapeFilter.ALL_MASKS() ^
-                                                   2 ** PymunkCollisionCategories.TRAVERSABLE.value)
+        categories = 2 ** PymunkCollisionCategories.NO_TEAM.value
+        mask = pymunk.ShapeFilter.ALL_MASKS() ^ 2 ** PymunkCollisionCategories.TRAVERSABLE.value
 
-        # If traversable, collides only with sensors
+        # If traversable, collides with nothing
         if self._traversable:
-            self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.TRAVERSABLE.value,
-                                                       mask=2 ** PymunkCollisionCategories.SENSOR.value |
-                                                       2 ** PymunkCollisionCategories.SENSOR_CONTACT.value)
+            categories = 2 ** PymunkCollisionCategories.TRAVERSABLE.value
+            mask = 0
 
-        # If transparent, collides with everything. Sensors don't collide except for contact sensor.
-        if self._transparent:
-            self._pm_shape.filter = pymunk.ShapeFilter(categories=2 ** PymunkCollisionCategories.TRANSPARENT.value,
-                                                       mask=pymunk.ShapeFilter.ALL_MASKS() ^
-                                                       (2 ** PymunkCollisionCategories.SENSOR.value))
+        # If transparent, collides with everything except tra.
+        # if self._transparent:
+        #     categories = 2 ** PymunkCollisionCategories.TRANSPARENT.value
+
+        self._pm_shape.filter = pymunk.ShapeFilter(categories=categories, mask=mask)
+
+
+    ###################
+    # Iteractions with Playground
+    ###################
 
     def add_interactive(self, interactive):
-
         self._interactives.append(interactive)
-
-    
-    def update_view(self, view: View, **kwargs):
-       
-        for interactive in self._interactives:
-            interactive.update_view(view=view, **kwargs)
-
-        return super().update_view(view, invisible=self._transparent, **kwargs)
-
 
     def pre_step(self):
         """
         Performs calculation before the physical environment steps.
         """
-        if self._trajectory:
-            self.move_to(next(self._trajectory))
-
         for interactive in self._interactives:
             interactive.pre_step()
 
+    def post_step(self, **kwargs):
+        for interactive in self._interactives:
+            interactive.post_step(**kwargs)
 
     def remove(self, **kwargs):
         super().remove(**kwargs)

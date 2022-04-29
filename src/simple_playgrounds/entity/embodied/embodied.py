@@ -38,23 +38,25 @@ class EmbodiedEntity(Entity, ABC):
                  initial_coordinates: InitCoord,
                  filename: Optional[str] = None,
                  texture: Optional[Texture] = None,
-                 scale: float = 1,
-                 mass: Optional[float] = None,
+                 radius: Optional[float] = None,
                  temporary: bool = False,
                  allow_overlapping: bool = True,
                  **kwargs,
                  ):
 
-        super().__init__(playground, **kwargs)
-        
+       
         # Shape, body and appearance
-        self._base_sprite = self._get_base_sprite(filename, texture, scale)
-        self._mass = mass
+        self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm='Detailed', hit_box_detail=0.1) #type: ignore
+       
+        self._scale, self._radius = self._get_physical_scale(radius)
 
         self._pm_body: pymunk.Body = self._get_pm_body()
         self._pm_shape: pymunk.Shape = self._get_pm_shape()
-        self._add_to_pymunk_space()
 
+        super().__init__(playground, **kwargs)
+        
+        self._add_to_pymunk_space()
+        
         # Initial Positioning of the entities.
         self._allow_overlapping = allow_overlapping
         self._initial_coordinates = initial_coordinates
@@ -73,6 +75,18 @@ class EmbodiedEntity(Entity, ABC):
     #############
     # Properties
     #############
+
+    @property
+    def playground(self):
+        return self._playground
+
+    @property
+    def radius(self):
+        return self._radius
+
+    @property
+    def texture(self):
+        return self._base_sprite.texture
 
     @property
     def pm_shape(self):
@@ -121,15 +135,18 @@ class EmbodiedEntity(Entity, ABC):
     # Sprites
     ##############
 
-    def _get_base_sprite(self, texture, filename, scale):
+    def _get_physical_scale(self, radius):
+
+        orig_radius = max([pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()])
         
-        if not (bool(filename) ^ bool(texture)):
-            raise ValueError("Either filename or texture should be specified")
+        if not radius:
+            return 1, orig_radius
 
-        return Sprite(texture=texture, filename=filename,
-                      scale=scale, hit_box_algorithm='Detailed', hit_box_detail=0.1)
+        physical_scale = radius/orig_radius
 
-    def _get_sprite(self, zoom: float = 1) -> Sprite:
+        return physical_scale, radius
+
+    def get_sprite(self, zoom: float = 1) -> Sprite:
 
         texture = self._base_sprite.texture
         assert isinstance(texture, Texture)
@@ -139,7 +156,7 @@ class EmbodiedEntity(Entity, ABC):
         return Sprite(texture=texture, scale=zoom*base_scale,
                       hit_box_algorithm='Detailed', hit_box_detail=0.1)
 
-    def _get_id_sprite(self, zoom: float = 1) -> Sprite:
+    def get_id_sprite(self, zoom: float = 1) -> Sprite:
         
         base_texture = self._base_sprite.texture
         assert isinstance(base_texture, Texture)
@@ -175,10 +192,9 @@ class EmbodiedEntity(Entity, ABC):
 
     def _get_pm_shape(self):
 
-        base_sprite = self._base_sprite
-        scale = base_sprite.scale
+        vertices = self._base_sprite.get_hit_box()
+        vertices = [ (x*self._scale, y*self._scale) for x,y in vertices ]
 
-        vertices = [(x*scale, y*scale) for x,y in base_sprite.get_hit_box()]
         pm_shape = pymunk.Poly(body = self._pm_body, vertices=vertices)
         
         pm_shape.friction = FRICTION_ENTITY
@@ -232,7 +248,7 @@ class EmbodiedEntity(Entity, ABC):
         if (not allow_overlapping) and self._playground.overlaps(self, coordinates):
             raise ValueError("Entity overlaps but should not")
 
-        if self._playground.within_playground(coordinates):
+        if not self._playground.within_playground(coordinates):
             raise ValueError("Entity is not placed within Playground boundaries")
 
         position, angle = coordinates

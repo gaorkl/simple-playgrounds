@@ -12,7 +12,6 @@ from gym.spaces import space
 
 import numpy as np
 import pymunk
-import pygame
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 

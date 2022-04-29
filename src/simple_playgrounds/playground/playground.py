@@ -18,6 +18,9 @@ from typing import List, Dict, Optional, Type, TYPE_CHECKING, Union, Tuple
 import pymunk
 import numpy as np
 
+import matplotlib.pyplot as plt
+import pymunk.matplotlib_util
+
 from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive, InteractiveEntity, StandAloneInteractive
 
 
@@ -107,6 +110,18 @@ class Playground(ABC):
 
         # self._handle_interactions()
 
+    def debug_draw(self):
+        
+        fig = plt.figure(figsize=(14,10))
+        ax = plt.axes(xlim=(-100, 100), ylim=(-100, 100))
+        ax.set_aspect("equal")
+
+        options = pymunk.matplotlib_util.DrawOptions(ax)
+        options.collision_point_color = (10,20,30,40)
+        self._space.debug_draw(options) 
+        plt.show()
+        del fig
+
     @property
     def rng(self):
         return self._rng
@@ -154,7 +169,9 @@ class Playground(ABC):
     ###############
 
     def _get_uid_name(self, entity: Entity, name: Optional[str] = None):
- 
+
+        uid = None
+
         while True:
             a = self._rng.integers(0, 2**24)
             if a not in self._uids_to_entities:
@@ -162,7 +179,7 @@ class Playground(ABC):
                 break
 
         if not name:
-            name = type(entity).__name__ + '_' + str(id)
+            name = type(entity).__name__ + '_' + str(uid)
         
         if name in [ent.name for ent in self.entities]:
             raise ValueError("Entity with this name already in Playground")
@@ -211,7 +228,7 @@ class Playground(ABC):
         commands: Optional[CommandsDict] = None,
         messages: Optional[SentMessagesDict] = None,
         skip_state_compute: bool = False,
-        pymunk_steps: int = PYMUNK_STEP
+        pymunk_steps: int = PYMUNK_STEPS
     ):
         """ Update the Playground
 
@@ -468,12 +485,6 @@ class EmptyPlayground(Playground):
     def initial_agent_coordinates(self):
         return (0, 0), 0
 
-    def within_playground(self, coordinates):
+    def within_playground(self, _):
         return True
-
-    @property
-    @abstractmethod
-    def initial_agent_coordinates(self):
-        ...
-
 

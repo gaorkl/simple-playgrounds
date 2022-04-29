@@ -20,8 +20,20 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         super().__init__(**kwargs)
 
-    def _set_pm_shape(self):
-        pm_shape = super()._set_pm_shape()
+        self._activated = False
+
+    @property
+    def activated(self):
+        return self._activated
+
+    def pre_step(self):
+        self._activated = False
+
+    def post_step(self):
+        pass
+
+    def _get_pm_shape(self):
+        pm_shape = super()._get_pm_shape()
         pm_shape.sensor = True
 
         pm_shape.filter = pymunk.ShapeFilter(
@@ -29,9 +41,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
             mask=2 ** PymunkCollisionCategories.INTERACTION.value)
 
         return pm_shape
-
-    def _set_shape_debug_color(self):
-        self._pm_shape.color = tuple(list(self.base_color) + [INVISIBLE_ALPHA])
 
     def update_team_filter(self):
 
@@ -51,10 +60,7 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
-    def update_view(self, view: View, **kwargs):
-        return super().update_view(view, invisible=True, **kwargs)
-
-
+   
 class StandAloneInteractive(InteractiveEntity, ABC):
     
     def _set_pm_body(self):
@@ -69,12 +75,13 @@ class AnchoredInteractive(InteractiveEntity, ABC):
                  **kwargs):
 
         self._anchor = anchor
-        interaction_contour = Contour(**anchor.contour.dict_attributes)
-        interaction_contour.expand(interaction_range)
+        radius = self._anchor.radius + interaction_range
+        texture = self._anchor.texture
 
         super().__init__(playground=anchor.playground, 
-                         contour=interaction_contour,
                          initial_coordinates=anchor.coordinates,
+                         texture = texture,
+                         radius = radius,
                          teams=self._anchor._teams,
                          **kwargs)
 
@@ -84,7 +91,7 @@ class AnchoredInteractive(InteractiveEntity, ABC):
     def anchor(self):
         return self._anchor
 
-    def _set_pm_body(self):
+    def _get_pm_body(self):
         return self._anchor._pm_body
 
     def _add_to_pymunk_space(self):
