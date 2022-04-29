@@ -28,6 +28,7 @@ def test_size_entities(radius):
     playground = EmptyPlayground()
     ent_1 = MockPhysicalMovable(playground, coord_center, radius=radius)
 
+
     vertices = ent_1.pm_shape.get_vertices()
     rad = max( pt.length for pt in vertices ) 
 
