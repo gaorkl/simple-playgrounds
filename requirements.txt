@@ -7,3 +7,4 @@ pytest
 matplotlib
 gym
 arcade
+tripy

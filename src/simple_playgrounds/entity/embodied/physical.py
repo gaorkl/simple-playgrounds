@@ -84,7 +84,8 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         # if self._transparent:
         #     categories = 2 ** PymunkCollisionCategories.TRANSPARENT.value
 
-        self._pm_shape.filter = pymunk.ShapeFilter(categories=categories, mask=mask)
+        for pm_shape in self._pm_shapes:
+            pm_shape.filter = pymunk.ShapeFilter(categories=categories, mask=mask)
 
 
     ###################

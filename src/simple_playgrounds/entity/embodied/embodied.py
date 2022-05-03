@@ -5,6 +5,7 @@ from abc import ABC
 from typing import Optional
 
 import pymunk
+import tripy
 
 from PIL import Image
 
@@ -12,7 +13,7 @@ from simple_playgrounds.entity import Entity
 
 import math
 from abc import ABC, abstractmethod
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, List
 from arcade import Texture, Sprite
 
 
@@ -41,17 +42,18 @@ class EmbodiedEntity(Entity, ABC):
                  radius: Optional[float] = None,
                  temporary: bool = False,
                  allow_overlapping: bool = True,
+                 convex_decomposition: bool = False,
                  **kwargs,
                  ):
 
        
         # Shape, body and appearance
-        self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm='Detailed', hit_box_detail=0.1) #type: ignore
+        self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm='Detailed', hit_box_detail=1) #type: ignore
        
         self._scale, self._radius = self._get_physical_scale(radius)
 
         self._pm_body: pymunk.Body = self._get_pm_body()
-        self._pm_shape: pymunk.Shape = self._get_pm_shape()
+        self._pm_shapes: List[pymunk.Shape] = self._get_pm_shapes(convex_decomposition)
 
         super().__init__(playground, **kwargs)
         
@@ -89,8 +91,8 @@ class EmbodiedEntity(Entity, ABC):
         return self._base_sprite.texture
 
     @property
-    def pm_shape(self):
-        return self._pm_shape
+    def pm_shapes(self):
+        return self._pm_shapes
 
     @property
     def pm_body(self):
@@ -154,7 +156,7 @@ class EmbodiedEntity(Entity, ABC):
         base_scale = self._base_sprite.scale
 
         return Sprite(texture=texture, scale=zoom*base_scale,
-                      hit_box_algorithm='Detailed', hit_box_detail=0.1)
+                      hit_box_algorithm='Detailed', hit_box_detail=1)
 
     def get_id_sprite(self, zoom: float = 1) -> Sprite:
         
@@ -172,12 +174,12 @@ class EmbodiedEntity(Entity, ABC):
                     pixels[i, j] = self.color_uid #type: ignore
             
         texture = Texture(name=str(self._uid), image=img_uid,
-                          hit_box_algorithm='Detailed', hit_box_detail=0.1)
+                          hit_box_algorithm='Detailed', hit_box_detail=1)
 
         base_scale = self._base_sprite.scale
 
         return Sprite(texture=texture, scale=zoom*base_scale,
-                      hit_box_algorithm='Detailed', hit_box_detail=0.1)
+                      hit_box_algorithm='Detailed', hit_box_detail=1)
 
     ###################
     # Pymunk objects
@@ -190,24 +192,30 @@ class EmbodiedEntity(Entity, ABC):
         """
         ...
 
-    def _get_pm_shape(self):
+    def _get_pm_shapes(self, convex_decomposition):
 
         vertices = self._base_sprite.get_hit_box()
         vertices = [ (x*self._scale, y*self._scale) for x,y in vertices ]
 
-        pm_shape = pymunk.Poly(body = self._pm_body, vertices=vertices)
-        
-        pm_shape.friction = FRICTION_ENTITY
-        pm_shape.elasticity = ELASTICITY_ENTITY
+        if convex_decomposition:
+            list_vertices = tripy.earclip(vertices)
+        else:
+            list_vertices = [vertices]
 
-        return pm_shape
-
+        pm_shapes = []
+        for vertices in list_vertices:
+            pm_shape = pymunk.Poly(body = self._pm_body, vertices=vertices)
+            pm_shape.friction = FRICTION_ENTITY
+            pm_shape.elasticity = ELASTICITY_ENTITY
+            pm_shapes.append(pm_shape)
+    
+        return pm_shapes
 
     def _add_to_pymunk_space(self):
-        self._playground.space.add(self._pm_body, self._pm_shape)
+        self._playground.space.add(self._pm_body, *self._pm_shapes)
 
     def _remove_from_pymunk_space(self):
-        self._playground.space.remove(self._pm_body, self._pm_shape)
+        self._playground.space.remove(self._pm_body, *self._pm_shapes)
 
 
     ##############
@@ -222,19 +230,20 @@ class EmbodiedEntity(Entity, ABC):
         ...
     
     def update_team_filter(self):
-        
-        categ = self._pm_shape.filter.categories
+       
+        for pm_shape in self._pm_shapes:
+            categ = pm_shape.filter.categories
 
-        for team in self._teams:
-            categ = categ | 2 ** self._playground.teams[team]
+            for team in self._teams:
+                categ = categ | 2 ** self._playground.teams[team]
 
-        mask = self._pm_shape.filter.mask
-        for team in self._playground.teams:
+            mask = pm_shape.filter.mask
+            for team in self._playground.teams:
 
-            if team not in self._teams:
-                mask = mask | 2 ** self._playground.teams[team] ^ 2 ** self._playground.teams[team]
+                if team not in self._teams:
+                    mask = mask | 2 ** self._playground.teams[team] ^ 2 ** self._playground.teams[team]
 
-        self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
+            pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
     
     ###################
     # Position and Move

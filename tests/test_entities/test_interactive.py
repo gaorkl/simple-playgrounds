@@ -2,8 +2,10 @@ from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.definitions import CollisionTypes
 
 
-from tests.mock_entities import MockPhysicalInteractive, trigger_triggers_triggered
+from tests.mock_entities import MockHalo, MockPhysicalInteractive, trigger_triggers_triggered, NonConvexC
 
+
+coord_center = (0, 0), 0
 
 def test_trigger():
 
@@ -30,6 +32,25 @@ def test_trigger():
     assert trigger_1.coordinates == center_0
     assert triggered_1.coordinates == center_1
     assert triggered_2.coordinates == center_2
+
+def test_non_convex_entity():
+
+    playground = EmptyPlayground()
+
+    ent_1 = NonConvexC(playground, coord_center, 35, 10)
+    halo_1 = MockHalo(ent_1, interaction_range=10, triggered=False, trigger = True)
+
+    ent_2 = MockPhysicalInteractive(playground, coord_center, radius = 20, interaction_range=10, triggered = True)
+
+    playground.debug_draw()
+
+    playground.step()
+
+    assert ent_1.coordinates == coord_center
+    assert ent_2.coordinates == coord_center
+
+    assert halo_1.activated
+    assert ent_2.halo.activated
 
 # def test_interactive_vertices(self):
 

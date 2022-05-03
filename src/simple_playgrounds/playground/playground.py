@@ -348,7 +348,8 @@ class Playground(ABC):
             self._entities.append(entity)
 
         if not isinstance(entity, Agent):
-            self._shapes_to_entities[entity.pm_shape] = entity
+            for pm_shape in entity.pm_shapes:
+                self._shapes_to_entities[pm_shape] = entity
 
     def remove_from_mappings(self, entity):
 
@@ -362,7 +363,8 @@ class Playground(ABC):
             self._entities.remove(entity)
 
         if not isinstance(entity, Agent):
-            self._shapes_to_entities.pop(entity.pm_shape)
+            for pm_shape in entity.pm_shapes:
+                self._shapes_to_entities.pop(pm_shape)
 
     @abstractmethod
     def within_playground(self, coordinates):
@@ -373,22 +375,27 @@ class Playground(ABC):
         """ Tests whether new coordinate would lead to physical collision """
 
         dummy_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        dummy_shape = entity.pm_shape.copy()
-        dummy_shape.body = dummy_body
-        dummy_shape.sensor = True
+        dummy_shapes = []
+        for pm_shape in entity.pm_shapes:
+            dummy_shape = pm_shape.copy()
+            dummy_shape.body = dummy_body
+            dummy_shape.sensor = True
+            dummy_shapes.append(dummy_shape)
        
-        self.space.add(dummy_shape.body, dummy_shape)
+        self.space.add(dummy_body, *dummy_shapes)
 
-        dummy_shape.body.position, dummy_shape.body.angle = coordinates
+        dummy_body.position, dummy_body.angle = coordinates
         self.space.reindex_static()
-
-        overlaps = self.space.shape_query(dummy_shape)
-        self.space.remove(dummy_shape.body, dummy_shape)
+        
+        overlaps = []
+        for dummy_shape in dummy_shapes:
+            overlaps += self.space.shape_query(dummy_shape)
+        self.space.remove(dummy_body, *dummy_shapes)
 
         # remove sensor shapes
         overlaps = [elem for elem in overlaps 
                     if elem.shape and not elem.shape.sensor 
-                    and elem.shape is not entity.pm_shape]
+                    and elem.shape not in entity.pm_shapes]
 
         self.space.reindex_static()
 

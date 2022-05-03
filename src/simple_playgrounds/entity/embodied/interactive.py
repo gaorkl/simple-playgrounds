@@ -16,9 +16,9 @@ if TYPE_CHECKING:
 
 class InteractiveEntity(EmbodiedEntity, ABC):
 
-    def __init__(self, **kwargs):
+    def __init__(self, playground, initial_coordinates, **kwargs):
 
-        super().__init__(**kwargs)
+        super().__init__(playground, initial_coordinates, **kwargs)
 
         self._activated = False
 
@@ -32,15 +32,17 @@ class InteractiveEntity(EmbodiedEntity, ABC):
     def post_step(self):
         pass
 
-    def _get_pm_shape(self):
-        pm_shape = super()._get_pm_shape()
-        pm_shape.sensor = True
+    def _get_pm_shapes(self, *_):
+        pm_shapes = super()._get_pm_shapes(convex_decomposition=False)
+        
+        for pm_shape in pm_shapes:
+            pm_shape.sensor = True
 
-        pm_shape.filter = pymunk.ShapeFilter(
-            categories=2 ** PymunkCollisionCategories.INTERACTION.value,
-            mask=2 ** PymunkCollisionCategories.INTERACTION.value)
+            pm_shape.filter = pymunk.ShapeFilter(
+                categories=2 ** PymunkCollisionCategories.INTERACTION.value,
+                mask=2 ** PymunkCollisionCategories.INTERACTION.value)
 
-        return pm_shape
+        return pm_shapes
 
     def update_team_filter(self):
 
@@ -58,7 +60,8 @@ class InteractiveEntity(EmbodiedEntity, ABC):
             if team not in self._teams:
                 mask = mask ^ 2 ** self._playground.teams[team]
 
-        self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
+        for pm_shape in self._pm_shapes:
+            pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
    
 class StandAloneInteractive(InteractiveEntity, ABC):
@@ -95,7 +98,9 @@ class AnchoredInteractive(InteractiveEntity, ABC):
         return self._anchor._pm_body
 
     def _add_to_pymunk_space(self):
-        self._playground.space.add(self._pm_shape)
+        for pm_shape in self._pm_shapes:
+            self._playground.space.add(pm_shape)
 
     def _remove_from_pymunk_space(self):
-        self._playground.space.remove(self._pm_shape)
+        for pm_shape in self._pm_shapes:
+            self._playground.space.remove(pm_shape)

@@ -1,12 +1,16 @@
-import arcade
 import numpy as np
-import sys
+from skimage import draw, morphology
+from PIL import Image
+import pymunk
 
-from simple_playgrounds.common.definitions import CollisionTypes
-from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive
+from arcade.texture import Texture
+
+from simple_playgrounds.common.definitions import CollisionTypes, PymunkCollisionCategories
+from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive, StandAloneInteractive
 from simple_playgrounds.entity.embodied.physical import PhysicalEntity
+from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
-
+from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
 class MockPhysicalMovable(PhysicalEntity):
 
@@ -42,10 +46,12 @@ class MockHalo(AnchoredInteractive):
     def _set_pm_collision_type(self):
         
         if self._trigger:
-            self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
+            for pm_shape in self._pm_shapes:
+                pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
 
         elif self._triggered:
-            self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
+            for pm_shape in self._pm_shapes:
+                pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
 
     def trigger(self):
         self._activated = True
@@ -64,11 +70,117 @@ class MockPhysicalInteractive(PhysicalEntity):
         pass
 
 
+class MockZoneInteractive(StandAloneInteractive):
+
+    def __init__(self, playground, initial_coordinates, radius = None, trigger = False, triggered=False, **kwargs):
+ 
+        self._trigger = trigger
+        self._triggered = triggered
+
+        super().__init__(playground, initial_coordinates, radius = radius,
+                         filename=":resources:onscreen_controls/flat_light/star_square.png", **kwargs)
+
+    def _set_pm_collision_type(self):
+        
+        if self._trigger:
+            for pm_shape in self._pm_shapes:
+                pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
+
+        elif self._triggered:
+            for pm_shape in self._pm_shapes:
+                pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
+
+    def trigger(self):
+        self._activated = True
+
+
+class NonConvexPlus(MockPhysicalMovable):
+
+    def __init__(self, playground, initial_coordinates, radius, width):
+        
+        img = np.zeros((2*radius+2*width+1,2*radius+2*width+1, 4))
+       
+        rr, cc = draw.line(width, radius + width, width + 2*radius, radius + width)
+        img[rr, cc, :] = 1
+
+        rr, cc = draw.line(radius + width, width, radius + width, width + 2*radius)
+        img[rr, cc, :] = 1
+
+        for _ in range(int(width/2)-1):
+            img = morphology.binary_dilation(img)
+
+        PIL_image = Image.fromarray(np.uint8(img*255)).convert('RGBA')
+
+        texture = Texture(name="PLus_%i_%i".format(radius, int), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=2)
+
+        super().__init__(playground, initial_coordinates, texture=texture, convex_decomposition=True)
+
+class NonConvexC(MockPhysicalMovable):
+
+    def __init__(self, playground, initial_coordinates, radius, width):
+        
+        img = np.zeros((2*radius+2*width+1,2*radius+2*width+1, 4))
+       
+        rr, cc = draw.circle_perimeter(radius + width, radius+width, radius )
+        img[rr, cc, :] = 1
+
+        rr, cc = draw.polygon((0, 0, radius+width), (0, 2*radius + 2*width, radius+width))
+        img[rr, cc, :] = 0
+
+        for _ in range(int(width/2)-1):
+            img = morphology.binary_dilation(img)
+
+        PIL_image = Image.fromarray(np.uint8(img*255)).convert('RGBA')
+
+        texture = Texture(name="C_%i_%i".format(radius, width), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=1)
+
+        super().__init__(playground, initial_coordinates, texture=texture, convex_decomposition=True)
+
+
+class MockBarrier(MockPhysicalUnmovable):
+
+    def __init__(self, playground, begin_pt, end_pt, width, **kwargs):
+  
+        self.width = width
+        self._length_barrier = (pymunk.Vec2d(*begin_pt) - end_pt).length
+        position = (pymunk.Vec2d(*begin_pt) + end_pt)/2
+        orientation = (pymunk.Vec2d(*end_pt) - begin_pt).angle
+
+        img = np.ones( (int(self._length_barrier), width, 4))
+        PIL_image = Image.fromarray(np.uint8(img*255)).convert('RGBA')
+
+        texture = Texture(name="Barrier_%i_%i".format(int(self._length_barrier), width), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=1)
+
+        super().__init__(playground, (position, orientation), texture=texture, **kwargs)
+
+    def _get_pm_shapes(self, *_):
+        return [pymunk.Segment(self._pm_body, (-self._length_barrier/2, 0), (self._length_barrier/2, 0), self.width)]
+
+    def update_team_filter(self):
+
+        # if not self._teams:
+        #     return
+
+        categ = 2 ** PymunkCollisionCategories.NO_TEAM.value
+        for team in self._teams:
+            categ = categ | 2 ** self._playground.teams[team]
+
+        mask = 0
+        for team in self._playground.teams:
+
+            if team not in self._teams:
+                mask = mask | 2 ** self._playground.teams[team]
+
+        for pm_shape in self.pm_shapes:
+            pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
+
+
 
 
 
 def trigger_triggers_triggered(arbiter, space, data):
 
+    print('trigg')
     playground = data['playground']
     (trigger, _), (triggered, _) = get_colliding_entities(playground, arbiter)
 

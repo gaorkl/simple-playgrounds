@@ -1,5 +1,5 @@
 from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
+from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable, NonConvexPlus, NonConvexC
 
 coord_center = (0, 0), 0
 coord_shift = (0, 1), 0.3
@@ -28,8 +28,9 @@ def test_size_entities(radius):
     playground = EmptyPlayground()
     ent_1 = MockPhysicalMovable(playground, coord_center, radius=radius)
 
-
-    vertices = ent_1.pm_shape.get_vertices()
+    vertices = []
+    for pm_shape in ent_1.pm_shapes:
+        vertices += pm_shape.get_vertices()
     rad = max( pt.length for pt in vertices ) 
 
     assert rad == radius
@@ -101,6 +102,29 @@ def test_transparent_transparent():
     assert ent_1.coordinates != coord_center
     assert ent_2.coordinates == coord_shift
 
+def test_non_convex_entity():
 
-def test_entity_position_orientation():
-    pass
+    playground = EmptyPlayground()
+
+    ent_1 = NonConvexPlus(playground, coord_center, 40, 10)
+    ent_2 = NonConvexC(playground, coord_center, 60, 20)
+
+    for _ in range(100):
+        playground.step()
+
+    assert ent_1.coordinates == coord_center
+    assert ent_2.coordinates == coord_center
+
+
+def test_non_convex_entity_moving():
+
+    playground = EmptyPlayground()
+
+    ent_1 = NonConvexPlus(playground, coord_center, 40, 10)
+    ent_2 = NonConvexC(playground, coord_shift, 40, 20)
+
+    playground.step()
+
+    assert ent_1.coordinates != coord_center
+    assert ent_2.coordinates != coord_shift
+

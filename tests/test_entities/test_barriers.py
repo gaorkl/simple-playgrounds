@@ -1,82 +1,46 @@
+import pytest
+
 from simple_playgrounds.entity.embodied.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 
 # Add test Interactions to collisions
 from simple_playgrounds.common.definitions import CollisionTypes
-from tests.mock_entities import MockHaloTrigger, MockPhysical, MockZoneTriggered, \
-    trigger_triggers_triggered, MockHaloTriggered, MockBarrier
+from tests.mock_entities import MockPhysicalMovable, MockBarrier
 
 
-coord_0 = ((0, 0), 0)
+coord_center = ((0, 0), 0)
+
+@pytest.fixture(scope="module", params=[True, False])
+def entity_transparent(request):
+    return request.param
+
+@pytest.fixture(scope="module", params=[True, False])
+def barrier_transparent(request):
+    return request.param
 
 
-def test_barrier_lets_team_through(custom_contour):
-
-    playground = EmptyPlayground()
-
-    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
-
-    contour_barrier = Contour(shape='rectangle', size=(10, 10))
-    barrier = MockBarrier(playground, ((0, 1), 0), contour=contour_barrier, movable=False, teams='team_1')
-
-    playground.step()
-
-    assert ent_1.position == (0, -1)
+# team of barrier ; team of entity ; is it blocked?
+@pytest.fixture(scope="module", params=[
+    ('team_0', 'team_0', False),
+    ('team_0', None, False),
+    (None, 'team_0', True),
+    ('team_0', 'team_1', True),
+    (['team_0', 'team_1'], 'team_0', False),
+])
+def barrier_params(request):
+    return request.param
 
 
-# test_barrier_traversable
-# test barrier transparent
+def test_barrier(barrier_params, entity_transparent, barrier_transparent):
 
-def test_barrier_allows_no_team(custom_contour, custom_contour_2):
-
-    """ Allows agent to carry flag in capture te flag scenario """
-
-    playground = EmptyPlayground()
-
-    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5)
-
-    barrier = MockBarrier(playground, ((0, 1), 0), **custom_contour_2.dict_attributes, teams='team_1')
-
-    playground.step()
-
-    assert ent_1.position == (0, -1)
-
-
-def test_barrier_without_team_blocks_team(custom_contour, custom_contour_2):
+    team_barrier, team_entity, barrier_blocks = barrier_params
 
     playground = EmptyPlayground()
+    barrier = MockBarrier(playground, (-50, -50), (20, 20), width = 10, teams=team_barrier, transparent = barrier_transparent)
 
-    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
-
-    MockBarrier(playground, ((0, 1), 0), **custom_contour_2.dict_attributes)
-
-    playground.step()
-
-    assert ent_1.position != (0, -1)
-
-
-def test_barrier_blocks_other_teams(custom_contour, custom_contour_2):
-
-    playground = EmptyPlayground()
-
-    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
-
-    barrier = MockBarrier(playground, ((0, 1), 0), contour=custom_contour_2, teams='team_2')
+    ent_1 = MockPhysicalMovable(playground, coord_center, teams=team_entity, transparent=entity_transparent)
 
     playground.step()
+    assert barrier_blocks != (ent_1.coordinates == coord_center)
 
-    assert ent_1.position != (0, -1)
 
-
-def test_barrier_allow_multiple_teams(custom_contour):
-
-    playground = EmptyPlayground()
-
-    ent_1 = MockPhysical(playground, ((0, -1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams=['team_1', 'team_2'])
-
-    contour_barrier = Contour(shape='rectangle', size=(10, 10))
-    barrier = MockBarrier(playground, ((0, 1), 0), contour=contour_barrier, teams=['team_1', 'team_2'])
-
-    playground.step()
-
-    assert ent_1.position == (0, -1)
