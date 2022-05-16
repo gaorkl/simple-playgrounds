@@ -21,6 +21,14 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         super().__init__(playground, initial_coordinates, **kwargs)
 
         self._activated = False
+ 
+        for pm_shape in self._pm_shapes:
+            pm_shape.sensor = True
+            # pm_shape.filter = pymunk.ShapeFilter(
+            #     categories=2 ** PymunkCollisionCategories.INTERACTION.value,
+                # mask=2 ** PymunkCollisionCategories.INTERACTION.value)
+
+
 
     @property
     def activated(self):
@@ -31,25 +39,18 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
     def post_step(self):
         pass
-
-    def _get_pm_shapes(self, *_):
-        pm_shapes = super()._get_pm_shapes(convex_decomposition=False)
         
-        for pm_shape in pm_shapes:
-            pm_shape.sensor = True
-
-            pm_shape.filter = pymunk.ShapeFilter(
-                categories=2 ** PymunkCollisionCategories.INTERACTION.value,
-                mask=2 ** PymunkCollisionCategories.INTERACTION.value)
-
-        return pm_shapes
-
     def update_team_filter(self):
 
         if not self._teams:
             return
 
+        # categ = 2 ** PymunkCollisionCategories.INTERACTION.value
+        # mask= 2 ** PymunkCollisionCategories.INTERACTION.value
+
+
         categ = 0
+        # categ = 2 ** PymunkCollisionCategories.INTERACTION.value
         for team in self._teams:
             categ = categ | 2 ** self._playground.teams[team]
 
@@ -66,7 +67,7 @@ class InteractiveEntity(EmbodiedEntity, ABC):
    
 class StandAloneInteractive(InteractiveEntity, ABC):
     
-    def _set_pm_body(self):
+    def _get_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 
 

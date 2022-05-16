@@ -1,136 +1,66 @@
+import pytest
+
 from simple_playgrounds.entity.embodied.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 
 # Add test Interactions to collisions
 from simple_playgrounds.common.definitions import CollisionTypes
-from tests.mock_entities import MockHaloTrigger, MockPhysical, MockZoneTriggered, \
-    trigger_triggers_triggered, MockHaloTriggered, MockBarrier
-
+from tests.mock_entities import MockPhysicalInteractive, MockPhysicalMovable, MockBarrier, trigger_triggers_triggered, MockZoneInteractive
 
 coord_0 = ((0, 0), 0)
 
+# teams of element 1 ; team of element 2 ; is interacting?
+@pytest.fixture(scope="module", params=[
+    ('team_0', 'team_0', True),
+    ('team_0', 'team_1', False),
+    (None, 'team_0', False),
+    (None, None, True),
+    ('team_0', None, True),
+    (['team_0', 'team_1'], 'team_0', True),
+    ('team_0', ['team_0', 'team_1'], True),
+    ('team_0', ['team_2', 'team_1'], False),
+])
 
-def test_same_team(radius, interaction_radius):
+def team_params(request):
+    return request.param
 
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+coord_1 = ((0, 0), 0)
+coord_2 = ((0, 1), 0)
 
-    contour = Contour(shape='circle', radius=radius)
-
-    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams='team_1')
-    halo = MockHaloTrigger(ent_1, interaction_range=interaction_radius)
-
-    contour = Contour(shape='square', radius=radius)
-    zone = MockZoneTriggered(playground, ((0, 2*radius + interaction_radius - 1), 0), **contour.dict_attributes, teams=['team_1'])
-
-    playground.step()
-
-    assert halo.activated and zone.activated
-
-
-def test_different_team(radius, interaction_radius):
-
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-    contour = Contour(shape='circle', radius=radius)
-
-    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams='team_1')
-    halo = MockHaloTrigger(ent_1, interaction_range=interaction_radius)
-
-    contour = Contour(shape='square', radius=radius)
-    zone = MockZoneTriggered(playground, ((0, 2*radius + interaction_radius - 1), 0), **contour.dict_attributes, teams='team_2')
-
-    playground.step()
-
-    assert not halo.activated and not zone.activated
-
-
-def test_multiple_team(radius, interaction_radius):
+def test_team_phys_phys(team_params):
 
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    contour = Contour(shape='circle', radius=radius)
+    team_1, team_2, interacts = team_params
 
-    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams=['team_1', 'team_2'])
-    halo = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
+    ent_1 = MockPhysicalInteractive(playground, coord_1, teams=team_1, interaction_range=10, trigger=True)
 
-    contour = Contour(shape='square', radius=radius)
-    zone_1 = MockZoneTriggered(playground, coord_0, contour=contour, teams=['team_1', 'team_3'])
-
-    ent_2 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams='team_3')
-    halo_2 = MockHaloTriggered(ent_2, interaction_range=interaction_radius)
+    ent_2 = MockPhysicalInteractive(playground, coord_2, teams=team_2, interaction_range=10, triggered=True)
 
     playground.step()
 
-    assert halo.activated and zone_1.activated and not halo_2.activated
+    triggered = ent_1.halo.activated and ent_2.halo.activated
+
+    assert triggered == interacts
+    assert ent_1.coordinates != coord_1 and ent_2.coordinates != coord_2
 
 
-def test_multiple_triggered(radius, interaction_radius):
+def test_team_phys_halo(team_params):
 
     playground = EmptyPlayground()
     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-    contour = Contour(shape='circle', radius=radius)
+    team_1, team_2, interacts = team_params
 
-    ent_1 = MockPhysical(playground, coord_0, **contour.dict_attributes, movable=True, mass=5, teams = 'team_1')
-    halo = MockHaloTrigger(anchor=ent_1, interaction_range=interaction_radius)
+    ent_1 = MockPhysicalInteractive(playground, coord_1, teams=team_1, interaction_range=10, trigger=True)
 
-    contour = Contour(shape='square', radius=radius)
-    zone_1 = MockZoneTriggered(playground, coord_0, **contour.dict_attributes, teams='team_1')
-
-    zone_2 = MockZoneTriggered(playground, coord_0, **contour.dict_attributes, teams='team_1')
-
-    zone_3 = MockZoneTriggered(playground, coord_0, **contour.dict_attributes, teams='team_2')
+    zone_1 = MockZoneInteractive(playground, coord_2, 35, teams=team_2, triggered=True)
 
     playground.step()
 
-    assert halo.activated and zone_1.activated and zone_2.activated
-    assert not zone_3.activated
-    # assert not zone_2.activated
+    assert (ent_1.halo.activated and zone_1.activated) or ( (not ent_1.halo.activated) and (not zone_1.activated))
+    triggered = ent_1.halo.activated and zone_1.activated
 
-
-def test_teams_collide_same_team(custom_contour):
-
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-    ent_1 = MockPhysical(playground, coord_0, **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
-
-    ent_2 = MockPhysical(playground, ((0, 1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
-
-    playground.step()
-
-    assert ent_1.position != (0, 0)
-    assert ent_2.position != (0, 1)
-
-
-def test_teams_collide_other_team(custom_contour):
-
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-    ent_1 = MockPhysical(playground, coord_0, **custom_contour.dict_attributes, movable=True, mass=5, teams='team_1')
-
-    ent_2 = MockPhysical(playground, ((0, 1), 0), **custom_contour.dict_attributes, movable=True, mass=5, teams='team_2')
-
-    playground.step()
-
-    assert ent_1.position != (0, 0)
-    assert ent_2.position != (0, 1)
-
-
-def test_teams_collide_no_team(custom_contour):
-
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-    ent_1 = MockPhysical(playground, coord_0, **custom_contour.dict_attributes, movable=True, mass=5, teams = 'team_1')
-
-    ent_2 = MockPhysical(playground, ((0, 1), 0), **custom_contour.dict_attributes, movable=True, mass=5)
-
-    playground.step()
-
-    assert ent_1.position != (0, 0)
-    assert ent_2.position != (0, 1)
+    assert triggered == interacts
+    assert ent_1.coordinates == coord_1 and zone_1.coordinates == coord_2

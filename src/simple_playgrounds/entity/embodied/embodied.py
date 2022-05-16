@@ -40,20 +40,36 @@ class EmbodiedEntity(Entity, ABC):
                  filename: Optional[str] = None,
                  texture: Optional[Texture] = None,
                  radius: Optional[float] = None,
+                 pm_shape: Optional[pymunk.Shape] = None,
+                 color: Optional[pymunk.Shape] = None,
                  temporary: bool = False,
                  allow_overlapping: bool = True,
-                 convex_decomposition: bool = False,
+                 shape_approximation: Optional[str] = None,
                  **kwargs,
                  ):
 
-       
-        # Shape, body and appearance
-        self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm='Detailed', hit_box_detail=1) #type: ignore
-       
-        self._scale, self._radius = self._get_physical_scale(radius)
+        self._pm_from_sprite = False
+        self._pm_from_shape = False
 
-        self._pm_body: pymunk.Body = self._get_pm_body()
-        self._pm_shapes: List[pymunk.Shape] = self._get_pm_shapes(convex_decomposition)
+        if filename or texture:
+            self._pm_from_sprite = True
+            self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm='Detailed', hit_box_detail=1) #type: ignore
+            self._scale, self._radius = self._get_scale_radius(radius)
+            self._pm_body = self._get_pm_body()
+            self._pm_shapes = self._get_pm_shapes_from_sprite(shape_approximation)
+
+        elif pm_shape:
+            self._pm_from_shape = True
+            texture = self._get_texture_from_shape(pm_shape, color)
+            self._base_sprite = Sprite(texture=texture, hit_box_algorithm='Detailed', hit_box_detail=1) #type: ignore
+            # self._scale, self._radius = self._get_scale_radius(radius)
+            self._pm_body = self._get_pm_body(pm_shape)
+            pm_shape.body = self._pm_body
+            self._pm_shapes = [pm_shape]
+
+        else:
+            raise ValueError('Filename, texture or pm_shape should be specified')
+
 
         super().__init__(playground, **kwargs)
         
@@ -132,6 +148,69 @@ class EmbodiedEntity(Entity, ABC):
     def color_uid(self):
         return self._uid&255, (self._uid>>8)&255, (self._uid>>16)&255, 255
 
+    ##############
+    # Init pm Elements
+    ###############
+
+    def _get_texture_from_shape(self, pm_shape, color):
+
+        pass
+
+    def _get_scale_radius(self, radius):
+        
+        orig_radius = max([pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()])
+        
+        # If radius imposed:
+        if radius:
+            scale = radius/orig_radius
+        
+        else:
+            scale = 1
+            radius = orig_radius
+        
+        return scale, radius
+
+    def _get_pm_shapes_from_sprite(self, shape_approximation):
+        
+        vertices = self._base_sprite.get_hit_box()
+        vertices = [ (x*self._scale, y*self._scale) for x,y in vertices ]
+
+        if shape_approximation == 'circle':
+            pm_shapes = [pymunk.Circle(self._pm_body, self._radius )]
+
+        elif shape_approximation == 'box':
+            top = max([vert[0] for vert in vertices])
+            bottom = min([vert[0] for vert in vertices])
+            left = min([vert[1] for vert in vertices])
+            right = max([vert[1] for vert in vertices])
+            
+            box_vertices = ((top, left), (top, right), (bottom, right), (bottom, left))
+            
+            pm_shapes = [pymunk.Poly(self._pm_body, box_vertices)]
+       
+        elif shape_approximation == 'decomposition':
+           
+            # vertices += [vertices[0]]
+            # print(vertices)
+            # list_vertices = pymunk.autogeometry.convex_decomposition(vertices, tolerance=0)
+
+            # print(list_vertices)
+            list_vertices = tripy.earclip(vertices)
+            
+            pm_shapes = []
+            for vertices in list_vertices:
+                pm_shape = pymunk.Poly(body = self._pm_body, vertices=vertices)
+                pm_shapes.append(pm_shape)
+    
+        else:
+            pm_shapes = [pymunk.Poly(body = self._pm_body, vertices=vertices)]
+
+        for pm_shape in pm_shapes:
+            pm_shape.friction = FRICTION_ENTITY
+            pm_shape.elasticity = ELASTICITY_ENTITY
+                
+        return pm_shapes
+
 
     ##############
     # Sprites
@@ -186,30 +265,11 @@ class EmbodiedEntity(Entity, ABC):
     ###################
 
     @abstractmethod
-    def _get_pm_body(self) -> pymunk.Body:
+    def _get_pm_body(self, *_) -> pymunk.Body:
         """
         Set pymunk body. Shapes are attached to a body.
         """
         ...
-
-    def _get_pm_shapes(self, convex_decomposition):
-
-        vertices = self._base_sprite.get_hit_box()
-        vertices = [ (x*self._scale, y*self._scale) for x,y in vertices ]
-
-        if convex_decomposition:
-            list_vertices = tripy.earclip(vertices)
-        else:
-            list_vertices = [vertices]
-
-        pm_shapes = []
-        for vertices in list_vertices:
-            pm_shape = pymunk.Poly(body = self._pm_body, vertices=vertices)
-            pm_shape.friction = FRICTION_ENTITY
-            pm_shape.elasticity = ELASTICITY_ENTITY
-            pm_shapes.append(pm_shape)
-    
-        return pm_shapes
 
     def _add_to_pymunk_space(self):
         self._playground.space.add(self._pm_body, *self._pm_shapes)

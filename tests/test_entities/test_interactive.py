@@ -1,8 +1,10 @@
+from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.definitions import CollisionTypes
+from tests.conftest import radius
 
 
-from tests.mock_entities import MockHalo, MockPhysicalInteractive, trigger_triggers_triggered, NonConvexC
+from tests.mock_entities import MockHalo, MockPhysicalInteractive, MockPhysicalMovable, trigger_triggers_triggered, NonConvexC, MockZoneInteractive, MockPhysicalTrigger
 
 
 coord_center = (0, 0), 0
@@ -36,13 +38,12 @@ def test_trigger():
 def test_non_convex_entity():
 
     playground = EmptyPlayground()
-
+    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+    
     ent_1 = NonConvexC(playground, coord_center, 35, 10)
     halo_1 = MockHalo(ent_1, interaction_range=10, triggered=False, trigger = True)
 
     ent_2 = MockPhysicalInteractive(playground, coord_center, radius = 20, interaction_range=10, triggered = True)
-
-    playground.debug_draw()
 
     playground.step()
 
@@ -52,87 +53,111 @@ def test_non_convex_entity():
     assert halo_1.activated
     assert ent_2.halo.activated
 
-# def test_interactive_vertices(self):
+def test_zone_triggers():
+    
+    playground = EmptyPlayground()
+    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+    
+    zone_1 = MockZoneInteractive(playground, coord_center, 35, trigger=True)
 
-    # test that vertices are concave
+    ent_2 = MockPhysicalInteractive(playground, coord_center, radius = 20, interaction_range=10, triggered = True)
 
-    # test that vertices follow 
+    playground.step()
 
-# def test_halo_halo_in_range(radius, interaction_radius):
+    assert zone_1.coordinates == coord_center
+    assert ent_2.coordinates == coord_center
 
-#     playground = EmptyPlayground()
-#     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-#     contour = Contour(shape='circle', radius=radius)
-
-#     ent_1 = MockPhysical(playground, ((0, 0), 0), contour=contour, movable=True, mass=5)
-#     halo_1 = MockHaloTrigger(ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
-
-#     ent_2 = MockPhysical(playground, ((0, 2*radius + 2*interaction_radius - 1), 0), contour=contour)
-#     halo_2 = MockHaloTriggered(ent_2, interaction_range=interaction_radius, texture=(2, 3, 4))
-
-#     assert not halo_1.activated and not halo_2.activated
-
-#     playground.step()
-
-#     assert halo_1.activated and halo_2.activated
+    assert zone_1.activated
+    assert ent_2.halo.activated
 
 
-# def test_halo_halo_out_range(radius, interaction_radius):
+def test_physical_triggers():
+    
+    playground = EmptyPlayground()
+    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+    
+    zone_1 = MockZoneInteractive(playground, coord_center, 35, triggered=True)
 
-#     playground = EmptyPlayground()
-#     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+    ent_2 = MockPhysicalTrigger(playground, coord_center, radius = 20)
 
-#     contour = Contour(shape='circle', radius=radius)
+    playground.step()
 
-#     ent_1 = MockPhysical(playground, ((0, 0), 0), contour=contour, movable=True, mass=5)
-#     halo_1 = MockHaloTrigger(ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
+    assert zone_1.coordinates == coord_center
+    assert ent_2.coordinates == coord_center
 
-#     ent_2 = MockPhysical(playground, ((0, 2*radius + 2*interaction_radius + 1), 0), contour=contour)
-#     halo_2 = MockHaloTriggered(anchor=ent_2, interaction_range=interaction_radius, texture=(2, 3, 4))
-
-#     assert not halo_1.activated and not halo_2.activated
-
-#     playground.step()
-
-#     assert not halo_1.activated and not halo_2.activated
+    assert zone_1.activated
+    assert ent_2._activated
 
 
-# def test_halo_standalone(radius, interaction_radius):
-
-#     playground = EmptyPlayground()
-#     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
 
-#     contour = Contour(shape='circle', radius=radius)
 
-#     ent_1 = MockPhysical(playground, ((0, 0), 0), contour=contour, movable=True, mass=5)
-#     halo_1 = MockHaloTrigger(ent_1, interaction_range=interaction_radius, texture=(2, 3, 4))
+def test_trigger_same_team():
 
-#     contour = Contour(shape='square', radius=radius)
-#     zone = MockZoneTriggered(playground, ((0, 2*radius + interaction_radius - 1), 0), **contour.dict_attributes)
+    playground = EmptyPlayground()
+    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-#     assert not halo_1.activated and not zone.activated
+    center_0 = (0, 0), 0
+    trigger_1 = MockPhysicalInteractive(playground, center_0, radius = 10, interaction_range=5, trigger = True, teams = 'team_0')
 
-#     playground.step()
+    center_1 = (0, 25), 0
+    triggered_1 = MockPhysicalInteractive(playground, center_1, radius = 10, interaction_range=5, triggered = True, teams = 'team_0')
 
-#     assert halo_1.activated and zone.activated
-#     assert halo_1.position == (0, 0)
-#     assert zone.position == (0, 2*radius + interaction_radius - 1)
+    playground.step()
+
+    # Assert activations are correct
+    assert trigger_1.halo.activated
+    assert triggered_1.halo.activated
+
+    # Assert entities don't movable
+    assert trigger_1.coordinates == center_0
+    assert triggered_1.coordinates == center_1
 
 
-# def test_standalone_standalone():
 
-#     playground = EmptyPlayground()
-#     playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+def test_trigger_different_team():
 
-#     contour = Contour(shape='circle', radius=10)
-#     zone_1 = MockZoneTrigger(playground, ((0, 5), 0), **contour.dict_attributes)
-#     zone_2 = MockZoneTriggered(playground, ((0, -5), 0), **contour.dict_attributes)
+    playground = EmptyPlayground()
+    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
 
-#     assert not zone_1.activated and not zone_2.activated
+    center_0 = (0, 0), 0
+    trigger_1 = MockPhysicalInteractive(playground, center_0, radius = 10, interaction_range=5, trigger = True, teams = 'team_0')
 
-#     playground.step()
+    center_1 = (0, 25), 0
+    triggered_1 = MockPhysicalInteractive(playground, center_1, radius = 10, interaction_range=5, triggered = True, teams = 'team_1')
 
-#     # static objects don't generate collisions
-#     assert not zone_1.activated and not zone_2.activated
+    playground.step()
+
+    # Assert activations are correct
+    assert not trigger_1.halo.activated
+    assert not triggered_1.halo.activated
+
+    # Assert entities don't movable
+    assert trigger_1.coordinates == center_0
+    assert triggered_1.coordinates == center_1
+
+
+
+def test_trigger_common_team():
+
+    playground = EmptyPlayground()
+    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+
+    center_0 = (0, 0), 0
+    trigger_1 = MockPhysicalInteractive(playground, center_0, radius = 10, interaction_range=5, trigger = True, teams = ['team_0', 'team_1'])
+
+    center_1 = (0, 25), 0
+    triggered_1 = MockPhysicalInteractive(playground, center_1, radius = 10, interaction_range=5, triggered = True, teams = ['team_1', 'team_2'])
+
+    playground.step()
+
+    # Assert activations are correct
+    assert trigger_1.halo.activated
+    assert triggered_1.halo.activated
+
+    # Assert entities don't movable
+    assert trigger_1.coordinates == center_0
+    assert triggered_1.coordinates == center_1
+
+
+

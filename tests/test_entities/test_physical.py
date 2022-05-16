@@ -1,5 +1,11 @@
+import math
+from simple_playgrounds.common.definitions import PymunkCollisionCategories
+from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
+from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable, NonConvexPlus, NonConvexC
+from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable, NonConvexPlus, NonConvexC, MockPhysicalFromShape, NonConvexPlus_Approx
+
+import pymunk
 
 coord_center = (0, 0), 0
 coord_shift = (0, 1), 0.3
@@ -127,4 +133,20 @@ def test_non_convex_entity_moving():
 
     assert ent_1.coordinates != coord_center
     assert ent_2.coordinates != coord_shift
+
+
+def test_entity_from_shape(geometry):
+
+    playground = EmptyPlayground()
+    ent_1 = MockPhysicalFromShape(playground, ((10, 10), math.pi/3), geometry = geometry, size=10, color=(123, 122, 54))
+
+
+def test_shape_approximation(shape_approx):
+
+    playground = EmptyPlayground()
+
+    coord = ((10, 10), math.pi/3)
+    ent_1 = NonConvexPlus_Approx(playground, coord, 20, 10, shape_approximation=shape_approx)
+
+
 

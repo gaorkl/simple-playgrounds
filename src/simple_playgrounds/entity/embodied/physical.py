@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC
 from typing import Optional, List, TYPE_CHECKING
+from numpy.lib.arraysetops import isin
 import pymunk
 
 
@@ -56,13 +57,28 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     # BODY AND SHAPE
     ########################
 
-    def _get_pm_body(self):
+    def _get_pm_body(self, pm_shape: Optional[pymunk.Shape] = None):
 
         if not self._mass:
             return pymunk.Body(body_type=pymunk.Body.STATIC)
 
-        vertices = self._base_sprite.get_hit_box()
-        moment = pymunk.moment_for_poly(self._mass, vertices)
+        if self._pm_from_shape:
+            assert pm_shape
+            if isinstance(pm_shape, pymunk.Segment):
+                moment = pymunk.moment_for_segment(self._mass, pm_shape.a, pm_shape.b, pm_shape.radius)
+            elif isinstance(pm_shape, pymunk.Circle):
+                moment = pymunk.moment_for_circle(self._mass, 0, pm_shape.radius)
+            elif isinstance(pm_shape, pymunk.Poly):
+                moment = pymunk.moment_for_poly(self._mass, pm_shape.get_vertices())
+            else:
+                raise ValueError
+
+        elif self._pm_from_sprite:
+            vertices = self._base_sprite.get_hit_box()
+            moment = pymunk.moment_for_poly(self._mass, vertices)
+
+        else:
+            raise ValueError
 
         return pymunk.Body(self._mass, moment, body_type= pymunk.Body.DYNAMIC)
 

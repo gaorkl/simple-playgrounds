@@ -12,6 +12,7 @@ from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
 from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
+
 class MockPhysicalMovable(PhysicalEntity):
 
     def __init__(self, playground, initial_coordinates, radius = None, **kwargs):
@@ -33,6 +34,25 @@ class MockPhysicalUnmovable(PhysicalEntity):
     def _set_pm_collision_type(self):
         pass
 
+
+class MockPhysicalFromShape(PhysicalEntity):
+
+    def __init__(self, playground, initial_coordinates, geometry, size, mass = None, **kwargs):
+
+        if geometry == 'segment':
+            pm_shape = pymunk.Segment(None, (-size, 0), (size, 0), radius=1)
+        elif geometry == 'circle':
+            pm_shape = pymunk.Circle(None, size)
+        elif geometry == 'square':
+            pm_shape = pymunk.Poly(None, ((-size, -size), (-size, size), (size, size), (size, -size)))
+        else:
+            raise ValueError
+
+        super().__init__(playground, initial_coordinates, mass, pm_shape=pm_shape, **kwargs)
+
+
+    def _set_pm_collision_type(self):
+        pass
 
 class MockHalo(AnchoredInteractive):
     
@@ -70,6 +90,26 @@ class MockPhysicalInteractive(PhysicalEntity):
         pass
 
 
+class MockPhysicalTrigger(MockPhysicalMovable):
+
+    def __init__(self, playground, initial_coordinates, radius=None, **kwargs):
+        
+        self._activated = False   
+        super().__init__(playground, initial_coordinates, radius, **kwargs)
+
+    def _set_pm_collision_type(self):
+        for pm_shape in self._pm_shapes:
+            pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
+
+    def trigger(self):
+        self._activated = True
+
+
+    def pre_step(self):
+        self._activated = False
+        return super().pre_step()
+
+
 class MockZoneInteractive(StandAloneInteractive):
 
     def __init__(self, playground, initial_coordinates, radius = None, trigger = False, triggered=False, **kwargs):
@@ -81,7 +121,7 @@ class MockZoneInteractive(StandAloneInteractive):
                          filename=":resources:onscreen_controls/flat_light/star_square.png", **kwargs)
 
     def _set_pm_collision_type(self):
-        
+
         if self._trigger:
             for pm_shape in self._pm_shapes:
                 pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
@@ -92,6 +132,29 @@ class MockZoneInteractive(StandAloneInteractive):
 
     def trigger(self):
         self._activated = True
+
+
+class NonConvexPlus_Approx(MockPhysicalMovable):
+
+    def __init__(self, playground, initial_coordinates, radius, width, **kwargs):
+        
+        img = np.zeros((2*radius+2*width+1,2*radius+2*width+1, 4))
+       
+        rr, cc = draw.line(width, radius + width, width + 2*radius, radius + width)
+        img[rr, cc, :] = 1
+
+        rr, cc = draw.line(radius + width, width, radius + width, width + 2*radius)
+        img[rr, cc, :] = 1
+
+        for _ in range(int(width/2)-1):
+            img = morphology.binary_dilation(img)
+
+        PIL_image = Image.fromarray(np.uint8(img*255)).convert('RGBA')
+
+        texture = Texture(name="PLus_%i_%i".format(radius, int), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=2)
+
+        super().__init__(playground, initial_coordinates, texture=texture, **kwargs)
+
 
 
 class NonConvexPlus(MockPhysicalMovable):
@@ -113,7 +176,7 @@ class NonConvexPlus(MockPhysicalMovable):
 
         texture = Texture(name="PLus_%i_%i".format(radius, int), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=2)
 
-        super().__init__(playground, initial_coordinates, texture=texture, convex_decomposition=True)
+        super().__init__(playground, initial_coordinates, texture=texture, shape_approximation='decomposition')
 
 class NonConvexC(MockPhysicalMovable):
 
@@ -132,9 +195,9 @@ class NonConvexC(MockPhysicalMovable):
 
         PIL_image = Image.fromarray(np.uint8(img*255)).convert('RGBA')
 
-        texture = Texture(name="C_%i_%i".format(radius, width), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=1)
+        texture = Texture(name="C_%i_%i".format(radius, width), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=4)
 
-        super().__init__(playground, initial_coordinates, texture=texture, convex_decomposition=True)
+        super().__init__(playground, initial_coordinates, texture=texture, shape_approximation='decomposition')
 
 
 class MockBarrier(MockPhysicalUnmovable):
@@ -180,9 +243,11 @@ class MockBarrier(MockPhysicalUnmovable):
 
 def trigger_triggers_triggered(arbiter, space, data):
 
-    print('trigg')
     playground = data['playground']
     (trigger, _), (triggered, _) = get_colliding_entities(playground, arbiter)
+
+    if not trigger.teams and triggered.teams:
+        return True
 
     trigger.trigger()
     triggered.trigger()
