@@ -5,13 +5,11 @@ from abc import ABC, abstractmethod
 
 import pymunk
 
-from simple_playgrounds.common.definitions import PymunkCollisionCategories, INVISIBLE_ALPHA, DEFAULT_INTERACTION_RANGE
-from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
-from simple_playgrounds.entity.embodied.contour import Contour
+from simple_playgrounds.common.definitions import DEFAULT_INTERACTION_RANGE, INVISIBLE_ALPHA
+from simple_playgrounds.entity.embodied import EmbodiedEntity
 
 if TYPE_CHECKING:
-    from simple_playgrounds.entity.embodied.physical import PhysicalEntity
-    from simple_playgrounds.common.view import View
+    from simple_playgrounds.entity.physical import PhysicalEntity
 
 
 class InteractiveEntity(EmbodiedEntity, ABC):
@@ -29,6 +27,13 @@ class InteractiveEntity(EmbodiedEntity, ABC):
                 # mask=2 ** PymunkCollisionCategories.INTERACTION.value)
 
 
+        # self._base_sprite.alpha = INVISIBLE_ALPHA
+
+    def get_sprite(self, zoom: float = 1) :
+        sprite = super().get_sprite(zoom)
+        sprite.alpha = INVISIBLE_ALPHA
+
+        return sprite
 
     @property
     def activated(self):

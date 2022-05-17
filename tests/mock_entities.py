@@ -6,11 +6,9 @@ import pymunk
 from arcade.texture import Texture
 
 from simple_playgrounds.common.definitions import CollisionTypes, PymunkCollisionCategories
-from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive, StandAloneInteractive
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
-from simple_playgrounds.entity.entity import Entity
+from simple_playgrounds.entity.interactive import AnchoredInteractive, StandAloneInteractive
+from simple_playgrounds.entity.physical import PhysicalEntity
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
-from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
 
 
 class MockPhysicalMovable(PhysicalEntity):
@@ -40,7 +38,7 @@ class MockPhysicalFromShape(PhysicalEntity):
     def __init__(self, playground, initial_coordinates, geometry, size, mass = None, **kwargs):
 
         if geometry == 'segment':
-            pm_shape = pymunk.Segment(None, (-size, 0), (size, 0), radius=1)
+            pm_shape = pymunk.Segment(None, (-size, 0), (size, 0), radius=5)
         elif geometry == 'circle':
             pm_shape = pymunk.Circle(None, size)
         elif geometry == 'square':
@@ -103,7 +101,6 @@ class MockPhysicalTrigger(MockPhysicalMovable):
 
     def trigger(self):
         self._activated = True
-
 
     def pre_step(self):
         self._activated = False

@@ -1,11 +1,10 @@
 import pytest
 
-from simple_playgrounds.entity.embodied.contour import Contour
 from simple_playgrounds.playground.playground import EmptyPlayground
 
 # Add test Interactions to collisions
 from simple_playgrounds.common.definitions import CollisionTypes
-from tests.mock_entities import MockPhysicalInteractive, MockPhysicalMovable, MockBarrier, trigger_triggers_triggered, MockZoneInteractive
+from tests.mock_entities import MockPhysicalInteractive, trigger_triggers_triggered, MockZoneInteractive
 
 coord_0 = ((0, 0), 0)
 

@@ -145,7 +145,7 @@ class Contour:
                 pymunk.Vec2d(width / 2., length / 2.),
                 pymunk.Vec2d(width / 2., -length / 2.),
                 pymunk.Vec2d(-width / 2., -length / 2.),
-                pymunk.Vec2d(-width / 2., length / 2.)
+                pmunk.Vec2d(-width / 2., length / 2.)
             ]
 
         elif self._shape in [

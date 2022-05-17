@@ -27,12 +27,12 @@ from simple_playgrounds.common.definitions import (
     CollisionTypes,
     PymunkCollisionCategories,
 )
-from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
+from simple_playgrounds.entity.interactive import AnchoredInteractive
+from simple_playgrounds.entity.physical import PhysicalEntity
 
 if TYPE_CHECKING:
     from simple_playgrounds.agent.agent import Agent
-    from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
+    from simple_playgrounds.entity.embodied import EmbodiedEntity
     from simple_playgrounds.common.position_utils import CoordinateSampler, Coordinate, Trajectory
     from simple_playgrounds.playground.playground import Commands
     _Base = EmbodiedEntity

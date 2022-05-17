@@ -1,11 +1,10 @@
-from _pytest.mark import param
 import pytest
 from copy import Error
 import gc
 
 from simple_playgrounds.playground.playground import EmptyPlayground
 from tests.mock_entities import MockPhysicalMovable, MockZoneInteractive, MockPhysicalInteractive, MockHalo
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
+from simple_playgrounds.entity.physical import PhysicalEntity
 
 coord_center = (0, 0), 0
 

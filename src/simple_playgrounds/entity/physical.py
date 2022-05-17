@@ -5,7 +5,7 @@ from numpy.lib.arraysetops import isin
 import pymunk
 
 
-from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive
+from simple_playgrounds.entity.interactive import AnchoredInteractive
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 from simple_playgrounds.common.definitions import PymunkCollisionCategories
 
-from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
+from simple_playgrounds.entity.embodied import EmbodiedEntity
 
 
 class PhysicalEntity(EmbodiedEntity, ABC):

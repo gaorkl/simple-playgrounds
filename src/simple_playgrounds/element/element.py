@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from simple_playgrounds.common.position_utils import InitCoord
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
+from simple_playgrounds.entity.physical import PhysicalEntity
 
 
 class SceneElement(PhysicalEntity, ABC):

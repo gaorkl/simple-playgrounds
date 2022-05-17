@@ -7,14 +7,14 @@ import math
 from collections.abc import Generator
 from typing import Tuple, Optional, Union, List, TYPE_CHECKING
 if TYPE_CHECKING:
-    from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
+    from simple_playgrounds.entity import EmbodiedEntity
 
 
 from abc import ABC, abstractmethod
 
 import numpy as np
 
-from simple_playgrounds.entity.embodied.contour import Contour
+from simple_playgrounds.common.contour import Contour
 
 
 Coordinate = Tuple[Tuple[float, float], float]
@@ -307,7 +307,7 @@ class Trajectory(Generator):
         self.current_index = self._index_start
 
 
-InitCoord = Union[Coordinate, CoordinateSampler, Trajectory, ]
+InitCoord = Union[Coordinate, CoordinateSampler]
 
 geometric_shapes = {
     'line': 2,

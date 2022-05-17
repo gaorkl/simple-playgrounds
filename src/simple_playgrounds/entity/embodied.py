@@ -3,17 +3,21 @@ from __future__ import annotations
 
 from abc import ABC
 from typing import Optional
+from arcade.application import View
+from matplotlib.pyplot import text
 
 import pymunk
+from skimage.draw import disk, polygon
 import tripy
+import numpy as np
 
 from PIL import Image
 
-from simple_playgrounds.entity import Entity
+from simple_playgrounds.entity.entity import Entity
 
 import math
 from abc import ABC, abstractmethod
-from typing import Optional, TYPE_CHECKING, List
+from typing import Optional, TYPE_CHECKING, Dict
 from arcade import Texture, Sprite
 
 
@@ -60,9 +64,6 @@ class EmbodiedEntity(Entity, ABC):
 
         elif pm_shape:
             self._pm_from_shape = True
-            texture = self._get_texture_from_shape(pm_shape, color)
-            self._base_sprite = Sprite(texture=texture, hit_box_algorithm='Detailed', hit_box_detail=1) #type: ignore
-            # self._scale, self._radius = self._get_scale_radius(radius)
             self._pm_body = self._get_pm_body(pm_shape)
             pm_shape.body = self._pm_body
             self._pm_shapes = [pm_shape]
@@ -72,9 +73,15 @@ class EmbodiedEntity(Entity, ABC):
 
 
         super().__init__(playground, **kwargs)
-        
+
+        if pm_shape:
+            texture = self._get_texture_from_shape(pm_shape, color)
+            self._base_sprite = Sprite(texture=texture, hit_box_algorithm='Detailed', hit_box_detail=1) #type: ignore
+            self._scale, self._radius = self._get_scale_radius(radius)
+
         self._add_to_pymunk_space()
-        
+        self._playground.add_to_views(self)
+
         # Initial Positioning of the entities.
         self._allow_overlapping = allow_overlapping
         self._initial_coordinates = initial_coordinates
@@ -148,13 +155,74 @@ class EmbodiedEntity(Entity, ABC):
     def color_uid(self):
         return self._uid&255, (self._uid>>8)&255, (self._uid>>16)&255, 255
 
+    @property
+    def moved(self):
+
+        if self._moved:
+            return True
+
+        elif self._pm_body.body_type == pymunk.Body.DYNAMIC:
+
+            vel = self._pm_body.velocity.length
+            if vel > 0.1:
+                return True
+
+            ang_vel = self._pm_body.angular_velocity
+            if ang_vel > 0.01:
+                return True
+
+        return False
+
     ##############
     # Init pm Elements
     ###############
 
     def _get_texture_from_shape(self, pm_shape, color):
 
-        pass
+        color_rgba = [c for c in color] + [255]
+
+        if isinstance(pm_shape, pymunk.Segment):
+            radius = int(pm_shape.radius)
+            length = int((pm_shape.a - pm_shape.b).length)
+            img = np.zeros((radius, length, 4))
+            img[:, :]= color_rgba
+
+        elif isinstance(pm_shape, pymunk.Circle):
+            radius = int(pm_shape.radius)
+
+            img = np.zeros( (2*radius+1, 2*radius+1, 4) )
+            rr, cc = disk((radius, radius), radius)
+            img[rr, cc] = color_rgba
+
+        elif isinstance(pm_shape, pymunk.Poly):
+            vertices = pm_shape.get_vertices()
+
+            top = max([vert[0] for vert in vertices])
+            bottom = min([vert[0] for vert in vertices])
+            left = min([vert[1] for vert in vertices])
+            right = max([vert[1] for vert in vertices])
+           
+            w = int(right - left)
+            h = int(top - bottom)
+
+            center = int(h/2), int(w/2)
+            
+            img = np.zeros( (h, w, 4) )
+            r = [ y+center[0] for x, y in vertices ]
+            c = [ x+center[1] for x, y in vertices ]
+           
+            rr, cc = polygon(r, c, (h, w))
+
+            img[rr, cc] = color_rgba
+
+        else:
+            raise ValueError
+
+        PIL_image = Image.fromarray(np.uint8(img)).convert('RGBA')
+
+        texture = Texture(name="Shape_%i".format(self._uid), image=PIL_image, hit_box_algorithm='Detailed', hit_box_detail=1)
+
+        return texture
 
     def _get_scale_radius(self, radius):
         
@@ -190,12 +258,13 @@ class EmbodiedEntity(Entity, ABC):
        
         elif shape_approximation == 'decomposition':
            
-            # vertices += [vertices[0]]
-            # print(vertices)
-            # list_vertices = pymunk.autogeometry.convex_decomposition(vertices, tolerance=0)
+            if not pymunk.autogeometry.is_closed(vertices):
+                vertices += [vertices[0]]
+            
+            if pymunk.area_for_poly(vertices) < 0:
+                vertices = list(reversed(vertices))
 
-            # print(list_vertices)
-            list_vertices = tripy.earclip(vertices)
+            list_vertices = pymunk.autogeometry.convex_decomposition(vertices, tolerance=0.5)
             
             pm_shapes = []
             for vertices in list_vertices:
@@ -232,9 +301,7 @@ class EmbodiedEntity(Entity, ABC):
         texture = self._base_sprite.texture
         assert isinstance(texture, Texture)
 
-        base_scale = self._base_sprite.scale
-
-        return Sprite(texture=texture, scale=zoom*base_scale,
+        return Sprite(texture=texture, scale=zoom*self._scale,
                       hit_box_algorithm='Detailed', hit_box_detail=1)
 
     def get_id_sprite(self, zoom: float = 1) -> Sprite:
@@ -255,10 +322,20 @@ class EmbodiedEntity(Entity, ABC):
         texture = Texture(name=str(self._uid), image=img_uid,
                           hit_box_algorithm='Detailed', hit_box_detail=1)
 
-        base_scale = self._base_sprite.scale
-
-        return Sprite(texture=texture, scale=zoom*base_scale,
+        return Sprite(texture=texture, scale=zoom*self._scale,
                       hit_box_algorithm='Detailed', hit_box_detail=1)
+
+    def update_sprite(self, view, sprite, force=False):
+
+        if self.moved or force:
+
+            pos_x = (self._pm_body.position.x - view.center[0])*view.zoom + view.width // 2
+            pos_y = (self._pm_body.position.y - view.center[1])*view.zoom + view.height // 2
+        
+            sprite.set_position(pos_x, pos_y)
+            sprite.angle = int(self.pm_body.angle*180/math.pi)
+
+
 
     ###################
     # Pymunk objects
@@ -379,7 +456,9 @@ class EmbodiedEntity(Entity, ABC):
     def remove(self, definitive: bool = False):
         
         self._remove_from_pymunk_space()
+        self._playground.remove_from_views(self)
         super().remove(definitive=definitive or self._temporary)
+
         
     def reset(self):
 
@@ -390,5 +469,7 @@ class EmbodiedEntity(Entity, ABC):
 
         if self._removed:
             self._add_to_pymunk_space()
+            self._playground.add_to_views(self)
+
         self._move_to_initial_coordinates()
         self._removed = False

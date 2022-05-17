@@ -22,8 +22,7 @@ from simple_playgrounds.common.position_utils import (
     InitCoord,
 )
 from simple_playgrounds.element.elements.teleport import TeleportElement
-from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
+from simple_playgrounds.entity.embodied import EmbodiedEntity
 from simple_playgrounds.entity.entity import Entity
 
 

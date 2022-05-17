@@ -10,18 +10,20 @@ Examples can be found in :
     - simple_playgrounds/playgrounds/collection
 """
 from __future__ import annotations
+import gc
 
 import copy
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Type, TYPE_CHECKING, Union, Tuple
 
 import pymunk
+import arcade
 import numpy as np
 
 import matplotlib.pyplot as plt
 import pymunk.matplotlib_util
 
-from simple_playgrounds.entity.embodied.interactive import AnchoredInteractive, InteractiveEntity, StandAloneInteractive
+from simple_playgrounds.entity.interactive import AnchoredInteractive, InteractiveEntity, StandAloneInteractive
 
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
@@ -37,7 +39,7 @@ from simple_playgrounds.common.definitions import PYMUNK_STEPS
 from simple_playgrounds.common.definitions import SPACE_DAMPING, CollisionTypes, PymunkCollisionCategories
 from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.entity.entity import Entity
-from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
+from simple_playgrounds.entity.embodied import EmbodiedEntity
 
 from simple_playgrounds.agent.part.part import Part
 from simple_playgrounds.agent.controller import Controller, Command
@@ -56,7 +58,7 @@ ReceivedMessagesDict = Dict[Agent, Dict[Receiver, Message]]
 RewardsDict = Dict[Agent, float]
 
 
-class Playground(ABC):
+class Playground(arcade.Window):
     """ Playground is a Base Class that manages the physical simulation.
 
     Playground manages the interactions between Agents and Scene Elements.
@@ -82,14 +84,25 @@ class Playground(ABC):
     def __init__(
         self,
         seed: Optional[int] = None,
+        background: Optional[Union[Tuple[int, int, int], List[int], Tuple[int, int, int, int]]] = None
     ):
 
+        super().__init__(1, 1, visible=False, antialiasing=True) #type: ignore
+        self.ctx.blend_func = self.ctx.ONE, self.ctx.ZERO
+        
         # Random number generator for replication, rewind, etc.
         self._rng = np.random.default_rng(seed)
 
         # By default, size is infinite and center is at (0,0)
         self._size = None
         self._center = (0, 0)
+
+        # Background color
+        if not background:
+            background = (0,0,0,0)
+            
+        self._background = background
+
 
         # Initialization of the pymunk space, modelling all the physics
         self._space = self._initialize_space()
@@ -109,6 +122,7 @@ class Playground(ABC):
         self._uids_to_entities: Dict[int, Entity] = {}
 
         # self._handle_interactions()
+        self._views = []
 
     def debug_draw(self):
         
@@ -121,6 +135,10 @@ class Playground(ABC):
         self._space.debug_draw(options) 
         plt.show()
         del fig
+
+    @property
+    def background(self):
+        return self._background
 
     @property
     def rng(self):
@@ -171,10 +189,12 @@ class Playground(ABC):
     def _get_uid_name(self, entity: Entity, name: Optional[str] = None):
 
         uid = None
+        background = self._background[0] + self._background[1]*256 + self._background[2]*256*256
 
         while True:
             a = self._rng.integers(0, 2**24)
-            if a not in self._uids_to_entities:
+
+            if a not in self._uids_to_entities and a != background:
                 uid = a
                 break
 
@@ -320,6 +340,8 @@ class Playground(ABC):
         """
         Reset the Playground to its initial state.
         """
+        for view in self._views:
+            view.reset()
 
         # reset entities that are still in playground
         for entity in self._entities:
@@ -350,6 +372,11 @@ class Playground(ABC):
         if not isinstance(entity, Agent):
             for pm_shape in entity.pm_shapes:
                 self._shapes_to_entities[pm_shape] = entity
+    
+    def add_to_views(self, entity):
+        for view in self._views:
+            view.add(entity)
+
 
     def remove_from_mappings(self, entity):
 
@@ -365,6 +392,21 @@ class Playground(ABC):
         if not isinstance(entity, Agent):
             for pm_shape in entity.pm_shapes:
                 self._shapes_to_entities.pop(pm_shape)
+        
+    def remove_from_views(self, entity):
+        for view in self._views:
+            view.remove(entity)
+
+
+    def add_view(self, view):
+
+        for entity in self.entities:
+            view.add(entity)
+
+        for agent in self.agents:
+            view.add(agent)
+
+        self._views.append(view)
 
     @abstractmethod
     def within_playground(self, coordinates):
@@ -454,6 +496,11 @@ class Playground(ABC):
                                                    collision_type_2)
         handler.pre_solve = interaction_function
         handler.data['playground'] = self
+
+    def __del__(self):
+        self.close()
+        gc.collect()
+        # return super().__del__()
 
 
 class PlaygroundRegister:

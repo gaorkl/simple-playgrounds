@@ -74,7 +74,7 @@ class Entity(ABC):
 
         if definitive:
             self._playground.remove_from_mappings(entity=self)
-    
+   
         self._removed = True
 
     @abstractmethod

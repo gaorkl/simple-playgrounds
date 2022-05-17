@@ -1,11 +1,6 @@
 import math
-from simple_playgrounds.common.definitions import PymunkCollisionCategories
-from simple_playgrounds.entity.embodied.embodied import EmbodiedEntity
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 from simple_playgrounds.playground.playground import EmptyPlayground
 from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable, NonConvexPlus, NonConvexC, MockPhysicalFromShape, NonConvexPlus_Approx
-
-import pymunk
 
 coord_center = (0, 0), 0
 coord_shift = (0, 1), 0.3

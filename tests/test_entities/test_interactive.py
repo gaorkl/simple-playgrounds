@@ -1,10 +1,8 @@
-from simple_playgrounds.entity.embodied.physical import PhysicalEntity
 from simple_playgrounds.playground.playground import EmptyPlayground
 from simple_playgrounds.common.definitions import CollisionTypes
-from tests.conftest import radius
 
 
-from tests.mock_entities import MockHalo, MockPhysicalInteractive, MockPhysicalMovable, trigger_triggers_triggered, NonConvexC, MockZoneInteractive, MockPhysicalTrigger
+from tests.mock_entities import MockHalo, MockPhysicalInteractive, trigger_triggers_triggered, NonConvexC, MockZoneInteractive, MockPhysicalTrigger
 
 
 coord_center = (0, 0), 0

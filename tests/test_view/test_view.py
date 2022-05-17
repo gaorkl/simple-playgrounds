@@ -1,95 +1,164 @@
-import random
 import math
-
-import pytest
-
 import numpy as np
-from matplotlib.colors import to_rgb
-from skimage import transform
-from simple_playgrounds.common import view
 
 from simple_playgrounds.playground.playground import EmptyPlayground
-from simple_playgrounds.common.view import AnchoredView, FixedGlobalView
-from simple_playgrounds.entity.embodied.contour import Contour
+from simple_playgrounds.common.view import TopDownView
+from tests.test_view.conftest import color_bg
+from ..mock_entities import MockPhysicalFromShape, MockPhysicalInteractive, MockPhysicalMovable, MockPhysicalUnmovable, MockZoneInteractive
 
-from ..mock_entities import MockPhysical
+center_view = (0, 0)
 
 
-coord_center = (0, 0), 0
-
-def test_empty_pg(size_on_pg, color_bg):
+def test_empty_pg(view_size, zoom, color_bg):
     """ Tests that background is set correctly """
 
+    playground = EmptyPlayground(background=color_bg)
+    view = TopDownView(playground, 
+                       center = center_view, size = view_size,
+                       zoom = zoom)
+
+    view.update()
+
+    assert np.all(view.img[0, 0] == color_bg)
+    # assert view.img.shape == (*view_size, 3)
+
+
+def test_shape( geometry, position, center ):
+
+    color_ent = (123, 122, 54)
     playground = EmptyPlayground()
-    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg,
-                           background_color=color_bg)
+    ent_1 = MockPhysicalFromShape(playground, (position, math.pi/3), geometry = geometry, size=10, color=color_ent)
 
-    img = view.update_view()
-    assert np.all(img[0, 0]/255 == to_rgb(color_bg))
+    view = TopDownView(playground, 
+                       center = center, size = (300, 300), display_uid=False)
+
+    view.update()
+
+    ent_pos_on_image = (150 + position[0] + center[0],
+                        150 + position[1] + center[1])
+
+    # print(position)
+    # print(center)
+    # view.imdisplay()
+    # assert np.all(view.img[0, 0] == color_bg)
+    assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent)
 
 
-def test_add_big_shape(size_on_pg, color_bg):
-
-    playground = EmptyPlayground()
-    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg,
-                           background_color=color_bg)
-
-    contour = Contour(shape='circle', radius=size_on_pg[0]*2)
-    ent_1 = MockPhysical(playground, coord_center, contour=contour, movable=True, mass=5)  
+def test_position(geometry, position, zoom):
     
-    img = view.update_view()
-
-    assert np.all(img[0, 0] == ent_1.base_color)
-
-
-def test_view_symmetric(poly_shape, position, angle, radius, size_on_pg):
-    """ Rotating elements by the correct angle should lead to the same image """
-
+    color_ent = (123, 122, 54)
     playground = EmptyPlayground()
-    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg)
+    ent_1 = MockPhysicalFromShape(playground, (position, math.pi/3), geometry = geometry, size=10, color=color_ent)
 
-    contour = Contour(shape=poly_shape, radius=radius)
-    ent_1 = MockPhysical(playground, (position, angle), contour=contour, movable=True, mass=5)
+    view = TopDownView(playground, zoom=zoom, 
+                       center = center_view, size = (300, 300), display_uid=False)
 
-    img = view.update_view()
+    view.update()
 
-    for angle_rot in range(contour.shape.value):
-        ent_1.move_to((position, angle + angle_rot*math.pi*2/contour.shape.value))
-        img_rotated = view.update_view()
+    ent_pos_on_image = (150 + int(position[0]*zoom),
+                        150 + int(position[1]*zoom))
 
-        assert np.all(img_rotated == img)
-
-
-def test_view_random_rotation(poly_shape, position, angle, radius, size_on_pg):
-    """ Rotating elements by the correct angle should lead to the different image """
-
-    playground = EmptyPlayground()
-    view = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg)
-
-    contour = Contour(shape=poly_shape, radius=radius)
-    ent_1 = MockPhysical(playground, coord_center, contour=contour, movable=True, mass=5)
-
-    img = view.update_view()
-
-    angle_rot = math.pi / contour.shape.value
-
-    ent_1.move_to((position,  angle_rot))
-    img_rotated = view.update_view()
-
-    assert np.any(img_rotated != img)
+    # print(position)
+    # print(center)
+    # view.imdisplay()
+    # assert np.all(view.img[0, 0] == color_bg)
+    assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent)
 
 
-def test_view_scale(shape, position, angle, radius, size_on_pg, view_size):
+def test_traversable(geometry, position, zoom):
     
+    color_1 = (123, 122, 54)
+    color_2 = (13, 12, 54)
+
     playground = EmptyPlayground()
-    contour = Contour(shape=shape, radius=radius)
-    ent_1 = MockPhysical(playground, coord_center, contour=contour, movable=True, mass=5)
+    ent_1 = MockPhysicalFromShape(playground, (position, math.pi/3), geometry = geometry, size=10, color=color_1, traversable=True)
+    ent_2 = MockPhysicalFromShape(playground, (position, math.pi/3), geometry = geometry, size=10, color=color_2)
 
-    view_no_rescale = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg).update_view()
+    view = TopDownView(playground, zoom=zoom, 
+                       center = center_view, size = (300, 300), display_uid=False)
 
-    view_rescale = FixedGlobalView(playground, coord_center, size_on_playground=size_on_pg,
-                                   view_size=view_size).update_view()
+    view.update()
 
-    assert view_no_rescale.shape == (*size_on_pg, 3)
-    assert view_rescale.shape == (*view_size, 3)
+    ent_pos_on_image = (150 + int(position[0]*zoom),
+                        150 + int(position[1]*zoom))
 
+    # print(position)
+    # print(center)
+    # view.imdisplay()
+    # assert np.all(view.img[0, 0] == color_bg)
+    assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == color_1)
+
+
+def test_transparent(geometry, position, zoom):
+    
+    color_1 = (123, 122, 54)
+    color_2 = (13, 12, 54)
+
+    playground = EmptyPlayground()
+    ent_1 = MockPhysicalFromShape(playground, (position, math.pi/3), geometry = geometry, size=10, color=color_1, transparent=True)
+
+    view = TopDownView(playground, zoom=zoom, 
+                       center = center_view, size = (300, 300), display_uid=False, draw_transparent=False)
+
+    view.update()
+
+    ent_pos_on_image = (150 + int(position[0]*zoom),
+                        150 + int(position[1]*zoom))
+
+    # print(position)
+    # print(center)
+    # view.imdisplay()
+    # assert np.all(view.img[0, 0] == color_bg)
+    assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == (0,0,0))
+
+
+def test_remove_entity():
+
+    color_ent = (123, 122, 54)
+    playground = EmptyPlayground()
+    ent_1 = MockPhysicalFromShape(playground, ((0,0), 0), geometry = 'circle', size=10, color=color_ent)
+
+    view = TopDownView(playground, zoom=1, 
+                       center = center_view, size = (300, 300), display_uid=False)
+
+    view.update()
+
+    ent_pos_on_image = (150,150)
+
+    assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent)
+
+    ent_1.remove()
+
+    view.update()
+
+    assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == (0,0,0))
+
+
+
+def test_visual_view(zoom):
+
+    playground = EmptyPlayground(background= (123, 0, 134))
+   
+    # Position and orientation
+    MockPhysicalMovable(playground, ((-100, 100), 0))
+    MockPhysicalMovable(playground, ((0, 100), math.pi/4))
+    MockPhysicalMovable(playground, ((100, 100), math.pi/3))
+    
+    # Radius
+    MockPhysicalMovable(playground, ((-100, 0), 0))
+    MockPhysicalMovable(playground, ((0, 0), 0), radius = 10)
+    MockPhysicalMovable(playground, ((100, 0), 0), radius = 30)
+
+    # Different shapes
+    MockPhysicalUnmovable(playground, ((-100, -100), 0))
+    MockPhysicalInteractive(playground, ((0, -100), 0), interaction_range=10)
+    MockZoneInteractive(playground, ((100, -100), 0))
+
+    # MockPhysicalUnmovable(playground, ((0, 100), 0))
+
+    view = TopDownView(playground, zoom=zoom, 
+                       center = center_view, size = (300, 300), display_uid=False)
+
+    view.update()
+
+    view.imdisplay()
