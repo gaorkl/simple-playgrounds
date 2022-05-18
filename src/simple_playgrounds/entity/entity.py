@@ -28,7 +28,9 @@ class Entity(ABC):
     def __init__(self, 
                  playground: Playground,
                  name: Optional[str] = None,
-                 teams: Optional[Teams] = None):
+                 teams: Optional[Teams] = None,
+                 **_
+                 ):
 
         self._playground = playground
 

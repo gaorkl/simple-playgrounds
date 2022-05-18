@@ -3,14 +3,16 @@ from simple_playgrounds.agent.controller import ContinuousController, DiscreteCo
 
 import numpy as np
 from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_agents import MockAgent, MockBase
-from tests.mock_entities import MockBarrier, MockPhysical
-from simple_playgrounds.entity.embodied.contour import Contour
-
+from tests.mock_agents import MockAgent
+from simple_playgrounds.common.view import TopDownView
 
 def test_agent_in_playground():
 
     playground = EmptyPlayground()
+    
+    view = TopDownView(playground, 
+                       center = (0, 0), size = (300, 300), display_uid=False)
+
     agent = MockAgent(playground)
     
     assert agent in playground.agents
@@ -21,6 +23,9 @@ def test_agent_in_playground():
     for part in agent.parts:
         assert part in playground._shapes_to_entities.values()
         assert part.agent == agent
+    
+    view.update()
+    view.imdisplay()
 
     agent.remove(definitive=False)
     
@@ -31,7 +36,10 @@ def test_agent_in_playground():
     playground.reset()
     
     assert agent in playground.agents
-    
+
+    view.update()
+    view.imdisplay()
+
     agent.remove(definitive=True)
     
     assert agent not in playground.agents
@@ -44,101 +52,101 @@ def test_agent_in_playground():
 
 
 
-@pytest.fixture(scope='module', params=[1, 5])
-def range_controller(request):
-    return request.param
+# @pytest.fixture(scope='module', params=[1, 5])
+# def range_controller(request):
+#     return request.param
 
 
-def test_range_controller(range_controller):
+# def test_range_controller(range_controller):
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
-    controller = RangeController(part=agent._base, n=range_controller)
+#     playground = EmptyPlayground()
+#     agent = MockAgent(playground)
+#     controller = RangeController(part=agent._base, n=range_controller)
 
-    for _ in range(200):
-        assert controller.sample() in list(range(range_controller))
+#     for _ in range(200):
+#         assert controller.sample() in list(range(range_controller))
 
-    controller.set_command(command=controller.sample())
+#     controller.set_command(command=controller.sample())
 
-    with pytest.raises(ValueError):
-        controller.set_command(range_controller, hard_check=True)
-
-
-@pytest.fixture(scope='module', params = [-2.12, 1.4, 0, 1.5, 2.43]) 
-def min_controller(request):
-    return request.param
+#     with pytest.raises(ValueError):
+#         controller.set_command(range_controller, hard_check=True)
 
 
-@pytest.fixture(scope='module', params = [-2.42, 1.5, 0, 1.3, 2.83]) 
-def max_controller(request):
-    return request.param
+# @pytest.fixture(scope='module', params = [-2.12, 1.4, 0, 1.5, 2.43]) 
+# def min_controller(request):
+#     return request.param
 
 
-def test_cont_controller(min_controller, max_controller):
+# @pytest.fixture(scope='module', params = [-2.42, 1.5, 0, 1.3, 2.83]) 
+# def max_controller(request):
+#     return request.param
+
+
+# def test_cont_controller(min_controller, max_controller):
     
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+#     playground = EmptyPlayground()
+#     agent = MockAgent(playground)
     
-    if min_controller > max_controller:
-        with pytest.raises(ValueError):
-            ContinuousController(min_controller, max_controller, part=agent._base)
+#     if min_controller > max_controller:
+#         with pytest.raises(ValueError):
+#             ContinuousController(min_controller, max_controller, part=agent._base)
 
-    else:
+#     else:
 
-        controller = ContinuousController(min_controller, max_controller, part=agent._base)
+#         controller = ContinuousController(min_controller, max_controller, part=agent._base)
 
-        with pytest.raises(ValueError):
-            controller.set_command(min_controller-0.1, hard_check=True)
+#         with pytest.raises(ValueError):
+#             controller.set_command(min_controller-0.1, hard_check=True)
 
-        with pytest.raises(ValueError):
-            controller.set_command(max_controller+0.1, hard_check=True)
+#         with pytest.raises(ValueError):
+#             controller.set_command(max_controller+0.1, hard_check=True)
 
 
-def test_controller_forward():
+# def test_controller_forward():
     
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+#     playground = EmptyPlayground()
+#     agent = MockAgent(playground)
 
-    commands = {agent: {agent._base.forward_controller: 1}}
+#     commands = {agent: {agent._base.forward_controller: 1}}
     
-    assert agent.position == (0, 0)
+#     assert agent.position == (0, 0)
 
-    playground.step(commands=commands)
+#     playground.step(commands=commands)
 
-    assert agent.position != (0, 0)
-    assert agent.position.x > 0
-    assert agent.position.y == 0
+#     assert agent.position != (0, 0)
+#     assert agent.position.x > 0
+#     assert agent.position.y == 0
 
 
-def test_controller_rotate():
+# def test_controller_rotate():
     
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+#     playground = EmptyPlayground()
+#     agent = MockAgent(playground)
 
-    commands = {agent: {agent._base.angular_vel_controller: 1}}
+#     commands = {agent: {agent._base.angular_vel_controller: 1}}
     
-    assert agent.position == (0, 0)
-    assert agent.angle == 0
+#     assert agent.position == (0, 0)
+#     assert agent.angle == 0
 
-    playground.step(commands=commands)
+#     playground.step(commands=commands)
 
-    assert agent.position == (0, 0)
-    assert agent.angle > 0
+#     assert agent.position == (0, 0)
+#     assert agent.angle > 0
 
 
-def test_command_interface():
+# def test_command_interface():
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+#     playground = EmptyPlayground()
+#     agent = MockAgent(playground)
 
-    agent_identifier = [agent, agent.name]
-    controller_identifier = [agent._base.forward_controller,
-                             agent._base.forward_controller.name]
+#     agent_identifier = [agent, agent.name]
+#     controller_identifier = [agent._base.forward_controller,
+#                              agent._base.forward_controller.name]
 
-    for ag_id in agent_identifier:
-        for cont_id in controller_identifier:
-            commands = {ag_id: {cont_id: 1}}
-            playground.step(commands=commands)
+#     for ag_id in agent_identifier:
+#         for cont_id in controller_identifier:
+#             commands = {ag_id: {cont_id: 1}}
+#             playground.step(commands=commands)
 
 
 

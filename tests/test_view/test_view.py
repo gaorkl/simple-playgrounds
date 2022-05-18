@@ -116,6 +116,28 @@ def test_remove_entity():
 
     color_ent = (123, 122, 54)
     playground = EmptyPlayground()
+    ent_1 = MockPhysicalInteractive(playground, ((0,0), 0), interaction_range=10)
+
+    view = TopDownView(playground, zoom=1, 
+                       center = center_view, size = (300, 300), display_uid=False,draw_interactive=True)
+
+    view.update()
+
+    ent_pos_on_image = (150,150)
+
+    assert not np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == (0,0,0))
+
+    ent_1.remove()
+
+    view.update()
+
+    assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == (0,0,0))
+
+
+def test_move_entity():
+
+    color_ent = (123, 122, 54)
+    playground = EmptyPlayground()
     ent_1 = MockPhysicalFromShape(playground, ((0,0), 0), geometry = 'circle', size=10, color=color_ent)
 
     view = TopDownView(playground, zoom=1, 
@@ -127,12 +149,38 @@ def test_remove_entity():
 
     assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent)
 
-    ent_1.remove()
+    ent_1.move_to( ((100, 100), 0 ))
 
     view.update()
 
     assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == (0,0,0))
+    assert np.all(view.img[ent_pos_on_image[0]+100, ent_pos_on_image[1]+100] == color_ent)
 
+
+def test_multiple_views():
+
+    color_ent = (123, 122, 54)
+    playground = EmptyPlayground()
+    ent_1 = MockPhysicalFromShape(playground, ((0,0), 0), geometry = 'circle', size=10, color=color_ent)
+
+    view_1 = TopDownView(playground, zoom=1, 
+                       center = center_view, size = (300, 300), display_uid=False)
+
+    view_2 = TopDownView(playground, zoom=1, 
+                       center = center_view, size = (300, 300), display_uid=False)
+    view_1.update()
+    view_2.update()
+
+    assert np.all(view_1.img == view_2.img)
+
+    ent_1.move_to( ((10, 10), 0 ))
+
+    view_1.update()
+    assert not np.all(view_1.img == view_2.img)
+
+    view_2.update()
+
+    assert np.all(view_1.img == view_2.img)
 
 
 def test_visual_view(zoom):

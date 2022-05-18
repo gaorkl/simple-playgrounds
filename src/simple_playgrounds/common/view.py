@@ -2,6 +2,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING, Union, Dict
 from arcade.sprite import Sprite
+from numpy.lib.arraysetops import isin
+from simple_playgrounds.agent.part.part import Part, PhysicalPart
 from simple_playgrounds.entity.interactive import InteractiveEntity
 
 from simple_playgrounds.entity.physical import PhysicalEntity
@@ -86,9 +88,13 @@ class TopDownView(ABC):
     
     def add(self, entity):
         assert entity not in self._sprites
- 
+
+        if isinstance(entity, PhysicalPart):
+            for anchored in entity.anchored:
+                self.add(anchored)
+
         if isinstance(entity, PhysicalEntity):
-            for interactive in entity._interactives:
+            for interactive in entity.interactives:
                 self.add(interactive)
 
         if self._display_uid:
@@ -116,8 +122,13 @@ class TopDownView(ABC):
         self._sprites[entity] = sprite
 
     def remove(self, entity):
-       
+    
         sprite = self._sprites.pop(entity)
+
+        if isinstance(entity, PhysicalPart):
+            for part in entity.anchored:
+                self.remove(part)
+
 
         if isinstance(entity, PhysicalEntity):
             for interactive in entity._interactives:

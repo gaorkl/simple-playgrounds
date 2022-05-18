@@ -52,6 +52,8 @@ class EmbodiedEntity(Entity, ABC):
                  **kwargs,
                  ):
 
+        self._required_sprites_update: Dict[Sprite, bool] = {}
+
         self._pm_from_sprite = False
         self._pm_from_shape = False
 
@@ -81,6 +83,7 @@ class EmbodiedEntity(Entity, ABC):
 
         self._add_to_pymunk_space()
         self._playground.add_to_views(self)
+
 
         # Initial Positioning of the entities.
         self._allow_overlapping = allow_overlapping
@@ -301,8 +304,10 @@ class EmbodiedEntity(Entity, ABC):
         texture = self._base_sprite.texture
         assert isinstance(texture, Texture)
 
-        return Sprite(texture=texture, scale=zoom*self._scale,
+        sprite = Sprite(texture=texture, scale=zoom*self._scale,
                       hit_box_algorithm='Detailed', hit_box_detail=1)
+        self._required_sprites_update[sprite] = True
+        return sprite
 
     def get_id_sprite(self, zoom: float = 1) -> Sprite:
         
@@ -322,12 +327,16 @@ class EmbodiedEntity(Entity, ABC):
         texture = Texture(name=str(self._uid), image=img_uid,
                           hit_box_algorithm='Detailed', hit_box_detail=1)
 
-        return Sprite(texture=texture, scale=zoom*self._scale,
+        sprite =  Sprite(texture=texture, scale=zoom*self._scale,
                       hit_box_algorithm='Detailed', hit_box_detail=1)
+
+        self._required_sprites_update[sprite] = True
+        return sprite
+
 
     def update_sprite(self, view, sprite, force=False):
 
-        if self.moved or force:
+        if self._required_sprites_update[sprite] or force:
 
             pos_x = (self._pm_body.position.x - view.center[0])*view.zoom + view.width // 2
             pos_y = (self._pm_body.position.y - view.center[1])*view.zoom + view.height // 2
@@ -335,6 +344,7 @@ class EmbodiedEntity(Entity, ABC):
             sprite.set_position(pos_x, pos_y)
             sprite.angle = int(self.pm_body.angle*180/math.pi)
 
+            self._required_sprites_update[sprite] = False
 
 
     ###################
@@ -416,6 +426,7 @@ class EmbodiedEntity(Entity, ABC):
             self._pm_body.space.reindex_shapes_for_body(self._pm_body)
 
         self._moved = True
+        self._required_sprites_update = dict.fromkeys(self._required_sprites_update, True)
 
     def _move_to_initial_coordinates(self):
         """
@@ -459,7 +470,6 @@ class EmbodiedEntity(Entity, ABC):
         self._playground.remove_from_views(self)
         super().remove(definitive=definitive or self._temporary)
 
-        
     def reset(self):
 
         # Remove completely if temporary
@@ -473,3 +483,9 @@ class EmbodiedEntity(Entity, ABC):
 
         self._move_to_initial_coordinates()
         self._removed = False
+
+    def post_step(self):
+
+        if self.moved:
+            
+            self._required_sprites_update = dict.fromkeys(self._required_sprites_update, True)

@@ -394,6 +394,7 @@ class Playground(arcade.Window):
                 self._shapes_to_entities.pop(pm_shape)
         
     def remove_from_views(self, entity):
+        
         for view in self._views:
             view.remove(entity)
 

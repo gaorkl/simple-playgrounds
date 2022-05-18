@@ -11,17 +11,15 @@ import numpy as np
 
 from simple_playgrounds.common.position_utils import Coordinate
 
-from simple_playgrounds.entity.embodied.interactive import StandAloneInteractive, AnchoredInteractive
-from simple_playgrounds.common.definitions import ANGULAR_VELOCITY, CollisionTypes, LINEAR_FORCE, PymunkCollisionCategories
-from simple_playgrounds.playground.collision_handlers import get_colliding_entities
-from simple_playgrounds.entity.embodied.appearance.texture import ColorTexture
+from simple_playgrounds.common.definitions import ANGULAR_VELOCITY, CollisionTypes, LINEAR_FORCE
 from simple_playgrounds.agent.agent import Agent
-from simple_playgrounds.agent.part.part import AnchoredPart, CommandDict, InteractivePart, Platform
+from simple_playgrounds.agent.part.part import AnchoredPart, InteractivePart, Platform
 
 class MockBase(Platform):
   
     def __init__(self, agent: Agent, **kwargs):
-        super().__init__(agent, **kwargs)
+        super().__init__(agent, mass=10,
+                         filename=":resources:images/topdown_tanks/tankBody_blue_outline.png",**kwargs)
 
         self.forward_controller, self.angular_vel_controller = self._controllers
 
@@ -45,10 +43,9 @@ class MockBase(Platform):
         pass
 
 class MockAnchoredPart(AnchoredPart):
-
     def __init__(self, anchor: Part, **kwargs):
-        super().__init__(anchor, appearance=ColorTexture((10, 20, 30)), 
-                         mass=5, movable=True, **kwargs)
+        super().__init__(anchor, mass=10,
+                         filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png", **kwargs)
         self.joint_controller = self._controllers[0]
 
     def post_step(self, **_):
@@ -84,13 +81,14 @@ class MockTriggerPart(InteractivePart):
 
     def __init__(self, anchor: Part, **kwargs):
         super().__init__(anchor, **kwargs)
-        self.activated = False
+        self._activated = False
     
     def pre_step(self):
-        self.activated = False
+        self._activated = False
 
     def _set_pm_collision_type(self):
-        self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
+        for pm_shape in self._pm_shapes:
+            pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
    
     def _set_controllers(self, **kwargs):
         return []
@@ -102,24 +100,19 @@ class MockTriggerPart(InteractivePart):
         pass
 
     def trigger(self):
-        self.activated = True
+        self._activated = True
 
 
 
 class MockAgent(Agent):
 
-    def __init__(self, playground, coordinates: Optional[Coordinate] = None, **kwargs):
+    def __init__(self, playground, initial_coordinates: Optional[Coordinate] = None, **kwargs):
         super().__init__(
             playground=playground,
-            initial_coordinates=coordinates,
-            appearance=ColorTexture(color=(121, 10, 220)), 
-            shape='circle',
-            radius=40,
-            movable=True,
-            mass=10,
+            initial_coordinates=initial_coordinates,
             **kwargs)
 
-        MockTriggerPart(self._base, appearance=ColorTexture(color=(121, 10, 220)))
+        MockTriggerPart(self._base)
 
     def _add_base(self, **kwargs) -> Part:
         base = MockBase(self, **kwargs)

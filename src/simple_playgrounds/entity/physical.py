@@ -38,12 +38,13 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         self._transparent = transparent
         self._traversable = traversable
         
+        self._interactives: List[AnchoredInteractive] = []
+
         super().__init__(playground=playground, initial_coordinates=initial_coordinates, **kwargs)
         
         self._set_shape_collision_filter()
         self.update_team_filter()
 
-        self._interactives: List[AnchoredInteractive] = []
     
     @property
     def transparent(self):
@@ -52,6 +53,11 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     @property
     def traversable(self):
         return self._traversable
+
+    @property
+    def interactives(self):
+        return self._interactives
+
 
     ########################
     # BODY AND SHAPE

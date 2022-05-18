@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 
 from gym.spaces import space
 import numpy as np
+from numpy.lib.arraysetops import isin
 from numpy.lib.function_base import append
 from simple_playgrounds.agent.controller import Command, Controller
 
@@ -24,13 +25,14 @@ from simple_playgrounds.common.position_utils import (
 from simple_playgrounds.element.elements.teleport import TeleportElement
 from simple_playgrounds.entity.embodied import EmbodiedEntity
 from simple_playgrounds.entity.entity import Entity
+from simple_playgrounds.entity.physical import PhysicalEntity
 
 
 if TYPE_CHECKING:
     from simple_playgrounds.agent.sensor.sensor import SensorDevice
     from simple_playgrounds.playground.playground import Commands
 
-from simple_playgrounds.agent.part.part import Part, AnchoredPart, InteractivePart
+from simple_playgrounds.agent.part.part import Part, AnchoredPart, InteractivePart, PhysicalPart
 
 _BORDER_IMAGE = 3
 
@@ -57,7 +59,7 @@ class Agent(Entity):
 
     def __init__(
         self,
-        temporary: Optional[bool] = False,
+        temporary: bool = False,
         **kwargs,
     ):
 
@@ -181,7 +183,7 @@ class Agent(Entity):
     #############
 
     @abstractmethod
-    def _add_base(self, **kwargs) -> Part:
+    def _add_base(self, **kwargs) -> PhysicalPart:
         """
         Create a base.
         This should pass the parameters for the base 
@@ -248,8 +250,9 @@ class Agent(Entity):
     ###############
 
     def remove(self, definitive: bool = True):
+       
         for part in self._parts:
-            # InteractiveParts are removed by their anchor
+            
             if not isinstance(part, InteractivePart):
                 part.remove(definitive=definitive)
 

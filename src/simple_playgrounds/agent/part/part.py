@@ -27,6 +27,7 @@ from simple_playgrounds.common.definitions import (
     CollisionTypes,
     PymunkCollisionCategories,
 )
+from simple_playgrounds.element.element import InteractiveElement
 from simple_playgrounds.entity.interactive import AnchoredInteractive
 from simple_playgrounds.entity.physical import PhysicalEntity
 
@@ -57,12 +58,12 @@ class Part(_Base):
         self._controllers: List[Controller] = self._set_controllers(**kwargs)
 
         self._agent.add_part(self)
-        self._anchored_parts: List[AnchoredPart] = []
 
         super().__init__(**kwargs)
 
     def _set_pm_collision_type(self):
-        self._pm_shape.collision_type = CollisionTypes.PART
+        for pm_shape in self._pm_shapes:
+            pm_shape.collision_type = CollisionTypes.PART
 
     @abstractmethod
     def _set_controllers(self, **kwargs) -> List[Controller]:
@@ -71,10 +72,6 @@ class Part(_Base):
     @abstractmethod
     def apply_commands(self, **kwargs):
         ...
-
-    def add_anchored(self, anchored: AnchoredPart):
-        self._anchored_parts.append(anchored)
-
     @property
     def agent(self):
         return self._agent
@@ -99,6 +96,19 @@ class Part(_Base):
         for controller in self._controllers:
             controller.pre_step()
 
+class PhysicalPart(Part, PhysicalEntity, ABC):
+    def __init__(self, agent: Agent, **kwargs):
+        self._anchored_parts: List[AnchoredPart] = []
+
+        super().__init__(agent, **kwargs)
+
+    @property
+    def anchored(self):
+        return self._anchored_parts
+
+    def add_anchored(self, anchored: AnchoredPart):
+        self._anchored_parts.append(anchored)
+
     def move_to(self, coordinates: Coordinate, keep_velocity: bool = True, **kwargs):
 
         position, angle = coordinates
@@ -121,34 +131,26 @@ class Part(_Base):
             super().move_to(coordinates=coordinates, keep_velocity=keep_velocity, **kwargs)
 
 
-class Platform(Part, PhysicalEntity, ABC):
+class Platform(PhysicalPart):
 
     def __init__(self, agent: Agent, **kwargs):
         super().__init__(agent=agent, **kwargs)
 
-    def _set_initial_coordinates(
-        self,
-        initial_coordinates: Optional[
-            Union[Coordinate, CoordinateSampler, Trajectory]] = None,
-        allow_overlapping: bool = True,
-        **_,
-    ):
+    def _move_to_initial_coordinates(self):
 
-        if not initial_coordinates:
+        if not self._initial_coordinates:
 
             if not self._playground.initial_agent_coordinates:
                 raise ValueError('Initial coordinates must be set')
-            initial_coordinates = self._playground.initial_agent_coordinates
+            self._initial_coordinates = self._playground.initial_agent_coordinates
 
-        super()._set_initial_coordinates(initial_coordinates=initial_coordinates,
-                                         allow_overlapping=allow_overlapping,
-                                         **_)
+        super()._move_to_initial_coordinates()
 
 
-class AnchoredPart(Part, PhysicalEntity, ABC):
+class AnchoredPart(PhysicalPart):
 
     def __init__(self,
-                 anchor: Part,
+                 anchor: PhysicalPart,
                  pivot_position_on_part: Union[Tuple[float, float], pymunk.Vec2d],
                  pivot_position_on_anchor: Union[Tuple[float, float], pymunk.Vec2d],
                  relative_angle: float,
@@ -156,6 +158,15 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
                  **kwargs):
 
         self._anchor = anchor
+
+        init_coord = self.get_init_coordinates()
+
+        super().__init__(agent=anchor.agent,
+                         playground=anchor.playground,
+                         initial_coordinates=init_coord,
+                         **kwargs)
+        
+
         self._anchor.add_anchored(self)
 
         self._anchor_point = pymunk.Vec2d(*pivot_position_on_anchor)
@@ -164,17 +175,11 @@ class AnchoredPart(Part, PhysicalEntity, ABC):
 
         self._rotation_range = rotation_range
 
-        init_coord = self.get_init_coordinates()
 
         self._motor = None   
         self._joint = None
         self._limit = None
 
-        super().__init__(agent=anchor.agent,
-                         playground=anchor.playground,
-                         initial_coordinates=init_coord,
-                         **kwargs)
-        
         self._attach_to_anchor()
 
     @property
@@ -243,7 +248,6 @@ class InteractivePart(Part, AnchoredInteractive):
     def relative_angle(self):
 
         return self.angle - self._anchor.angle
-
 
 # class PhysicalPart(Part, PhysicalEntity, ABC):
 
