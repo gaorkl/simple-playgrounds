@@ -1,7 +1,9 @@
 from __future__ import annotations
+import math
 from typing import Optional, TYPE_CHECKING
 
 from simple_playgrounds.agent.controller import CenteredContinuousController
+from tests.test_view.conftest import shape
 
 if TYPE_CHECKING:
     from simple_playgrounds.agent.part.part import Part
@@ -19,7 +21,7 @@ class MockBase(Platform):
   
     def __init__(self, agent: Agent, **kwargs):
         super().__init__(agent, mass=10,
-                         filename=":resources:images/topdown_tanks/tankBody_blue_outline.png",**kwargs)
+                         filename=":resources:images/topdown_tanks/tankBody_blue_outline.png", sprite_front_is_up=True, shape_approximation = 'decomposition', **kwargs)
 
         self.forward_controller, self.angular_vel_controller = self._controllers
 
@@ -112,7 +114,7 @@ class MockAgent(Agent):
             initial_coordinates=initial_coordinates,
             **kwargs)
 
-        MockTriggerPart(self._base)
+        # MockTriggerPart(self._base, shape_approximation = 'decomposition')
 
     def _add_base(self, **kwargs) -> Part:
         base = MockBase(self, **kwargs)

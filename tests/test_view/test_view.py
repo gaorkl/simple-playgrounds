@@ -133,6 +133,12 @@ def test_remove_entity():
 
     assert np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == (0,0,0))
 
+    playground.reset()
+
+    view.update()
+
+
+    assert not np.all(view.img[ent_pos_on_image[0], ent_pos_on_image[1]] == (0,0,0))
 
 def test_move_entity():
 

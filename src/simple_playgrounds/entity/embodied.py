@@ -49,6 +49,7 @@ class EmbodiedEntity(Entity, ABC):
                  temporary: bool = False,
                  allow_overlapping: bool = True,
                  shape_approximation: Optional[str] = None,
+                 sprite_front_is_up: bool = False,
                  **kwargs,
                  ):
 
@@ -57,9 +58,15 @@ class EmbodiedEntity(Entity, ABC):
         self._pm_from_sprite = False
         self._pm_from_shape = False
 
+        self._sprite_front_is_up = sprite_front_is_up
+
         if filename or texture:
             self._pm_from_sprite = True
-            self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm='Detailed', hit_box_detail=1) #type: ignore
+
+
+            self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm='Detailed', hit_box_detail=1, flipped_diagonally=sprite_front_is_up, flipped_horizontally=sprite_front_is_up ) #type: ignore
+
+
             self._scale, self._radius = self._get_scale_radius(radius)
             self._pm_body = self._get_pm_body()
             self._pm_shapes = self._get_pm_shapes_from_sprite(shape_approximation)
@@ -103,6 +110,10 @@ class EmbodiedEntity(Entity, ABC):
     #############
     # Properties
     #############
+
+    @property
+    def sprite_front_is_up(self):
+        return self._sprite_front_is_up
 
     @property
     def playground(self):
@@ -176,6 +187,7 @@ class EmbodiedEntity(Entity, ABC):
 
         return False
 
+
     ##############
     # Init pm Elements
     ###############
@@ -244,6 +256,7 @@ class EmbodiedEntity(Entity, ABC):
     def _get_pm_shapes_from_sprite(self, shape_approximation):
         
         vertices = self._base_sprite.get_hit_box()
+        
         vertices = [ (x*self._scale, y*self._scale) for x,y in vertices ]
 
         if shape_approximation == 'circle':
@@ -305,7 +318,7 @@ class EmbodiedEntity(Entity, ABC):
         assert isinstance(texture, Texture)
 
         sprite = Sprite(texture=texture, scale=zoom*self._scale,
-                      hit_box_algorithm='Detailed', hit_box_detail=1)
+                      hit_box_algorithm='Detailed', hit_box_detail=1 )
         self._required_sprites_update[sprite] = True
         return sprite
 
@@ -328,7 +341,7 @@ class EmbodiedEntity(Entity, ABC):
                           hit_box_algorithm='Detailed', hit_box_detail=1)
 
         sprite =  Sprite(texture=texture, scale=zoom*self._scale,
-                      hit_box_algorithm='Detailed', hit_box_detail=1)
+                      hit_box_algorithm='Detailed', hit_box_detail=1 )
 
         self._required_sprites_update[sprite] = True
         return sprite
@@ -465,7 +478,7 @@ class EmbodiedEntity(Entity, ABC):
         self._moved = False
 
     def remove(self, definitive: bool = False):
-        
+       
         self._remove_from_pymunk_space()
         self._playground.remove_from_views(self)
         super().remove(definitive=definitive or self._temporary)

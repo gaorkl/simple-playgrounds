@@ -318,8 +318,6 @@ class Playground(arcade.Window):
         if not messages:
             return
 
-
-
     def _compute_observations(self):
 
         obs = {}
@@ -345,6 +343,7 @@ class Playground(arcade.Window):
 
         # reset entities that are still in playground
         for entity in self._entities:
+            print('>>> reset', entity)
             entity.reset()
         
         for agent in self._agents:
@@ -405,7 +404,7 @@ class Playground(arcade.Window):
             view.add(entity)
 
         for agent in self.agents:
-            view.add(agent)
+            view.add(agent.base)
 
         self._views.append(view)
 

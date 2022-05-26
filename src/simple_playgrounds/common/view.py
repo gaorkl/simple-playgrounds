@@ -87,7 +87,10 @@ class TopDownView(ABC):
         return self._fbo.color_attachments[0]
     
     def add(self, entity):
-        assert entity not in self._sprites
+  
+        # Trick to avoid adding interactive entities twice when reset
+        if entity in self._sprites:
+            return
 
         if isinstance(entity, PhysicalPart):
             for anchored in entity.anchored:
@@ -122,7 +125,7 @@ class TopDownView(ABC):
         self._sprites[entity] = sprite
 
     def remove(self, entity):
-    
+  
         sprite = self._sprites.pop(entity)
 
         if isinstance(entity, PhysicalPart):
@@ -131,8 +134,8 @@ class TopDownView(ABC):
 
 
         if isinstance(entity, PhysicalEntity):
-            for interactive in entity._interactives:
-                self.remove(interactive)
+            # for interactive in entity._interactives:
+            #     self.remove(interactive)
 
             if entity.traversable:
                 self._traversable_sprites.remove(sprite)
@@ -178,12 +181,11 @@ class TopDownView(ABC):
         ImageShow.show(img, 'test')
 
     def reset(self):
+
         self._transparent_sprites.clear()
         self._interactive_sprites.clear()
         self._visible_sprites.clear()
         self._traversable_sprites.clear()
-
-
 
 
 #class View(ABC):

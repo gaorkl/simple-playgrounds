@@ -182,6 +182,10 @@ class Agent(Entity):
     # ADD PARTS AND SENSORS
     #############
 
+    @property
+    def base(self):
+        return self._base
+
     @abstractmethod
     def _add_base(self, **kwargs) -> PhysicalPart:
         """
