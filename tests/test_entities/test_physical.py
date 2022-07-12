@@ -1,3 +1,4 @@
+import pytest
 import math
 from simple_playgrounds.playground.playground import EmptyPlayground
 from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable, NonConvexPlus, NonConvexC, MockPhysicalFromShape, NonConvexPlus_Approx
@@ -144,4 +145,12 @@ def test_shape_approximation(shape_approx):
     ent_1 = NonConvexPlus_Approx(playground, coord, 20, 10, shape_approximation=shape_approx)
 
 
+def test_overlapping():
 
+    playground=EmptyPlayground()
+
+    MockPhysicalMovable(playground, coord_center)
+    MockPhysicalMovable(playground, coord_center)
+    
+    with pytest.raises(ValueError):
+        MockPhysicalMovable(playground, coord_center, allow_overlapping=False)

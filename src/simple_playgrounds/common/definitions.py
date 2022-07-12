@@ -56,8 +56,10 @@ class CollisionTypes(IntEnum):
     DEVICE = auto()
     MODIFIER = auto()
 
-    TEST_TRIGGER = auto()
-    TEST_TRIGGERED = auto()
+    # ACTIVE_INTERACTOR interacts only with PASSIVE_INTERACTOR
+    # PASSIVE_INTERACTOR interacts with ACTIVE OR PASSIVE
+    ACTIVE_INTERACTOR = auto()
+    PASSIVE_INTERACTOR = auto()
 
 
 def add_custom_collision(collision_types, name):
@@ -80,7 +82,7 @@ def add_custom_collision(collision_types, name):
     """
 
     names = [m.name for m in collision_types] + [name]
-    extended_enum = IntEnum('CollisionTypes', names)
+    extended_enum = IntEnum("CollisionTypes", names)
 
     return extended_enum
 
@@ -105,7 +107,7 @@ class ElementTypes(IntEnum):
     ROTTEN_APPLE = auto()
 
     # Gems
-    COIN = auto()
+    # PASSIVE_INTERACTOR interacts with ACTIVE OR PASSIVE
     KEY = auto()
 
     # Interactive
@@ -158,5 +160,4 @@ class SensorTypes(IntEnum):
     PERFECT_SEMANTIC = auto()
 
 
-Detection = namedtuple('Detection', 'entity, distance, angle')
-
+Detection = namedtuple("Detection", "entity, distance, angle")

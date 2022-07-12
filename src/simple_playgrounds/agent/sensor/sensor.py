@@ -16,7 +16,7 @@ from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
 from simple_playgrounds.device.device import Device
-from simple_playgrounds.agent.part.part import Part
+from simple_playgrounds.agent.part.part import PhysicalPart
 from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.element.element import SceneElement
 
@@ -25,7 +25,7 @@ SensorValue = Union[np.ndarray, List[np.ndarray]]
 
 
 class Sensor(Device):
-    """ Base class Sensor, used as an Interface for all sensors.
+    """Base class Sensor, used as an Interface for all sensors.
 
     Attributes:
         anchor: Part or Element to which the sensor is attached.
@@ -40,13 +40,14 @@ class Sensor(Device):
 
     _index_sensor = 0
 
-    def __init__(self,
-                 anchor: Union[Part, SceneElement],
-                 noise_params: Optional[Dict] = None,
-                 normalize: Optional[bool] = False,
-                 name: Optional[str] = None,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        anchor: Union[PhysicalPart, SceneElement],
+        noise_params: Optional[Dict] = None,
+        normalize: Optional[bool] = False,
+        name: Optional[str] = None,
+        **kwargs,
+    ):
         """
         Sensors are attached to an anchor.
         They can detect any visible Part of an Agent or Elements of the Playground.
@@ -74,8 +75,9 @@ class Sensor(Device):
         if name:
             self.name = name
         else:
-            self.name = self.__class__.__name__.lower() + '_' + str(
-                Sensor._index_sensor)
+            self.name = (
+                self.__class__.__name__.lower() + "_" + str(Sensor._index_sensor)
+            )
             Sensor._index_sensor += 1
 
         self.sensor_values = None
@@ -85,20 +87,20 @@ class Sensor(Device):
         self._noise = False
         if noise_params is not None:
             self._noise = True
-            self._noise_type = noise_params.get('type', 'gaussian')
+            self._noise_type = noise_params.get("type", "gaussian")
 
-            if self._noise_type == 'gaussian':
-                self._noise_mean = noise_params.get('mean', 0)
-                self._noise_scale = noise_params.get('scale', 1)
+            if self._noise_type == "gaussian":
+                self._noise_mean = noise_params.get("mean", 0)
+                self._noise_scale = noise_params.get("scale", 1)
 
-            elif self._noise_type == 'salt_pepper':
-                self._noise_probability = noise_params.get('probability', 0.1)
+            elif self._noise_type == "salt_pepper":
+                self._noise_probability = noise_params.get("probability", 0.1)
 
             else:
-                raise ValueError('Noise type not implemented')
+                raise ValueError("Noise type not implemented")
 
         # Sensor max value is used for noise and normalization calculation
-        self._sensor_max_value: float = 0.
+        self._sensor_max_value: float = 0.0
 
     @property
     @abstractmethod
@@ -138,7 +140,7 @@ class Sensor(Device):
     @property
     @abstractmethod
     def shape(self):
-        """ Returns the shape of the numpy array, if applicable."""
+        """Returns the shape of the numpy array, if applicable."""
         ...
 
     @abstractmethod
@@ -161,18 +163,18 @@ class Sensor(Device):
 # External Sensors
 ##################
 
-class ExternalSensor(Sensor, ABC):
 
-    def __init__(self,
-                 anchor,
-                 fov: float,
-                 resolution: int,
-                 max_range: float,
-                 min_range: float,
-                 invisible_elements: Optional[Union[List[Entity],
-                                                    Entity]] = None,
-                 **kwargs,
-                 ):
+class ExternalSensor(Sensor, ABC):
+    def __init__(
+        self,
+        anchor,
+        fov: float,
+        resolution: int,
+        max_range: float,
+        min_range: float,
+        invisible_elements: Optional[Union[List[Entity], Entity]] = None,
+        **kwargs,
+    ):
 
         """
 
@@ -204,13 +206,13 @@ class ExternalSensor(Sensor, ABC):
         self._resolution = resolution
 
         if self._resolution < 0:
-            raise ValueError('resolution must be more than 1')
+            raise ValueError("resolution must be more than 1")
         if self._fov < 0:
-            raise ValueError('field of view must be more than 1')
+            raise ValueError("field of view must be more than 1")
         if self._max_range < 0:
-            raise ValueError('maximum range must be more than 1')
+            raise ValueError("maximum range must be more than 1")
         if self._min_range < 0:
-            raise ValueError('minimum range must be more than 1')
+            raise ValueError("minimum range must be more than 1")
 
         # Temporary invisible to manage elements that are invisible to the agent or sensor.
         # Manages dynamic invisibility. Elements are invisible some times.
@@ -232,6 +234,7 @@ class RayBasedSensor(ExternalSensor, ABC):
     Robotic sensors and Semantic sensors inherit from this class.
 
     """
+
     def __init__(
         self,
         anchor,
@@ -266,13 +269,14 @@ class RayBasedSensor(ExternalSensor, ABC):
         self._remove_duplicates = remove_duplicates
 
         # Rays need to start at least after anchor
-        if (self._anchor not in self._invisible_elements) \
-                and (self._min_range < self._anchor.radius + 1):
+        if (self._anchor not in self._invisible_elements) and (
+            self._min_range < self._anchor.radius + 1
+        ):
             self._min_range = self._anchor.radius + 1
 
         # Field of View of the Sensor
         if self._resolution == 1:
-            self._ray_angles = [0.]
+            self._ray_angles = [0.0]
         else:
             self._ray_angles = [
                 n * self._fov / (self._resolution - 1) - self._fov / 2
@@ -285,12 +289,12 @@ class RayBasedSensor(ExternalSensor, ABC):
 
     @staticmethod
     def _remove_duplicate_collisions(
-            collisions_by_angle: Dict[float,
-                                      Optional[pymunk.SegmentQueryInfo]]):
+        collisions_by_angle: Dict[float, Optional[pymunk.SegmentQueryInfo]]
+    ):
 
         all_shapes = list(
-            set(col.shape for angle, col in collisions_by_angle.items()
-                if col))
+            set(col.shape for angle, col in collisions_by_angle.items() if col)
+        )
 
         all_collisions = []
         for angle, col in collisions_by_angle.items():
@@ -301,7 +305,8 @@ class RayBasedSensor(ExternalSensor, ABC):
         for shape in all_shapes:
             min_col = min(
                 [col for col in all_collisions if col.shape is shape],
-                key=attrgetter('alpha'))
+                key=attrgetter("alpha"),
+            )
             all_min_collisions.append(min_col)
 
         # Filter out noon-min collisions
@@ -316,11 +321,11 @@ class RayBasedSensor(ExternalSensor, ABC):
         position_body = self._anchor._pm_body.position
         angle = self._anchor._pm_body.angle + sensor_angle
 
-        position_end = position_body + pymunk.Vec2d(self._max_range,
-                                                    0).rotated(angle)
+        position_end = position_body + pymunk.Vec2d(self._max_range, 0).rotated(angle)
 
-        position_start = position_body + pymunk.Vec2d(self._min_range + 1,
-                                                      0).rotated(angle)
+        position_start = position_body + pymunk.Vec2d(self._min_range + 1, 0).rotated(
+            angle
+        )
 
         inv_shapes = []
         for elem in self._invisible_elements + self._temporary_invisible:
@@ -329,7 +334,11 @@ class RayBasedSensor(ExternalSensor, ABC):
                 inv_shapes.append(elem.pm_visible_shape)
 
         collision = self.playground.space.segment_query_first(
-            position_start, position_end, 1, shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()))
+            position_start,
+            position_end,
+            1,
+            shape_filter=pymunk.ShapeFilter(pymunk.ShapeFilter.ALL_MASKS()),
+        )
 
         for shape in inv_shapes:
             shape.sensor = False
@@ -351,20 +360,22 @@ class RayBasedSensor(ExternalSensor, ABC):
 
     def _apply_noise(self):
 
-        if self._noise_type == 'gaussian':
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
+        if self._noise_type == "gaussian":
+            additive_noise = np.random.normal(
+                self._noise_mean, self._noise_scale, size=self.shape
+            )
 
-        elif self._noise_type == 'salt_pepper':
+        elif self._noise_type == "salt_pepper":
             prob = [
-                self._noise_probability / 2, 1 - self._noise_probability,
-                self._noise_probability / 2
+                self._noise_probability / 2,
+                1 - self._noise_probability,
+                self._noise_probability / 2,
             ]
             additive_noise = np.random.choice(
                 [-self._sensor_max_value, 0, self._sensor_max_value],
                 p=prob,
-                size=self.shape)
+                size=self.shape,
+            )
 
         else:
             raise ValueError
@@ -372,8 +383,9 @@ class RayBasedSensor(ExternalSensor, ABC):
         self.sensor_values += additive_noise
 
         self.sensor_values[self.sensor_values < 0] = 0
-        self.sensor_values[self.sensor_values >
-                           self._sensor_max_value] = self._sensor_max_value
+        self.sensor_values[
+            self.sensor_values > self._sensor_max_value
+        ] = self._sensor_max_value
 
 
 class ImageBasedSensor(ExternalSensor, ABC):
@@ -385,13 +397,13 @@ class ImageBasedSensor(ExternalSensor, ABC):
     """
 
     def __init__(
-            self,
-            aliasing: bool = True,
-            **kwargs,
+        self,
+        aliasing: bool = True,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
-        self._size_surface = (2*self._max_range + 1, 2*self._max_range+1)
+        self._size_surface = (2 * self._max_range + 1, 2 * self._max_range + 1)
         self._surface = pygame.Surface(self._size_surface)
 
         self._sensor_size = None
@@ -406,22 +418,24 @@ class ImageBasedSensor(ExternalSensor, ABC):
 
     def _apply_noise(self):
 
-        if self._noise_type == 'gaussian':
+        if self._noise_type == "gaussian":
 
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
+            additive_noise = np.random.normal(
+                self._noise_mean, self._noise_scale, size=self.shape
+            )
 
-        elif self._noise_type == 'salt_pepper':
+        elif self._noise_type == "salt_pepper":
 
             proba = [
-                self._noise_probability / 2, 1 - self._noise_probability,
-                self._noise_probability / 2
+                self._noise_probability / 2,
+                1 - self._noise_probability,
+                self._noise_probability / 2,
             ]
             additive_noise = np.random.choice(
                 [-self._sensor_max_value, 0, self._sensor_max_value],
                 p=proba,
-                size=self.shape)
+                size=self.shape,
+            )
 
         else:
             raise ValueError
@@ -429,8 +443,9 @@ class ImageBasedSensor(ExternalSensor, ABC):
         self.sensor_values += additive_noise
 
         self.sensor_values[self.sensor_values < 0] = 0
-        self.sensor_values[self.sensor_values >
-                           self._sensor_max_value] = self._sensor_max_value
+        self.sensor_values[
+            self.sensor_values > self._sensor_max_value
+        ] = self._sensor_max_value
 
     def _get_null_sensor(self):
         return np.zeros(self.shape)
@@ -439,14 +454,15 @@ class ImageBasedSensor(ExternalSensor, ABC):
 
         height_display = int(width * self.shape[0] / self.shape[1])
 
-        image = resize(self.sensor_values, (height_display, width),
-                       order=0,
-                       preserve_range=True)
+        image = resize(
+            self.sensor_values, (height_display, width), order=0, preserve_range=True
+        )
 
         if not self._normalize:
-            image /= 255.
+            image /= 255.0
 
         return image
+
 
 ##################
 # Internal Sensors
@@ -463,10 +479,10 @@ class InternalSensor(Sensor, ABC):
         return np.zeros(self.shape)
 
     def _apply_noise(self):
-        if self._noise_type == 'gaussian':
-            additive_noise = np.random.normal(self._noise_mean,
-                                              self._noise_scale,
-                                              size=self.shape)
+        if self._noise_type == "gaussian":
+            additive_noise = np.random.normal(
+                self._noise_mean, self._noise_scale, size=self.shape
+            )
 
         else:
             raise ValueError
@@ -478,13 +494,12 @@ class InternalSensor(Sensor, ABC):
         drawer_image = ImageDraw.Draw(img)
 
         if self.sensor_values is not None:
-            fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", int(height * 1 / 2))
+            fnt = ImageFont.truetype(
+                "Pillow/Tests/fonts/FreeMono.ttf", int(height * 1 / 2)
+            )
             values_str = ", ".join(["%.2f" % e for e in self.sensor_values])
             w_text, h_text = fnt.getsize(text=values_str)
             pos_text = ((width - w_text) / 2, (height - h_text) / 2)
-            drawer_image.text(pos_text,
-                              values_str,
-                              font=fnt,
-                              fill=(0, 0, 0))
+            drawer_image.text(pos_text, values_str, font=fnt, fill=(0, 0, 0))
 
-        return np.asarray(img) / 255.
+        return np.asarray(img) / 255.0

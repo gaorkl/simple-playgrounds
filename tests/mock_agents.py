@@ -2,7 +2,10 @@ from __future__ import annotations
 import math
 from typing import Optional, TYPE_CHECKING
 
-from simple_playgrounds.agent.controller import CenteredContinuousController
+from simple_playgrounds.agent.controller import (
+    CenteredContinuousController,
+    BoolController,
+)
 from tests.test_view.conftest import shape
 
 if TYPE_CHECKING:
@@ -13,15 +16,31 @@ import numpy as np
 
 from simple_playgrounds.common.position_utils import Coordinate
 
-from simple_playgrounds.common.definitions import ANGULAR_VELOCITY, CollisionTypes, LINEAR_FORCE
+from simple_playgrounds.common.definitions import (
+    ANGULAR_VELOCITY,
+    CollisionTypes,
+    LINEAR_FORCE,
+)
 from simple_playgrounds.agent.agent import Agent
-from simple_playgrounds.agent.part.part import AnchoredPart, InteractivePart, Platform
+from simple_playgrounds.agent.part.part import (
+    AnchoredPart,
+    PhysicalPart,
+    Platform,
+    InteractivePart,
+)
+
 
 class MockBase(Platform):
-  
     def __init__(self, agent: Agent, **kwargs):
-        super().__init__(agent, mass=10,
-                         filename=":resources:images/topdown_tanks/tankBody_blue_outline.png", sprite_front_is_up=True, shape_approximation = 'decomposition', **kwargs)
+
+        super().__init__(
+            agent,
+            mass=10,
+            filename=":resources:images/topdown_tanks/tankBody_blue_outline.png",
+            sprite_front_is_up=True,
+            shape_approximation="decomposition",
+            **kwargs,
+        )
 
         self.forward_controller, self.angular_vel_controller = self._controllers
 
@@ -36,7 +55,8 @@ class MockBase(Platform):
         command_value = self.forward_controller.sample()
 
         self._pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(command_value, 0) * LINEAR_FORCE, (0, 0))
+            pymunk.Vec2d(command_value, 0) * LINEAR_FORCE, (0, 0)
+        )
 
         command_value = self.angular_vel_controller.sample()
         self._pm_body.angular_velocity = command_value * ANGULAR_VELOCITY
@@ -44,10 +64,16 @@ class MockBase(Platform):
     def post_step(self, **_):
         pass
 
+
 class MockAnchoredPart(AnchoredPart):
-    def __init__(self, anchor: Part, **kwargs):
-        super().__init__(anchor, mass=10,
-                         filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png", **kwargs)
+    def __init__(self, anchor: PhysicalPart, **kwargs):
+        super().__init__(
+            anchor,
+            mass=10,
+            filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
+            sprite_front_is_up=True,
+            **kwargs,
+        )
         self.joint_controller = self._controllers[0]
 
     def post_step(self, **_):
@@ -63,10 +89,11 @@ class MockAnchoredPart(AnchoredPart):
         theta_part = self.angle
         theta_anchor = self._anchor.angle
 
-        angle_centered = (theta_part - (theta_anchor + self._angle_offset))
+        angle_centered = theta_part - (theta_anchor + self._angle_offset)
         angle_centered = angle_centered % (2 * np.pi)
-        angle_centered = (angle_centered - 2 * np.pi
-                          if angle_centered > np.pi else angle_centered)
+        angle_centered = (
+            angle_centered - 2 * np.pi if angle_centered > np.pi else angle_centered
+        )
 
         # Do not set the motor if the limb is close to limit
         if (angle_centered < -self._rotation_range / 2 + np.pi / 20) and value < 0:
@@ -78,41 +105,72 @@ class MockAnchoredPart(AnchoredPart):
         else:
             self._motor.rate = -value * ANGULAR_VELOCITY
 
+    @property
+    def default_position_on_part(self):
+        return (-self.radius, 0)
 
-class MockTriggerPart(InteractivePart):
 
+class MockHaloPart(InteractivePart):
     def __init__(self, anchor: Part, **kwargs):
         super().__init__(anchor, **kwargs)
-        self._activated = False
-    
+
     def pre_step(self):
         self._activated = False
 
     def _set_pm_collision_type(self):
         for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
-   
+            pm_shape.collision_type = CollisionTypes.PASSIVE_INTERACTOR
+
     def _set_controllers(self, **kwargs):
         return []
 
     def apply_commands(self, **kwargs):
         pass
-    
+
+    def activate(self):
+        super().activate()
+
     def post_step(self, **_):
         pass
 
-    def trigger(self):
-        self._activated = True
 
+class MockTriggerPart(InteractivePart):
+    def __init__(self, anchor: Part, **kwargs):
+        super().__init__(anchor, **kwargs)
+
+        self.trigger = self._set_controllers()[0]
+
+    def pre_step(self):
+        self._activated = False
+
+    def _set_pm_collision_type(self):
+        for pm_shape in self._pm_shapes:
+            pm_shape.collision_type = CollisionTypes.ACTIVE_INTERACTOR
+
+    def _set_controllers(self, **kwargs):
+        return [BoolController(part=self)]
+
+    def apply_commands(self, **kwargs):
+        value = self.trigger.sample()
+        print("AAAAAAA", value)
+        if value:
+            self.activate()
+
+    def activate(self):
+        super().activate()
+
+    def post_step(self, **_):
+        pass
 
 
 class MockAgent(Agent):
+    def __init__(
+        self, playground, initial_coordinates: Optional[Coordinate] = None, **kwargs
+    ):
 
-    def __init__(self, playground, initial_coordinates: Optional[Coordinate] = None, **kwargs):
         super().__init__(
-            playground=playground,
-            initial_coordinates=initial_coordinates,
-            **kwargs)
+            playground=playground, initial_coordinates=initial_coordinates, **kwargs
+        )
 
         # MockTriggerPart(self._base, shape_approximation = 'decomposition')
 
@@ -123,3 +181,23 @@ class MockAgent(Agent):
     def post_step(self):
         pass
 
+
+class MockAgentWithArm(MockAgent):
+    def __init__(
+        self, playground, initial_coordinates: Optional[Coordinate] = None, **kwargs
+    ):
+        super().__init__(playground, initial_coordinates, **kwargs)
+
+        self.left_arm = MockAnchoredPart(
+            self.base,
+            position_on_anchor=(15, 15),
+            relative_angle=math.pi / 3,
+            rotation_range=math.pi / 4,
+        )
+
+        self.right_arm = MockAnchoredPart(
+            self.base,
+            position_on_anchor=(15, -15),
+            relative_angle=-math.pi / 3,
+            rotation_range=math.pi / 4,
+        )

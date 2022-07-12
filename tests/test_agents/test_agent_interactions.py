@@ -1,157 +1,121 @@
 import pytest
-from simple_playgrounds.agent.controller import ContinuousController, DiscreteController, RangeController
 
 import numpy as np
 from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_agents import MockAgent, MockBase
-from tests.mock_entities import MockBarrier, MockPhysical, MockZoneTriggered, trigger_triggers_triggered
-from simple_playgrounds.entity.embodied.contour import Contour
+from tests.mock_agents import MockTriggerPart, MockAgentWithArm, MockHaloPart
+from tests.mock_entities import (
+    MockBarrier,
+    MockHalo,
+    MockZoneInteractive,
+    active_interaction,
+    passive_interaction,
+)
 from simple_playgrounds.common.definitions import CollisionTypes
 
-coord_obst = (100, 0), 0
+coord_center = (0, 0), 0
+
+# team of barrier ; team of agent ; is it blocked?
+@pytest.fixture(
+    scope="module",
+    params=[
+        ("team_0", "team_0", False),
+        ("team_0", None, False),
+        (None, "team_0", True),
+        ("team_0", "team_1", True),
+        (["team_0", "team_1"], "team_0", False),
+    ],
+)
+def barrier_params(request):
+    return request.param
 
 
-def test_agent_barrier_no_team():
+def test_agent_barrier(barrier_params):
+
+    team_barrier, team_agent, barrier_blocks = barrier_params
 
     playground = EmptyPlayground()
-    agent = MockAgent(playground)
+    barrier = MockBarrier(playground, (30, 30), (30, -30), width=10, teams=team_barrier)
 
-    contour_barrier = Contour(shape='rectangle', size=(10, 400))
-    barrier = MockBarrier(playground, coord_obst, contour=contour_barrier)
+    # print(barrier_params)
 
-    commands = {agent: {agent._base.forward_controller: 1}}
-    
-    assert agent.position == (0, 0)
+    agent = MockAgentWithArm(playground, ((0, 0), 0), teams=team_agent)
 
     for _ in range(1000):
-        playground.step(commands=commands)
+        playground.step()
 
-    assert agent.position.x > 0
-    assert agent.position.x > 40
-
-
-def test_agent_team_barrier_no_team():
-
-    playground = EmptyPlayground()
-    agent = MockAgent(playground, teams='test')
-
-    assert agent._base._teams == ['test']
-
-    contour_barrier = Contour(shape='rectangle', size=(10, 400))
-    barrier = MockBarrier(playground, coord_obst, contour=contour_barrier)
-
-    commands = {agent: {agent._base.forward_controller: 1}}
-    
-    assert agent.position == (0, 0)
-
-    for _ in range(1000):
-        playground.step(commands=commands)
-
-    assert agent.position.x > 0
-    assert agent.position.x < coord_obst[0][0]
+    # assert agent.position.x < 0
+    # playground.debug_draw()
+    assert barrier_blocks != (agent.base.coordinates == coord_center)
 
 
-def test_agent_team_barrier_otherteam():
+def test_agent_interacts_passive():
 
     playground = EmptyPlayground()
-    agent = MockAgent(playground, teams='test_1')
+    playground.add_interaction(
+        CollisionTypes.PASSIVE_INTERACTOR,
+        CollisionTypes.PASSIVE_INTERACTOR,
+        passive_interaction,
+    )
 
-    assert agent._base._teams == ['test_1']
+    agent = MockAgentWithArm(playground, teams="team_1")
+    interactive_part_l = MockHaloPart(agent.left_arm)
+    interactive_part_r = MockHaloPart(agent.right_arm)
 
-    contour_barrier = Contour(shape='rectangle', size=(10, 400))
-    barrier = MockBarrier(playground, coord_obst, contour=contour_barrier, teams=['test_2'])
+    zone_1 = MockZoneInteractive(playground, ((30, 30), 0), 10, teams="team_1")
+    zone_2 = MockZoneInteractive(playground, ((30, -30), 0), 10, teams="team_2")
 
-    commands = {agent: {agent._base.forward_controller: 1}}
-    
-    assert agent.position == (0, 0)
+    # playground.debug_draw()
 
-    for _ in range(1000):
-        playground.step(commands=commands)
-
-    assert agent.position.x > 0
-    assert agent.position.x < coord_obst[0][0]
-
-
-def test_agent_team_barrier_team():
-
-    playground = EmptyPlayground()
-    agent = MockAgent(playground, teams='test_1')
-
-    assert agent._base._teams == ['test_1']
-
-    contour_barrier = Contour(shape='rectangle', size=(10, 400))
-    barrier = MockBarrier(playground, coord_obst, contour=contour_barrier, teams=['test_1'])
-
-    commands = {agent: {agent._base.forward_controller: 1}}
-    
-    assert agent.position == (0, 0)
-
-    for _ in range(1000):
-        playground.step(commands=commands)
-
-    assert agent.position.x > 0
-    assert agent.position.x > coord_obst[0][0]
-
-
-def test_agent_movable():
-
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
-
-    contour_obstacle = Contour(shape='square', radius=20)
-    obstacle = MockPhysical(playground, coord_obst, contour=contour_obstacle, movable=True, mass=5)
-
-    commands = {agent: {agent._base.forward_controller: 1}}
-    
-    assert agent.position == (0, 0)
-
-    for _ in range(1000):
-        playground.step(commands=commands)
-
-    assert obstacle.coordinates != coord_obst
-
-    playground.reset()
-
-    assert agent.position == (0, 0)
-    assert obstacle.coordinates == coord_obst
-
-
-def test_agent_traversable():
-
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
-
-    contour_barrier = Contour(shape='rectangle', size=(10, 400))
-    MockPhysical(playground, coord_obst, contour=contour_barrier, traversable=True)
-
-    commands = {agent: {agent._base.forward_controller: 1}}
-    
-    assert agent.position == (0, 0)
-
-    for _ in range(1000):
-        playground.step(commands=commands)
-
-    assert agent.position.x > 0
-    assert agent.position.x > 40
-
-
-def test_agent_interacts():
-
-    playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
-
-    agent = MockAgent(playground, teams='team_1')
-
-    contour_zone = Contour(shape='circle', radius=100)
-    zone_1 = MockZoneTriggered(playground, coord_obst, contour=contour_zone, teams='team_1')
-    zone_2 = MockZoneTriggered(playground, coord_obst, contour=contour_zone, teams='team_2')
-    zone_3 = MockZoneTriggered(playground, coord_obst, contour=contour_zone)
+    assert not interactive_part_l.activated
+    assert not interactive_part_r.activated
 
     playground.step()
 
     assert zone_1.activated
+    assert interactive_part_l.activated
+
     assert not zone_2.activated
-    assert not zone_3.activated
+    assert not interactive_part_r.activated
 
-    
 
+def test_agent_interacts_active():
+
+    playground = EmptyPlayground()
+    playground.add_interaction(
+        CollisionTypes.ACTIVE_INTERACTOR,
+        CollisionTypes.PASSIVE_INTERACTOR,
+        active_interaction,
+    )
+
+    agent = MockAgentWithArm(playground, teams="team_1")
+    interactive_part_l = MockTriggerPart(agent.left_arm)
+    interactive_part_r = MockTriggerPart(agent.right_arm)
+
+    zone_1 = MockZoneInteractive(playground, ((30, 30), 0), 10, teams="team_1")
+    zone_2 = MockZoneInteractive(playground, ((30, -30), 0), 10, teams="team_2")
+
+    # playground.debug_draw()
+
+    assert not interactive_part_l.activated
+    assert not interactive_part_r.activated
+
+    playground.step()
+
+    assert not zone_1.activated
+    assert not zone_2.activated
+
+    commands = {agent: {interactive_part_l.trigger: 1, interactive_part_r.trigger: 1}}
+
+    playground.step(commands=commands)
+
+    assert interactive_part_r.activated
+    assert interactive_part_l.activated
+    assert zone_1.activated
+    assert not zone_2.activated
+
+    playground.step()
+
+    assert not interactive_part_r.activated
+    assert not interactive_part_l.activated
+    assert not zone_1.activated
+    assert not zone_2.activated

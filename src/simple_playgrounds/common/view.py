@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING, Union, Dict
 from arcade.sprite import Sprite
 from numpy.lib.arraysetops import isin
-from simple_playgrounds.agent.part.part import Part, PhysicalPart
+from simple_playgrounds.agent.part.part import InteractivePart, PhysicalPart
 from simple_playgrounds.entity.interactive import InteractiveEntity
 
 from simple_playgrounds.entity.physical import PhysicalEntity
@@ -21,25 +21,26 @@ from PIL import Image, ImageShow
 
 
 class TopDownView(ABC):
-
-    def __init__(self,
-                 playground: Playground,
-                 size: Tuple[int, int],
-                 center: Tuple[float, float] = (0,0),
-                 zoom: float = 1,
-                 display_uid: bool = False,
-                 draw_transparent: bool = True,
-                 draw_interactive: bool = True)-> None:
+    def __init__(
+        self,
+        playground: Playground,
+        size: Tuple[int, int],
+        center: Tuple[float, float] = (0, 0),
+        zoom: float = 1,
+        display_uid: bool = False,
+        draw_transparent: bool = True,
+        draw_interactive: bool = True,
+    ) -> None:
 
         self._playground = playground
         self._ctx = playground.ctx
-        
-        self._center = center  
+
+        self._center = center
         self._width, self._height = self._size = size
         self._zoom = zoom
 
         self._draw_transparent = draw_transparent
-        self._draw_interactive= draw_interactive
+        self._draw_interactive = draw_interactive
         self._display_uid = display_uid
 
         self._transparent_sprites = arcade.SpriteList()
@@ -54,12 +55,12 @@ class TopDownView(ABC):
                 self._ctx.texture(
                     (size),
                     components=4,
-                    wrap_x=self._ctx.CLAMP_TO_BORDER, #type: ignore
-                    wrap_y=self._ctx.CLAMP_TO_BORDER, #type: ignore
-                    filter= (self._ctx.NEAREST, self._ctx.NEAREST) #type: ignore
+                    wrap_x=self._ctx.CLAMP_TO_BORDER,  # type: ignore
+                    wrap_y=self._ctx.CLAMP_TO_BORDER,  # type: ignore
+                    filter=(self._ctx.NEAREST, self._ctx.NEAREST),  # type: ignore
                 ),
             ]
-        ) 
+        )
 
         self._sprites: Dict[EmbodiedEntity, Sprite] = {}
 
@@ -85,20 +86,12 @@ class TopDownView(ABC):
     def texture(self):
         """The OpenGL texture containing the map pixel data"""
         return self._fbo.color_attachments[0]
-    
+
     def add(self, entity):
-  
+
         # Trick to avoid adding interactive entities twice when reset
         if entity in self._sprites:
             return
-
-        if isinstance(entity, PhysicalPart):
-            for anchored in entity.anchored:
-                self.add(anchored)
-
-        if isinstance(entity, PhysicalEntity):
-            for interactive in entity.interactives:
-                self.add(interactive)
 
         if self._display_uid:
             sprite = entity.get_id_sprite(self._zoom)
@@ -122,16 +115,23 @@ class TopDownView(ABC):
 
             self._interactive_sprites.append(sprite)
 
+        if isinstance(entity, PhysicalPart):
+            for anchored in entity.anchored:
+                self.add(anchored)
+
+        if isinstance(entity, PhysicalEntity):
+            for interactive in entity.interactives:
+                self.add(interactive)
+
         self._sprites[entity] = sprite
 
     def remove(self, entity):
-  
+
         sprite = self._sprites.pop(entity)
 
         if isinstance(entity, PhysicalPart):
             for part in entity.anchored:
                 self.remove(part)
-
 
         if isinstance(entity, PhysicalEntity):
             # for interactive in entity._interactives:
@@ -145,14 +145,14 @@ class TopDownView(ABC):
 
             else:
                 self._visible_sprites.remove(sprite)
-        
+
         elif isinstance(entity, InteractiveEntity):
 
             self._interactive_sprites.remove(sprite)
 
     def update_sprites(self, force=False):
 
-        # check that 
+        # check that
         for entity, sprite in self._sprites.items():
             entity.update_sprite(self, sprite, force)
 
@@ -163,7 +163,7 @@ class TopDownView(ABC):
             fbo.clear(self._background)
             # Change projection to match the contents
             self._ctx.projection_2d = 0, self._width, 0, self._height
-           
+
             self._transparent_sprites.draw(pixelated=True)
             self._interactive_sprites.draw(pixelated=True)
             self._visible_sprites.draw(pixelated=True)
@@ -171,14 +171,18 @@ class TopDownView(ABC):
 
     @property
     def img(self):
-        img = np.frombuffer(self._fbo.read(), dtype=np.dtype('B')).reshape(self._height, self._width, 3)
+        img = np.frombuffer(self._fbo.read(), dtype=np.dtype("B")).reshape(
+            self._height, self._width, 3
+        )
         return img
 
     def imdisplay(self):
-        array = np.frombuffer(self._fbo.read(), dtype=np.dtype('B')).reshape(self._height, self._width, 3)
+        array = np.frombuffer(self._fbo.read(), dtype=np.dtype("B")).reshape(
+            self._height, self._width, 3
+        )
         array = array[::-1, :]
-        img = Image.fromarray(array, 'RGB')
-        ImageShow.show(img, 'test')
+        img = Image.fromarray(array, "RGB")
+        ImageShow.show(img, "test")
 
     def reset(self):
 
@@ -188,7 +192,7 @@ class TopDownView(ABC):
         self._traversable_sprites.clear()
 
 
-#class View(ABC):
+# class View(ABC):
 
 #    def __init__(self,
 #                 playground: Playground,
@@ -220,12 +224,12 @@ class TopDownView(ABC):
 #        sprite = self._get_sprite(view.zoom, view.color_with_uid)
 #        self._sprites[view] = sprite
 #        self._update_sprite_position(view)
-        
+
 #        return sprite
 
 
 #    def update_sprites(self, force=False):
-      
+
 #        moving = False
 #        if self.velocity != (0, 0) or self.angular_velocity != 0:
 #            moving = True
@@ -242,7 +246,7 @@ class TopDownView(ABC):
 
 #        pos_x = (self.position.x - view.center[0])*view.zoom + view.width // 2
 #        pos_y = (self.position.y - view.center[1])*view.zoom + view.height // 2
-        
+
 #        sprite.set_position(pos_x, pos_y)
 #        sprite.angle = int(self.angle*180/math.pi)
 
@@ -338,11 +342,11 @@ class TopDownView(ABC):
 #    @property
 #    def canvas(self):
 #        return self._canvas
-   
+
 #    def __del__(self):
 #        plt.close(self._fig)
 
-#class FixedGlobalView(View):
+# class FixedGlobalView(View):
 
 #    def __init__(self, playground: Playground, coordinates: Coordinate, **kwargs):
 
@@ -353,7 +357,7 @@ class TopDownView(ABC):
 #                kwargs['size_on_playground'] = playground.size
 #            else:
 #                raise ValueError('Size of view should be set')
-        
+
 #        self._coordinates = coordinates
 #        super().__init__(**kwargs)
 
@@ -364,7 +368,7 @@ class TopDownView(ABC):
 #        return self._coordinates
 
 
-#class AnchoredView(View):
+# class AnchoredView(View):
 
 #    def __init__(self, anchor: EmbodiedEntity, **kwargs):
 

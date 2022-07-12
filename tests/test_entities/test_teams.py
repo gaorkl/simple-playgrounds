@@ -4,38 +4,54 @@ from simple_playgrounds.playground.playground import EmptyPlayground
 
 # Add test Interactions to collisions
 from simple_playgrounds.common.definitions import CollisionTypes
-from tests.mock_entities import MockPhysicalInteractive, trigger_triggers_triggered, MockZoneInteractive
+from tests.mock_entities import (
+    MockPhysicalInteractive,
+    passive_interaction,
+    MockZoneInteractive,
+)
 
 coord_0 = ((0, 0), 0)
 
 # teams of element 1 ; team of element 2 ; is interacting?
-@pytest.fixture(scope="module", params=[
-    ('team_0', 'team_0', True),
-    ('team_0', 'team_1', False),
-    (None, 'team_0', False),
-    (None, None, True),
-    ('team_0', None, True),
-    (['team_0', 'team_1'], 'team_0', True),
-    ('team_0', ['team_0', 'team_1'], True),
-    ('team_0', ['team_2', 'team_1'], False),
-])
-
+@pytest.fixture(
+    scope="module",
+    params=[
+        ("team_0", "team_0", True),
+        ("team_0", "team_1", False),
+        (None, "team_0", True),
+        (None, None, True),
+        ("team_0", None, True),
+        (["team_0", "team_1"], "team_0", True),
+        ("team_0", ["team_0", "team_1"], True),
+        ("team_0", ["team_2", "team_1"], False),
+    ],
+)
 def team_params(request):
     return request.param
+
 
 coord_1 = ((0, 0), 0)
 coord_2 = ((0, 1), 0)
 
+
 def test_team_phys_phys(team_params):
 
     playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+    playground.add_interaction(
+        CollisionTypes.PASSIVE_INTERACTOR,
+        CollisionTypes.PASSIVE_INTERACTOR,
+        passive_interaction,
+    )
 
     team_1, team_2, interacts = team_params
 
-    ent_1 = MockPhysicalInteractive(playground, coord_1, teams=team_1, interaction_range=10, trigger=True)
+    ent_1 = MockPhysicalInteractive(
+        playground, coord_1, teams=team_1, interaction_range=10
+    )
 
-    ent_2 = MockPhysicalInteractive(playground, coord_2, teams=team_2, interaction_range=10, triggered=True)
+    ent_2 = MockPhysicalInteractive(
+        playground, coord_2, teams=team_2, interaction_range=10
+    )
 
     playground.step()
 
@@ -48,17 +64,25 @@ def test_team_phys_phys(team_params):
 def test_team_phys_halo(team_params):
 
     playground = EmptyPlayground()
-    playground.add_interaction(CollisionTypes.TEST_TRIGGER, CollisionTypes.TEST_TRIGGERED, trigger_triggers_triggered)
+    playground.add_interaction(
+        CollisionTypes.PASSIVE_INTERACTOR,
+        CollisionTypes.PASSIVE_INTERACTOR,
+        passive_interaction,
+    )
 
     team_1, team_2, interacts = team_params
 
-    ent_1 = MockPhysicalInteractive(playground, coord_1, teams=team_1, interaction_range=10, trigger=True)
+    ent_1 = MockPhysicalInteractive(
+        playground, coord_1, teams=team_1, interaction_range=10
+    )
 
-    zone_1 = MockZoneInteractive(playground, coord_2, 35, teams=team_2, triggered=True)
+    zone_1 = MockZoneInteractive(playground, coord_2, 35, teams=team_2)
 
     playground.step()
 
-    assert (ent_1.halo.activated and zone_1.activated) or ( (not ent_1.halo.activated) and (not zone_1.activated))
+    assert (ent_1.halo.activated and zone_1.activated) or (
+        (not ent_1.halo.activated) and (not zone_1.activated)
+    )
     triggered = ent_1.halo.activated and zone_1.activated
 
     assert triggered == interacts

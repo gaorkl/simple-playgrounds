@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from simple_playgrounds.agent.part.part import Part
+from simple_playgrounds.agent.part.part import PhysicalPart
+
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
 
@@ -24,13 +25,14 @@ def get_colliding_entities(playground: Playground, arbiter):
     agent_1 = None
     agent_2 = None
 
-    if isinstance(entity_1, Part):
+    if isinstance(entity_1, PhysicalPart):
         agent_1 = entity_1.agent
 
-    if isinstance(entity_2, Part):
+    if isinstance(entity_2, PhysicalPart):
         agent_2 = entity_2.agent
 
     return (entity_1, agent_1), (entity_2, agent_2)
+
 
 # Collision Handlers
 

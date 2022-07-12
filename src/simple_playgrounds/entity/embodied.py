@@ -456,7 +456,7 @@ class EmbodiedEntity(Entity, ABC):
         else:
             raise ValueError('Initial Coordinate is not set')
 
-        self.move_to(coordinates, keep_velocity=False)
+        self.move_to(coordinates, allow_overlapping=self._allow_overlapping, keep_velocity=False)
     
     def _sample_valid_coordinate(self) -> Coordinate:
 

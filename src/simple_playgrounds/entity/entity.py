@@ -25,19 +25,20 @@ class Entity(ABC):
     Entity can belong to one or multiple teams.
     """
 
-    def __init__(self, 
-                 playground: Playground,
-                 name: Optional[str] = None,
-                 teams: Optional[Teams] = None,
-                 **_
-                 ):
+    def __init__(
+        self,
+        playground: Playground,
+        name: Optional[str] = None,
+        teams: Optional[Teams] = None,
+        **_,
+    ):
 
         self._playground = playground
 
         self._uid, self._name = self._playground._get_uid_name(self, name)
 
         self._teams: List[str] = self._add_to_teams(teams)
-        
+
         self._playground.add_to_mappings(self)
 
         self._removed = False
@@ -58,6 +59,10 @@ class Entity(ABC):
     def removed(self):
         return self._removed
 
+    @property
+    def playground(self):
+        return self._playground
+
     def _add_to_teams(self, teams: Optional[Teams] = None):
 
         if not teams:
@@ -72,11 +77,11 @@ class Entity(ABC):
         return teams
 
     @abstractmethod
-    def remove(self, definitive: bool=False):
+    def remove(self, definitive: bool = False):
 
         if definitive:
             self._playground.remove_from_mappings(entity=self)
-   
+
         self._removed = True
 
     @abstractmethod

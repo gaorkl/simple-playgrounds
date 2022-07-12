@@ -5,7 +5,10 @@ from abc import ABC, abstractmethod
 
 import pymunk
 
-from simple_playgrounds.common.definitions import DEFAULT_INTERACTION_RANGE, INVISIBLE_ALPHA
+from simple_playgrounds.common.definitions import (
+    DEFAULT_INTERACTION_RANGE,
+    INVISIBLE_ALPHA,
+)
 from simple_playgrounds.entity.embodied import EmbodiedEntity
 
 if TYPE_CHECKING:
@@ -13,23 +16,21 @@ if TYPE_CHECKING:
 
 
 class InteractiveEntity(EmbodiedEntity, ABC):
-
     def __init__(self, playground, initial_coordinates, **kwargs):
 
         super().__init__(playground, initial_coordinates, **kwargs)
 
         self._activated = False
- 
+
         for pm_shape in self._pm_shapes:
             pm_shape.sensor = True
             # pm_shape.filter = pymunk.ShapeFilter(
             #     categories=2 ** PymunkCollisionCategories.INTERACTION.value,
-                # mask=2 ** PymunkCollisionCategories.INTERACTION.value)
-
+            # mask=2 ** PymunkCollisionCategories.INTERACTION.value)
 
         # self._base_sprite.alpha = INVISIBLE_ALPHA
 
-    def get_sprite(self, zoom: float = 1) :
+    def get_sprite(self, zoom: float = 1):
         sprite = super().get_sprite(zoom)
         sprite.alpha = INVISIBLE_ALPHA
 
@@ -44,7 +45,7 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
     def post_step(self):
         pass
-        
+
     def update_team_filter(self):
 
         if not self._teams:
@@ -52,7 +53,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         # categ = 2 ** PymunkCollisionCategories.INTERACTION.value
         # mask= 2 ** PymunkCollisionCategories.INTERACTION.value
-
 
         categ = 0
         # categ = 2 ** PymunkCollisionCategories.INTERACTION.value
@@ -69,30 +69,36 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         for pm_shape in self._pm_shapes:
             pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
-   
+    @abstractmethod
+    def activate(self):
+        self._activated = True
+
+
 class StandAloneInteractive(InteractiveEntity, ABC):
-    
     def _get_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 
 
 class AnchoredInteractive(InteractiveEntity, ABC):
-
-    def __init__(self,
-                 anchor: PhysicalEntity,
-                 interaction_range: float = DEFAULT_INTERACTION_RANGE,
-                 **kwargs):
+    def __init__(
+        self,
+        anchor: PhysicalEntity,
+        interaction_range: float = DEFAULT_INTERACTION_RANGE,
+        **kwargs,
+    ):
 
         self._anchor = anchor
         radius = self._anchor.radius + interaction_range
         texture = self._anchor.texture
 
-        super().__init__(playground=anchor.playground, 
-                         initial_coordinates=anchor.coordinates,
-                         texture = texture,
-                         radius = radius,
-                         teams=self._anchor._teams,
-                         **kwargs)
+        super().__init__(
+            playground=anchor.playground,
+            initial_coordinates=anchor.coordinates,
+            texture=texture,
+            radius=radius,
+            teams=self._anchor._teams,
+            **kwargs,
+        )
 
         self._anchor.add_interactive(self)
 
