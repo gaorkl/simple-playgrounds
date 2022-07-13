@@ -15,7 +15,7 @@ import pymunk
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
-from simple_playgrounds.device.device import Device
+from simple_playgrounds.agent.device.device import Device
 from simple_playgrounds.agent.part.part import PhysicalPart
 from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.element.element import SceneElement

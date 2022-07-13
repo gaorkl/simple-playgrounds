@@ -1,17 +1,17 @@
 from __future__ import annotations
 from typing import Optional, Any, List, Tuple
 
-from simple_playgrounds.entity.entity import Entity
-from simple_playgrounds.device.device import Device
+from simple_playgrounds.entity.embodied import EmbodiedEntity
+from simple_playgrounds.agent.device.device import Device
 
 
 class CommunicationDevice(Device):
-
-    def __init__(self,
-                 anchor: Entity,
-                 transmission_range: Optional[float] = None,
-                 receiver_capacity: Optional[int] = None,
-                 ):
+    def __init__(
+        self,
+        anchor: EmbodiedEntity,
+        transmission_range: Optional[float] = None,
+        receiver_capacity: Optional[int] = None,
+    ):
         """
         By default, Communication has infinite range and infinite receiver capacity.
         However, it can only send one message at a time.
@@ -92,9 +92,10 @@ class CommunicationDevice(Device):
 
         return False
 
-    def send(self,
-             msg: Message,
-             ) -> Optional[Message]:
+    def send(
+        self,
+        msg: Message,
+    ) -> Optional[Message]:
 
         if self._disabled:
             return None
@@ -110,9 +111,13 @@ class CommunicationDevice(Device):
 
         if self.in_transmission_range(sender):
             self._received_messages.append((sender, msg))
-            self._received_messages.sort(key= (lambda s_m: self.position.get_distance(s_m[0].position)))
+            self._received_messages.sort(
+                key=(lambda s_m: self.position.get_distance(s_m[0].position))
+            )
             if self._receiver_capacity:
-                self._received_messages = self._received_messages[:self._receiver_capacity]
+                self._received_messages = self._received_messages[
+                    : self._receiver_capacity
+                ]
 
 
 Message = Any

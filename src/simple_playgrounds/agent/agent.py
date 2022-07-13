@@ -16,19 +16,17 @@ from gym.spaces import space
 import numpy as np
 from numpy.lib.arraysetops import isin
 from numpy.lib.function_base import append
-from simple_playgrounds.agent.controller import Command, Controller
+from simple_playgrounds.agent.part.controller import Command, Controller
 
 from simple_playgrounds.common.position_utils import (
     Coordinate,
     CoordinateSampler,
     InitCoord,
 )
-from simple_playgrounds.element.elements.basic import Physical
-from simple_playgrounds.element.elements.teleport import TeleportElement
 from simple_playgrounds.entity.embodied import EmbodiedEntity
 from simple_playgrounds.entity.entity import Entity
-from simple_playgrounds.entity.physical import PhysicalEntity
 
+from simple_playgrounds.element.element import Teleporter
 
 if TYPE_CHECKING:
     from simple_playgrounds.agent.sensor.sensor import SensorDevice
@@ -96,7 +94,7 @@ class Agent(Entity):
         self._reward: float = 0
 
         # Teleport
-        self._teleported_to: Optional[Union[Coordinate, TeleportElement]] = None
+        self._teleported_to: Optional[Union[Coordinate, Teleporter]] = None
 
         self._temporary = temporary
 
@@ -303,7 +301,7 @@ class Agent(Entity):
 
     def _update_teleport(self):
 
-        if isinstance(self._teleported_to, TeleportElement):
+        if isinstance(self._teleported_to, Teleporter):
             if self._overlaps(self._teleported_to):
                 return
 

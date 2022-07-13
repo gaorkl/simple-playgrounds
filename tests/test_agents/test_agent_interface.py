@@ -1,5 +1,5 @@
 import pytest
-from simple_playgrounds.agent.controller import (
+from simple_playgrounds.agent.part.controller import (
     ContinuousController,
     RangeController,
 )

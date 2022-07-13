@@ -12,9 +12,8 @@ Examples can be found in :
 from __future__ import annotations
 import gc
 
-import copy
-from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, Type, TYPE_CHECKING, Union, Tuple
+from abc import abstractmethod
+from typing import List, Dict, Optional, Type, Union, Tuple
 
 import pymunk
 import arcade
@@ -25,20 +24,11 @@ import pymunk.matplotlib_util
 
 from simple_playgrounds.entity.interactive import (
     AnchoredInteractive,
-    InteractiveEntity,
-    StandAloneInteractive,
 )
 
 
 from simple_playgrounds.common.definitions import PYMUNK_STEPS
 
-# from simple_playgrounds.playground.collision_handlers import (gem_activates_element,
-#                                                               agent_activates_element,
-#                                                               agent_touches_element,
-#                                                               agent_grasps_element,
-#                                                               agent_teleports,
-#                                                               modifier_modifies_device
-#                                                               )
 
 from simple_playgrounds.common.definitions import (
     SPACE_DAMPING,
@@ -49,20 +39,20 @@ from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.entity.embodied import EmbodiedEntity
 
-from simple_playgrounds.agent.part.part import PhysicalPart, InteractivePart
-from simple_playgrounds.agent.controller import Controller, Command
-from simple_playgrounds.agent.communication import Receiver, Transmitter, Message
+from simple_playgrounds.agent.part.part import PhysicalPart
+from simple_playgrounds.agent.part.controller import Controller, Command
+from simple_playgrounds.agent.device.communication import CommunicationDevice, Message
 
-from simple_playgrounds.agent.sensor.sensor import Sensor, SensorValue
+from simple_playgrounds.agent.device.sensor import Sensor, SensorValue
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
 
 CommandsDict = Dict[Agent, Dict[Controller, Command]]
-SentMessagesDict = Dict[Agent, Dict[Transmitter, Message]]
+SentMessagesDict = Dict[Agent, Dict[CommunicationDevice, Message]]
 
 ObservationsDict = Dict[Agent, Dict[Sensor, SensorValue]]
-ReceivedMessagesDict = Dict[Agent, Dict[Receiver, Message]]
+ReceivedMessagesDict = Dict[Agent, Dict[CommunicationDevice, Message]]
 RewardsDict = Dict[Agent, float]
 
 
