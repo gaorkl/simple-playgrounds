@@ -7,6 +7,7 @@ from simple_playgrounds.agent.part.part import InteractivePart, PhysicalPart
 from simple_playgrounds.entity.interactive import InteractiveEntity
 
 from simple_playgrounds.entity.physical import PhysicalEntity
+from simple_playgrounds.playground.playground import ClosedPlayground
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
@@ -24,7 +25,7 @@ class TopDownView(ABC):
     def __init__(
         self,
         playground: Playground,
-        size: Tuple[int, int],
+        size: Optional[Tuple[int, int]] = None,
         center: Tuple[float, float] = (0, 0),
         zoom: float = 1,
         display_uid: bool = False,
@@ -36,6 +37,13 @@ class TopDownView(ABC):
         self._ctx = playground.ctx
 
         self._center = center
+
+        if not size:
+            if isinstance(playground, ClosedPlayground):
+                size = playground.size
+            else:
+                raise ValueError("Size should be set")
+
         self._width, self._height = self._size = size
         self._zoom = zoom
 

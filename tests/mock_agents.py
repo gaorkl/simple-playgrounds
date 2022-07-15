@@ -2,10 +2,14 @@ from __future__ import annotations
 import math
 from typing import Optional, TYPE_CHECKING
 
-from simple_playgrounds.agent.part.controller import (
+from simple_playgrounds.agent.controller import (
     CenteredContinuousController,
     BoolController,
 )
+from tests.test_view.conftest import shape
+
+if TYPE_CHECKING:
+    from simple_playgrounds.agent.part.part import Part
 
 import pymunk
 import numpy as np
@@ -148,7 +152,6 @@ class MockTriggerPart(InteractivePart):
 
     def apply_commands(self, **kwargs):
         value = self.trigger.sample()
-        print("AAAAAAA", value)
         if value:
             self.activate()
 
