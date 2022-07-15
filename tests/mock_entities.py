@@ -9,12 +9,24 @@ from simple_playgrounds.common.definitions import (
     CollisionTypes,
     PymunkCollisionCategories,
 )
+from simple_playgrounds.element.basic.wall import ColorWall
 from simple_playgrounds.entity.interactive import (
     AnchoredInteractive,
     StandAloneInteractive,
 )
 from simple_playgrounds.entity.physical import PhysicalEntity
 from simple_playgrounds.playground.collision_handlers import get_colliding_entities
+
+
+class MockPhysicalFromResource(PhysicalEntity):
+    def __init__(self, playground, initial_coordinates, filename, **kwargs):
+
+        super().__init__(
+            playground, initial_coordinates, mass=10, filename=filename, **kwargs
+        )
+
+    def _set_pm_collision_type(self):
+        pass
 
 
 class MockPhysicalMovable(PhysicalEntity):
@@ -216,35 +228,12 @@ class NonConvexC(MockPhysicalMovable):
         )
 
 
-class MockBarrier(MockPhysicalUnmovable):
+class MockBarrier(ColorWall):
     def __init__(self, playground, begin_pt, end_pt, width, **kwargs):
 
-        self.width = width
-        self._length_barrier = (pymunk.Vec2d(*begin_pt) - end_pt).length
-        position = (pymunk.Vec2d(*begin_pt) + end_pt) / 2
-        orientation = (pymunk.Vec2d(*end_pt) - begin_pt).angle
-
-        img = np.ones((width, int(self._length_barrier), 4))
-        PIL_image = Image.fromarray(np.uint8(img * 255)).convert("RGBA")
-
-        texture = Texture(
-            name="Barrier_%i_%i".format(int(self._length_barrier), width),
-            image=PIL_image,
-            hit_box_algorithm="Detailed",
-            hit_box_detail=1,
+        super().__init__(
+            playground, begin_pt, end_pt, width=width, color=(0, 10, 2), **kwargs
         )
-
-        super().__init__(playground, (position, orientation), texture=texture, **kwargs)
-
-    def _get_pm_shapes(self, *_):
-        return [
-            pymunk.Segment(
-                self._pm_body,
-                (-self._length_barrier / 2, 0),
-                (self._length_barrier / 2, 0),
-                self.width,
-            )
-        ]
 
     def update_team_filter(self):
 

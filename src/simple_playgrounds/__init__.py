@@ -1,1 +1,1 @@
-# import playgrounds into register
+from simple_playgrounds import resources

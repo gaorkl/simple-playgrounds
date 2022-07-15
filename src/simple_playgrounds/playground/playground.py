@@ -21,6 +21,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import pymunk.matplotlib_util
+from simple_playgrounds import entity
 
 from simple_playgrounds.entity.interactive import (
     AnchoredInteractive,
@@ -541,4 +542,44 @@ class EmptyPlayground(Playground):
         return (0, 0), 0
 
     def within_playground(self, _):
+        return True
+
+
+class ClosedPlayground(Playground):
+    def __init__(self, size: Tuple[int, int], seed, background):
+
+        super().__init__(seed, background)
+        self._size = size
+        self._width = size[0]
+        self._height = size[1]
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def initial_agent_coordinates(self):
+        return (0, 0), 0
+
+    def within_playground(self, entity: Union[Agent, EmbodiedEntity]):
+
+        if isinstance(entity, Agent):
+            for part in entity.parts:
+                if not self._pos_in_playground(part.position):
+                    return False
+
+        if isinstance(entity, EmbodiedEntity):
+            if not self._pos_in_playground(entity.position):
+                return False
+
+        return True
+
+    def _pos_in_playground(self, pos: Tuple[float, float]):
+
+        if not -self._size[0] / 2 < pos[0] < self._size[0] / 2:
+            return False
+
+        if not -self._size[1] / 2 < pos[1] < self._size[1] / 2:
+            return False
+
         return True
