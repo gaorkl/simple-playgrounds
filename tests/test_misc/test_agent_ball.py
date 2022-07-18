@@ -3,6 +3,7 @@ from simple_playgrounds.element.basic.ball import Ball
 from simple_playgrounds.agent.agents import HeadAgent
 
 from simple_playgrounds.common.view import TopDownView
+import time
 
 
 def test_scenario():
@@ -14,4 +15,17 @@ def test_scenario():
     view = TopDownView(playground, zoom=1)
 
     view.update()
-    view.imdisplay()
+    view.draw()
+
+    commands = {agent: {agent.base.forward_controller: 10}}
+
+    for _ in range(200):
+        playground.step(commands=commands)
+
+    assert ball.position != (200, 0)
+    assert agent.position != (0, 0)
+
+    playground.debug_draw(10)
+
+    view.update(force=True)
+    view.draw()

@@ -11,10 +11,16 @@ class WallClosedPG(ClosedPlayground):
         super().__init__(size, seed, background)
 
         pts = [
-            [(-self.width / 2, -self.height / 2), (-self._width / 2, self.height / 2)],
-            [(-self.width / 2, self.height / 2), (self._width / 2, self.height / 2)],
-            [(self.width / 2, self.height / 2), (self._width / 2, -self.height / 2)],
-            [(self.width / 2, -self.height / 2), (-self._width / 2, -self.height / 2)],
+            [
+                (-self._width / 2, -self._height / 2),
+                (-self._width / 2, self._height / 2),
+            ],
+            [(-self._width / 2, self._height / 2), (self._width / 2, self._height / 2)],
+            [(self._width / 2, self._height / 2), (self._width / 2, -self._height / 2)],
+            [
+                (self._width / 2, -self._height / 2),
+                (-self._width / 2, -self._height / 2),
+            ],
         ]
 
         for begin_pt, end_pt in pts:

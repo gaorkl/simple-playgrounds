@@ -124,10 +124,18 @@ class Playground(arcade.Window):
         # self._handle_interactions()
         self._views = []
 
-    def debug_draw(self):
+    def debug_draw(self, plt_width, center, size):
 
-        fig = plt.figure(figsize=(14, 10))
-        ax = plt.axes(xlim=(-100, 100), ylim=(-100, 100))
+        w, h = size
+        ratio = plt_width / w
+        fig_size = (plt_width, ratio * h)
+
+        fig = plt.figure(figsize=fig_size)
+
+        ax = plt.axes(
+            xlim=(center[0] - size[0] / 2, center[0] + size[0] / 2),
+            ylim=(center[1] - size[1] / 2, center[1] + size[1] / 2),
+        )
         ax.set_aspect("equal")
 
         options = pymunk.matplotlib_util.DrawOptions(ax)
@@ -583,3 +591,7 @@ class ClosedPlayground(Playground):
             return False
 
         return True
+
+    def debug_draw(self, plt_width, *args):
+
+        return super().debug_draw(plt_width, center=(0, 0), size=self._size)

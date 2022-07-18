@@ -20,7 +20,7 @@ def test_wall_size():
     view = TopDownView(playground, center=(0, 0), size=(400, 400), zoom=1)
 
     view.update()
-    view.imdisplay()
+    view.draw()
 
     assert wall.position == (-10, 40)
 
@@ -35,7 +35,7 @@ def test_wall_blocks():
     view = TopDownView(playground, center=(0, 0), size=(400, 400), zoom=1)
 
     view.update()
-    view.imdisplay()
+    view.draw()
 
 
 def test_wall_room():
@@ -45,7 +45,7 @@ def test_wall_room():
     view = TopDownView(playground, center=(0, 0), size=(400, 200), zoom=1)
 
     view.update()
-    view.imdisplay()
+    view.draw()
 
 
 # def test_wall_blocks():

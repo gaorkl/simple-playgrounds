@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 import numpy as np
 import arcade
 
+import matplotlib.pyplot as plt
 
 from PIL import Image, ImageShow
 
@@ -34,6 +35,7 @@ class TopDownView(ABC):
     ) -> None:
 
         self._playground = playground
+
         self._ctx = playground.ctx
 
         self._center = center
@@ -44,9 +46,10 @@ class TopDownView(ABC):
             else:
                 raise ValueError("Size should be set")
 
+        assert size
         self._width, self._height = self._size = size
-        self._zoom = zoom
 
+        self._zoom = zoom
         self._draw_transparent = draw_transparent
         self._draw_interactive = draw_interactive
         self._display_uid = display_uid
@@ -90,10 +93,10 @@ class TopDownView(ABC):
     def center(self):
         return self._center
 
-    @property
-    def texture(self):
-        """The OpenGL texture containing the map pixel data"""
-        return self._fbo.color_attachments[0]
+    # @property
+    # def texture(self):
+    # """The OpenGL texture containing the map pixel data"""
+    # return self._fbo.color_attachments[0]
 
     def add(self, entity):
 
@@ -164,11 +167,13 @@ class TopDownView(ABC):
         for entity, sprite in self._sprites.items():
             entity.update_sprite(self, sprite, force)
 
-    def update(self):
-        # self.ctx.projection_2d = 0, self.width, 0, self.height
-        self.update_sprites()
+    def update(self, force=False):
+
+        self.update_sprites(force)
+
         with self._fbo.activate() as fbo:
             fbo.clear(self._background)
+
             # Change projection to match the contents
             self._ctx.projection_2d = 0, self._width, 0, self._height
 
@@ -177,20 +182,29 @@ class TopDownView(ABC):
             self._visible_sprites.draw(pixelated=True)
             self._traversable_sprites.draw(pixelated=True)
 
-    @property
-    def img(self):
+    def get_np_img(self):
         img = np.frombuffer(self._fbo.read(), dtype=np.dtype("B")).reshape(
             self._height, self._width, 3
         )
         return img
 
-    def imdisplay(self):
-        array = np.frombuffer(self._fbo.read(), dtype=np.dtype("B")).reshape(
-            self._height, self._width, 3
-        )
-        array = array[::-1, :]
-        img = Image.fromarray(array, "RGB")
-        ImageShow.show(img, "test")
+    def draw(self):
+        img = self.get_np_img()
+        plt.imshow(img)
+        plt.axis("off")
+        plt.show()
+
+    # def flip(self):
+    #     self._fbo.flip()
+    # super().flip()
+
+    # def imdisplay(self):
+    #     array = np.frombuffer(self._fbo.read(), dtype=np.dtype("B")).reshape(
+    #         self._height, self._width, 3
+    #     )
+    #     array = array[::-1, :]
+    #     img = Image.fromarray(array, "RGB")
+    #     ImageShow.show(img, "test")
 
     def reset(self):
 
@@ -200,7 +214,17 @@ class TopDownView(ABC):
         self._traversable_sprites.clear()
 
 
-# class View(ABC):
+# class PlaygroundView(AbstractView):
+
+# class PlaygroundView(TopDownView):
+#         super().__init__(playground, size, center, zoom, display_uid, draw_transparent, draw_interactive)
+
+#         self._playground.set_size(size)
+
+#     def update(self, force=False):
+#         # self.ctx.projection_2d = 0, self.width, 0, self.height
+# class TopDownView(AbstractView):
+
 
 #    def __init__(self,
 #                 playground: Playground,
