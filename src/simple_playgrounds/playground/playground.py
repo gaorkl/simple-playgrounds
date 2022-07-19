@@ -13,7 +13,10 @@ from __future__ import annotations
 import gc
 
 from abc import abstractmethod
-from typing import List, Dict, Optional, Type, Union, Tuple
+from typing import List, Dict, Optional, Type, Union, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from simple_playgrounds.common.gui import GUI
 
 import pymunk
 import arcade
@@ -88,7 +91,7 @@ class Playground(arcade.Window):
         ] = None,
     ):
 
-        super().__init__(1, 1, visible=False, antialiasing=True)  # type: ignore
+        super().__init__(1, 1, visible=False, antialiasing=True, gc_mode="auto")  # type: ignore
         self.ctx.blend_func = self.ctx.ONE, self.ctx.ZERO
 
         # Random number generator for replication, rewind, etc.
@@ -123,6 +126,33 @@ class Playground(arcade.Window):
 
         # self._handle_interactions()
         self._views = []
+        self.gui: Optional[GUI] = None
+
+    def on_draw(self):
+
+        if self.gui:
+            self.gui.update(force=True)
+            self.gui._fbo.use
+            # self.flip()
+
+    def on_key_press(self, symbol: int, modifiers: int):
+
+        if self.gui:
+            self.gui.on_key_press(symbol, modifiers)
+
+    def on_key_release(self, symbol: int, modifiers: int):
+
+        if self.gui:
+            self.gui.on_key_release(symbol, modifiers)
+
+    def on_update(self, delta_time):
+
+        commands = {}
+
+        if self.gui:
+            commands = self.gui.commands
+
+        self.step(commands=commands)
 
     def debug_draw(self, plt_width, center, size):
 

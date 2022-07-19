@@ -2,8 +2,12 @@ from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
 from simple_playgrounds.element.basic.ball import Ball
 from simple_playgrounds.agent.agents import HeadAgent
 
+
 from simple_playgrounds.common.view import TopDownView
+from simple_playgrounds.common.gui import GUI
+
 import time
+import arcade
 
 
 def test_scenario():
@@ -29,3 +33,5 @@ def test_scenario():
 
     view.update(force=True)
     view.draw()
+
+
