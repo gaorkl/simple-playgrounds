@@ -41,7 +41,7 @@ def test_size_entities_radius(radius):
     )
 
     assert ent_1.radius == pytest.approx(radius, 1)
-    assert ent_1.height == ent_1.width == pytest.approx(math.sqrt(2) * radius, 1)
+    assert ent_1.length == ent_1.width == pytest.approx(math.sqrt(2) * radius, 1)
 
 
 def test_traversable_traversable():

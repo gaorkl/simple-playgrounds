@@ -61,9 +61,6 @@ class MockBase(Platform):
         command_value = self.angular_vel_controller.sample()
         self._pm_body.angular_velocity = command_value * ANGULAR_VELOCITY
 
-    def post_step(self, **_):
-        pass
-
 
 class MockAnchoredPart(AnchoredPart):
     def __init__(self, anchor: PhysicalPart, **kwargs):
@@ -76,8 +73,8 @@ class MockAnchoredPart(AnchoredPart):
         )
         self.joint_controller = self._controllers[0]
 
-    def post_step(self, **_):
-        return super().post_step(**_)
+    # def post_step(self, **_):
+    #     return super().post_step(**_)
 
     def _set_controllers(self, **kwargs):
         return [CenteredContinuousController(part=self)]
@@ -130,9 +127,6 @@ class MockHaloPart(InteractivePart):
     def activate(self):
         super().activate()
 
-    def post_step(self, **_):
-        pass
-
 
 class MockTriggerPart(InteractivePart):
     def __init__(self, anchor: Part, **kwargs):
@@ -158,9 +152,6 @@ class MockTriggerPart(InteractivePart):
     def activate(self):
         super().activate()
 
-    def post_step(self, **_):
-        pass
-
 
 class MockAgent(Agent):
     def __init__(
@@ -176,9 +167,6 @@ class MockAgent(Agent):
     def _add_base(self, **kwargs) -> Part:
         base = MockBase(self, **kwargs)
         return base
-
-    def post_step(self):
-        pass
 
 
 class MockAgentWithArm(MockAgent):

@@ -51,9 +51,6 @@ class ForwardBase(Platform):
         command_value = self.angular_vel_controller.sample()
         self._pm_body.angular_velocity = command_value * ANGULAR_VELOCITY
 
-    def post_step(self, **_):
-        pass
-
 
 class Head(AnchoredPart):
     def __init__(self, anchor: PhysicalPart, **kwargs):
@@ -67,9 +64,6 @@ class Head(AnchoredPart):
             **kwargs,
         )
         self.joint_controller = self._controllers[0]
-
-    def post_step(self, **_):
-        return super().post_step(**_)
 
     def _set_controllers(self, **kwargs):
         return [CenteredContinuousController(part=self)]

@@ -140,9 +140,9 @@ class TopDownView(ABC):
 
         sprite = self._sprites.pop(entity)
 
-        if isinstance(entity, PhysicalPart):
-            for part in entity.anchored:
-                self.remove(part)
+        # if isinstance(entity, PhysicalPart):
+        #     for part in entity.anchored:
+        #         self.remove(part)
 
         if isinstance(entity, PhysicalEntity):
             # for interactive in entity._interactives:

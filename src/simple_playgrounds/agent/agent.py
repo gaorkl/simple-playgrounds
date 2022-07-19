@@ -267,13 +267,9 @@ class Agent(Entity):
     # PLAYGROUND INTERACTIONS
     ###############
 
-    def remove(self, definitive: bool = True):
+    def remove(self, definitive: bool = False):
 
-        for part in self._parts:
-
-            if not isinstance(part, InteractivePart):
-                part.remove(definitive=definitive)
-
+        self.base.remove(definitive=definitive)
         self._removed = True
 
         if definitive:
@@ -314,10 +310,7 @@ class Agent(Entity):
 
         for part in self.parts:
 
-            if entity.pm_shape and part.pm_shape.shapes_collide(entity.pm_shape).points:
-                return True
-
-            if entity.pm_shape and part.pm_shape.shapes_collide(entity.pm_shape).points:
+            if self._playground.overlaps(part, entity):
                 return True
 
         return False

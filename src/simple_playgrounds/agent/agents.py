@@ -16,6 +16,3 @@ class HeadAgent(Agent):
     def _add_base(self, **kwargs):
         base = ForwardBase(self, **kwargs)
         return base
-
-    def post_step(self):
-        pass

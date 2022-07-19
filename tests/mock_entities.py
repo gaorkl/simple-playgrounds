@@ -165,7 +165,14 @@ class NonConvexPlus_Approx(MockPhysicalMovable):
 
 
 class NonConvexPlus(MockPhysicalMovable):
-    def __init__(self, playground, initial_coordinates, radius, width):
+    def __init__(
+        self,
+        playground,
+        initial_coordinates,
+        radius,
+        width,
+        shape_approximation="decomposition",
+    ):
 
         img = np.zeros((2 * radius + 2 * width + 1, 2 * radius + 2 * width + 1, 4))
 
@@ -184,20 +191,26 @@ class NonConvexPlus(MockPhysicalMovable):
             name="PLus_%i_%i".format(radius, int),
             image=PIL_image,
             hit_box_algorithm="Detailed",
-            hit_box_detail=2,
+            hit_box_detail=1,
         )
 
         super().__init__(
             playground,
             initial_coordinates,
             texture=texture,
-            shape_approximation="decomposition",
+            shape_approximation=shape_approximation,
         )
 
 
 class NonConvexC(MockPhysicalMovable):
-    def __init__(self, playground, initial_coordinates, radius, width):
-
+    def __init__(
+        self,
+        playground,
+        initial_coordinates,
+        radius,
+        width,
+        shape_approximation="decomposition",
+    ):
         img = np.zeros((2 * radius + 2 * width + 1, 2 * radius + 2 * width + 1, 4))
 
         rr, cc = draw.circle_perimeter(radius + width, radius + width, radius)
@@ -217,14 +230,14 @@ class NonConvexC(MockPhysicalMovable):
             name="C_%i_%i".format(radius, width),
             image=PIL_image,
             hit_box_algorithm="Detailed",
-            hit_box_detail=4,
+            hit_box_detail=1,
         )
 
         super().__init__(
             playground,
             initial_coordinates,
             texture=texture,
-            shape_approximation="decomposition",
+            shape_approximation=shape_approximation,
         )
 
 

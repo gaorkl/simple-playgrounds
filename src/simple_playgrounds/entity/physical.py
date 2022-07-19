@@ -25,27 +25,28 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     """
 
     def __init__(
-            self,
-            playground: Playground,
-            initial_coordinates: InitCoord,
-            mass: Optional[float] = None,
-            traversable: bool = False,
-            transparent: bool = False,
-            **kwargs,
+        self,
+        playground: Playground,
+        initial_coordinates: InitCoord,
+        mass: Optional[float] = None,
+        traversable: bool = False,
+        transparent: bool = False,
+        **kwargs,
     ):
 
         self._mass = mass
         self._transparent = transparent
         self._traversable = traversable
-        
+
         self._interactives: List[AnchoredInteractive] = []
 
-        super().__init__(playground=playground, initial_coordinates=initial_coordinates, **kwargs)
-        
+        super().__init__(
+            playground=playground, initial_coordinates=initial_coordinates, **kwargs
+        )
+
         self._set_shape_collision_filter()
         self.update_team_filter()
 
-    
     @property
     def transparent(self):
         return self._transparent
@@ -57,7 +58,6 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     @property
     def interactives(self):
         return self._interactives
-
 
     ########################
     # BODY AND SHAPE
@@ -71,7 +71,9 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         if self._pm_from_shape:
             assert pm_shape
             if isinstance(pm_shape, pymunk.Segment):
-                moment = pymunk.moment_for_segment(self._mass, pm_shape.a, pm_shape.b, pm_shape.radius)
+                moment = pymunk.moment_for_segment(
+                    self._mass, pm_shape.a, pm_shape.b, pm_shape.radius
+                )
             elif isinstance(pm_shape, pymunk.Circle):
                 moment = pymunk.moment_for_circle(self._mass, 0, pm_shape.radius)
             elif isinstance(pm_shape, pymunk.Poly):
@@ -86,20 +88,25 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         else:
             raise ValueError
 
-        return pymunk.Body(self._mass, moment, body_type= pymunk.Body.DYNAMIC)
+        return pymunk.Body(self._mass, moment, body_type=pymunk.Body.DYNAMIC)
 
     def _set_shape_collision_filter(self):
 
         # By default, a physical entity collides with all
         if self._transparent and self._traversable:
-            raise ValueError('Physical Entity can not be transparent and traversable. Use Interactive Entity.')
+            raise ValueError(
+                "Physical Entity can not be transparent and traversable. Use Interactive Entity."
+            )
 
-        categories = 2 ** PymunkCollisionCategories.NO_TEAM.value
-        mask = pymunk.ShapeFilter.ALL_MASKS() ^ 2 ** PymunkCollisionCategories.TRAVERSABLE.value
+        categories = 2**PymunkCollisionCategories.NO_TEAM.value
+        mask = (
+            pymunk.ShapeFilter.ALL_MASKS()
+            ^ 2**PymunkCollisionCategories.TRAVERSABLE.value
+        )
 
         # If traversable, collides with nothing
         if self._traversable:
-            categories = 2 ** PymunkCollisionCategories.TRAVERSABLE.value
+            categories = 2**PymunkCollisionCategories.TRAVERSABLE.value
             mask = 0
 
         # If transparent, collides with everything except tra.
@@ -108,7 +115,6 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
         for pm_shape in self._pm_shapes:
             pm_shape.filter = pymunk.ShapeFilter(categories=categories, mask=mask)
-
 
     ###################
     # Iteractions with Playground
@@ -121,10 +127,12 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         """
         Performs calculation before the physical environment steps.
         """
+        super().pre_step()
         for interactive in self._interactives:
             interactive.pre_step()
 
     def post_step(self, **kwargs):
+        super().post_step()
         for interactive in self._interactives:
             interactive.post_step(**kwargs)
 

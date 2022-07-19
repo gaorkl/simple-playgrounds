@@ -114,6 +114,23 @@ class PhysicalPart(PhysicalEntity, ABC):
     def controllers(self):
         return self._controllers
 
+    def remove(self, definitive: bool):
+        # self._playground.space.remove(self._motor, self._joint, self._limit)
+        for part in self._anchored_parts:
+            part.remove(definitive)
+
+        super().remove(definitive=definitive)
+
+    def reset(self):
+        super().reset()
+
+        for part in self._anchored_parts:
+            part.reset()
+
+        if self._removed:
+            self._add_to_pymunk_space()
+            self._playground.space.add(self._joint, self._limit, self._motor)
+
 
 class Platform(PhysicalPart):
     def __init__(self, agent: Agent, **kwargs):
@@ -204,17 +221,6 @@ class AnchoredPart(PhysicalPart, ABC):
         self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
 
         self._playground.space.add(self._joint, self._limit, self._motor)
-
-    def remove(self, definitive: bool):
-        # self._playground.space.remove(self._motor, self._joint, self._limit)
-        return super().remove(definitive=definitive)
-
-    def reset(self):
-        super().reset()
-
-        if self._removed:
-            self._add_to_pymunk_space()
-            self._playground.space.add(self._joint, self._limit, self._motor)
 
     @property
     @abstractmethod

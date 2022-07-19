@@ -382,16 +382,18 @@ class Playground(arcade.Window):
         """
         Reset the Playground to its initial state.
         """
-        for view in self._views:
-            view.reset()
 
         # reset entities that are still in playground
         for entity in self._entities:
-            print(">>> reset", entity)
             entity.reset()
 
         for agent in self._agents:
             agent.reset()
+
+        for view in self._views.copy():
+
+            self._views.remove(view)
+            self.add_view(view)
 
         self._timestep = 0
         self._done = False

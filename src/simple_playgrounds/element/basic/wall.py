@@ -81,9 +81,5 @@ class ColorWall(PhysicalEntity):
             )
         ]
 
-    @property
-    def length(self):
-        return self.height
-
     def _set_pm_collision_type(self):
         pass

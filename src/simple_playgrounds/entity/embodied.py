@@ -50,7 +50,7 @@ class EmbodiedEntity(Entity, ABC):
         texture: Optional[Texture] = None,
         radius: Optional[float] = None,
         width: Optional[float] = None,
-        height: Optional[float] = None,
+        length: Optional[float] = None,
         pm_shape: Optional[pymunk.Shape] = None,
         color: Optional[pymunk.Shape] = None,
         temporary: bool = False,
@@ -76,8 +76,8 @@ class EmbodiedEntity(Entity, ABC):
                 self._scale,
                 self._radius,
                 self._width,
-                self._height,
-            ) = self._apply_scale(radius, width, height)
+                self._length,
+            ) = self._apply_scale(radius, width, length)
             self._pm_body = self._get_pm_body()
             self._pm_shapes = self._get_pm_shapes_from_sprite(shape_approximation)
 
@@ -99,8 +99,8 @@ class EmbodiedEntity(Entity, ABC):
                 self._scale,
                 self._radius,
                 self._width,
-                self._height,
-            ) = self._apply_scale(radius, width, height)
+                self._length,
+            ) = self._apply_scale(radius, width, length)
 
         self._add_to_pymunk_space()
         self._playground.add_to_views(self)
@@ -140,12 +140,12 @@ class EmbodiedEntity(Entity, ABC):
         return self._width
 
     @property
-    def height(self):
-        return self._height
+    def length(self):
+        return self._length
 
     @property
     def size(self):
-        return self._width, self._height
+        return self._width, self._length
 
     @property
     def texture(self):
@@ -201,7 +201,7 @@ class EmbodiedEntity(Entity, ABC):
 
         elif self._pm_body.body_type == pymunk.Body.DYNAMIC:
 
-            vel = self._pm_body.velocity.height
+            vel = self._pm_body.velocity.length
             if vel > 0.1:
                 return True
 
@@ -267,7 +267,7 @@ class EmbodiedEntity(Entity, ABC):
 
         return texture
 
-    def _apply_scale(self, radius, width, height):
+    def _apply_scale(self, radius, width, length):
 
         orig_radius = max(
             [pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()]
@@ -277,14 +277,14 @@ class EmbodiedEntity(Entity, ABC):
         vert = [pymunk.Vec2d(*vert).y for vert in self._base_sprite.get_hit_box()]
 
         orig_width = max(horiz) - min(horiz)
-        orig_height = max(vert) - min(vert)
+        orig_length = max(vert) - min(vert)
 
         # If radius imposed:
         if radius:
             scale = radius / orig_radius
 
-        elif height:
-            scale = height / orig_height
+        elif length:
+            scale = length / orig_length
 
         elif width:
             scale = width / orig_width
@@ -292,10 +292,10 @@ class EmbodiedEntity(Entity, ABC):
             scale = 1
 
         width = scale * orig_width
-        height = scale * orig_height
+        length = scale * orig_length
         radius = scale * orig_radius
 
-        return scale, radius, width, height
+        return scale, radius, width, length
 
     def _get_pm_shapes_from_sprite(self, shape_approximation):
 
@@ -315,6 +315,9 @@ class EmbodiedEntity(Entity, ABC):
             box_vertices = ((top, left), (top, right), (bottom, right), (bottom, left))
 
             pm_shapes = [pymunk.Poly(self._pm_body, box_vertices)]
+
+        elif shape_approximation == "hull":
+            pm_shapes = [pymunk.Poly(self._pm_body, vertices)]
 
         elif shape_approximation == "decomposition":
 
@@ -349,7 +352,7 @@ class EmbodiedEntity(Entity, ABC):
     def _get_physical_scale(self, radius):
 
         orig_radius = max(
-            [pymunk.Vec2d(*vert).height for vert in self._base_sprite.get_hit_box()]
+            [pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()]
         )
 
         if not radius:
