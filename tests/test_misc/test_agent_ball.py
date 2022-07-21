@@ -1,6 +1,7 @@
 from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
-from simple_playgrounds.element.basic.ball import Ball
+from simple_playgrounds.element.ball import Ball
 from simple_playgrounds.agent.agents import HeadAgent
+
 
 def test_scenario():
 
@@ -8,7 +9,7 @@ def test_scenario():
     ball = Ball(playground, ((200, 0), 0))
     agent = HeadAgent(playground)
 
-    commands = {agent: {agent.base.forward_controller: 10}}
+    commands = {agent: {agent.base.forward_controller: 1}}
 
     for _ in range(200):
         playground.step(commands=commands)

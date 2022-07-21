@@ -1,7 +1,6 @@
 from __future__ import annotations
 from abc import ABC
 from typing import Optional, List, TYPE_CHECKING
-from numpy.lib.arraysetops import isin
 import pymunk
 
 
@@ -46,6 +45,8 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
         self._set_shape_collision_filter()
         self.update_team_filter()
+
+        self.grasped_by = []
 
     @property
     def transparent(self):

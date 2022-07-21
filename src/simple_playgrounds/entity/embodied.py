@@ -17,7 +17,7 @@ from simple_playgrounds.entity.entity import Entity
 
 import math
 from abc import ABC, abstractmethod
-from typing import Optional, TYPE_CHECKING, Dict
+from typing import Optional, TYPE_CHECKING, Dict, List
 from arcade import Texture, Sprite
 
 

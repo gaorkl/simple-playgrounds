@@ -67,12 +67,12 @@ def test_range_controller(range_controller):
     controller = RangeController(part=agent._base, n=range_controller)
 
     for _ in range(200):
-        assert controller.sample() in list(range(range_controller))
+        assert controller.command_value in list(range(range_controller))
 
-    controller.set_command(command=controller.sample())
+    controller.command = controller.command_value
 
     with pytest.raises(ValueError):
-        controller.set_command(range_controller, hard_check=True)
+        controller.command = range_controller
 
 
 @pytest.fixture(scope="module", params=[-2.12, 1.4, 0, 1.5, 2.43])
@@ -101,10 +101,10 @@ def test_cont_controller(min_controller, max_controller):
         )
 
         with pytest.raises(ValueError):
-            controller.set_command(min_controller - 0.1, hard_check=True)
+            controller.command = min_controller - 0.1
 
         with pytest.raises(ValueError):
-            controller.set_command(max_controller + 0.1, hard_check=True)
+            controller.command = max_controller + 0.1
 
 
 def test_controller_forward():

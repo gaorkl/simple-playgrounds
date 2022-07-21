@@ -52,13 +52,13 @@ class MockBase(Platform):
 
     def apply_commands(self, **kwargs):
 
-        command_value = self.forward_controller.sample()
+        command_value = self.forward_controller.command_value
 
         self._pm_body.apply_force_at_local_point(
             pymunk.Vec2d(command_value, 0) * LINEAR_FORCE, (0, 0)
         )
 
-        command_value = self.angular_vel_controller.sample()
+        command_value = self.angular_vel_controller.command_value
         self._pm_body.angular_velocity = command_value * ANGULAR_VELOCITY
 
 
@@ -81,7 +81,7 @@ class MockAnchoredPart(AnchoredPart):
 
     def apply_commands(self, **kwargs):
 
-        value = self.joint_controller.sample()
+        value = self.joint_controller.command_value
 
         theta_part = self.angle
         theta_anchor = self._anchor.angle
@@ -110,8 +110,6 @@ class MockAnchoredPart(AnchoredPart):
 class MockHaloPart(InteractivePart):
     def __init__(self, anchor: Part, **kwargs):
         super().__init__(anchor, **kwargs)
-
-    def pre_step(self):
         self._activated = False
 
     def _set_pm_collision_type(self):
@@ -124,8 +122,11 @@ class MockHaloPart(InteractivePart):
     def apply_commands(self, **kwargs):
         pass
 
+    def pre_step(self):
+        self._activated = False
+
     def activate(self):
-        super().activate()
+        self._activated = True
 
 
 class MockTriggerPart(InteractivePart):
@@ -133,8 +134,6 @@ class MockTriggerPart(InteractivePart):
         super().__init__(anchor, **kwargs)
 
         self.trigger = self._set_controllers()[0]
-
-    def pre_step(self):
         self._activated = False
 
     def _set_pm_collision_type(self):
@@ -145,12 +144,15 @@ class MockTriggerPart(InteractivePart):
         return [BoolController(part=self)]
 
     def apply_commands(self, **kwargs):
-        value = self.trigger.sample()
+        value = self.trigger.command_value
         if value:
             self.activate()
 
+    def pre_step(self):
+        self._activated = False
+
     def activate(self):
-        super().activate()
+        self._activated = True
 
 
 class MockAgent(Agent):

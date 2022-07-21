@@ -3,14 +3,14 @@ import numpy as np
 
 from simple_playgrounds.common.view import TopDownView
 from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
-from simple_playgrounds.element.basic.ball import Ball
+from simple_playgrounds.element.ball import Ball
 from simple_playgrounds.agent.agents import HeadAgent
 
 
 def test_move_object():
 
     playground = WallClosedPG(size=(300, 200))
-    ball = Ball(playground, ((100, 0), 0))
+    ball = Ball(playground, ((100, 20), 0))
     agent = HeadAgent(playground)
 
     view = TopDownView(playground)
@@ -23,7 +23,7 @@ def test_move_object():
     for _ in range(50):
         commands = {
             agent: {
-                agent.base.forward_controller: random.uniform(0, 100),
+                agent.base.forward_controller: random.uniform(0, 1),
                 agent.base.angular_vel_controller: random.uniform(-1, 1),
             }
         }

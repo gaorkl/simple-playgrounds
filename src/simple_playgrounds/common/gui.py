@@ -36,6 +36,7 @@ class GUI(TopDownView):
         display_uid: bool = False,
         draw_transparent: bool = True,
         draw_interactive: bool = True,
+        print_rewards: bool = True,
     ) -> None:
         super().__init__(
             playground,
@@ -55,6 +56,28 @@ class GUI(TopDownView):
         self._agent = agent
 
         self._agent_commands = {}
+        self.print_rewards = print_rewards
+
+        self._playground.on_draw = self.on_draw
+        self._playground.on_update = self.on_update
+        self._playground.on_key_press = self.on_key_press
+        self._playground.on_key_release = self.on_key_release
+
+    def on_draw(self):
+
+        self.update()
+        self._fbo.use()
+
+    def on_update(self, delta_time):
+
+        commands = self.commands
+        self._playground.step(commands=commands)
+
+        if self.print_rewards:
+
+            for agent in self._playground.agents:
+                if agent.reward != 0:
+                    print(agent.reward)
 
     @property
     def commands(self):
@@ -79,9 +102,9 @@ class GUI(TopDownView):
         """Called whenever a key is pressed."""
 
         if key == arcade.key.UP:
-            self._agent_commands[self._agent.base.forward_controller] = 200
+            self._agent_commands[self._agent.base.forward_controller] = 0.2
         elif key == arcade.key.DOWN:
-            self._agent_commands[self._agent.base.forward_controller] = -200
+            self._agent_commands[self._agent.base.forward_controller] = -0.2
 
         if not (modifiers & arcade.key.MOD_SHIFT):
             if key == arcade.key.LEFT:
@@ -90,16 +113,20 @@ class GUI(TopDownView):
                 self._agent_commands[self._agent.base.angular_vel_controller] = -0.2
         else:
             if key == arcade.key.LEFT:
-                self._agent_commands[self._agent.head.joint_controller] = 0.2
+                self._agent_commands[self._agent.head.joint_controller] = 0.1
             elif key == arcade.key.RIGHT:
-                self._agent_commands[self._agent.head.joint_controller] = -0.2
+                self._agent_commands[self._agent.head.joint_controller] = -0.1
 
         if key == arcade.key.Q:
             self._playground.close()
 
-    def on_key_release(self, key, modifiers):
+        if key == arcade.key.R:
+            self._playground.reset()
 
-        agent_commands = {}
+        if key == arcade.key.G:
+            self._agent_commands[self._agent.grasper.grasp_controller] = 1
+
+    def on_key_release(self, key, modifiers):
 
         if key == arcade.key.UP:
             self._agent_commands[self._agent.base.forward_controller] = 0
@@ -115,3 +142,6 @@ class GUI(TopDownView):
                 self._agent_commands[self._agent.head.joint_controller] = 0
             elif key == arcade.key.RIGHT:
                 self._agent_commands[self._agent.head.joint_controller] = 0
+
+        if key == arcade.key.G:
+            self._agent_commands[self._agent.grasper.grasp_controller] = 0

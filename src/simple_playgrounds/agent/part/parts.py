@@ -21,7 +21,13 @@ from simple_playgrounds.agent.part.part import (
 
 
 class ForwardBase(Platform):
-    def __init__(self, agent: Agent, **kwargs):
+    def __init__(
+        self,
+        agent: Agent,
+        linear_ratio: float = 1,
+        angular_ratio: float = 1,
+        **kwargs,
+    ):
 
         super().__init__(
             agent,
@@ -33,6 +39,8 @@ class ForwardBase(Platform):
         )
 
         self.forward_controller, self.angular_vel_controller = self._controllers
+        self.linear_ratio = LINEAR_FORCE * linear_ratio
+        self.angular_ratio = ANGULAR_VELOCITY * angular_ratio
 
     def _set_controllers(self, **kwargs):
 
@@ -42,14 +50,14 @@ class ForwardBase(Platform):
 
     def apply_commands(self, **kwargs):
 
-        command_value = self.forward_controller.sample()
+        command_value = self.forward_controller.command_value
 
         self._pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(command_value, 0) * LINEAR_FORCE, (0, 0)
+            pymunk.Vec2d(command_value, 0) * self.linear_ratio, (0, 0)
         )
 
-        command_value = self.angular_vel_controller.sample()
-        self._pm_body.angular_velocity = command_value * ANGULAR_VELOCITY
+        command_value = self.angular_vel_controller.command_value
+        self._pm_body.angular_velocity = command_value * self.angular_ratio
 
 
 class Head(AnchoredPart):
@@ -70,7 +78,7 @@ class Head(AnchoredPart):
 
     def apply_commands(self, **kwargs):
 
-        value = self.joint_controller.sample()
+        value = self.joint_controller.command_value
 
         theta_part = self.angle
         theta_anchor = self._anchor.angle

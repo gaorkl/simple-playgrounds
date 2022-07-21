@@ -5,7 +5,6 @@ from simple_playgrounds.playground.playground import EmptyPlayground
 from tests.mock_agents import MockTriggerPart, MockAgentWithArm, MockHaloPart
 from tests.mock_entities import (
     MockBarrier,
-    MockHalo,
     MockZoneInteractive,
     active_interaction,
     passive_interaction,

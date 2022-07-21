@@ -1,4 +1,3 @@
-from _pytest.config import filename_arg
 from simple_playgrounds.entity.physical import PhysicalEntity
 
 

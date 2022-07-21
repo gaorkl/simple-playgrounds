@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from simple_playgrounds.agent.part.interactives import Grasper
 
 from simple_playgrounds.agent.part.part import PhysicalPart
 
@@ -89,22 +90,17 @@ def get_colliding_entities(playground: Playground, arbiter):
 #     return True
 
 
-# def agent_grasps_element(arbiter, space, data):
+def grasper_grasps_graspable(arbiter, space, data):
 
-#     playground: Playground = data['playground']
-#     (part, agent), (grasped_element, _) = get_colliding_entities(playground, arbiter)
+    playground: Playground = data["playground"]
+    (grasper, _), (entity, _) = get_colliding_entities(playground, arbiter)
 
-#     if not grasped_element:
-#         return True
+    assert isinstance(grasper, Grasper)
 
-#     assert isinstance(grasped_element, SceneElement)
+    if grasper.start_grasping:
+        grasper.grasp(entity)
 
-#     for actuator in part.actuators:
-
-#         if isinstance(actuator, Grasp) and actuator.is_grasping and not actuator.grasped_element:
-#             actuator.grasp(grasped_element)
-
-#     return True
+    return True
 
 
 # def gem_activates_element(arbiter, space, data):

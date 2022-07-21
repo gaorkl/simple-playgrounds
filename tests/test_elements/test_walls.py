@@ -1,5 +1,5 @@
 from simple_playgrounds.playground.playground import EmptyPlayground
-from simple_playgrounds.element.basic.wall import (
+from simple_playgrounds.element.wall import (
     ColorWall,
     create_wall_from_blocks,
     BrickWallBlock,
@@ -37,4 +37,3 @@ def test_wall_room():
     playground = WallClosedPG(size=(400, 200), background=(10, 134, 200))
 
     view = TopDownView(playground, center=(0, 0), size=(400, 200), zoom=1)
-

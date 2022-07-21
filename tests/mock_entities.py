@@ -9,7 +9,7 @@ from simple_playgrounds.common.definitions import (
     CollisionTypes,
     PymunkCollisionCategories,
 )
-from simple_playgrounds.element.basic.wall import ColorWall
+from simple_playgrounds.element.wall import ColorWall
 from simple_playgrounds.entity.interactive import (
     AnchoredInteractive,
     StandAloneInteractive,
@@ -87,13 +87,17 @@ class MockPhysicalFromShape(PhysicalEntity):
 class MockHalo(AnchoredInteractive):
     def __init__(self, anchor: PhysicalEntity, interaction_range):
         super().__init__(anchor, interaction_range)
+        self._activated = False
 
     def _set_pm_collision_type(self):
         for pm_shape in self._pm_shapes:
             pm_shape.collision_type = CollisionTypes.PASSIVE_INTERACTOR
 
+    def pre_step(self):
+        self._activated = False
+
     def activate(self):
-        super().activate()
+        self._activated = True
 
 
 class MockPhysicalInteractive(PhysicalEntity):
@@ -128,14 +132,18 @@ class MockZoneInteractive(StandAloneInteractive):
             filename=":resources:onscreen_controls/flat_light/star_square.png",
             **kwargs
         )
+        self._activated = False
 
     def _set_pm_collision_type(self):
 
         for pm_shape in self._pm_shapes:
             pm_shape.collision_type = CollisionTypes.PASSIVE_INTERACTOR
 
+    def pre_step(self):
+        self._activated = False
+
     def activate(self):
-        super().activate()
+        self._activated = True
 
 
 class NonConvexPlus_Approx(MockPhysicalMovable):
@@ -275,7 +283,7 @@ def active_interaction(arbiter, space, data):
     if not activator.teams and activated.teams:
         return True
 
-    if activator.activated:
+    if activator._activated:
         activated.activate()
 
     return True

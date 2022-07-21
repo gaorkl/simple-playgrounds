@@ -57,6 +57,9 @@ class PhysicalPart(PhysicalEntity, ABC):
     def add_anchored(self, anchored: AnchoredPart):
         self._anchored_parts.append(anchored)
 
+    def add_interactive(self, interactive: InteractivePart):
+        self._interactives.append(interactive)
+
     def move_to(self, coordinates: Coordinate, keep_velocity: bool = True, **kwargs):
 
         position, angle = coordinates

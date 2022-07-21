@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from abc import ABC, abstractmethod
 
@@ -8,6 +8,7 @@ import pymunk
 from simple_playgrounds.common.definitions import (
     DEFAULT_INTERACTION_RANGE,
     INVISIBLE_ALPHA,
+    CollisionTypes,
 )
 from simple_playgrounds.entity.embodied import EmbodiedEntity
 
@@ -19,8 +20,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
     def __init__(self, playground, initial_coordinates, **kwargs):
 
         super().__init__(playground, initial_coordinates, **kwargs)
-
-        self._activated = False
 
         for pm_shape in self._pm_shapes:
             pm_shape.sensor = True
@@ -39,12 +38,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
     @property
     def activated(self):
         return self._activated
-
-    def pre_step(self):
-        self._activated = False
-
-    def post_step(self):
-        pass
 
     def update_team_filter(self):
 
@@ -68,10 +61,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         for pm_shape in self._pm_shapes:
             pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
-
-    @abstractmethod
-    def activate(self):
-        self._activated = True
 
 
 class StandAloneInteractive(InteractiveEntity, ABC):
@@ -116,3 +105,19 @@ class AnchoredInteractive(InteractiveEntity, ABC):
     def _remove_from_pymunk_space(self):
         for pm_shape in self._pm_shapes:
             self._playground.space.remove(pm_shape)
+
+
+class Graspable(AnchoredInteractive):
+    def __init__(
+        self,
+        anchor: PhysicalEntity,
+        interaction_range: float = DEFAULT_INTERACTION_RANGE,
+        **kwargs,
+    ):
+        super().__init__(anchor, interaction_range, **kwargs)
+
+        self.grasped_by: List[EmbodiedEntity] = []
+
+    def _set_pm_collision_type(self):
+        for pm_shape in self._pm_shapes:
+            pm_shape.collision_type = CollisionTypes.GRASPABLE

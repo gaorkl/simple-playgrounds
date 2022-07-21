@@ -167,14 +167,14 @@ class Agent(Entity):
         # Set command values
         if isinstance(commands, np.ndarray):
             for index, controller in enumerate(self.controllers):
-                controller.set_command(commands[index])
+                controller.command = commands[index]
             return
 
         for controller, command in commands.items():
             if isinstance(controller, str):
                 controller = self._name_to_controller[controller]
 
-            controller.set_command(command)
+            controller.command = command
 
     def apply_commands(self):
         # Apply command to playground physics

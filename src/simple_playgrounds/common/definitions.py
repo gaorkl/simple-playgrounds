@@ -56,6 +56,9 @@ class CollisionTypes(IntEnum):
     DEVICE = auto()
     MODIFIER = auto()
 
+    GRASPER = auto()
+    ACTIVATOR = auto()
+
     # ACTIVE_INTERACTOR interacts only with PASSIVE_INTERACTOR
     # PASSIVE_INTERACTOR interacts with ACTIVE OR PASSIVE
     ACTIVE_INTERACTOR = auto()

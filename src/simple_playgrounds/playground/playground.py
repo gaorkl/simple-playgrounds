@@ -49,6 +49,8 @@ from simple_playgrounds.agent.device.communication import CommunicationDevice, M
 
 from simple_playgrounds.agent.device.sensor import Sensor, SensorValue
 
+from simple_playgrounds.playground.collision_handlers import grasper_grasps_graspable
+
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
 
@@ -91,7 +93,7 @@ class Playground(arcade.Window):
         ] = None,
     ):
 
-        super().__init__(1, 1, visible=False, antialiasing=True, gc_mode="auto")  # type: ignore
+        super().__init__(1, 1, visible=False, antialiasing=True)  # type: ignore
         self.ctx.blend_func = self.ctx.ONE, self.ctx.ZERO
 
         # Random number generator for replication, rewind, etc.
@@ -124,35 +126,14 @@ class Playground(arcade.Window):
         self._name_to_agents: Dict[str, Agent] = {}
         self._uids_to_entities: Dict[int, Entity] = {}
 
-        # self._handle_interactions()
+        self._handle_interactions()
         self._views = []
-        self.gui: Optional[GUI] = None
+        self._gui: Optional[GUI] = None
 
-    def on_draw(self):
-
-        if self.gui:
-            self.gui.update(force=True)
-            self.gui._fbo.use
-            # self.flip()
-
-    def on_key_press(self, symbol: int, modifiers: int):
-
-        if self.gui:
-            self.gui.on_key_press(symbol, modifiers)
-
-    def on_key_release(self, symbol: int, modifiers: int):
-
-        if self.gui:
-            self.gui.on_key_release(symbol, modifiers)
-
-    def on_update(self, delta_time):
-
-        commands = {}
-
-        if self.gui:
-            commands = self.gui.commands
-
-        self.step(commands=commands)
+    def use_gui(self, gui):
+        if self._gui:
+            raise ValueError("Only one GUI possible")
+        self._gui = gui
 
     def debug_draw(self, plt_width, center, size):
 
@@ -171,6 +152,7 @@ class Playground(arcade.Window):
         options = pymunk.matplotlib_util.DrawOptions(ax)
         options.collision_point_color = (10, 20, 30, 40)
         self._space.debug_draw(options)
+        ax.invert_yaxis()
         plt.show()
         del fig
 
@@ -500,13 +482,16 @@ class Playground(arcade.Window):
 
         return entity
 
-    #     def _handle_interactions(self):
+    def _handle_interactions(self):
 
-    #         # Order is important
+        # Order is important
 
-    #         self.add_interaction(CollisionTypes.PART, CollisionTypes.GRASPABLE,
-    #                              agent_grasps_element)
-    #         self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
+        self.add_interaction(
+            CollisionTypes.GRASPER, CollisionTypes.GRASPABLE, grasper_grasps_graspable
+        )
+
+        # self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
+
     #                              agent_touches_element)
     #         self.add_interaction(CollisionTypes.PART, CollisionTypes.ACTIVABLE,
     #                              agent_activates_element)
@@ -539,10 +524,10 @@ class Playground(arcade.Window):
         handler.pre_solve = interaction_function
         handler.data["playground"] = self
 
-    def __del__(self):
-        self.close()
-        gc.collect()
-        # return super().__del__()
+    # def __del__(self):
+    #     self.close()
+    #     # gc.collect()
+    #     super().__del__()
 
 
 class PlaygroundRegister:

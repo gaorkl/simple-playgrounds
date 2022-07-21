@@ -1,5 +1,5 @@
 from simple_playgrounds.playground.playground import ClosedPlayground
-from simple_playgrounds.element.basic.wall import (
+from simple_playgrounds.element.wall import (
     create_wall_from_blocks,
     BrickWallBlock,
 )

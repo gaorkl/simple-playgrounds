@@ -3,6 +3,7 @@ from collections import defaultdict
 import random
 from abc import ABC, abstractmethod
 from typing import Tuple, Optional, Dict, TYPE_CHECKING, Union, List
+
 if TYPE_CHECKING:
     from simple_playgrounds.element.element import SceneElement
     from simple_playgrounds.agent.part.part import Part
@@ -21,22 +22,20 @@ class Controller(ABC):
         - physical actions (movements)
         - interactive actions (eat, grasp, ...)
     """
-    def __init__(
-        self,
-        part: Part,
-        name: Optional[str] = None,
-        **_
-    ):
+
+    def __init__(self, part: Part, name: Optional[str] = None, hard_check=True, **_):
         self._part: Part = part
 
         if not name:
             name = part.agent.get_name(self)
+
         self._name = name
 
         self._noise: bool = False
         self._disabled: bool = False
 
         self._command = self.default
+        self._hard_check = hard_check
 
     @property
     def rng(self):
@@ -51,6 +50,19 @@ class Controller(ABC):
     def command(self):
         return self._command
 
+    @command.setter
+    def command(self, command):
+        check_passed = self._check(command)
+
+        if not check_passed and self._hard_check:
+            raise ValueError(command)
+
+        # Maybe replace by closest later?
+        if not check_passed:
+            command = self.default
+
+        self._command = command
+
     @property
     def name(self):
         return self._name
@@ -62,26 +74,30 @@ class Controller(ABC):
         self.pre_step()
 
     @abstractmethod
-    def _check(self, command, hard_check=True, **_) -> Command:
+    def _check(self, command) -> bool:
         ...
 
     @abstractmethod
     def _apply_noise(self, command, no_noise=False, **_) -> Command:
         ...
 
-    def set_command(self, command, **kwargs):
-        command = self._check(command, **kwargs)
-        self._command = command
-
-    def sample(self, **kwargs) -> Command:
+    @property
+    def command_value(self) -> Command:
         if self._noise:
-            return self._apply_noise(self._command, **kwargs)
+            return self._apply_noise(self._command)
         return self._command
 
     @abstractmethod
-    def draw(self, drawer_action_image: ImageDraw, img_width: int,
-             position_height: int, height_action: int, fnt: ImageFont):
+    def draw(
+        self,
+        drawer_action_image: ImageDraw,
+        img_width: int,
+        position_height: int,
+        height_action: int,
+        fnt: ImageFont,
+    ):
         ...
+
 
 ####################
 # DISCRETE COMMANDS
@@ -94,6 +110,7 @@ class DiscreteController(Controller):
     Command values can take a number within a list of integers.
     0 is always the default command, even if not given at initialization.
     """
+
     def __init__(
         self,
         command_values: List[int],
@@ -102,15 +119,15 @@ class DiscreteController(Controller):
         super().__init__(**kwargs)
 
         if not isinstance(command_values, (list, tuple)):
-            raise ValueError('Set of values must be list or tuple')
+            raise ValueError("Set of values must be list or tuple")
 
         self._valid_command_values = command_values
 
         self._change_proba: float = self._get_noise_params(**kwargs)
 
-    def _get_noise_params(self, 
-                          error_probability: Optional[float] = None,
-                          **_) -> float:
+    def _get_noise_params(
+        self, error_probability: Optional[float] = None, **_
+    ) -> float:
 
         if not error_probability:
             self._noise = False
@@ -120,13 +137,7 @@ class DiscreteController(Controller):
         return error_probability
 
     def _check(self, command, hard_check=True, **_) -> Command:
-        if command in self._valid_command_values:
-            return command
-
-        if hard_check:
-            raise ValueError('Command not valid.')
-
-        return self.default
+        return command in self._valid_command_values
 
     def _apply_noise(
         self,
@@ -141,7 +152,7 @@ class DiscreteController(Controller):
         proba = self.rng.random()
 
         if proba < self._change_proba:
-            command = self.sample()
+            command = self.command_value
 
         return command
 
@@ -153,8 +164,16 @@ class DiscreteController(Controller):
     def valid_commands(self):
         return self._valid_command_values
 
-    def draw(self, drawer_action_image: ImageDraw, img_width: int, position_height: int, height_action: int, fnt: ImageFont):
+    def draw(
+        self,
+        drawer_action_image: ImageDraw,
+        img_width: int,
+        position_height: int,
+        height_action: int,
+        fnt: ImageFont,
+    ):
         pass
+
     # def draw(self, drawer_action_image, img_width, position_height,
     #          height_action, fnt):
 
@@ -173,26 +192,27 @@ class DiscreteController(Controller):
 
 
 class BoolController(DiscreteController):
-
     def __init__(self, **kwargs):
         super().__init__(command_values=[0, 1], **kwargs)
 
+    @property
     def default(self) -> int:
         return 0
 
-class RangeController(DiscreteController):
 
+class RangeController(DiscreteController):
     def __init__(self, n: int, **kwargs):
         super().__init__(command_values=list(range(n)), **kwargs)
+
 
 ###################
 # ContinuousCommand
 ###################
 
-class ContinuousController(Controller, ABC):
 
+class ContinuousController(Controller, ABC):
     def __init__(self, min_value: float, max_value: float, **kwargs):
-        
+
         super().__init__(**kwargs)
 
         if min_value > max_value:
@@ -200,18 +220,10 @@ class ContinuousController(Controller, ABC):
 
         self._min = min_value
         self._max = max_value
-    
-    def _check(self, command, hard_check=False, **_) -> Command:
-        
-        if self._min <= command <= self._max:
-            return command
 
-        if hard_check:
-            raise ValueError
+    def _check(self, command) -> bool:
 
-        if command < self._min:
-            return self._min
-        return self._max
+        return self._min <= command <= self._max
 
     @property
     def default(self) -> float:
@@ -227,7 +239,7 @@ class ContinuousController(Controller, ABC):
 
     def _apply_noise(self, command, no_noise, **_) -> Command:
 
-        if self._noise == 'gaussian':
+        if self._noise == "gaussian":
 
             value = random.gauss(self._mean, self._scale)
 
@@ -237,32 +249,39 @@ class ContinuousController(Controller, ABC):
             return value
 
         else:
-            raise ValueError('Noise type not implemented')
+            raise ValueError("Noise type not implemented")
 
     def _parse_noise_params(
         self,
-        noise_params: Dict[str, float], **_,
+        noise_params: Dict[str, float],
+        **_,
     ):
 
-        if self._noise == 'gaussian':
+        if self._noise == "gaussian":
 
-            self._mean = noise_params.get('mean', 0)
-            self._scale = noise_params.get('scale', 0.01)
+            self._mean = noise_params.get("mean", 0)
+            self._scale = noise_params.get("scale", 0.01)
 
         else:
-            raise ValueError('Noise type not implemented')
+            raise ValueError("Noise type not implemented")
 
-    def draw(self, drawer_action_image: ImageDraw, img_width: int, position_height: int, height_action: int, fnt: ImageFont):
+    def draw(
+        self,
+        drawer_action_image: ImageDraw,
+        img_width: int,
+        position_height: int,
+        height_action: int,
+        fnt: ImageFont,
+    ):
         pass
 
-class CenteredContinuousController(ContinuousController):
 
+class CenteredContinuousController(ContinuousController):
     def __init__(self, **kwargs):
         super().__init__(min_value=-1, max_value=1, **kwargs)
 
 
 class NormalContinuousController(ContinuousController):
-
     def __init__(self, **kwargs):
         super().__init__(min_value=0, max_value=1, **kwargs)
 
