@@ -202,11 +202,11 @@ class EmbodiedEntity(Entity, ABC):
         elif self._pm_body.body_type == pymunk.Body.DYNAMIC:
 
             vel = self._pm_body.velocity.length
-            if vel > 0.1:
+            if vel > 0.001:
                 return True
 
             ang_vel = self._pm_body.angular_velocity
-            if ang_vel > 0.01:
+            if abs(ang_vel) > 0.001:
                 return True
 
         return False
