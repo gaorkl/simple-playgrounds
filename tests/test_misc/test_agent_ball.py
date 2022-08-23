@@ -6,8 +6,12 @@ from simple_playgrounds.agent.agents import HeadAgent
 def test_scenario():
 
     playground = WallClosedPG(size=(1000, 200))
-    ball = Ball(playground, ((200, 0), 0))
-    agent = HeadAgent(playground)
+    ball = Ball()
+    playground.add(ball, ((200, 0), 0))
+
+
+    agent = HeadAgent()
+    playground.add(agent)
 
     commands = {agent: {agent.base.forward_controller: 1}}
 

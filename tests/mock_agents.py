@@ -112,14 +112,14 @@ class MockHaloPart(InteractivePart):
         super().__init__(anchor, **kwargs)
         self._activated = False
 
-    def _set_pm_collision_type(self):
-        for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.PASSIVE_INTERACTOR
+    @property
+    def _collision_type(self):
+        return CollisionTypes.PASSIVE_INTERACTOR
 
-    def _set_controllers(self, **kwargs):
+    def _set_controllers(self, **_):
         return []
 
-    def apply_commands(self, **kwargs):
+    def apply_commands(self, **_):
         pass
 
     def pre_step(self):
@@ -127,6 +127,10 @@ class MockHaloPart(InteractivePart):
 
     def activate(self):
         self._activated = True
+
+    @property
+    def activated(self):
+        return self._activated
 
 
 class MockTriggerPart(InteractivePart):
@@ -136,14 +140,14 @@ class MockTriggerPart(InteractivePart):
         self.trigger = self._set_controllers()[0]
         self._activated = False
 
-    def _set_pm_collision_type(self):
-        for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.ACTIVE_INTERACTOR
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ACTIVE_INTERACTOR
 
-    def _set_controllers(self, **kwargs):
+    def _set_controllers(self, **_):
         return [BoolController(part=self)]
 
-    def apply_commands(self, **kwargs):
+    def apply_commands(self, **_):
         value = self.trigger.command_value
         if value:
             self.activate()
@@ -154,28 +158,20 @@ class MockTriggerPart(InteractivePart):
     def activate(self):
         self._activated = True
 
+    @property
+    def activated(self):
+        return self._activated
+
 
 class MockAgent(Agent):
-    def __init__(
-        self, playground, initial_coordinates: Optional[Coordinate] = None, **kwargs
-    ):
-
-        super().__init__(
-            playground=playground, initial_coordinates=initial_coordinates, **kwargs
-        )
-
-        # MockTriggerPart(self._base, shape_approximation = 'decomposition')
-
     def _add_base(self, **kwargs) -> Part:
         base = MockBase(self, **kwargs)
         return base
 
 
 class MockAgentWithArm(MockAgent):
-    def __init__(
-        self, playground, initial_coordinates: Optional[Coordinate] = None, **kwargs
-    ):
-        super().__init__(playground, initial_coordinates, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.left_arm = MockAnchoredPart(
             self.base,

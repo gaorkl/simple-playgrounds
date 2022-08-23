@@ -4,20 +4,17 @@ from simple_playgrounds.agent.part.controller import (
     RangeController,
 )
 
-from simple_playgrounds.playground.playground import EmptyPlayground
+from simple_playgrounds.playground.playground import Playground
 from tests.mock_agents import MockAgent, MockAgentWithArm, MockHaloPart
 from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
 
 
 def test_agent_in_playground():
 
-    playground = EmptyPlayground()
-
-    # view = TopDownView(playground,
-    #                    center = (0, 0), size = (300, 300), display_uid=False)
-
-    agent = MockAgentWithArm(playground)
+    playground = Playground()
+    agent = MockAgentWithArm()
     interactive_part_l = MockHaloPart(agent.left_arm)
+    playground.add(agent)
 
     assert agent in playground.agents
     assert playground.entities == []
@@ -28,10 +25,7 @@ def test_agent_in_playground():
         assert part in playground._shapes_to_entities.values()
         assert part.agent == agent
 
-    # view.update()
-    # view.imdisplay()
-
-    agent.remove(definitive=False)
+    playground.remove(agent, definitive=False)
 
     assert agent not in playground.agents
     assert not playground.space.shapes
@@ -41,10 +35,7 @@ def test_agent_in_playground():
 
     assert agent in playground.agents
 
-    # view.update()
-    # view.imdisplay()
-
-    agent.remove(definitive=True)
+    playground.remove(agent, definitive=True)
 
     assert agent not in playground.agents
     assert not playground.space.shapes
@@ -62,9 +53,11 @@ def range_controller(request):
 
 def test_range_controller(range_controller):
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+    playground = Playground()
+    agent = MockAgent()
     controller = RangeController(part=agent._base, n=range_controller)
+
+    playground.add(agent)
 
     for _ in range(200):
         assert controller.command_value in list(range(range_controller))
@@ -87,8 +80,9 @@ def max_controller(request):
 
 def test_cont_controller(min_controller, max_controller):
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+    playground = Playground()
+    agent = MockAgent()
+    playground.add(agent)
 
     if min_controller > max_controller:
         with pytest.raises(ValueError):
@@ -109,11 +103,9 @@ def test_cont_controller(min_controller, max_controller):
 
 def test_controller_forward():
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
-
-    # view = TopDownView(playground,
-    # center = (0, 0), size = (300, 300), display_uid=False)
+    playground = Playground()
+    agent = MockAgent()
+    playground.add(agent)
 
     commands = {agent: {agent._base.forward_controller: 1}}
 
@@ -134,8 +126,9 @@ def test_controller_forward():
 
 def test_controller_rotate():
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+    playground = Playground()
+    agent = MockAgent()
+    playground.add(agent)
 
     commands = {agent: {agent._base.angular_vel_controller: 1}}
 
@@ -150,8 +143,9 @@ def test_controller_rotate():
 
 def test_agent_initial_position():
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+    playground = Playground()
+    agent = MockAgent()
+    playground.add(agent)
 
     assert agent.position == (0, 0)
     assert agent.angle == 0
@@ -159,10 +153,12 @@ def test_agent_initial_position():
 
 def test_agent_forward_movable():
 
-    playground = EmptyPlayground()
-    agent = MockAgent(playground)
+    playground = Playground()
+    agent = MockAgent()
+    playground.add(agent)
 
-    obstacle = MockPhysicalMovable(playground, ((100, 0), 0))
+    obstacle = MockPhysicalMovable()
+    playground.add(obstacle, ((100, 0), 0))
 
     actions = {}
     for controller in agent.controllers:
@@ -181,9 +177,12 @@ def test_agent_forward_movable():
 
 def test_agent_overlapping():
 
-    playground = EmptyPlayground()
+    playground = Playground()
 
-    MockPhysicalUnmovable(playground, ((0, 0), 0))
+    unmovable = MockPhysicalUnmovable(radius=4)
+    playground.add(unmovable, ((0, 0), 0))
+
+    agent = MockAgent()
 
     with pytest.raises(ValueError):
-        MockAgent(playground, ((0, 0), 0), allow_overlapping=False)
+        playground.add(agent, allow_overlapping=False)

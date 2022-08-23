@@ -10,8 +10,11 @@ from simple_playgrounds.agent.agents import HeadAgent
 def test_move_object():
 
     playground = WallClosedPG(size=(300, 200))
-    ball = Ball(playground, ((100, 20), 0))
-    agent = HeadAgent(playground)
+    ball = Ball()
+    playground.add(ball, ((100, 20), 0))
+
+    agent = HeadAgent()
+    playground.add(agent)
 
     view = TopDownView(playground)
 
@@ -48,15 +51,18 @@ def test_move_object():
 def test_delete_object():
 
     playground = WallClosedPG(size=(300, 200))
-    ball = Ball(playground, ((100, 0), 0))
-    agent = HeadAgent(playground)
+    ball = Ball()
+    playground.add(ball, ((100, 0), 0))
+
+    agent = HeadAgent()
+    playground.add(agent)
 
     view = TopDownView(playground)
 
     view.update()
     img_init = view.get_np_img()
 
-    ball.remove()
+    playground.remove(ball)
 
     view.update()
     img_after_mvt = view.get_np_img()
@@ -74,15 +80,17 @@ def test_delete_object():
 def test_delete_agent():
 
     playground = WallClosedPG(size=(300, 200))
-    ball = Ball(playground, ((100, 0), 0))
-    agent = HeadAgent(playground)
+    ball = Ball()
+    playground.add(ball, ((100, 0), 0))
+    agent = HeadAgent()
+    playground.add(agent)
 
     view = TopDownView(playground)
 
     view.update()
     img_init = view.get_np_img()
 
-    agent.remove()
+    playground.remove(agent)
 
     view.update()
     img_after_mvt = view.get_np_img()

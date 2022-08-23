@@ -1,4 +1,4 @@
-from simple_playgrounds.playground.playground import EmptyPlayground
+from simple_playgrounds.playground.playground import Playground
 from simple_playgrounds.common.definitions import CollisionTypes
 
 
@@ -16,7 +16,7 @@ coord_center = (0, 0), 0
 
 def test_trigger():
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
@@ -24,19 +24,16 @@ def test_trigger():
     )
 
     center_0 = (0, 0), 0
-    trigger_1 = MockPhysicalInteractive(
-        playground, center_0, radius=10, interaction_range=5
-    )
+    trigger_1 = MockPhysicalInteractive(radius=10, interaction_range=5)
+    playground.add(trigger_1, center_0)
 
     center_1 = (0, 25), 0
-    triggered_1 = MockPhysicalInteractive(
-        playground, center_1, radius=10, interaction_range=5
-    )
+    triggered_1 = MockPhysicalInteractive(radius=10, interaction_range=5)
+    playground.add(triggered_1, center_1)
 
     center_2 = (0, 50), 0
-    triggered_2 = MockPhysicalInteractive(
-        playground, center_2, radius=10, interaction_range=5
-    )
+    triggered_2 = MockPhysicalInteractive(radius=10, interaction_range=5)
+    playground.add(triggered_2, center_2)
 
     playground.step()
 
@@ -53,19 +50,20 @@ def test_trigger():
 
 def test_non_convex_entity():
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
         passive_interaction,
     )
 
-    ent_1 = NonConvexC(playground, coord_center, 35, 10)
+    ent_1 = NonConvexC(35, 10)
     halo_1 = MockHalo(ent_1, interaction_range=10)
 
-    ent_2 = MockPhysicalInteractive(
-        playground, coord_center, radius=20, interaction_range=10
-    )
+    playground.add(ent_1, coord_center)
+
+    ent_2 = MockPhysicalInteractive(radius=20, interaction_range=10)
+    playground.add(ent_2, coord_center)
 
     playground.step()
 
@@ -78,18 +76,18 @@ def test_non_convex_entity():
 
 def test_zone_triggers():
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
         passive_interaction,
     )
 
-    zone_1 = MockZoneInteractive(playground, coord_center, 35)
+    zone_1 = MockZoneInteractive(35)
+    playground.add(zone_1, coord_center)
 
-    ent_2 = MockPhysicalInteractive(
-        playground, coord_center, radius=20, interaction_range=10
-    )
+    ent_2 = MockPhysicalInteractive(radius=20, interaction_range=10)
+    playground.add(ent_2, coord_center)
 
     playground.step()
 
@@ -102,18 +100,18 @@ def test_zone_triggers():
 
 def test_physical_triggers():
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
         passive_interaction,
     )
 
-    zone_1 = MockZoneInteractive(playground, coord_center, 35)
+    zone_1 = MockZoneInteractive(35)
+    playground.add(zone_1, coord_center)
 
-    ent_2 = MockPhysicalInteractive(
-        playground, coord_center, radius=20, interaction_range=5
-    )
+    ent_2 = MockPhysicalInteractive(radius=20, interaction_range=5)
+    playground.add(ent_2, coord_center)
 
     playground.step()
 
@@ -126,7 +124,7 @@ def test_physical_triggers():
 
 def test_trigger_same_team():
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
@@ -134,14 +132,14 @@ def test_trigger_same_team():
     )
 
     center_0 = (0, 0), 0
-    trigger_1 = MockPhysicalInteractive(
-        playground, center_0, radius=10, interaction_range=5, teams="team_0"
-    )
+    trigger_1 = MockPhysicalInteractive(radius=10, interaction_range=5, teams="team_0")
+    playground.add(trigger_1, center_0)
 
     center_1 = (0, 25), 0
     triggered_1 = MockPhysicalInteractive(
-        playground, center_1, radius=10, interaction_range=5, teams="team_0"
+        radius=10, interaction_range=5, teams="team_0"
     )
+    playground.add(triggered_1, center_1)
 
     playground.step()
 
@@ -156,7 +154,7 @@ def test_trigger_same_team():
 
 def test_trigger_different_team():
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
@@ -164,14 +162,14 @@ def test_trigger_different_team():
     )
 
     center_0 = (0, 0), 0
-    trigger_1 = MockPhysicalInteractive(
-        playground, center_0, radius=10, interaction_range=5, teams="team_0"
-    )
+    trigger_1 = MockPhysicalInteractive(radius=10, interaction_range=5, teams="team_0")
+    playground.add(trigger_1, center_0)
 
     center_1 = (0, 25), 0
     triggered_1 = MockPhysicalInteractive(
-        playground, center_1, radius=10, interaction_range=5, teams="team_1"
+        radius=10, interaction_range=5, teams="team_1"
     )
+    playground.add(triggered_1, center_1)
 
     playground.step()
 
@@ -186,7 +184,7 @@ def test_trigger_different_team():
 
 def test_trigger_common_team():
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
@@ -195,13 +193,15 @@ def test_trigger_common_team():
 
     center_0 = (0, 0), 0
     trigger_1 = MockPhysicalInteractive(
-        playground, center_0, radius=10, interaction_range=5, teams=["team_0", "team_1"]
+        radius=10, interaction_range=5, teams=["team_0", "team_1"]
     )
+    playground.add(trigger_1, center_0)
 
     center_1 = (0, 25), 0
     triggered_1 = MockPhysicalInteractive(
-        playground, center_1, radius=10, interaction_range=5, teams=["team_1", "team_2"]
+        radius=10, interaction_range=5, teams=["team_1", "team_2"]
     )
+    playground.add(triggered_1, center_1)
 
     playground.step()
 

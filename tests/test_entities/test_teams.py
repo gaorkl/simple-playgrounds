@@ -1,6 +1,6 @@
 import pytest
 
-from simple_playgrounds.playground.playground import EmptyPlayground
+from simple_playgrounds.playground.playground import Playground
 
 # Add test Interactions to collisions
 from simple_playgrounds.common.definitions import CollisionTypes
@@ -36,7 +36,7 @@ coord_2 = ((0, 1), 0)
 
 def test_team_phys_phys(team_params):
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
@@ -45,13 +45,11 @@ def test_team_phys_phys(team_params):
 
     team_1, team_2, interacts = team_params
 
-    ent_1 = MockPhysicalInteractive(
-        playground, coord_1, teams=team_1, interaction_range=10
-    )
+    ent_1 = MockPhysicalInteractive(teams=team_1, interaction_range=10)
+    playground.add(ent_1, coord_1)
 
-    ent_2 = MockPhysicalInteractive(
-        playground, coord_2, teams=team_2, interaction_range=10
-    )
+    ent_2 = MockPhysicalInteractive(teams=team_2, interaction_range=10)
+    playground.add(ent_2, coord_2)
 
     playground.step()
 
@@ -63,7 +61,7 @@ def test_team_phys_phys(team_params):
 
 def test_team_phys_halo(team_params):
 
-    playground = EmptyPlayground()
+    playground = Playground()
     playground.add_interaction(
         CollisionTypes.PASSIVE_INTERACTOR,
         CollisionTypes.PASSIVE_INTERACTOR,
@@ -72,11 +70,11 @@ def test_team_phys_halo(team_params):
 
     team_1, team_2, interacts = team_params
 
-    ent_1 = MockPhysicalInteractive(
-        playground, coord_1, teams=team_1, interaction_range=10
-    )
+    ent_1 = MockPhysicalInteractive(teams=team_1, interaction_range=10)
+    playground.add(ent_1, coord_1)
 
-    zone_1 = MockZoneInteractive(playground, coord_2, 35, teams=team_2)
+    zone_1 = MockZoneInteractive(35, teams=team_2)
+    playground.add(zone_1, coord_2)
 
     playground.step()
 

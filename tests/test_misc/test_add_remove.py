@@ -1,4 +1,4 @@
-from simple_playgrounds.playground.playground import EmptyPlayground
+from simple_playgrounds.playground.playground import Playground
 from tests.mock_entities import (
     MockPhysicalMovable,
     MockZoneInteractive,
@@ -10,14 +10,15 @@ coord_center = (0, 0), 0
 
 def test_playground_interface_basic_element():
 
-    playground = EmptyPlayground()
+    playground = Playground()
 
     assert not playground._entities
 
-    ent_1 = MockPhysicalMovable(playground, coord_center)
+    ent_1 = MockPhysicalMovable()
+    playground.add(ent_1, coord_center)
     assert ent_1 in playground.entities
 
-    ent_1.remove()
+    playground.remove(ent_1)
     assert ent_1 not in playground.entities
     assert ent_1 in playground._entities
     assert ent_1._removed
@@ -27,7 +28,7 @@ def test_playground_interface_basic_element():
     assert ent_1 in playground.entities
     assert not ent_1.removed
 
-    ent_1.remove(definitive=True)
+    playground.remove(ent_1, definitive=True)
 
     assert ent_1 not in playground.entities
     assert ent_1 not in playground._entities
@@ -41,21 +42,20 @@ def test_playground_interface_basic_element():
 
     assert not playground.space.shapes
     assert not playground.space.bodies
-
-    playground.close()
 
 
 def test_playground_interface_interactive_element():
 
-    playground = EmptyPlayground()
+    playground = Playground()
 
     assert not playground._entities
 
-    ent_1 = MockZoneInteractive(playground, coord_center, 35)
+    ent_1 = MockZoneInteractive(35)
+    playground.add(ent_1, coord_center)
 
     assert ent_1 in playground.entities
 
-    ent_1.remove()
+    playground.remove(ent_1)
 
     assert ent_1 not in playground.entities
     assert ent_1 in playground._entities
@@ -66,7 +66,7 @@ def test_playground_interface_interactive_element():
     assert ent_1 in playground.entities
     assert not ent_1.removed
 
-    ent_1.remove(definitive=True)
+    playground.remove(ent_1, definitive=True)
 
     assert ent_1 not in playground.entities
     assert ent_1 not in playground._entities
@@ -80,23 +80,20 @@ def test_playground_interface_interactive_element():
 
     assert not playground.space.shapes
     assert not playground.space.bodies
-
-    playground.close()
 
 
 def test_playground_interface_anchored_interactive_element():
 
-    playground = EmptyPlayground()
+    playground = Playground()
 
     assert not playground._entities
 
-    ent_1 = MockPhysicalInteractive(
-        playground, coord_center, radius=20, interaction_range=10, triggered=True
-    )
+    ent_1 = MockPhysicalInteractive(radius=20, interaction_range=10)
+    playground.add(ent_1, coord_center)
 
     assert ent_1 in playground.entities
 
-    ent_1.remove()
+    playground.remove(ent_1)
 
     assert ent_1 not in playground.entities
     assert ent_1 in playground._entities
@@ -107,7 +104,7 @@ def test_playground_interface_anchored_interactive_element():
     assert ent_1 in playground.entities
     assert not ent_1.removed
 
-    ent_1.remove(definitive=True)
+    playground.remove(ent_1, definitive=True)
 
     assert ent_1 not in playground.entities
     assert ent_1 not in playground._entities
@@ -121,5 +118,3 @@ def test_playground_interface_anchored_interactive_element():
 
     assert not playground.space.shapes
     assert not playground.space.bodies
-
-    playground.close()

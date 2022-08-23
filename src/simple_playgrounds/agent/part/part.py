@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 
 import pymunk
+import math
 
 from simple_playgrounds.agent.part.controller import (
     Command,
@@ -34,14 +35,12 @@ CommandDict = Dict[Command, Union[float, int]]
 
 
 class PhysicalPart(PhysicalEntity, ABC):
-    def __init__(self, agent: Agent, initial_coordinates: InitCoord, **kwargs):
+    def __init__(self, agent: Agent, **kwargs):
 
         self._agent = agent
         self._anchored_parts: List[AnchoredPart] = []
 
         super().__init__(
-            playground=agent.playground,
-            initial_coordinates=initial_coordinates,
             **kwargs,
         )
 
@@ -49,6 +48,7 @@ class PhysicalPart(PhysicalEntity, ABC):
         self._controllers: List[Controller] = self._set_controllers(**kwargs)
 
         self._agent.add_part(self)
+        self._teams = agent.teams
 
     @property
     def anchored(self):
@@ -67,7 +67,9 @@ class PhysicalPart(PhysicalEntity, ABC):
         # If joint config are not kept, move base then parts are moved according to anchor position.
         if not keep_velocity:
 
-            super().move_to(coordinates=coordinates, **kwargs)
+            super().move_to(
+                coordinates=coordinates, keep_velocity=keep_velocity, **kwargs
+            )
             for part in self._anchored_parts:
                 part_coord = part.get_init_coordinates()
                 part.move_to(
@@ -89,9 +91,9 @@ class PhysicalPart(PhysicalEntity, ABC):
                 coordinates=coordinates, keep_velocity=keep_velocity, **kwargs
             )
 
-    def _set_pm_collision_type(self):
-        for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.PART
+    @property
+    def _collision_type(self):
+        return CollisionTypes.PART
 
     @abstractmethod
     def _set_controllers(self, **kwargs) -> List[Controller]:
@@ -105,9 +107,9 @@ class PhysicalPart(PhysicalEntity, ABC):
     def agent(self):
         return self._agent
 
-    @property
-    def name(self):
-        return self._name
+    # @property
+    # def name(self):
+    # return self._name
 
     @property
     def global_name(self):
@@ -117,12 +119,12 @@ class PhysicalPart(PhysicalEntity, ABC):
     def controllers(self):
         return self._controllers
 
-    def remove(self, definitive: bool):
-        # self._playground.space.remove(self._motor, self._joint, self._limit)
-        for part in self._anchored_parts:
-            part.remove(definitive)
+    # def remove(self, definitive: bool):
+    # self._playground.space.remove(self._motor, self._joint, self._limit)
+    # for part in self._anchored_parts:
+    #     part.remove(definitive)
 
-        super().remove(definitive=definitive)
+    # super().remove(definitive=definitive)
 
     def reset(self):
         super().reset()
@@ -130,17 +132,13 @@ class PhysicalPart(PhysicalEntity, ABC):
         for part in self._anchored_parts:
             part.reset()
 
-        if self._removed:
-            self._add_to_pymunk_space()
-            self._playground.space.add(self._joint, self._limit, self._motor)
+        # if self._removed:
+        #     self._add_to_pymunk_space()
+        # self._playground.space.add(self._joint, self._limit, self._motor)
 
 
 class Platform(PhysicalPart):
-    def __init__(self, agent: Agent, **kwargs):
-
-        super().__init__(
-            agent=agent, initial_coordinates=agent.initial_coordinates, **kwargs
-        )
+    pass
 
 
 class AnchoredPart(PhysicalPart, ABC):
@@ -158,7 +156,6 @@ class AnchoredPart(PhysicalPart, ABC):
 
         super().__init__(
             agent=anchor.agent,
-            initial_coordinates=anchor.coordinates,
             teams=anchor.agent.teams,
             **kwargs,
         )
@@ -171,25 +168,22 @@ class AnchoredPart(PhysicalPart, ABC):
 
         self._rotation_range = rotation_range
 
-        self._initial_coordinates = self.get_init_coordinates()
-        self._move_to_initial_coordinates()
-
         self._anchor.add_anchored(self)
         self._motor = None
         self._joint = None
         self._limit = None
 
-        self._attach_to_anchor()
-
     @property
     def relative_position(self):
-
         return (self.position - self._anchor.position).rotated(-self._anchor.angle)
 
     @property
     def relative_angle(self):
+        rel_angle = (self.angle - self._anchor.angle) % (2 * math.pi)
 
-        return self.angle - self._anchor.angle
+        if rel_angle > math.pi:
+            return rel_angle - 2 * math.pi
+        return rel_angle
 
     def get_init_coordinates(self):
         """
@@ -207,7 +201,9 @@ class AnchoredPart(PhysicalPart, ABC):
 
         return position, angle
 
-    def _attach_to_anchor(self):
+    def attach_to_anchor(self):
+
+        assert self._playground
 
         # Create joint to attach to anchor
         self._joint = pymunk.PivotJoint(
@@ -223,7 +219,10 @@ class AnchoredPart(PhysicalPart, ABC):
 
         self._motor = pymunk.SimpleMotor(self._anchor.pm_body, self.pm_body, 0)
 
-        self._playground.space.add(self._joint, self._limit, self._motor)
+    @property
+    def pm_joints(self):
+        assert self._joint and self._limit and self._motor
+        return self._joint, self._limit, self._motor
 
     @property
     @abstractmethod
@@ -239,6 +238,7 @@ class InteractivePart(AnchoredInteractive):
         super().__init__(anchor=anchor, **kwargs)
 
         self._agent.add_part(self)
+        self._teams = self._agent.teams
 
     def relative_position(self):
 
@@ -259,10 +259,6 @@ class InteractivePart(AnchoredInteractive):
     @property
     def agent(self):
         return self._agent
-
-    @property
-    def name(self):
-        return self._name
 
     @property
     def global_name(self):

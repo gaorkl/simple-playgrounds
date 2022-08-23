@@ -25,8 +25,6 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
     def __init__(
         self,
-        playground: Playground,
-        initial_coordinates: InitCoord,
         mass: Optional[float] = None,
         traversable: bool = False,
         transparent: bool = False,
@@ -39,14 +37,11 @@ class PhysicalEntity(EmbodiedEntity, ABC):
 
         self._interactives: List[AnchoredInteractive] = []
 
-        super().__init__(
-            playground=playground, initial_coordinates=initial_coordinates, **kwargs
-        )
+        super().__init__(**kwargs)
 
         self._set_shape_collision_filter()
-        self.update_team_filter()
 
-        self.grasped_by = []
+        self._grasped_by = []
 
     @property
     def transparent(self):
@@ -60,34 +55,27 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     def interactives(self):
         return self._interactives
 
+    @property
+    def _collision_type(self):
+        return False
+
+    def update_team_filter(self):
+        super().update_team_filter()
+
+        for interactive in self._interactives:
+            interactive.update_team_filter()
+
     ########################
     # BODY AND SHAPE
     ########################
 
-    def _get_pm_body(self, pm_shape: Optional[pymunk.Shape] = None):
+    def _get_pm_body(self):
 
         if not self._mass:
             return pymunk.Body(body_type=pymunk.Body.STATIC)
 
-        if self._pm_from_shape:
-            assert pm_shape
-            if isinstance(pm_shape, pymunk.Segment):
-                moment = pymunk.moment_for_segment(
-                    self._mass, pm_shape.a, pm_shape.b, pm_shape.radius
-                )
-            elif isinstance(pm_shape, pymunk.Circle):
-                moment = pymunk.moment_for_circle(self._mass, 0, pm_shape.radius)
-            elif isinstance(pm_shape, pymunk.Poly):
-                moment = pymunk.moment_for_poly(self._mass, pm_shape.get_vertices())
-            else:
-                raise ValueError
-
-        elif self._pm_from_sprite:
-            vertices = self._base_sprite.get_hit_box()
-            moment = pymunk.moment_for_poly(self._mass, vertices)
-
-        else:
-            raise ValueError
+        vertices = self._base_sprite.get_hit_box()
+        moment = pymunk.moment_for_poly(self._mass, vertices)
 
         return pymunk.Body(self._mass, moment, body_type=pymunk.Body.DYNAMIC)
 
@@ -122,6 +110,7 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     ###################
 
     def add_interactive(self, interactive):
+
         self._interactives.append(interactive)
 
     def pre_step(self):
@@ -137,10 +126,10 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         for interactive in self._interactives:
             interactive.post_step(**kwargs)
 
-    def remove(self, **kwargs):
-        super().remove(**kwargs)
+    def exit_playground(self):
+        super().exit_playground()
         for interactive in self._interactives:
-            interactive.remove(**kwargs)
+            self._playground.remove(interactive, definitive=True)
 
     def reset(self, **kwargs):
         super().reset()

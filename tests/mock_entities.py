@@ -9,6 +9,9 @@ from simple_playgrounds.common.definitions import (
     CollisionTypes,
     PymunkCollisionCategories,
 )
+
+from simple_playgrounds.common.sprite_utils import get_texture_from_shape
+
 from simple_playgrounds.element.wall import ColorWall
 from simple_playgrounds.entity.interactive import (
     AnchoredInteractive,
@@ -19,51 +22,34 @@ from simple_playgrounds.playground.collision_handlers import get_colliding_entit
 
 
 class MockPhysicalFromResource(PhysicalEntity):
-    def __init__(self, playground, initial_coordinates, filename, **kwargs):
+    def __init__(self, filename, **kwargs):
 
-        super().__init__(
-            playground, initial_coordinates, mass=10, filename=filename, **kwargs
-        )
-
-    def _set_pm_collision_type(self):
-        pass
+        super().__init__(mass=10, filename=filename, **kwargs)
 
 
 class MockPhysicalMovable(PhysicalEntity):
-    def __init__(self, playground, initial_coordinates, radius=None, **kwargs):
+    def __init__(self, radius=None, **kwargs):
 
         super().__init__(
-            playground,
-            initial_coordinates,
             mass=10,
             radius=radius,
             filename=":resources:onscreen_controls/flat_light/play.png",
             **kwargs
         )
 
-    def _set_pm_collision_type(self):
-        pass
-
 
 class MockPhysicalUnmovable(PhysicalEntity):
-    def __init__(self, playground, initial_coordinates, radius=None, **kwargs):
+    def __init__(self, radius=None, **kwargs):
 
         super().__init__(
-            playground,
-            initial_coordinates,
             radius=radius,
             filename=":resources:onscreen_controls/flat_light/close.png",
             **kwargs
         )
 
-    def _set_pm_collision_type(self):
-        pass
-
 
 class MockPhysicalFromShape(PhysicalEntity):
-    def __init__(
-        self, playground, initial_coordinates, geometry, size, mass=None, **kwargs
-    ):
+    def __init__(self, geometry, size, color, mass=None, **kwargs):
 
         if geometry == "segment":
             pm_shape = pymunk.Segment(None, (-size, 0), (size, 0), radius=5)
@@ -76,12 +62,9 @@ class MockPhysicalFromShape(PhysicalEntity):
         else:
             raise ValueError
 
-        super().__init__(
-            playground, initial_coordinates, mass, pm_shape=pm_shape, **kwargs
-        )
+        texture = get_texture_from_shape(pm_shape, color, "geometry_" + str(size))
 
-    def _set_pm_collision_type(self):
-        pass
+        super().__init__(mass=mass, texture=texture, **kwargs)
 
 
 class MockHalo(AnchoredInteractive):
@@ -89,9 +72,9 @@ class MockHalo(AnchoredInteractive):
         super().__init__(anchor, interaction_range)
         self._activated = False
 
-    def _set_pm_collision_type(self):
-        for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.PASSIVE_INTERACTOR
+    @property
+    def _collision_type(self):
+        return CollisionTypes.PASSIVE_INTERACTOR
 
     def pre_step(self):
         self._activated = False
@@ -99,15 +82,15 @@ class MockHalo(AnchoredInteractive):
     def activate(self):
         self._activated = True
 
+    @property
+    def activated(self):
+        return self._activated
+
 
 class MockPhysicalInteractive(PhysicalEntity):
-    def __init__(
-        self, playground, initial_coordinates, interaction_range, radius=None, **kwargs
-    ):
+    def __init__(self, interaction_range, radius=None, **kwargs):
 
         super().__init__(
-            playground,
-            initial_coordinates,
             radius=radius,
             mass=10,
             filename=":resources:onscreen_controls/flat_light/star_round.png",
@@ -119,25 +102,19 @@ class MockPhysicalInteractive(PhysicalEntity):
             interaction_range=interaction_range,
         )
 
-    def _set_pm_collision_type(self):
-        pass
-
 
 class MockZoneInteractive(StandAloneInteractive):
-    def __init__(self, playground, initial_coordinates, radius=None, **kwargs):
+    def __init__(self, radius=None, **kwargs):
         super().__init__(
-            playground,
-            initial_coordinates,
             radius=radius,
             filename=":resources:onscreen_controls/flat_light/star_square.png",
             **kwargs
         )
         self._activated = False
 
-    def _set_pm_collision_type(self):
-
-        for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.PASSIVE_INTERACTOR
+    @property
+    def _collision_type(self):
+        return CollisionTypes.PASSIVE_INTERACTOR
 
     def pre_step(self):
         self._activated = False
@@ -145,9 +122,13 @@ class MockZoneInteractive(StandAloneInteractive):
     def activate(self):
         self._activated = True
 
+    @property
+    def activated(self):
+        return self._activated
+
 
 class NonConvexPlus_Approx(MockPhysicalMovable):
-    def __init__(self, playground, initial_coordinates, radius, width, **kwargs):
+    def __init__(self, radius, width, **kwargs):
 
         img = np.zeros((2 * radius + 2 * width + 1, 2 * radius + 2 * width + 1, 4))
 
@@ -169,14 +150,12 @@ class NonConvexPlus_Approx(MockPhysicalMovable):
             hit_box_detail=2,
         )
 
-        super().__init__(playground, initial_coordinates, texture=texture, **kwargs)
+        super().__init__(texture=texture, **kwargs)
 
 
 class NonConvexPlus(MockPhysicalMovable):
     def __init__(
         self,
-        playground,
-        initial_coordinates,
         radius,
         width,
         shape_approximation="decomposition",
@@ -203,8 +182,6 @@ class NonConvexPlus(MockPhysicalMovable):
         )
 
         super().__init__(
-            playground,
-            initial_coordinates,
             texture=texture,
             shape_approximation=shape_approximation,
         )
@@ -213,8 +190,6 @@ class NonConvexPlus(MockPhysicalMovable):
 class NonConvexC(MockPhysicalMovable):
     def __init__(
         self,
-        playground,
-        initial_coordinates,
         radius,
         width,
         shape_approximation="decomposition",
@@ -242,34 +217,28 @@ class NonConvexC(MockPhysicalMovable):
         )
 
         super().__init__(
-            playground,
-            initial_coordinates,
             texture=texture,
             shape_approximation=shape_approximation,
         )
 
 
 class MockBarrier(ColorWall):
-    def __init__(self, playground, begin_pt, end_pt, width, **kwargs):
+    def __init__(self, begin_pt, end_pt, width, **kwargs):
 
-        super().__init__(
-            playground, begin_pt, end_pt, width=width, color=(0, 10, 2), **kwargs
-        )
+        super().__init__(begin_pt, end_pt, width=width, color=(0, 10, 2), **kwargs)
 
     def update_team_filter(self):
 
-        # if not self._teams:
-        #     return
+        assert self._playground
 
         categ = 2**PymunkCollisionCategories.NO_TEAM.value
         for team in self._teams:
             categ = categ | 2 ** self._playground.teams[team]
 
         mask = 0
-        for team in self._playground.teams:
-
-            if team not in self._teams:
-                mask = mask | 2 ** self._playground.teams[team]
+        for team_name, team_id in self._playground.teams.items():
+            if team_name not in self._teams:
+                mask = mask | 2**team_id
 
         for pm_shape in self.pm_shapes:
             pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)

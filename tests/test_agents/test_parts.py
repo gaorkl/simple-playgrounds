@@ -4,8 +4,8 @@ import random
 import numpy as np
 import pytest
 
-from simple_playgrounds.playground.playground import EmptyPlayground
-from tests.mock_agents import MockAgentWithArm
+from simple_playgrounds.playground.playground import Playground
+from tests.mock_agents import MockAgent, MockAgentWithArm
 
 
 @pytest.fixture(scope="module", params=[(20, 20), (-20, -20), (10, -10)])
@@ -25,13 +25,14 @@ def keep_velocity(request):
 
 def test_move(pos, angle):
 
-    playground = EmptyPlayground()
-    agent = MockAgentWithArm(playground, (pos, angle))
+    playground = Playground()
+    agent = MockAgentWithArm()
+    playground.add(agent, (pos, angle))
 
     assert agent.position.x == pos[0]
     assert agent.position.y == pos[1]
+    assert agent.angle == angle % (2 * math.pi)
 
-    # Check that joints are correct. Agent shouldn't move
     for _ in range(100):
         playground.step()
 
@@ -53,8 +54,10 @@ def test_move(pos, angle):
 
 def test_move_reset(pos, angle):
 
-    playground = EmptyPlayground()
-    agent = MockAgentWithArm(playground, (pos, angle))
+    playground = Playground()
+    agent = MockAgentWithArm()
+    # agent = MockAgent()
+    playground.add(agent, (pos, angle))
 
     commands = {agent: {agent.base.forward_controller: 1}}
 
@@ -74,10 +77,11 @@ def test_move_reset(pos, angle):
     assert agent.position.y == pytest.approx(pos[1], 0.001)
 
 
-def test_move_arm():
+def test_move_arm(pos, angle):
 
-    playground = EmptyPlayground()
-    agent = MockAgentWithArm(playground, ((0, 0), 0))
+    playground = Playground()
+    agent = MockAgentWithArm()
+    playground.add(agent, (pos, angle))
 
     commands = {
         agent: {
@@ -90,16 +94,13 @@ def test_move_arm():
     for _ in range(1000):
         playground.step(commands=commands)
 
-    assert (
-        math.pi / 3 + math.pi / 8 - math.pi / 20
-        < agent.left_arm.relative_angle
-        < math.pi / 3 + math.pi / 8
-    )
-    assert (
-        -math.pi / 3 - math.pi / 8
-        < agent.right_arm.relative_angle - 2 * math.pi
-        < -math.pi / 3 - math.pi / 8 + math.pi / 20
-    )
+    # playground.debug_draw(5, size=(200, 200))
+
+    assert math.pi / 3 + math.pi / 8 - math.pi / 20 < agent.left_arm.relative_angle
+    assert agent.left_arm.relative_angle < math.pi / 3 + math.pi / 8
+
+    assert -math.pi / 3 - math.pi / 8 < agent.right_arm.relative_angle
+    assert agent.right_arm.relative_angle < -math.pi / 3 - math.pi / 8 + math.pi / 20
 
     # random_pos = (random.uniform(-10, 10), random.uniform(-10, 10))
     # random_angle = random.uniform(-10, 10)
@@ -115,7 +116,7 @@ def test_move_arm():
 
 
 # def test_reset(pos, angle, pos_on_part, pos_on_anchor, offset_angle):
-#     playground = EmptyPlayground()
+#     playground = Playground()
 #     agent = MockAgent(playground, coordinates=(pos, angle))
 
 #     contour = Contour(shape='rectangle', size=(50, 30))
@@ -149,7 +150,7 @@ def test_move_arm():
 
 
 # def test_command_and_move(pos, angle, pos_on_part, pos_on_anchor, offset_angle, keep_velocity):
-#     playground = EmptyPlayground()
+#     playground = Playground()
 #     agent = MockAgent(playground, coordinates=(pos, angle))
 
 #     contour = Contour(shape='rectangle', size=(50, 30))
@@ -196,7 +197,7 @@ def test_move_arm():
 
 
 # def test_command_and_reset(pos, angle, pos_on_part, pos_on_anchor, offset_angle):
-#     playground = EmptyPlayground()
+#     playground = Playground()
 #     agent = MockAgent(playground, coordinates=(pos, angle))
 
 #     contour = Contour(shape='rectangle', size=(50, 30))
@@ -239,7 +240,7 @@ def test_move_arm():
 
 
 # def test_agent_reset_sampler():
-#     playground = EmptyPlayground()
+#     playground = Playground()
 #     sampler = FixedCoordinateSampler(position=(0,0), distribution='uniform', contour = Contour(shape='circle', radius=200))
 
 #     agent = MockAgent(playground, coordinates=sampler)
@@ -274,7 +275,7 @@ def test_move_arm():
 
 
 # def test_agent_reset_sampler():
-#     playground = EmptyPlayground()
+#     playground = Playground()
 
 #     agent = MockAgent(playground)
 

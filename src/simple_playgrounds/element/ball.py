@@ -7,11 +7,9 @@ from simple_playgrounds.common.position_utils import InitCoord
 
 
 class Ball(PhysicalEntity):
-    def __init__(self, playground: Playground, initial_coordinates: InitCoord):
+    def __init__(self):
 
         super().__init__(
-            playground,
-            initial_coordinates,
             mass=10,
             filename=":spg:rollingball/ball/ball_blue_large.png",
             radius=10,

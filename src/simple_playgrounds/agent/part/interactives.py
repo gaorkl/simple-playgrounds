@@ -35,9 +35,9 @@ class Grasper(InteractivePart):
             self._grasped_entities.append(entity)
             entity.anchor.grasped_by.append(self)
 
-    def _set_pm_collision_type(self):
-        for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.GRASPER
+    @property
+    def _collision_type(self):
+        return CollisionTypes.GRASPER
 
     def _set_controllers(self, **kwargs) -> List[Controller]:
         grasper = BoolController(part=self)

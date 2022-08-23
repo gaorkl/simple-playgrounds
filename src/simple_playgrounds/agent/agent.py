@@ -23,8 +23,7 @@ from simple_playgrounds.common.position_utils import (
     CoordinateSampler,
     InitCoord,
 )
-from simple_playgrounds.entity.embodied import EmbodiedEntity
-from simple_playgrounds.entity.entity import Entity
+from simple_playgrounds.entity.embodied import EmbodiedEntity, Entity
 
 from simple_playgrounds.element.element import Teleporter
 
@@ -60,22 +59,10 @@ class Agent(Entity):
 
     def __init__(
         self,
-        playground: Playground,
-        initial_coordinates: Optional[InitCoord] = None,
-        temporary: bool = False,
         **kwargs,
     ):
 
-        super().__init__(playground=playground, **kwargs)
-
-        if not initial_coordinates:
-            if playground.initial_agent_coordinates:
-                initial_coordinates = playground.initial_agent_coordinates
-
-            else:
-                raise ValueError("Agent initial coordinates should be fixed")
-
-        self._initial_coordinates = initial_coordinates
+        super().__init__(**kwargs)
 
         self._name_count = {}
         self._name_to_controller = {}
@@ -96,7 +83,8 @@ class Agent(Entity):
         # Teleport
         self._teleported_to: Optional[Union[Coordinate, Teleporter]] = None
 
-        self._temporary = temporary
+        self._initial_coordinates = None
+        self._allow_overlapping = False
 
     def get_name(self, obj: Controller):
         index = self._name_count.get(type(obj), 0)
@@ -111,6 +99,18 @@ class Agent(Entity):
     @property
     def initial_coordinates(self):
         return self._initial_coordinates
+
+    @initial_coordinates.setter
+    def initial_coordinates(self, init_coord):
+        self._initial_coordinates = init_coord
+
+    @property
+    def allow_overlapping(self):
+        return self._allow_overlapping
+
+    @allow_overlapping.setter
+    def allow_overlapping(self, allow):
+        self._allow_overlapping = allow
 
     @property
     def position(self):
@@ -209,7 +209,7 @@ class Agent(Entity):
         """
         ...
 
-    def add_part(self, part: PhysicalPart):
+    def add_part(self, part: Union[PhysicalPart, InteractivePart]):
         if part in self._parts:
             raise ValueError("Part already in agent")
 
@@ -244,16 +244,18 @@ class Agent(Entity):
 
     def reset(self):
 
-        # Remove completely if temporary
-        if self._temporary:
-            self.remove()
-            return
+        for part in self.parts:
+            part.pm_body.velocity = (0, 0)
+            part.pm_body.angular_velocity = 0
 
-        self._removed = False
+        # Remove completely if temporary
+        # if self._temporary:
+        #     self.remove()
+        # return
+
+        # self._removed = False
         for part in self._parts:
             part.reset()
-
-        self._base._move_to_initial_coordinates()
 
     def post_step(self, **kwargs):
 

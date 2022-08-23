@@ -27,29 +27,45 @@ class Entity(ABC):
 
     def __init__(
         self,
-        playground: Playground,
         name: Optional[str] = None,
         teams: Optional[Teams] = None,
+        temporary: bool = False,
         **_,
     ):
 
-        self._playground = playground
+        # Unique identifiers
+        self._uid = None
+        self._name = name
 
-        self._uid, self._name = self._playground._get_uid_name(self, name)
+        # Teams
+        if isinstance(teams, str):
+            teams = [teams]
+        elif not teams:
+            teams = []
 
-        self._teams: List[str] = self._add_to_teams(teams)
+        self._teams = teams
 
-        self._playground.add_to_mappings(self)
+        self._temporary = temporary
 
         self._removed = False
+
+        self._playground = None
 
     @property
     def uid(self):
         return self._uid
 
+    @uid.setter
+    def uid(self, uid: int):
+        self._uid = uid
+
     @property
     def name(self):
         return self._name
+
+    @name.setter
+    def name(self, name: str):
+        self._name = name
 
     @property
     def teams(self):
@@ -59,30 +75,23 @@ class Entity(ABC):
     def removed(self):
         return self._removed
 
+    @removed.setter
+    def removed(self, rem: bool):
+        self._removed = rem
+
+    @property
+    def temporary(self):
+        return self._temporary
+
     @property
     def playground(self):
         return self._playground
 
-    def _add_to_teams(self, teams: Optional[Teams] = None):
+    @playground.setter
+    def playground(self, playground: Optional[Playground]):
+        self._playground = playground
 
-        if not teams:
-            return []
-
-        if isinstance(teams, str):
-            teams = [teams]
-
-        for team in teams:
-            self._playground.add_team(team)
-
-        return teams
-
-    @abstractmethod
-    def remove(self, definitive: bool = False):
-
-        if definitive:
-            self._playground.remove_from_mappings(entity=self)
-
-        self._removed = True
+    # Interactions with playground
 
     @abstractmethod
     def reset(self, **_):
@@ -90,6 +99,7 @@ class Entity(ABC):
         Upon reset of the Playgroung,
         revert the entity back to its original state.
         """
+        pass
 
     @abstractmethod
     def pre_step(self, **_):

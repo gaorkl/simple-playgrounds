@@ -17,9 +17,9 @@ if TYPE_CHECKING:
 
 
 class InteractiveEntity(EmbodiedEntity, ABC):
-    def __init__(self, playground, initial_coordinates, **kwargs):
+    def __init__(self, **kwargs):
 
-        super().__init__(playground, initial_coordinates, **kwargs)
+        super().__init__(**kwargs)
 
         for pm_shape in self._pm_shapes:
             pm_shape.sensor = True
@@ -34,10 +34,6 @@ class InteractiveEntity(EmbodiedEntity, ABC):
         sprite.alpha = INVISIBLE_ALPHA
 
         return sprite
-
-    @property
-    def activated(self):
-        return self._activated
 
     def update_team_filter(self):
 
@@ -81,8 +77,6 @@ class AnchoredInteractive(InteractiveEntity, ABC):
         texture = self._anchor.texture
 
         super().__init__(
-            playground=anchor.playground,
-            initial_coordinates=anchor.coordinates,
             texture=texture,
             radius=radius,
             teams=self._anchor._teams,
@@ -98,13 +92,9 @@ class AnchoredInteractive(InteractiveEntity, ABC):
     def _get_pm_body(self):
         return self._anchor._pm_body
 
-    def _add_to_pymunk_space(self):
-        for pm_shape in self._pm_shapes:
-            self._playground.space.add(pm_shape)
-
-    def _remove_from_pymunk_space(self):
-        for pm_shape in self._pm_shapes:
-            self._playground.space.remove(pm_shape)
+    @property
+    def pm_elements(self):
+        return self._pm_shapes
 
 
 class Graspable(AnchoredInteractive):
@@ -118,6 +108,6 @@ class Graspable(AnchoredInteractive):
 
         self.grasped_by: List[EmbodiedEntity] = []
 
-    def _set_pm_collision_type(self):
-        for pm_shape in self._pm_shapes:
-            pm_shape.collision_type = CollisionTypes.GRASPABLE
+    @property
+    def _collision_type(self):
+        return CollisionTypes.GRASPABLE

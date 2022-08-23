@@ -2,7 +2,7 @@ import math
 import numpy as np
 from simple_playgrounds.common import view
 
-from simple_playgrounds.playground.playground import EmptyPlayground
+from simple_playgrounds.playground.playground import Playground
 from simple_playgrounds.common.view import TopDownView
 from tests.test_view.conftest import color_bg
 from ..mock_entities import (
@@ -19,7 +19,7 @@ center_view = (0, 0)
 def test_empty_pg(view_size, zoom, color_bg):
     """Tests that background is set correctly"""
 
-    playground = EmptyPlayground(background=color_bg)
+    playground = Playground(background=color_bg)
     view = TopDownView(playground, center=center_view, size=view_size, zoom=zoom)
 
     view.update()
@@ -31,9 +31,11 @@ def test_empty_pg(view_size, zoom, color_bg):
 def test_shape(geometry, position, center):
 
     color_ent = (123, 122, 54)
-    playground = EmptyPlayground()
-    ent_1 = MockPhysicalFromShape(
-        playground, (position, math.pi / 3), geometry=geometry, size=10, color=color_ent
+    playground = Playground()
+    ent_1 = MockPhysicalFromShape(geometry=geometry, size=10, color=color_ent)
+    playground.add(
+        ent_1,
+        (position, math.pi / 3),
     )
 
     view = TopDownView(playground, center=center, size=(300, 300), display_uid=False)
@@ -54,9 +56,11 @@ def test_shape(geometry, position, center):
 def test_position(geometry, position, zoom):
 
     color_ent = (123, 122, 54)
-    playground = EmptyPlayground()
-    ent_1 = MockPhysicalFromShape(
-        playground, (position, math.pi / 3), geometry=geometry, size=10, color=color_ent
+    playground = Playground()
+    ent_1 = MockPhysicalFromShape(geometry=geometry, size=10, color=color_ent)
+    playground.add(
+        ent_1,
+        (position, math.pi / 3),
     )
 
     view = TopDownView(
@@ -81,17 +85,22 @@ def test_traversable(geometry, position, zoom):
     color_1 = (123, 122, 54)
     color_2 = (13, 12, 54)
 
-    playground = EmptyPlayground()
+    playground = Playground()
     ent_1 = MockPhysicalFromShape(
-        playground,
-        (position, math.pi / 3),
         geometry=geometry,
         size=10,
         color=color_1,
         traversable=True,
     )
-    ent_2 = MockPhysicalFromShape(
-        playground, (position, math.pi / 3), geometry=geometry, size=10, color=color_2
+    playground.add(
+        ent_1,
+        (position, math.pi / 3),
+    )
+
+    ent_2 = MockPhysicalFromShape(geometry=geometry, size=10, color=color_2)
+    playground.add(
+        ent_2,
+        (position, math.pi / 3),
     )
 
     view = TopDownView(
@@ -116,14 +125,16 @@ def test_transparent(geometry, position, zoom):
     color_1 = (123, 122, 54)
     color_2 = (13, 12, 54)
 
-    playground = EmptyPlayground()
+    playground = Playground()
     ent_1 = MockPhysicalFromShape(
-        playground,
-        (position, math.pi / 3),
         geometry=geometry,
         size=10,
         color=color_1,
         transparent=True,
+    )
+    playground.add(
+        ent_1,
+        (position, math.pi / 3),
     )
 
     view = TopDownView(
@@ -151,8 +162,9 @@ def test_transparent(geometry, position, zoom):
 def test_remove_entity():
 
     color_ent = (123, 122, 54)
-    playground = EmptyPlayground()
-    ent_1 = MockPhysicalInteractive(playground, ((0, 0), 0), interaction_range=10)
+    playground = Playground()
+    ent_1 = MockPhysicalInteractive(interaction_range=5)
+    playground.add(ent_1, ((0, 0), 0))
 
     view = TopDownView(
         playground,
@@ -171,7 +183,8 @@ def test_remove_entity():
         view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
     )
 
-    ent_1.remove()
+    playground.remove(ent_1)
+    assert ent_1 not in view._sprites
 
     view.update()
 
@@ -191,10 +204,9 @@ def test_remove_entity():
 def test_move_entity():
 
     color_ent = (123, 122, 54)
-    playground = EmptyPlayground()
-    ent_1 = MockPhysicalFromShape(
-        playground, ((0, 0), 0), geometry="circle", size=10, color=color_ent
-    )
+    playground = Playground()
+    ent_1 = MockPhysicalFromShape(geometry="circle", size=10, color=color_ent)
+    playground.add(ent_1, ((0, 0), 0))
 
     view = TopDownView(
         playground, zoom=1, center=center_view, size=(300, 300), display_uid=False
@@ -212,19 +224,22 @@ def test_move_entity():
 
     view.update()
 
-    assert np.all(view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0))
     assert np.all(
-        view.get_np_img()[ent_pos_on_image[0] + 100, ent_pos_on_image[1] + 100] == color_ent
+        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
+    )
+    assert np.all(
+        view.get_np_img()[ent_pos_on_image[0] + 100, ent_pos_on_image[1] + 100]
+        == color_ent
     )
 
 
 def test_multiple_views():
 
     color_ent = (123, 122, 54)
-    playground = EmptyPlayground()
-    ent_1 = MockPhysicalFromShape(
-        playground, ((0, 0), 0), geometry="circle", size=10, color=color_ent
-    )
+    playground = Playground()
+    ent_1 = MockPhysicalFromShape(geometry="circle", size=10, color=color_ent)
+
+    playground.add(ent_1, ((0, 0), 0))
 
     view_2 = TopDownView(
         playground,
@@ -259,22 +274,22 @@ def test_multiple_views():
 
 def test_visual_view(zoom):
 
-    playground = EmptyPlayground(background=(123, 0, 134))
+    playground = Playground(background=(123, 0, 134))
 
     # Position and orientation
-    MockPhysicalMovable(playground, ((-100, 100), 0))
-    MockPhysicalMovable(playground, ((0, 100), math.pi / 4))
-    MockPhysicalMovable(playground, ((100, 100), math.pi / 3))
+    playground.add(MockPhysicalMovable(), ((-100, 100), 0))
+    playground.add(MockPhysicalMovable(), ((0, 100), math.pi / 4))
+    playground.add(MockPhysicalMovable(), ((100, 100), math.pi / 3))
 
     # Radius
-    MockPhysicalMovable(playground, ((-100, 0), 0))
-    MockPhysicalMovable(playground, ((0, 0), 0), radius=10)
-    MockPhysicalMovable(playground, ((100, 0), 0), radius=30)
+    playground.add(MockPhysicalMovable(), ((-100, 0), 0))
+    playground.add(MockPhysicalMovable(radius=10), ((0, 0), 0))
+    playground.add(MockPhysicalMovable(radius=30), ((100, 0), 0))
 
     # Different shapes
-    MockPhysicalUnmovable(playground, ((-100, -100), 0))
-    MockPhysicalInteractive(playground, ((0, -100), 0), interaction_range=10)
-    MockZoneInteractive(playground, ((100, -100), 0))
+    playground.add(MockPhysicalUnmovable(), ((-100, -100), 0))
+    playground.add(MockPhysicalInteractive(interaction_range=10), ((0, -100), 0))
+    playground.add(MockZoneInteractive(), ((100, -100), 0))
 
     # MockPhysicalUnmovable(playground, ((0, 100), 0))
 

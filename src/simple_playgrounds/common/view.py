@@ -7,7 +7,6 @@ from simple_playgrounds.agent.part.part import InteractivePart, PhysicalPart
 from simple_playgrounds.entity.interactive import InteractiveEntity
 
 from simple_playgrounds.entity.physical import PhysicalEntity
-from simple_playgrounds.playground.playground import ClosedPlayground
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
@@ -36,17 +35,16 @@ class TopDownView(ABC):
 
         self._playground = playground
 
-        self._ctx = playground.ctx
+        self._ctx = playground.window.ctx
 
         self._center = center
 
         if not size:
-            if isinstance(playground, ClosedPlayground):
-                size = playground.size
-            else:
-                raise ValueError("Size should be set")
+            size = playground.size
 
-        assert size
+        if not size:
+            raise ValueError("Size should be set")
+
         self._width, self._height = self._size = size
 
         self._zoom = zoom
@@ -130,7 +128,7 @@ class TopDownView(ABC):
             for anchored in entity.anchored:
                 self.add(anchored)
 
-        if isinstance(entity, PhysicalEntity):
+        if isinstance(entity, PhysicalEntity) and not isinstance(entity, PhysicalPart):
             for interactive in entity.interactives:
                 self.add(interactive)
 
@@ -140,13 +138,15 @@ class TopDownView(ABC):
 
         sprite = self._sprites.pop(entity)
 
-        # if isinstance(entity, PhysicalPart):
-        #     for part in entity.anchored:
-        #         self.remove(part)
+        if isinstance(entity, PhysicalPart):
+            for part in entity.anchored:
+                self.remove(part)
 
-        if isinstance(entity, PhysicalEntity):
-            # for interactive in entity._interactives:
-            #     self.remove(interactive)
+        elif isinstance(entity, PhysicalEntity) and not isinstance(
+            entity, PhysicalPart
+        ):
+            for interactive in entity._interactives:
+                self.remove(interactive)
 
             if entity.traversable:
                 self._traversable_sprites.remove(sprite)

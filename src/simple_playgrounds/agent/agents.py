@@ -5,10 +5,10 @@ from simple_playgrounds.agent.part.parts import ForwardBase, Head
 
 
 class HeadAgent(Agent):
-    def __init__(self, playground, initial_coordinates=None, **kwargs):
+    def __init__(self, **kwargs):
 
         super().__init__(
-            playground=playground, initial_coordinates=initial_coordinates, **kwargs
+            **kwargs
         )
 
         # MockTriggerPart(self._base, shape_approximation = 'decomposition')

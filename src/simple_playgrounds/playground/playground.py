@@ -15,16 +15,23 @@ import gc
 from abc import abstractmethod
 from typing import List, Dict, Optional, Type, Union, Tuple, TYPE_CHECKING
 
+from PIL.Image import init
+from arcade import Window
+from simple_playgrounds import playground
+from simple_playgrounds.agent.part import interactives
+from simple_playgrounds.common.position_utils import Coordinate
+from simple_playgrounds.element.element import SceneElement
+
+from simple_playgrounds.entity.physical import PhysicalEntity
+
 if TYPE_CHECKING:
     from simple_playgrounds.common.gui import GUI
 
 import pymunk
-import arcade
 import numpy as np
 
 import matplotlib.pyplot as plt
 import pymunk.matplotlib_util
-from simple_playgrounds import entity
 
 from simple_playgrounds.entity.interactive import (
     AnchoredInteractive,
@@ -40,10 +47,14 @@ from simple_playgrounds.common.definitions import (
     PymunkCollisionCategories,
 )
 from simple_playgrounds.agent.agent import Agent
-from simple_playgrounds.entity.entity import Entity
 from simple_playgrounds.entity.embodied import EmbodiedEntity
+from simple_playgrounds.entity.entity import Entity
 
-from simple_playgrounds.agent.part.part import PhysicalPart
+from simple_playgrounds.agent.part.part import (
+    AnchoredPart,
+    InteractivePart,
+    PhysicalPart,
+)
 from simple_playgrounds.agent.part.controller import Controller, Command
 from simple_playgrounds.agent.device.communication import CommunicationDevice, Message
 
@@ -61,8 +72,12 @@ ObservationsDict = Dict[Agent, Dict[Sensor, SensorValue]]
 ReceivedMessagesDict = Dict[Agent, Dict[CommunicationDevice, Message]]
 RewardsDict = Dict[Agent, float]
 
+# arcade.Window
+# super().__init__(1, 1, visible=False, antialiasing=True)  # type: ignore
+# self.ctx.blend_func = self.ctx.ONE, self.ctx.ZERO
 
-class Playground(arcade.Window):
+
+class Playground:
     """Playground is a Base Class that manages the physical simulation.
 
     Playground manages the interactions between Agents and Scene Elements.
@@ -87,21 +102,23 @@ class Playground(arcade.Window):
 
     def __init__(
         self,
+        size: Optional[Tuple[int, int]] = None,
         seed: Optional[int] = None,
         background: Optional[
             Union[Tuple[int, int, int], List[int], Tuple[int, int, int, int]]
         ] = None,
     ):
 
-        super().__init__(1, 1, visible=False, antialiasing=True)  # type: ignore
-        self.ctx.blend_func = self.ctx.ONE, self.ctx.ZERO
-
         # Random number generator for replication, rewind, etc.
         self._rng = np.random.default_rng(seed)
 
         # By default, size is infinite and center is at (0,0)
-        self._size = None
         self._center = (0, 0)
+        self._size = size
+        if size:
+            self._width, self._height = size
+        else:
+            self._width = self._height = None
 
         # Background color
         if not background:
@@ -113,7 +130,7 @@ class Playground(arcade.Window):
         self._space = self._initialize_space()
 
         # Lists containing entities in the playground
-        self._entities: List[Entity] = []
+        self._entities: List[EmbodiedEntity] = []
         self._agents: List[Agent] = []
         self._teams = {}
 
@@ -122,24 +139,28 @@ class Playground(arcade.Window):
         self._timestep: int = 0
 
         # Mappings
-        self._shapes_to_entities: Dict[pymunk.Shape, Entity] = {}
+        self._shapes_to_entities: Dict[pymunk.Shape, EmbodiedEntity] = {}
         self._name_to_agents: Dict[str, Agent] = {}
-        self._uids_to_entities: Dict[int, Entity] = {}
+        self._uids_to_entities: Dict[int, EmbodiedEntity] = {}
 
         self._handle_interactions()
         self._views = []
-        self._gui: Optional[GUI] = None
 
-    def use_gui(self, gui):
-        if self._gui:
-            raise ValueError("Only one GUI possible")
-        self._gui = gui
+        # Arcade window necessary to create contexts, views, sensors and gui
+        self._window = Window(1, 1, visible=False, antialiasing=True)  # type: ignore
+        self._window.ctx.blend_func = self._window.ctx.ONE, self._window.ctx.ZERO
 
-    def debug_draw(self, plt_width, center, size):
+    def debug_draw(self, plt_width, center=None, size=None):
 
-        w, h = size
-        ratio = plt_width / w
-        fig_size = (plt_width, ratio * h)
+        if not center:
+            center = self._center
+
+        if not size:
+            if not self._size:
+                raise ValueError("Size must be set for display")
+            size = self._size
+
+        fig_size = (plt_width, plt_width / size[0] * size[1])
 
         fig = plt.figure(figsize=fig_size)
 
@@ -152,14 +173,17 @@ class Playground(arcade.Window):
         options = pymunk.matplotlib_util.DrawOptions(ax)
         options.collision_point_color = (10, 20, 30, 40)
         self._space.debug_draw(options)
-        ax.invert_yaxis()
+        # ax.invert_yaxis()
         plt.show()
         del fig
 
     @property
-    @abstractmethod
+    def window(self):
+        return self._window
+
+    @property
     def initial_agent_coordinates(self):
-        ...
+        return (0, 0), 0
 
     @property
     def background(self):
@@ -210,7 +234,7 @@ class Playground(arcade.Window):
     # Entities
     ###############
 
-    def _get_uid_name(self, entity: Entity, name: Optional[str] = None):
+    def _get_identifier(self, entity: Entity):
 
         uid = None
         background = (
@@ -226,6 +250,7 @@ class Playground(arcade.Window):
                 uid = a
                 break
 
+        name = entity.name
         if not name:
             name = type(entity).__name__ + "_" + str(uid)
 
@@ -252,13 +277,10 @@ class Playground(arcade.Window):
 
     def add_team(self, team):
 
-        if not team in self._teams.keys():
-            team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
-            self._teams[team] = team_index
+        team_index = len(PymunkCollisionCategories) + len(self._teams) + 1
+        self._teams[team] = team_index
 
-        self._update_team_filter()
-
-    def _update_team_filter(self):
+    def _update_all_team_filters(self):
 
         for entity in self._entities:
             entity.update_team_filter()
@@ -364,18 +386,53 @@ class Playground(arcade.Window):
         """
         Reset the Playground to its initial state.
         """
-
         # reset entities that are still in playground
         for entity in self._entities:
-            entity.reset()
+
+            if entity.temporary:
+                self.remove(entity, definitive=True)
+
+            else:
+
+                entity.reset()
+
+                if isinstance(entity, EmbodiedEntity):
+
+                    if entity.removed:
+                        self._add_to_space(
+                            entity,
+                            entity.initial_coordinates,
+                            allow_overlapping=entity.allow_overlapping,
+                        )
+                        self._add_to_views(entity)
+                    else:
+                        entity.move_to(
+                            entity.initial_coordinates,
+                            allow_overlapping=entity.allow_overlapping,
+                            keep_velocity=False,
+                        )
 
         for agent in self._agents:
             agent.reset()
 
-        for view in self._views.copy():
+            if agent.removed:
 
-            self._views.remove(view)
-            self.add_view(view)
+                self._add_to_space(
+                    agent, agent.initial_coordinates, agent.allow_overlapping
+                )
+                self._add_to_views(agent)
+
+            else:
+                agent.move_to(
+                    agent.initial_coordinates,
+                    allow_overlapping=agent.allow_overlapping,
+                    keep_velocity=False,
+                )
+
+        # for view in self._views.copy():
+
+        # self._views.remove(view)
+        # self.add_view(view)
 
         self._timestep = 0
         self._done = False
@@ -385,13 +442,39 @@ class Playground(arcade.Window):
 
         return obs, rew, self.done
 
-    def add_to_mappings(self, entity):
+    # ADD REMOVE ENTITIES
+
+    def add(self, entity, initial_coordinates=None, allow_overlapping=True):
+
+        if isinstance(entity, Agent) and not initial_coordinates:
+            initial_coordinates = self.initial_agent_coordinates
+
+        if not initial_coordinates and self._size:
+            initial_coordinates = (self._rng.random(2) - 0.5) * self._size
+
+        if not initial_coordinates:
+            raise ValueError(
+                "Either initial coordinate or size of the environment should be set"
+            )
+
+        self._add_to_mappings(entity)
+        self._add_to_space(entity, initial_coordinates, allow_overlapping)
+        self._add_to_views(entity)
+        self._update_teams(entity)
+
+    def _add_to_mappings(self, entity):
+
+        entity.playground = self
+        entity.uid, entity.name = self._get_identifier(entity)
 
         self._uids_to_entities[entity.uid] = entity
 
         if isinstance(entity, Agent):
             self._agents.append(entity)
             self._name_to_agents[entity.name] = entity
+
+            for part in entity.parts:
+                self._add_to_mappings(part)
 
         elif not isinstance(entity, (AnchoredInteractive, PhysicalPart)):
             self._entities.append(entity)
@@ -400,17 +483,106 @@ class Playground(arcade.Window):
             for pm_shape in entity.pm_shapes:
                 self._shapes_to_entities[pm_shape] = entity
 
-    def add_to_views(self, entity):
+        if isinstance(entity, PhysicalEntity):
+            for interactive in entity.interactives:
+                self._add_to_mappings(interactive)
+
+    def _add_to_space(self, entity, initial_coordinates, allow_overlapping):
+
+        entity.removed = False
+
+        if isinstance(entity, Agent):
+
+            entity.initial_coordinates = initial_coordinates
+            entity.allow_overlapping = allow_overlapping
+
+            for part in entity.parts:
+                self._add_to_space(part, initial_coordinates, allow_overlapping)
+
+        elif isinstance(entity, AnchoredInteractive):
+            self._space.add(*entity.pm_shapes)
+
+        else:
+
+            if isinstance(entity, AnchoredPart):
+                initial_coordinates = entity.get_init_coordinates()
+
+            entity.initial_coordinates = initial_coordinates
+            entity.allow_overlapping = allow_overlapping
+            self._space.add(*entity.pm_elements)
+            entity.move_to(initial_coordinates, allow_overlapping=allow_overlapping)
+
+            if isinstance(entity, AnchoredPart):
+                entity.attach_to_anchor()
+                self._space.add(*entity.pm_joints)
+
+            if isinstance(entity, PhysicalEntity) and not isinstance(
+                entity, PhysicalPart
+            ):
+                for interactive in entity.interactives:
+                    self._add_to_space(
+                        interactive, initial_coordinates, allow_overlapping=True
+                    )
+
+    def _add_to_views(self, entity):
+
+        if isinstance(entity, Agent):
+            for part in entity.parts:
+                self._add_to_views(part)
+            return
+
         for view in self._views:
             view.add(entity)
 
-    def remove_from_mappings(self, entity):
+    def _update_teams(self, entity):
+        new_team = False
+        for team in entity.teams:
+            if team not in self._teams.keys():
+                self.add_team(team)
+                new_team = True
+
+        if new_team:
+            self._update_all_team_filters()
+        else:
+            entity.update_team_filter()
+
+    def remove(self, entity, definitive=False):
+
+        self._remove_from_space(entity)
+        self._remove_from_views(entity)
+
+        if definitive:
+            self._remove_from_mappings(entity)
+
+    def _remove_from_space(self, entity):
+
+        entity.removed = True
+
+        if isinstance(entity, Agent):
+            for part in entity.parts:
+                self._remove_from_space(part)
+        else:
+            self._space.remove(*entity.pm_elements)
+
+            if isinstance(entity, AnchoredPart):
+                self._space.remove(*entity.pm_joints)
+
+        if isinstance(entity, PhysicalEntity) and not isinstance(entity, PhysicalPart):
+            for interactive in entity.interactives:
+                self._remove_from_space(interactive)
+
+    def _remove_from_mappings(self, entity):
 
         self._uids_to_entities.pop(entity.uid)
 
         if isinstance(entity, Agent):
             self._agents.remove(entity)
+
+            assert entity.name
             self._name_to_agents.pop(entity.name)
+
+            for part in entity.parts:
+                self._remove_from_mappings(part)
 
         elif not isinstance(entity, (AnchoredInteractive, PhysicalPart)):
             self._entities.remove(entity)
@@ -419,7 +591,18 @@ class Playground(arcade.Window):
             for pm_shape in entity.pm_shapes:
                 self._shapes_to_entities.pop(pm_shape)
 
-    def remove_from_views(self, entity):
+        if isinstance(entity, PhysicalEntity) and not isinstance(entity, PhysicalPart):
+            for interactive in entity.interactives:
+                self._remove_from_mappings(interactive)
+
+        entity.playground = None
+
+    def _remove_from_views(self, entity):
+
+        if isinstance(entity, Agent):
+            for part in entity.parts:
+                self._remove_from_views(part)
+            return
 
         for view in self._views:
             view.remove(entity)
@@ -434,9 +617,34 @@ class Playground(arcade.Window):
 
         self._views.append(view)
 
-    @abstractmethod
-    def within_playground(self, coordinates):
-        ...
+    def within_playground(
+        self,
+        entity: Optional[Union[Agent, EmbodiedEntity]] = None,
+        coordinates: Optional[Coordinate] = None,
+    ):
+
+        if not self._size:
+            return True
+
+        if isinstance(entity, Agent):
+            for part in entity.parts:
+                if not self.within_playground(part):
+                    return False
+
+        if entity:
+            position = entity.position
+        elif coordinates:
+            position = coordinates[0]
+        else:
+            raise ValueError("entity or coordinates must be specified")
+
+        if not -self._size[0] / 2 <= position[0] <= self._size[0] / 2:
+            return False
+
+        if not -self._size[1] / 2 <= position[1] <= self._size[1] / 2:
+            return False
+
+        return True
 
     def overlaps(self, entity: EmbodiedEntity, coordinates):
         """Tests whether new coordinate would lead to physical collision"""
@@ -559,56 +767,3 @@ class PlaygroundRegister:
             return subclass
 
         return decorator
-
-
-class EmptyPlayground(Playground):
-    @property
-    def initial_agent_coordinates(self):
-        return (0, 0), 0
-
-    def within_playground(self, _):
-        return True
-
-
-class ClosedPlayground(Playground):
-    def __init__(self, size: Tuple[int, int], seed, background):
-
-        super().__init__(seed, background)
-        self._size = size
-        self._width = size[0]
-        self._height = size[1]
-
-    @property
-    def size(self):
-        return self._size
-
-    @property
-    def initial_agent_coordinates(self):
-        return (0, 0), 0
-
-    def within_playground(self, entity: Union[Agent, EmbodiedEntity]):
-
-        if isinstance(entity, Agent):
-            for part in entity.parts:
-                if not self._pos_in_playground(part.position):
-                    return False
-
-        if isinstance(entity, EmbodiedEntity):
-            if not self._pos_in_playground(entity.position):
-                return False
-
-        return True
-
-    def _pos_in_playground(self, pos: Tuple[float, float]):
-
-        if not -self._size[0] / 2 < pos[0] < self._size[0] / 2:
-            return False
-
-        if not -self._size[1] / 2 < pos[1] < self._size[1] / 2:
-            return False
-
-        return True
-
-    def debug_draw(self, plt_width, *args):
-
-        return super().debug_draw(plt_width, center=(0, 0), size=self._size)

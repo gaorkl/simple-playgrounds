@@ -1,25 +1,32 @@
 from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
 
-from tests.mock_entities import (
-    NonConvexPlus,
-    NonConvexC,
-)
+from tests.mock_entities import NonConvexPlus
 
 
 def test_non_convex_entity():
 
     playground = WallClosedPG(size=(400, 400))
 
-    NonConvexPlus(playground, ((-150, 100), 0), 20, 10, shape_approximation="circle")
-    NonConvexPlus(playground, ((-50, 100), 0), 20, 10, shape_approximation="box")
-    NonConvexPlus(playground, ((50, 100), 0), 20, 10, shape_approximation="hull")
-    NonConvexPlus(
-        playground, ((150, 100), 0), 20, 10, shape_approximation="decomposition"
-    )
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="circle")
+    playground.add(nc_ent, ((-150, 100), 0))
 
-    NonConvexC(playground, ((-150, -100), 0), 20, 10, shape_approximation="circle")
-    NonConvexC(playground, ((-50, -100), 0), 20, 10, shape_approximation="box")
-    NonConvexC(playground, ((50, -100), 0), 20, 10, shape_approximation="hull")
-    NonConvexC(
-        playground, ((150, -100), 0), 20, 10, shape_approximation="decomposition"
-    )
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="box")
+    playground.add(nc_ent, ((-50, 100), 0))
+
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="hull")
+    playground.add(nc_ent, ((50, 100), 0))
+
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="decomposition")
+    playground.add(nc_ent, ((150, 100), 0))
+
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="circle")
+    playground.add(nc_ent, ((-150, -100), 0))
+
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="box")
+    playground.add(nc_ent, ((-50, -100), 0))
+
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="hull")
+    playground.add(nc_ent, ((50, -100), 0))
+
+    nc_ent = NonConvexPlus(20, 10, shape_approximation="decomposition")
+    playground.add(nc_ent, ((150, -100), 0))

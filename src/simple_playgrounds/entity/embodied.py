@@ -3,23 +3,19 @@ from __future__ import annotations
 
 from abc import ABC
 from typing import Optional
-from arcade.application import View
 from matplotlib.pyplot import text
 
 import pymunk
-from skimage.draw import disk, polygon
-import tripy
 import numpy as np
 
-from PIL import Image
-
-from simple_playgrounds.entity.entity import Entity
 
 import math
 from abc import ABC, abstractmethod
-from typing import Optional, TYPE_CHECKING, Dict, List
+from typing import Optional, TYPE_CHECKING, Dict, List, Union
 from arcade import Texture, Sprite
 
+from PIL import Image
+from simple_playgrounds.common import definitions
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
@@ -31,6 +27,10 @@ from simple_playgrounds.common.position_utils import (
     InitCoord,
     Coordinate,
 )
+
+from simple_playgrounds.entity.entity import Entity
+
+Teams = Union[str, List[str]]
 
 
 class EmbodiedEntity(Entity, ABC):
@@ -44,112 +44,51 @@ class EmbodiedEntity(Entity, ABC):
 
     def __init__(
         self,
-        playground: Playground,
-        initial_coordinates: InitCoord,
+        name: Optional[str] = None,
         filename: Optional[str] = None,
         texture: Optional[Texture] = None,
         radius: Optional[float] = None,
         width: Optional[float] = None,
         length: Optional[float] = None,
-        pm_shape: Optional[pymunk.Shape] = None,
-        color: Optional[pymunk.Shape] = None,
         temporary: bool = False,
-        allow_overlapping: bool = True,
         shape_approximation: Optional[str] = None,
         sprite_front_is_up: bool = False,
-        **kwargs,
+        teams: Optional[Teams] = None,
     ):
 
-        self._required_sprites_update: Dict[Sprite, bool] = {}
+        super().__init__(name, teams, temporary)
 
-        self._pm_from_sprite = False
-        self._pm_from_shape = False
-
+        # Get the base sprite
         self._sprite_front_is_up = sprite_front_is_up
+        self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm="Detailed", hit_box_detail=1, flipped_diagonally=sprite_front_is_up, flipped_horizontally=sprite_front_is_up)  # type: ignore
 
-        if filename or texture:
-            self._pm_from_sprite = True
+        # Get the scale and dimensions
+        self._scale, self._radius, self._width, self._length = self._get_dimensions(
+            radius, width, length
+        )
 
-            self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm="Detailed", hit_box_detail=1, flipped_diagonally=sprite_front_is_up, flipped_horizontally=sprite_front_is_up)  # type: ignore
-
-            (
-                self._scale,
-                self._radius,
-                self._width,
-                self._length,
-            ) = self._apply_scale(radius, width, length)
-            self._pm_body = self._get_pm_body()
-            self._pm_shapes = self._get_pm_shapes_from_sprite(shape_approximation)
-
-        elif pm_shape:
-            self._pm_from_shape = True
-            self._pm_body = self._get_pm_body(pm_shape)
-            pm_shape.body = self._pm_body
-            self._pm_shapes = [pm_shape]
-
-        else:
-            raise ValueError("Filename, texture or pm_shape should be specified")
-
-        super().__init__(playground, **kwargs)
-
-        if pm_shape:
-            texture = self._get_texture_from_shape(pm_shape, color)
-            self._base_sprite = Sprite(texture=texture, hit_box_algorithm="Detailed", hit_box_detail=1)  # type: ignore
-            (
-                self._scale,
-                self._radius,
-                self._width,
-                self._length,
-            ) = self._apply_scale(radius, width, length)
-
-        self._add_to_pymunk_space()
-        self._playground.add_to_views(self)
-
-        # Initial Positioning of the entities.
-        self._allow_overlapping = allow_overlapping
-        self._initial_coordinates = initial_coordinates
-        self._moved = False
-        self._move_to_initial_coordinates()
+        # Get pymunk elements
+        self._pm_body = self._get_pm_body()
+        self._pm_shapes = self._get_pm_shapes_from_sprite(shape_approximation)
 
         # Interactions and collisions
         self._set_pm_collision_type()
-        self.update_team_filter()
 
         # Flags
-        self._temporary = temporary
         self._produced_by: Optional[Entity] = None
+        self._required_sprites_update: Dict[Sprite, bool] = {}
+        self._moved = False
+
+        # At the begining, not in playground
+        self._allow_overlapping = False
+        self._initial_coordinates = None
 
     #############
     # Properties
     #############
-
     @property
-    def sprite_front_is_up(self):
-        return self._sprite_front_is_up
-
-    @property
-    def playground(self):
-        return self._playground
-
-    @property
-    def radius(self):
-        return self._radius
-
-    @property
-    def width(self):
-        return self._width
-
-    @property
-    def length(self):
-        return self._length
-
-    @property
-    def size(self):
-        return self._width, self._length
-
-    @property
-    def texture(self):
-        return self._base_sprite.texture
+    def pm_elements(self):
+        return self._pm_shapes + [self._pm_body]
 
     @property
     def pm_shapes(self):
@@ -160,12 +99,28 @@ class EmbodiedEntity(Entity, ABC):
         return self._pm_body
 
     @property
-    def produced_by(self):
-        return self._produced_by
+    def texture(self):
+        return self._base_sprite.texture
 
     @property
-    def temporary(self):
-        return self._temporary
+    def radius(self):
+        return self._radius
+
+    @property
+    def scale(self):
+        return self._scale
+
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def length(self):
+        return self._length
+
+    @property
+    def produced_by(self):
+        return self._produced_by
 
     @property
     def coordinates(self):
@@ -211,63 +166,26 @@ class EmbodiedEntity(Entity, ABC):
 
         return False
 
+    @property
+    def allow_overlapping(self):
+        return self._allow_overlapping
+
+    @allow_overlapping.setter
+    def allow_overlapping(self, allow: bool):
+        self._allow_overlapping = allow
+
+    @property
+    def initial_coordinates(self):
+        return self._initial_coordinates
+
+    @initial_coordinates.setter
+    def initial_coordinates(self, init_coord: InitCoord):
+        self._initial_coordinates = init_coord
+
     ##############
     # Init pm Elements
     ###############
-
-    def _get_texture_from_shape(self, pm_shape, color):
-
-        color_rgba = [c for c in color] + [255]
-
-        if isinstance(pm_shape, pymunk.Segment):
-            radius = int(pm_shape.radius)
-            length = int((pm_shape.a - pm_shape.b).length)
-            img = np.zeros((radius, length, 4))
-            img[:, :] = color_rgba
-
-        elif isinstance(pm_shape, pymunk.Circle):
-            radius = int(pm_shape.radius)
-
-            img = np.zeros((2 * radius + 1, 2 * radius + 1, 4))
-            rr, cc = disk((radius, radius), radius)
-            img[rr, cc] = color_rgba
-
-        elif isinstance(pm_shape, pymunk.Poly):
-            vertices = pm_shape.get_vertices()
-
-            top = max([vert[0] for vert in vertices])
-            bottom = min([vert[0] for vert in vertices])
-            left = min([vert[1] for vert in vertices])
-            right = max([vert[1] for vert in vertices])
-
-            w = int(right - left)
-            h = int(top - bottom)
-
-            center = int(h / 2), int(w / 2)
-
-            img = np.zeros((h, w, 4))
-            r = [y + center[0] for x, y in vertices]
-            c = [x + center[1] for x, y in vertices]
-
-            rr, cc = polygon(r, c, (h, w))
-
-            img[rr, cc] = color_rgba
-
-        else:
-            raise ValueError
-
-        PIL_image = Image.fromarray(np.uint8(img)).convert("RGBA")
-
-        texture = Texture(
-            name="Shape_%i".format(self._uid),
-            image=PIL_image,
-            hit_box_algorithm="Detailed",
-            hit_box_detail=1,
-        )
-
-        return texture
-
-    def _apply_scale(self, radius, width, length):
+    def _get_dimensions(self, radius, width, length):
 
         orig_radius = max(
             [pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()]
@@ -349,22 +267,12 @@ class EmbodiedEntity(Entity, ABC):
     # Sprites
     ##############
 
-    def _get_physical_scale(self, radius):
-
-        orig_radius = max(
-            [pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()]
-        )
-
-        if not radius:
-            return 1, orig_radius
-
-        physical_scale = radius / orig_radius
-
-        return physical_scale, radius
-
-    def get_sprite(self, zoom: float = 1) -> Sprite:
+    def get_sprite(self, zoom: float = 1, color_uid=False) -> Sprite:
 
         texture = self._base_sprite.texture
+        if color_uid:
+            texture = self.color_with_id(texture)
+
         assert isinstance(texture, Texture)
 
         sprite = Sprite(
@@ -376,14 +284,11 @@ class EmbodiedEntity(Entity, ABC):
         self._required_sprites_update[sprite] = True
         return sprite
 
-    def get_id_sprite(self, zoom: float = 1) -> Sprite:
+    def color_with_id(self, texture) -> Texture:
 
-        base_texture = self._base_sprite.texture
-        assert isinstance(base_texture, Texture)
-
-        img_uid = Image.new("RGBA", base_texture.size)
+        img_uid = Image.new("RGBA", texture.size)
         pixels = img_uid.load()
-        pixels_texture = base_texture.image.load()
+        pixels_texture = texture.image.load()
 
         for i in range(img_uid.size[0]):
             for j in range(img_uid.size[1]):
@@ -398,15 +303,7 @@ class EmbodiedEntity(Entity, ABC):
             hit_box_detail=1,
         )
 
-        sprite = Sprite(
-            texture=texture,
-            scale=zoom * self._scale,
-            hit_box_algorithm="Detailed",
-            hit_box_detail=1,
-        )
-
-        self._required_sprites_update[sprite] = True
-        return sprite
+        return texture
 
     def update_sprite(self, view, sprite, force=False):
 
@@ -420,7 +317,7 @@ class EmbodiedEntity(Entity, ABC):
             ) * view.zoom + view.height // 2
 
             sprite.set_position(pos_x, pos_y)
-            sprite.angle = int(self.pm_body.angle * 180 / math.pi)
+            sprite.angle = int(self._pm_body.angle * 180 / math.pi)
 
             self._required_sprites_update[sprite] = False
 
@@ -435,58 +332,59 @@ class EmbodiedEntity(Entity, ABC):
         """
         ...
 
-    def _add_to_pymunk_space(self):
-        self._playground.space.add(self._pm_body, *self._pm_shapes)
-
-    def _remove_from_pymunk_space(self):
-        self._playground.space.remove(self._pm_body, *self._pm_shapes)
-
-    ##############
-    # COLLISIONS AND TEAMS
-    ##############
-
-    @abstractmethod
     def _set_pm_collision_type(self):
+        for pm_shape in self._pm_shapes:
+            pm_shape.collision_type = self._collision_type
+
+    @property
+    @abstractmethod
+    def _collision_type(self):
+
         """
-        Set the collision handler for the shape.
+        Set the collision type for the pm shapes.
         """
         ...
 
     def update_team_filter(self):
 
+        assert self._playground
+
         for pm_shape in self._pm_shapes:
             categ = pm_shape.filter.categories
 
-            for team in self._teams:
-                categ = categ | 2 ** self._playground.teams[team]
+            for team_name in self._teams:
+                categ = categ | 2 ** self._playground.teams[team_name]
 
             mask = pm_shape.filter.mask
-            for team in self._playground.teams:
+            for team_name, team_id in self._playground.teams.items():
 
-                if team not in self._teams:
-                    mask = (
-                        mask
-                        | 2 ** self._playground.teams[team]
-                        ^ 2 ** self._playground.teams[team]
-                    )
+                if team_name not in self._teams:
+                    mask = mask | 2**team_id ^ 2**team_id
 
             pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
     ###################
     # Position and Move
     ###################
-
     def move_to(
         self,
-        coordinates: Coordinate,
+        coordinates: Union[Coordinate, CoordinateSampler],
         allow_overlapping: bool = True,
         keep_velocity: bool = False,
+        check_within: bool = False,
     ):
 
-        if (not allow_overlapping) and self._playground.overlaps(self, coordinates):
-            raise ValueError("Entity overlaps but should not")
+        assert self._playground
 
-        if not self._playground.within_playground(coordinates):
+        if isinstance(coordinates, CoordinateSampler):
+            coordinates = self._sample_valid_coordinate()
+
+        if (not allow_overlapping) and self._playground.overlaps(self, coordinates):
+            raise ValueError("Entity overlaps but overlap is not allowed")
+
+        if check_within and not self._playground.within_playground(
+            coordinates=coordinates
+        ):
             raise ValueError("Entity is not placed within Playground boundaries")
 
         position, angle = coordinates
@@ -512,26 +410,9 @@ class EmbodiedEntity(Entity, ABC):
             self._required_sprites_update, True
         )
 
-    def _move_to_initial_coordinates(self):
-        """
-        Initial coordinates of the Entity.
-        Can be tuple of (x,y), angle, or PositionAreaSampler object
-        """
-
-        if isinstance(self._initial_coordinates, (tuple, list)):
-            coordinates = self._initial_coordinates
-
-        elif isinstance(self._initial_coordinates, CoordinateSampler):
-            coordinates = self._sample_valid_coordinate()
-
-        else:
-            raise ValueError("Initial Coordinate is not set")
-
-        self.move_to(
-            coordinates, allow_overlapping=self._allow_overlapping, keep_velocity=False
-        )
-
     def _sample_valid_coordinate(self) -> Coordinate:
+
+        assert self._playground
 
         sampler = self._initial_coordinates
         assert isinstance(sampler, CoordinateSampler)
@@ -547,28 +428,13 @@ class EmbodiedEntity(Entity, ABC):
     ################
 
     def pre_step(self):
-
         self._moved = False
 
-    def remove(self, definitive: bool = False):
-
-        self._remove_from_pymunk_space()
-        self._playground.remove_from_views(self)
-        super().remove(definitive=definitive or self._temporary)
-
     def reset(self):
-
-        # Remove completely if temporary
-        if self._temporary:
-            self.remove()
-            return
-
-        if self._removed:
-            self._add_to_pymunk_space()
-            self._playground.add_to_views(self)
-
-        self._move_to_initial_coordinates()
-        self._removed = False
+        super().reset()
+        self._required_sprites_update = dict.fromkeys(
+            self._required_sprites_update, True
+        )
 
     def post_step(self):
 
