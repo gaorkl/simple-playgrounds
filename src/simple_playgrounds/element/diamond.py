@@ -9,11 +9,9 @@ from simple_playgrounds.common.position_utils import InitCoord
 
 
 class Diamond(RewardElement):
-    def __init__(self, playground: Playground, initial_coordinates: InitCoord, chest):
+    def __init__(self, chest):
 
         super().__init__(
-            playground,
-            initial_coordinates,
             mass=10,
             filename=":spg:platformer/items/diamond_green.png",
             radius=10,

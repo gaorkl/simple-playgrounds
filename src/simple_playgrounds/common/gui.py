@@ -1,28 +1,13 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING, Union, Dict
-from arcade.sprite import Sprite
-from numpy.lib.arraysetops import isin
-from simple_playgrounds.agent.part.part import InteractivePart, PhysicalPart
 from simple_playgrounds.common.view import TopDownView
-from simple_playgrounds.entity.interactive import InteractiveEntity
-
-from simple_playgrounds.entity.physical import PhysicalEntity
-from simple_playgrounds.playground.playground import ClosedPlayground
 
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
-    from simple_playgrounds.common.position_utils import Coordinate
-    from simple_playgrounds.entity.embodied import EmbodiedEntity
     from simple_playgrounds.agent.agents import HeadAgent
 
-import numpy as np
 import arcade
-
-import matplotlib.pyplot as plt
-
-from PIL import Image, ImageShow
 
 
 class GUI(TopDownView):
@@ -48,20 +33,21 @@ class GUI(TopDownView):
             draw_interactive,
         )
 
-        self._playground.set_size(*self._size)
-        self._playground.set_visible(True)
-
-        self._playground.gui = self
+        self._playground.window.set_size(*self._size)
+        self._playground.window.set_visible(True)
 
         self._agent = agent
 
         self._agent_commands = {}
         self.print_rewards = print_rewards
 
-        self._playground.on_draw = self.on_draw
-        self._playground.on_update = self.on_update
-        self._playground.on_key_press = self.on_key_press
-        self._playground.on_key_release = self.on_key_release
+        self._playground.window.on_draw = self.on_draw
+        self._playground.window.on_update = self.on_update
+        self._playground.window.on_key_press = self.on_key_press
+        self._playground.window.on_key_release = self.on_key_release
+
+    def run(self):
+        self._playground.window.run()
 
     def on_draw(self):
 
@@ -87,9 +73,9 @@ class GUI(TopDownView):
 
         self.update_sprites(force)
 
-        self._playground.use()
+        self._playground.window.use()
 
-        self._playground.clear(self._background)
+        self._playground.window.clear(self._background)
 
         # Change projection to match the contents
 
@@ -118,7 +104,7 @@ class GUI(TopDownView):
                 self._agent_commands[self._agent.head.joint_controller] = -0.1
 
         if key == arcade.key.Q:
-            self._playground.close()
+            self._playground.window.close()
 
         if key == arcade.key.R:
             self._playground.reset()

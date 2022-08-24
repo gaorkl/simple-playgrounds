@@ -14,16 +14,12 @@ if TYPE_CHECKING:
 class RewardElement(PhysicalEntity, ABC):
     def __init__(
         self,
-        playground: Playground,
-        initial_coordinates: InitCoord,
         mass: Optional[float] = None,
         traversable: bool = False,
         transparent: bool = False,
         **kwargs,
     ):
-        super().__init__(
-            playground, initial_coordinates, mass, traversable, transparent, **kwargs
-        )
+        super().__init__(mass, traversable, transparent, **kwargs)
 
     @property
     @abstractmethod

@@ -526,11 +526,6 @@ class Playground:
 
     def _add_to_views(self, entity):
 
-        if isinstance(entity, Agent):
-            for part in entity.parts:
-                self._add_to_views(part)
-            return
-
         for view in self._views:
             view.add(entity)
 
@@ -599,11 +594,6 @@ class Playground:
 
     def _remove_from_views(self, entity):
 
-        if isinstance(entity, Agent):
-            for part in entity.parts:
-                self._remove_from_views(part)
-            return
-
         for view in self._views:
             view.remove(entity)
 
@@ -613,7 +603,7 @@ class Playground:
             view.add(entity)
 
         for agent in self.agents:
-            view.add(agent.base)
+            view.add(agent)
 
         self._views.append(view)
 

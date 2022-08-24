@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING, Union, Dict
 from arcade.sprite import Sprite
 from numpy.lib.arraysetops import isin
+from simple_playgrounds.agent.agent import Agent
 from simple_playgrounds.agent.part.part import InteractivePart, PhysicalPart
 from simple_playgrounds.entity.interactive import InteractiveEntity
 
@@ -98,17 +99,19 @@ class TopDownView(ABC):
 
     def add(self, entity):
 
-        # Trick to avoid adding interactive entities twice when reset
-        if entity in self._sprites:
+        if isinstance(entity, Agent):
+            for part in entity.parts:
+                print(part)
+                self.add(part)
             return
 
-        if self._display_uid:
-            sprite = entity.get_id_sprite(self._zoom)
-
-        else:
-            sprite = entity.get_sprite(self._zoom)
+        # Trick to avoid adding interactive entities twice when reset
+        # if entity in self._sprites:
+        #     return
 
         if isinstance(entity, PhysicalEntity):
+
+            sprite = entity.get_sprite(self._zoom, color_uid=self._display_uid)
 
             if entity.traversable:
                 self._traversable_sprites.append(sprite)
@@ -120,33 +123,41 @@ class TopDownView(ABC):
             else:
                 self._visible_sprites.append(sprite)
 
-        elif isinstance(entity, InteractiveEntity) and self._draw_interactive:
+            if not isinstance(entity, PhysicalPart):
+                for interactive in entity.interactives:
+                    self.add(interactive)
 
+        elif isinstance(entity, InteractiveEntity):
+
+            if not self._draw_interactive:
+                return
+
+            if self._display_uid:
+                raise ValueError(
+                    "Cannot display uid of interactive, set draw_interactive to False"
+                )
+
+            sprite = entity.get_sprite(self._zoom)
             self._interactive_sprites.append(sprite)
 
-        if isinstance(entity, PhysicalPart):
-            for anchored in entity.anchored:
-                self.add(anchored)
-
-        if isinstance(entity, PhysicalEntity) and not isinstance(entity, PhysicalPart):
-            for interactive in entity.interactives:
-                self.add(interactive)
+        else:
+            raise ValueError("Not implemented")
 
         self._sprites[entity] = sprite
 
     def remove(self, entity):
 
-        sprite = self._sprites.pop(entity)
-
-        if isinstance(entity, PhysicalPart):
-            for part in entity.anchored:
+        if isinstance(entity, Agent):
+            for part in entity.parts:
                 self.remove(part)
+            return
 
-        elif isinstance(entity, PhysicalEntity) and not isinstance(
-            entity, PhysicalPart
-        ):
-            for interactive in entity._interactives:
-                self.remove(interactive)
+        if entity in self._sprites:
+            sprite = self._sprites.pop(entity)
+        else:
+            return
+
+        if isinstance(entity, PhysicalEntity):
 
             if entity.traversable:
                 self._traversable_sprites.remove(sprite)
@@ -156,6 +167,10 @@ class TopDownView(ABC):
 
             else:
                 self._visible_sprites.remove(sprite)
+
+            if not isinstance(entity, PhysicalPart):
+                for interactive in entity._interactives:
+                    self.remove(interactive)
 
         elif isinstance(entity, InteractiveEntity):
 

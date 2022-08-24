@@ -31,14 +31,20 @@ playground.add_interaction(
 )
 
 
-chest = Chest(playground, ((200, 40), 0))
-diamond = Diamond(playground, ((-200, 60), 0), chest)
+chest = Chest()
+playground.add(chest, ((200, 40), 0))
+diamond = Diamond(chest)
+diamond.graspable = True
+playground.add(diamond, ((-200, 60), 0))
 
 
-chest_2 = Chest(playground, ((100, 40), 0))
+chest_2 = Chest()
+playground.add(chest_2, ((100, 40), 0))
 
-agent = HeadAgent(playground)
+agent = HeadAgent()
 Grasper(agent.base)
 
+playground.add(agent)
+
 gui = GUI(playground, agent)
-playground.run()
+gui.run()

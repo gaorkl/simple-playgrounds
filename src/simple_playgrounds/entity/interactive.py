@@ -73,6 +73,10 @@ class AnchoredInteractive(InteractiveEntity, ABC):
     ):
 
         self._anchor = anchor
+
+        if anchor.playground:
+            raise ValueError("Interactives must be added before adding to playground")
+
         radius = self._anchor.radius + interaction_range
         texture = self._anchor.texture
 

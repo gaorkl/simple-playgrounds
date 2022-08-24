@@ -9,11 +9,9 @@ from simple_playgrounds.element.element import RewardElement
 
 
 class Chest(PhysicalEntity):
-    def __init__(self, playground: Playground, initial_coordinates: InitCoord):
+    def __init__(self):
 
         super().__init__(
-            playground,
-            initial_coordinates,
             radius=15,
             filename=":spg:platformer/tiles/block_red.png",
         )
@@ -24,11 +22,13 @@ class Chest(PhysicalEntity):
 
     def activate(self, entity: RewardElement):
 
+        assert self._playground
+        
         for part in entity.grasped_by:
             agent = part.agent
             agent.reward += entity.reward / len(entity.grasped_by)
 
         if not entity.grasped_by:
-            agent = self.playground.get_closest_agent(self)
+            agent = self._playground.get_closest_agent(self)
 
-        entity.remove()
+        self._playground.remove(entity)

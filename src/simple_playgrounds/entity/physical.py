@@ -4,7 +4,7 @@ from typing import Optional, List, TYPE_CHECKING
 import pymunk
 
 
-from simple_playgrounds.entity.interactive import AnchoredInteractive
+from simple_playgrounds.entity.interactive import AnchoredInteractive, Graspable
 
 if TYPE_CHECKING:
     from simple_playgrounds.playground.playground import Playground
@@ -42,6 +42,24 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         self._set_shape_collision_filter()
 
         self._grasped_by = []
+        self._graspable = False
+
+    @property
+    def graspable(self):
+        return bool(self._graspable)
+
+    @graspable.setter
+    def graspable(self, graspable: bool):
+        if graspable and not self._graspable:
+            self._graspable = Graspable(self)
+        elif not graspable and self._graspable:
+            assert self._playground
+            self._playground.remove(self._graspable)
+            self._graspable = False
+
+    @property
+    def grasped_by(self):
+        return self._grasped_by
 
     @property
     def transparent(self):

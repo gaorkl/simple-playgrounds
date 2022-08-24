@@ -154,6 +154,9 @@ class AnchoredPart(PhysicalPart, ABC):
 
         self._anchor = anchor
 
+        if anchor.playground:
+            raise ValueError("Parts must be added before addingto playground")
+
         super().__init__(
             agent=anchor.agent,
             teams=anchor.agent.teams,
