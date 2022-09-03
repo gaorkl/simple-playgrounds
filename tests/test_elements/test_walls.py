@@ -1,10 +1,10 @@
-from simple_playgrounds.playground.playground import Playground
-from simple_playgrounds.element.wall import (
+from spg.playground import Playground
+from spg.element import (
     ColorWall,
     create_wall_from_blocks,
     BrickWallBlock,
 )
-from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
+from spg.playground import WallClosedPG
 
 
 def test_wall_size():

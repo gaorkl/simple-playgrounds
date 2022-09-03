@@ -1,6 +1,6 @@
 import pytest
 import math
-from simple_playgrounds.playground.playground import Playground
+from spg.playground import Playground
 from tests.mock_entities import (
     MockPhysicalMovable,
     MockPhysicalUnmovable,
@@ -21,17 +21,17 @@ def test_add_remove_entities():
     ent_1 = MockPhysicalMovable()
     playground.add(ent_1, coord_center)
 
-    assert ent_1 in playground._entities
+    assert ent_1 in playground._elements
     assert ent_1 not in playground._agents
 
     playground.remove(ent_1)
 
-    assert ent_1 in playground._entities
+    assert ent_1 in playground._elements
     assert ent_1.removed
-    assert ent_1 not in playground.entities
+    assert ent_1 not in playground.elements
 
     playground.reset()
-    assert ent_1 in playground.entities
+    assert ent_1 in playground.elements
 
 
 def test_size_entities_radius(radius):

@@ -1,15 +1,20 @@
 import pytest
 
-import numpy as np
-from simple_playgrounds.playground.playground import Playground
-from tests.mock_agents import MockTriggerPart, MockAgentWithArm, MockHaloPart
+from spg.playground import Playground
+from tests.mock_agents import (
+    MockAgent,
+    MockAgentWithTriggerArm,
+    MockTriggerPart,
+    MockAgentWithArm,
+    MockHaloPart,
+)
 from tests.mock_entities import (
     MockBarrier,
     MockZoneInteractive,
     active_interaction,
     passive_interaction,
 )
-from simple_playgrounds.common.definitions import CollisionTypes
+from spg.utils.definitions import CollisionTypes
 
 coord_center = (0, 0), 0
 
@@ -40,9 +45,7 @@ def test_agent_barrier(barrier_params):
     for _ in range(1000):
         playground.step()
 
-    # pos_agent = agent.position
-
-    barrier = MockBarrier((00, 30), (00, -30), width=10, teams=team_barrier)
+    barrier = MockBarrier((10, 30), (10, -30), width=10, teams=team_barrier)
     playground.add(barrier, barrier.wall_coordinates)
 
     for _ in range(1000):
@@ -64,7 +67,10 @@ def test_agent_interacts_passive():
 
     agent = MockAgentWithArm(teams="team_1")
     interactive_part_l = MockHaloPart(agent.left_arm)
+    agent.left_arm.add(interactive_part_l)
+
     interactive_part_r = MockHaloPart(agent.right_arm)
+    agent.right_arm.add(interactive_part_r)
     playground.add(agent)
 
     zone_1 = MockZoneInteractive(10, teams="team_1")
@@ -94,9 +100,7 @@ def test_agent_interacts_active():
         active_interaction,
     )
 
-    agent = MockAgentWithArm(teams="team_1")
-    interactive_part_l = MockTriggerPart(agent.left_arm)
-    interactive_part_r = MockTriggerPart(agent.right_arm)
+    agent = MockAgentWithTriggerArm(teams="team_1")
     playground.add(agent)
 
     zone_1 = MockZoneInteractive(10, teams="team_1")
@@ -105,26 +109,35 @@ def test_agent_interacts_active():
     zone_2 = MockZoneInteractive(10, teams="team_2")
     playground.add(zone_2, ((30, -30), 0))
 
-    assert not interactive_part_l.activated
-    assert not interactive_part_r.activated
-
-    playground.step()
-
+    assert not agent.left_arm.interactor.activated
+    assert not agent.right_arm.interactor.activated
     assert not zone_1.activated
     assert not zone_2.activated
 
-    commands = {agent: {interactive_part_l.trigger: 1, interactive_part_r.trigger: 1}}
+    playground.step()
+
+    assert not agent.left_arm.interactor.activated
+    assert not agent.right_arm.interactor.activated
+    assert not zone_1.activated
+    assert not zone_2.activated
+
+    print(zone_1.teams, zone_1.pm_shapes[0].filter)
+    print(zone_2.teams, zone_2.pm_shapes[0].filter)
+
+    print(agent.left_arm.interactor._teams)
+    print(agent.right_arm.interactor._teams)
+    commands = {agent: {agent.left_arm.trigger: 1, agent.right_arm.trigger: 1}}
 
     playground.step(commands=commands)
 
-    assert interactive_part_r.activated
-    assert interactive_part_l.activated
+    assert agent.left_arm.interactor.activated
+    assert agent.right_arm.interactor.activated
     assert zone_1.activated
     assert not zone_2.activated
 
     playground.step()
 
-    assert not interactive_part_r.activated
-    assert not interactive_part_l.activated
+    assert not agent.left_arm.interactor.activated
+    assert not agent.right_arm.interactor.activated
     assert not zone_1.activated
     assert not zone_2.activated

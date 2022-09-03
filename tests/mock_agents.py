@@ -1,40 +1,28 @@
 from __future__ import annotations
 import math
-from typing import Optional, TYPE_CHECKING
 
-from simple_playgrounds.agent.part.controller import (
-    CenteredContinuousController,
-    BoolController,
-)
-from tests.test_view.conftest import shape
+from spg.agent.controller import CenteredContinuousController, BoolController
 
-if TYPE_CHECKING:
-    from simple_playgrounds.agent.part.part import Part
-
-import pymunk
 import numpy as np
+import pymunk
 
-from simple_playgrounds.common.position_utils import Coordinate
-
-from simple_playgrounds.common.definitions import (
+from spg.utils.definitions import (
     ANGULAR_VELOCITY,
     CollisionTypes,
     LINEAR_FORCE,
 )
-from simple_playgrounds.agent.agent import Agent
-from simple_playgrounds.agent.part.part import (
+from spg.agent import Agent
+from spg.agent.part import (
     AnchoredPart,
     PhysicalPart,
-    Platform,
-    InteractivePart,
 )
+from spg.agent.interactor import Interactor
 
 
-class MockBase(Platform):
-    def __init__(self, agent: Agent, **kwargs):
+class MockBase(PhysicalPart):
+    def __init__(self, **kwargs):
 
         super().__init__(
-            agent,
             mass=10,
             filename=":resources:images/topdown_tanks/tankBody_blue_outline.png",
             sprite_front_is_up=True,
@@ -42,13 +30,11 @@ class MockBase(Platform):
             **kwargs,
         )
 
-        self.forward_controller, self.angular_vel_controller = self._controllers
+        self.forward_controller = CenteredContinuousController()
+        self.add(self.forward_controller)
 
-    def _set_controllers(self, **kwargs):
-
-        control_forward = CenteredContinuousController(part=self)
-        control_rotate = CenteredContinuousController(part=self)
-        return control_forward, control_rotate
+        self.angular_vel_controller = CenteredContinuousController()
+        self.add(self.angular_vel_controller)
 
     def apply_commands(self, **kwargs):
 
@@ -63,30 +49,29 @@ class MockBase(Platform):
 
 
 class MockAnchoredPart(AnchoredPart):
-    def __init__(self, anchor: PhysicalPart, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(
-            anchor,
             mass=10,
             filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
             sprite_front_is_up=True,
             **kwargs,
         )
-        self.joint_controller = self._controllers[0]
 
-    # def post_step(self, **_):
-    #     return super().post_step(**_)
-
-    def _set_controllers(self, **kwargs):
-        return [CenteredContinuousController(part=self)]
+        self.joint_controller = CenteredContinuousController()
+        self.add(self.joint_controller)
 
     def apply_commands(self, **kwargs):
 
+        assert self._anchor
+        assert self._motor
+
         value = self.joint_controller.command_value
+        angle_offset = self._anchor_coordinates[1]
 
         theta_part = self.angle
         theta_anchor = self._anchor.angle
 
-        angle_centered = theta_part - (theta_anchor + self._angle_offset)
+        angle_centered = theta_part - (theta_anchor + angle_offset)
         angle_centered = angle_centered % (2 * np.pi)
         angle_centered = (
             angle_centered - 2 * np.pi if angle_centered > np.pi else angle_centered
@@ -103,21 +88,18 @@ class MockAnchoredPart(AnchoredPart):
             self._motor.rate = -value * ANGULAR_VELOCITY
 
     @property
-    def default_position_on_part(self):
+    def _pivot_position(self):
         return (-self.radius, 0)
 
 
-class MockHaloPart(InteractivePart):
-    def __init__(self, anchor: Part, **kwargs):
-        super().__init__(anchor, **kwargs)
+class MockHaloPart(Interactor):
+    def __init__(self, anchor, **kwargs):
+        super().__init__(anchor=anchor, **kwargs)
         self._activated = False
 
     @property
     def _collision_type(self):
         return CollisionTypes.PASSIVE_INTERACTOR
-
-    def _set_controllers(self, **_):
-        return []
 
     def apply_commands(self, **_):
         pass
@@ -133,24 +115,15 @@ class MockHaloPart(InteractivePart):
         return self._activated
 
 
-class MockTriggerPart(InteractivePart):
-    def __init__(self, anchor: Part, **kwargs):
-        super().__init__(anchor, **kwargs)
+class MockInteractor(Interactor):
+    def __init__(self, anchor, **kwargs):
+        super().__init__(anchor=anchor, **kwargs)
 
-        self.trigger = self._set_controllers()[0]
         self._activated = False
 
     @property
     def _collision_type(self):
         return CollisionTypes.ACTIVE_INTERACTOR
-
-    def _set_controllers(self, **_):
-        return [BoolController(part=self)]
-
-    def apply_commands(self, **_):
-        value = self.trigger.command_value
-        if value:
-            self.activate()
 
     def pre_step(self):
         self._activated = False
@@ -163,26 +136,60 @@ class MockTriggerPart(InteractivePart):
         return self._activated
 
 
+class MockTriggerPart(MockAnchoredPart):
+    def __init__(self, rotation_range: float, **kwargs):
+
+        super().__init__(rotation_range=rotation_range, **kwargs)
+
+        self.interactor = MockInteractor(self)
+        self.add(self.interactor)
+
+        self.trigger = BoolController()
+        self.add(self.trigger)
+
+    def apply_commands(self, **_):
+
+        if self.trigger.command_value:
+            self.interactor.activate()
+
+
 class MockAgent(Agent):
-    def _add_base(self, **kwargs) -> Part:
-        base = MockBase(self, **kwargs)
-        return base
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        base = MockBase()
+        self.add(base)
 
 
 class MockAgentWithArm(MockAgent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        rel_left = ((15, 15), math.pi / 3)
         self.left_arm = MockAnchoredPart(
-            self.base,
-            position_on_anchor=(15, 15),
-            relative_angle=math.pi / 3,
             rotation_range=math.pi / 4,
         )
+        self.base.add(self.left_arm, rel_left)
 
+        rel_right = ((15, -15), -math.pi / 3)
         self.right_arm = MockAnchoredPart(
-            self.base,
-            position_on_anchor=(15, -15),
-            relative_angle=-math.pi / 3,
             rotation_range=math.pi / 4,
         )
+        self.base.add(self.right_arm, rel_right)
+
+
+class MockAgentWithTriggerArm(MockAgent):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        rel_left = ((15, 15), math.pi / 3)
+        self.left_arm = MockTriggerPart(
+            rotation_range=math.pi / 4,
+        )
+        self.base.add(self.left_arm, rel_left)
+
+        rel_right = ((15, -15), -math.pi / 3)
+        self.right_arm = MockTriggerPart(
+            rotation_range=math.pi / 4,
+        )
+        self.base.add(self.right_arm, rel_right)

@@ -1,9 +1,9 @@
 import pytest
 
-from simple_playgrounds.playground.playground import Playground
+from spg.playground import Playground
 
 # Add test Interactions to collisions
-from simple_playgrounds.common.definitions import CollisionTypes
+from spg.utils.definitions import CollisionTypes
 from tests.mock_entities import (
     MockPhysicalInteractive,
     passive_interaction,

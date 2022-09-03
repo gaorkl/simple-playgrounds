@@ -1,5 +1,5 @@
-from simple_playgrounds.playground.playground import Playground
-from simple_playgrounds.common.definitions import CollisionTypes
+from spg.playground import Playground
+from spg.utils.definitions import CollisionTypes
 
 
 from tests.mock_entities import (
@@ -59,6 +59,7 @@ def test_non_convex_entity():
 
     ent_1 = NonConvexC(35, 10)
     halo_1 = MockHalo(ent_1, interaction_range=10)
+    ent_1.add(halo_1)
 
     playground.add(ent_1, coord_center)
 
@@ -147,7 +148,7 @@ def test_trigger_same_team():
     assert trigger_1.halo.activated
     assert triggered_1.halo.activated
 
-    # Assert entities don't movable
+    playground.step()
     assert trigger_1.coordinates == center_0
     assert triggered_1.coordinates == center_1
 

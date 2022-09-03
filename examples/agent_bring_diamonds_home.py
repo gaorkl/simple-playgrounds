@@ -1,14 +1,13 @@
-from simple_playgrounds.agent.part.interactives import Grasper
-from simple_playgrounds.common.definitions import CollisionTypes
-from simple_playgrounds.playground.collision_handlers import get_colliding_entities
-from simple_playgrounds.playground.playground import Playground
-from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
+from spg.agent.part import Grasper
+from spg.utils.definitions import CollisionTypes
+from spg.playground.collision_handlers import get_colliding_entities
+from spg.playground import Playground
+from spg.playground import WallClosedPG
 
-from simple_playgrounds.element.diamond import Diamond
-from simple_playgrounds.element.chest import Chest
+from spg.element import Diamond, Chest
 
-from simple_playgrounds.agent.agents import HeadAgent
-from simple_playgrounds.common.gui import GUI
+from spg.agent import HeadAgent
+from spg.view import GUI
 
 
 def diamond_chest_collision(arbiter, space, data):
@@ -42,7 +41,6 @@ chest_2 = Chest()
 playground.add(chest_2, ((100, 40), 0))
 
 agent = HeadAgent()
-Grasper(agent.base)
 
 playground.add(agent)
 

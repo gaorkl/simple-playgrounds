@@ -1,4 +1,4 @@
-from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
+from spg.playground import WallClosedPG
 
 from tests.mock_entities import NonConvexPlus
 

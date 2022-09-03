@@ -1,6 +1,6 @@
-from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
-from simple_playgrounds.element.ball import Ball
-from simple_playgrounds.agent.agents import HeadAgent
+from spg.playground import WallClosedPG
+from spg.element import Ball
+from spg.agent import HeadAgent
 
 
 def test_scenario():
@@ -8,7 +8,6 @@ def test_scenario():
     playground = WallClosedPG(size=(1000, 200))
     ball = Ball()
     playground.add(ball, ((200, 0), 0))
-
 
     agent = HeadAgent()
     playground.add(agent)

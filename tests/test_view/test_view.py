@@ -1,10 +1,8 @@
 import math
 import numpy as np
-from simple_playgrounds.common import view
 
-from simple_playgrounds.playground.playground import Playground
-from simple_playgrounds.common.view import TopDownView
-from tests.test_view.conftest import color_bg
+from spg.playground import Playground
+from spg.view import TopDownView
 from ..mock_entities import (
     MockPhysicalFromShape,
     MockPhysicalInteractive,
@@ -44,10 +42,6 @@ def test_shape(geometry, position, center):
 
     ent_pos_on_image = (150 + position[0] + center[0], 150 + position[1] + center[1])
 
-    # print(position)
-    # print(center)
-    # view.imdisplay()
-    # assert np.all(view.img[0, 0] == color_bg)
     assert np.all(
         view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent
     )

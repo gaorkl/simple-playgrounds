@@ -1,13 +1,13 @@
 import pytest
 import gc
 
-from simple_playgrounds.playground.playground import Playground
+from spg.playground import Playground
 from tests.mock_entities import (
     MockPhysicalMovable,
     MockPhysicalInteractive,
     MockHalo,
 )
-from simple_playgrounds.entity.physical import PhysicalEntity
+from spg.entity.physical import PhysicalEntity
 
 coord_center = (0, 0), 0
 
@@ -39,7 +39,7 @@ def test_gc_remove_physical():
     )
     assert in_gc
 
-    playground.remove(playground._entities[0], definitive=False)
+    playground.remove(playground.elements[0], definitive=False)
 
     gc.collect()
     in_gc = len(
@@ -49,7 +49,7 @@ def test_gc_remove_physical():
 
     playground.reset()
 
-    playground.remove(playground._entities[0], definitive=True)
+    playground.remove(playground.elements[0], definitive=True)
     gc.collect()
     in_gc = len(
         [obj for obj in gc.get_objects() if isinstance(obj, MockPhysicalMovable)]
@@ -78,7 +78,7 @@ def test_gc_remove_anchored():
     )
     assert in_gc
 
-    playground.remove(playground._entities[0], definitive=False)
+    playground.remove(playground.elements[0], definitive=False)
 
     gc.collect()
     in_gc = len(
@@ -94,7 +94,7 @@ def test_gc_remove_anchored():
 
     playground.reset()
 
-    playground.remove(playground._entities[0], definitive=True)
+    playground.remove(playground.elements[0], definitive=True)
     gc.collect()
     in_gc = len(
         [

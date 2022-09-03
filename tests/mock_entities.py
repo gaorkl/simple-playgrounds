@@ -5,29 +5,25 @@ import pymunk
 
 from arcade.texture import Texture
 
-from simple_playgrounds.common.definitions import (
-    CollisionTypes,
-    PymunkCollisionCategories,
-)
-
-from simple_playgrounds.common.sprite_utils import get_texture_from_shape
-
-from simple_playgrounds.element.wall import ColorWall
-from simple_playgrounds.entity.interactive import (
-    AnchoredInteractive,
-    StandAloneInteractive,
-)
-from simple_playgrounds.entity.physical import PhysicalEntity
-from simple_playgrounds.playground.collision_handlers import get_colliding_entities
+from spg.utils import CollisionTypes, PymunkCollisionCategories, get_texture_from_shape
 
 
-class MockPhysicalFromResource(PhysicalEntity):
+from spg.element import ColorWall
+from spg.entity import InteractiveAnchored
+from spg.element import PhysicalElement, ZoneElement
+from spg.playground import get_colliding_entities
+
+
+class MockPhysicalFromResource(PhysicalElement):
     def __init__(self, filename, **kwargs):
-
         super().__init__(mass=10, filename=filename, **kwargs)
 
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
 
-class MockPhysicalMovable(PhysicalEntity):
+
+class MockPhysicalMovable(PhysicalElement):
     def __init__(self, radius=None, **kwargs):
 
         super().__init__(
@@ -37,8 +33,12 @@ class MockPhysicalMovable(PhysicalEntity):
             **kwargs
         )
 
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
 
-class MockPhysicalUnmovable(PhysicalEntity):
+
+class MockPhysicalUnmovable(PhysicalElement):
     def __init__(self, radius=None, **kwargs):
 
         super().__init__(
@@ -47,8 +47,12 @@ class MockPhysicalUnmovable(PhysicalEntity):
             **kwargs
         )
 
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
 
-class MockPhysicalFromShape(PhysicalEntity):
+
+class MockPhysicalFromShape(PhysicalElement):
     def __init__(self, geometry, size, color, mass=None, **kwargs):
 
         if geometry == "segment":
@@ -66,9 +70,13 @@ class MockPhysicalFromShape(PhysicalEntity):
 
         super().__init__(mass=mass, texture=texture, **kwargs)
 
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
 
-class MockHalo(AnchoredInteractive):
-    def __init__(self, anchor: PhysicalEntity, interaction_range):
+
+class MockHalo(InteractiveAnchored):
+    def __init__(self, anchor: PhysicalElement, interaction_range):
         super().__init__(anchor, interaction_range)
         self._activated = False
 
@@ -87,7 +95,7 @@ class MockHalo(AnchoredInteractive):
         return self._activated
 
 
-class MockPhysicalInteractive(PhysicalEntity):
+class MockPhysicalInteractive(PhysicalElement):
     def __init__(self, interaction_range, radius=None, **kwargs):
 
         super().__init__(
@@ -101,9 +109,14 @@ class MockPhysicalInteractive(PhysicalEntity):
             self,
             interaction_range=interaction_range,
         )
+        self.add(self.halo)
+
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
 
 
-class MockZoneInteractive(StandAloneInteractive):
+class MockZoneInteractive(ZoneElement):
     def __init__(self, radius=None, **kwargs):
         super().__init__(
             radius=radius,
@@ -152,6 +165,10 @@ class NonConvexPlus_Approx(MockPhysicalMovable):
 
         super().__init__(texture=texture, **kwargs)
 
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
+
 
 class NonConvexPlus(MockPhysicalMovable):
     def __init__(
@@ -185,6 +202,10 @@ class NonConvexPlus(MockPhysicalMovable):
             texture=texture,
             shape_approximation=shape_approximation,
         )
+
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
 
 
 class NonConvexC(MockPhysicalMovable):
@@ -221,6 +242,10 @@ class NonConvexC(MockPhysicalMovable):
             shape_approximation=shape_approximation,
         )
 
+    @property
+    def _collision_type(self):
+        return CollisionTypes.ELEMENT
+
 
 class MockBarrier(ColorWall):
     def __init__(self, begin_pt, end_pt, width, **kwargs):
@@ -249,10 +274,10 @@ def active_interaction(arbiter, space, data):
     playground = data["playground"]
     (activator, _), (activated, _) = get_colliding_entities(playground, arbiter)
 
-    if not activator.teams and activated.teams:
-        return True
+    # if not activator.teams and activated.teams:
+    #     return True
 
-    if activator._activated:
+    if activator.activated:
         activated.activate()
 
     return True
@@ -272,7 +297,7 @@ def passive_interaction(arbiter, space, data):
     return True
 
 
-# class MockPhysical(PhysicalEntity):
+# class MockPhysical(PhysicalElement):
 
 #     def __init__(self, pg, coord, **kwargs):
 #         super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
@@ -333,7 +358,7 @@ def passive_interaction(arbiter, space, data):
 #         self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
 
 
-# class MockBarrier(PhysicalEntity):
+# class MockBarrier(PhysicalElement):
 
 #     def __init__(self, pg, coord, **kwargs):
 #         super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)

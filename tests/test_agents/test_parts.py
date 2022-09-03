@@ -1,11 +1,9 @@
 import math
-import pymunk
 import random
-import numpy as np
 import pytest
 
-from simple_playgrounds.playground.playground import Playground
-from tests.mock_agents import MockAgent, MockAgentWithArm
+from spg.playground.playground import Playground
+from tests.mock_agents import MockAgentWithArm
 
 
 @pytest.fixture(scope="module", params=[(20, 20), (-20, -20), (10, -10)])

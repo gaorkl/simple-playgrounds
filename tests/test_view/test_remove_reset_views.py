@@ -1,10 +1,10 @@
 import random
 import numpy as np
 
-from simple_playgrounds.common.view import TopDownView
-from simple_playgrounds.playground.playgrounds.simple import WallClosedPG
-from simple_playgrounds.element.ball import Ball
-from simple_playgrounds.agent.agents import HeadAgent
+from spg.view import TopDownView
+from spg.playground import WallClosedPG
+from spg.element import Ball
+from spg.agent import HeadAgent
 
 
 def test_move_object():

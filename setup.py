@@ -10,7 +10,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 
-setup(name='simple_playgrounds',
+setup(name='spg',
       version='0.9.31',
       description='Simulator for Reinforcement Learning',
       author='Michael Garcia Ortiz',
