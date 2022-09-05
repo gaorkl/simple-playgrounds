@@ -46,6 +46,10 @@ class PhysicalEntity(EmbodiedEntity, ABC):
     def movable(self):
         return bool(self._mass)
 
+    @property
+    def needs_sprite_update(self):
+        return self._moved or self.movable
+
     ########################
     # BODY AND SHAPE
     ########################

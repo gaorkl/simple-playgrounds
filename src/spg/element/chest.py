@@ -19,11 +19,15 @@ class Chest(PhysicalElement):
 
         assert self._playground
 
-        for part in entity.grasped_by:
-            agent = part.agent
-            agent.reward += entity.reward / len(entity.grasped_by)
+        print(entity.grasped_by)
+        print("act")
+        if entity.graspable:
+            for grasper in entity.grasped_by:
+                agent = grasper.anchor.agent
+                agent.reward += entity.reward / len(entity.grasped_by)
 
-        if not entity.grasped_by:
+        else:
             agent = self._playground.get_closest_agent(self)
+            agent.reward += entity.reward
 
         self._playground.remove(entity)

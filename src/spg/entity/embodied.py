@@ -70,7 +70,6 @@ class EmbodiedEntity(Entity, ABC):
 
         # Flags
         self._produced_by: Optional[Entity] = None
-        self._required_sprites_update: Dict[Sprite, bool] = {}
         self._moved = False
 
         # At the begining, not in playground
@@ -275,7 +274,7 @@ class EmbodiedEntity(Entity, ABC):
             hit_box_algorithm="Detailed",
             hit_box_detail=1,
         )
-        self._required_sprites_update[sprite] = True
+
         return sprite
 
     def color_with_id(self, texture) -> Texture:
@@ -299,21 +298,21 @@ class EmbodiedEntity(Entity, ABC):
 
         return texture
 
-    def update_sprite(self, view, sprite, force=False):
+    @property
+    def needs_sprite_update(self):
+        return self._moved
 
-        if self._required_sprites_update[sprite] or force:
+    def update_sprite(self, view, sprite):
 
-            pos_x = (
-                self._pm_body.position.x - view.center[0]
-            ) * view.zoom + view.width // 2
-            pos_y = (
-                self._pm_body.position.y - view.center[1]
-            ) * view.zoom + view.height // 2
+        pos_x = (
+            self._pm_body.position.x - view.center[0]
+        ) * view.zoom + view.width // 2
+        pos_y = (
+            self._pm_body.position.y - view.center[1]
+        ) * view.zoom + view.height // 2
 
-            sprite.set_position(pos_x, pos_y)
-            sprite.angle = int(self._pm_body.angle * 180 / math.pi)
-
-            self._required_sprites_update[sprite] = False
+        sprite.set_position(pos_x, pos_y)
+        sprite.angle = int(self._pm_body.angle * 180 / math.pi)
 
     ###################
     # Pymunk objects
@@ -392,9 +391,6 @@ class EmbodiedEntity(Entity, ABC):
             self._pm_body.space.reindex_shapes_for_body(self._pm_body)
 
         self._moved = True
-        self._required_sprites_update = dict.fromkeys(
-            self._required_sprites_update, True
-        )
 
     def _sample_valid_coordinate(self) -> Coordinate:
 
@@ -418,14 +414,6 @@ class EmbodiedEntity(Entity, ABC):
 
     def reset(self):
         super().reset()
-        self._required_sprites_update = dict.fromkeys(
-            self._required_sprites_update, True
-        )
 
     def post_step(self):
-
-        if self.moved:
-
-            self._required_sprites_update = dict.fromkeys(
-                self._required_sprites_update, True
-            )
+        pass

@@ -58,6 +58,7 @@ class PhysicalElement(PhysicalEntity, SceneElement):
         self._interactives.append(interactive)
         interactive.pm_body = self._pm_body
         interactive.teams = self._teams
+        interactive.anchor = self
 
         if self._playground:
             self._playground.add(interactive)
@@ -71,6 +72,12 @@ class PhysicalElement(PhysicalEntity, SceneElement):
 
         for interactive in self._interactives:
             interactive.update_team_filter()
+
+    # def update_sprite(self, view, sprite, force=False):
+    #     super().update_sprite(view, sprite, force)
+
+    # for interactive in self._interactives:
+    #     interactive.update_sprite(view, sprite, force)
 
     # TODO: pre step, reset etc
 

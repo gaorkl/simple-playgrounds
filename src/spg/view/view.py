@@ -119,6 +119,7 @@ class TopDownView(ABC):
         else:
             raise ValueError("Not implemented")
 
+        entity.update_sprite(self, sprite)
         self._sprites[entity] = sprite
 
     def remove(self, entity):
@@ -144,7 +145,8 @@ class TopDownView(ABC):
 
         # check that
         for entity, sprite in self._sprites.items():
-            entity.update_sprite(self, sprite, force)
+            if entity.needs_sprite_update:
+                entity.update_sprite(self, sprite)
 
     def update(self, force=False):
 

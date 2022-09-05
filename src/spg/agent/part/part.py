@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 import pymunk
 import math
 from spg.agent.device import Device
+from spg.agent.interactor.interactor import ActiveInteractor
 
 
 from ..controller import (
@@ -119,7 +120,9 @@ class PhysicalPart(PhysicalEntity, ABC):
 
     @abstractmethod
     def apply_commands(self, **kwargs):
-        ...
+        for device in self.devices:
+            if isinstance(device, ActiveInteractor):
+                device.apply_commands(**kwargs)
 
     def pre_step(self):
         super().pre_step()

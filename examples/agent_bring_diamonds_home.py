@@ -1,4 +1,3 @@
-from spg.agent.part import Grasper
 from spg.utils.definitions import CollisionTypes
 from spg.playground.collision_handlers import get_colliding_entities
 from spg.playground import Playground

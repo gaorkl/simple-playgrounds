@@ -45,6 +45,7 @@ class ForwardBase(PhysicalPart):
 
     def apply_commands(self, **kwargs):
 
+        super().apply_commands(**kwargs)
         command_value = self.forward_controller.command_value
 
         self._pm_body.apply_force_at_local_point(

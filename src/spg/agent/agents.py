@@ -17,3 +17,6 @@ class HeadAgent(Agent):
 
         self.grasper = Grasper(base)
         base.add(self.grasper)
+
+        self.grasp_controller = self.grasper.grasp_controller
+        base.add(self.grasp_controller)

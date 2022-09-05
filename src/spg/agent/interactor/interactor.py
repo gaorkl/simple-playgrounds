@@ -43,11 +43,14 @@ class Interactor(Device):
     def relative_angle(self):
         return self.angle - self._anchor.angle
 
+
+class ActiveInteractor(Interactor):
     @abstractmethod
     def apply_commands(self, **kwargs):
         ...
 
-class Grasper(Interactor):
+
+class Grasper(ActiveInteractor):
     def __init__(self, anchor: PhysicalPart, **kwargs):
         super().__init__(anchor=anchor, **kwargs)
 

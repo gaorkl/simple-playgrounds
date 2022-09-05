@@ -121,6 +121,11 @@ class InteractiveAnchored(InteractiveZone, ABC):
     def pm_elements(self):
         return self._pm_shapes
 
+    @property
+    def needs_sprite_update(self):
+        assert self._anchor
+        return self._anchor.needs_sprite_update
+
 
 class Graspable(InteractiveAnchored):
     def __init__(
