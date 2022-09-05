@@ -43,9 +43,8 @@ class ForwardBase(PhysicalPart):
         self.linear_ratio = LINEAR_FORCE * linear_ratio
         self.angular_ratio = ANGULAR_VELOCITY * angular_ratio
 
-    def apply_commands(self, **kwargs):
+    def _apply_commands(self, **kwargs):
 
-        super().apply_commands(**kwargs)
         command_value = self.forward_controller.command_value
 
         self._pm_body.apply_force_at_local_point(
@@ -68,7 +67,7 @@ class Head(AnchoredPart):
         self.joint_controller = CenteredContinuousController()
         self.add(self.joint_controller)
 
-    def apply_commands(self, **kwargs):
+    def _apply_commands(self, **kwargs):
 
         assert self._anchor
         assert self._motor

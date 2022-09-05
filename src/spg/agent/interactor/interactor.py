@@ -65,11 +65,13 @@ class Grasper(ActiveInteractor):
     def start_grasping(self):
         return self._start_grasping
 
-    def grasp(self, entity: Graspable):
+    def grasp(self, graspable: Graspable):
+
+        entity = graspable.anchor
 
         if entity not in self._grasped_entities:
             self._grasped_entities.append(entity)
-            entity.anchor.grasped_by.append(self)
+            entity.grasped_by.append(self)
 
     @property
     def _collision_type(self):
@@ -107,7 +109,7 @@ class Grasper(ActiveInteractor):
     def _release_grasping(self):
 
         for entity in self._grasped_entities:
-            entity.anchor.grasped_by.remove(self)
+            entity.grasped_by.remove(self)
 
         self._grasped_entities = []
 

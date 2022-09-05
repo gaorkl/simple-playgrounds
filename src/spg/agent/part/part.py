@@ -12,8 +12,9 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 
 import pymunk
 import math
+from spg.agent.controller.controller import Controller
 from spg.agent.device import Device
-from spg.agent.interactor.interactor import ActiveInteractor
+from spg.agent.interactor.interactor import ActiveInteractor, Grasper
 
 
 from ..controller import (
@@ -44,6 +45,9 @@ class PhysicalPart(PhysicalEntity, ABC):
         self._devices: List[Device] = []
 
         self._agent: Optional[Agent] = None
+
+        self.grasper_controller: Optional[Controller] = None
+        self.grasper: Optional[Grasper] = None
 
     @property
     def agent(self):
@@ -93,6 +97,14 @@ class PhysicalPart(PhysicalEntity, ABC):
             assert self._agent
             self._agent.add(elem)
 
+    def add_grasper(self):
+        grasper = Grasper(self)
+        self.add(grasper)
+        self.grasper = grasper
+
+        self.grasper_controller = grasper.grasp_controller
+        self.add(self.grasper_controller)
+
     def move_to(
         self,
         coordinates: Coordinate,
@@ -118,11 +130,17 @@ class PhysicalPart(PhysicalEntity, ABC):
         for device in self._devices:
             device.update_team_filter()
 
-    @abstractmethod
     def apply_commands(self, **kwargs):
+
+        self._apply_commands(**kwargs)
+
         for device in self.devices:
             if isinstance(device, ActiveInteractor):
                 device.apply_commands(**kwargs)
+
+    @abstractmethod
+    def _apply_commands(self, **kwargs):
+        ...
 
     def pre_step(self):
         super().pre_step()

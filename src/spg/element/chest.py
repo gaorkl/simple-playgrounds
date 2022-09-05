@@ -19,8 +19,6 @@ class Chest(PhysicalElement):
 
         assert self._playground
 
-        print(entity.grasped_by)
-        print("act")
         if entity.graspable:
             for grasper in entity.grasped_by:
                 agent = grasper.anchor.agent

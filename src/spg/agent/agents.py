@@ -15,8 +15,6 @@ class HeadAgent(Agent):
         self.head = Head(rotation_range=math.pi)
         base.add(self.head)
 
-        self.grasper = Grasper(base)
-        base.add(self.grasper)
+        self.base.add_grasper()
 
-        self.grasp_controller = self.grasper.grasp_controller
-        base.add(self.grasp_controller)
+        

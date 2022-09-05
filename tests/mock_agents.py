@@ -36,7 +36,7 @@ class MockBase(PhysicalPart):
         self.angular_vel_controller = CenteredContinuousController()
         self.add(self.angular_vel_controller)
 
-    def apply_commands(self, **kwargs):
+    def _apply_commands(self, **kwargs):
 
         command_value = self.forward_controller.command_value
 
@@ -60,7 +60,7 @@ class MockAnchoredPart(AnchoredPart):
         self.joint_controller = CenteredContinuousController()
         self.add(self.joint_controller)
 
-    def apply_commands(self, **kwargs):
+    def _apply_commands(self, **kwargs):
 
         assert self._anchor
         assert self._motor
@@ -101,7 +101,7 @@ class MockHaloPart(Interactor):
     def _collision_type(self):
         return CollisionTypes.PASSIVE_INTERACTOR
 
-    def apply_commands(self, **_):
+    def _apply_commands(self, **_):
         pass
 
     def pre_step(self):
@@ -147,7 +147,7 @@ class MockTriggerPart(MockAnchoredPart):
         self.trigger = BoolController()
         self.add(self.trigger)
 
-    def apply_commands(self, **_):
+    def _apply_commands(self, **_):
 
         if self.trigger.command_value:
             self.interactor.activate()

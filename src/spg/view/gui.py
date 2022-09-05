@@ -110,7 +110,7 @@ class GUI(TopDownView):
             self._playground.reset()
 
         if key == arcade.key.G:
-            self._agent_commands[self._agent.grasper.grasp_controller] = 1
+            self._agent_commands[self._agent.base.grasper_controller] = 1
 
     def on_key_release(self, key, modifiers):
 
@@ -130,4 +130,4 @@ class GUI(TopDownView):
                 self._agent_commands[self._agent.head.joint_controller] = 0
 
         if key == arcade.key.G:
-            self._agent_commands[self._agent.grasper.grasp_controller] = 0
+            self._agent_commands[self._agent.base.grasper_controller] = 0

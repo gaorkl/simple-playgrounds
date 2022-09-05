@@ -10,6 +10,7 @@ from tests.mock_agents import (
 )
 from tests.mock_entities import (
     MockBarrier,
+    MockPhysicalMovable,
     MockZoneInteractive,
     active_interaction,
     passive_interaction,
@@ -141,3 +142,23 @@ def test_agent_interacts_active():
     assert not agent.right_arm.interactor.activated
     assert not zone_1.activated
     assert not zone_2.activated
+
+
+def test_agent_grasping():
+
+    playground = Playground()
+
+    agent = MockAgentWithArm()
+    agent.left_arm.add_grasper()
+    playground.add(agent)
+
+    elem = MockPhysicalMovable()
+    elem.graspable = True
+    playground.add(elem, ((60, 60), 0))
+
+    commands = {agent: {agent.left_arm.grasper_controller: 1}}
+
+    playground.step(commands=commands)
+
+    assert elem in agent.left_arm.grasper._grasped_entities
+    assert len(agent.left_arm.grasper._grasped_entities) == 1
