@@ -8,9 +8,9 @@ objects in simple-playgrounds.
 
 """
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import List, Optional, TYPE_CHECKING, Union
 
+from abc import ABC
+from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
     from ..playground import Playground
@@ -96,33 +96,26 @@ class Entity(ABC):
 
         if self._playground:
             return self._playground.rng
-        else:
-            return None
+
+        return None
 
     # Interactions with playground
 
-    @abstractmethod
-    def reset(self, **_):
+    def reset(self):
         """
         Upon reset of the Playgroung,
         revert the entity back to its original state.
         """
-        pass
 
-    @abstractmethod
-    def pre_step(self, **_):
+    def pre_step(self):
         """
         Preliminary calculations before the pymunk engine steps.
         """
-        ...
 
-    @abstractmethod
-    def post_step(self, **_):
+    def post_step(self):
         """
         Updates the entity state after pymunk engine steps.
         """
-        ...
 
-    @abstractmethod
-    def update_team_filter(self, **_):
+    def update_team_filter(self):
         pass

@@ -1,13 +1,10 @@
+# pylint: disable=protected-access
+
 import pytest
 
 from spg.playground import Playground
-from tests.mock_agents import (
-    MockAgent,
-    MockAgentWithTriggerArm,
-    MockTriggerPart,
-    MockAgentWithArm,
-    MockHaloPart,
-)
+from spg.utils.definitions import CollisionTypes
+from tests.mock_agents import MockAgentWithArm, MockAgentWithTriggerArm, MockHaloPart
 from tests.mock_entities import (
     MockBarrier,
     MockPhysicalMovable,
@@ -15,9 +12,9 @@ from tests.mock_entities import (
     active_interaction,
     passive_interaction,
 )
-from spg.utils.definitions import CollisionTypes
 
 coord_center = (0, 0), 0
+
 
 # team of barrier ; team of agent ; is it blocked?
 @pytest.fixture(

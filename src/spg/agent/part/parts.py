@@ -1,21 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ..agent import Agent
-
-from ..controller import CenteredContinuousController
-
-import pymunk
 import numpy as np
-
+import pymunk
 
 from ...utils.definitions import ANGULAR_VELOCITY, LINEAR_FORCE
-
-from .part import (
-    AnchoredPart,
-    PhysicalPart,
-)
+from ..controller import CenteredContinuousController
+from .part import AnchoredPart, PhysicalPart
 
 
 class ForwardBase(PhysicalPart):

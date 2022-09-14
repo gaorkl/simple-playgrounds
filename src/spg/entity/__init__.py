@@ -1,9 +1,19 @@
-from .entity import Entity
 from .embodied import EmbodiedEntity
-from .physical import PhysicalEntity
+from .entity import Entity
 from .interactive import (
+    Graspable,
+    InteractiveAnchored,
     InteractiveEntity,
     InteractiveZone,
-    InteractiveAnchored,
-    Graspable,
 )
+from .physical import PhysicalEntity
+
+__all__ = [
+    "Entity",
+    "EmbodiedEntity",
+    "Graspable",
+    "InteractiveZone",
+    "InteractiveEntity",
+    "InteractiveAnchored",
+    "PhysicalEntity",
+]

@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 from abc import ABC
-from typing import Optional, List
+from typing import Optional
+
 import pymunk
 
-
-from .interactive import Graspable
-from .embodied import EmbodiedEntity
-
 from ..utils.definitions import PymunkCollisionCategories
+from .embodied import EmbodiedEntity
 
 
 class PhysicalEntity(EmbodiedEntity, ABC):
     """
-    PhysicalEntity creates a physical object that can collide with other Physical Entities.
-    It deals with physical properties such as the mass, visual texture, whether it is transparent or traversable.
+    PhysicalEntity creates a physical object that can collide with
+    other Physical Entities.
+    It deals with physical properties such as the mass, visual texture,
+     whether it is transparent or traversable.
     PhysicalEntity is visible and non-traversable by default.
     An agent is composed of multiple PhysicalEntity that are attached to each other.
     """
@@ -69,7 +70,8 @@ class PhysicalEntity(EmbodiedEntity, ABC):
         # By default, a physical entity collides with all
         if self._transparent and self._traversable:
             raise ValueError(
-                "Physical Entity can not be transparent and traversable. Use Interactive Entity."
+                "Physical Entity can not be transparent and traversable.\
+                Use Interactive Entity."
             )
 
         categories = 2**PymunkCollisionCategories.NO_TEAM.value

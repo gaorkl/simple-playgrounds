@@ -1,22 +1,15 @@
 from __future__ import annotations
-import math
 
-from spg.agent.controller import CenteredContinuousController, BoolController
+import math
 
 import numpy as np
 import pymunk
 
-from spg.utils.definitions import (
-    ANGULAR_VELOCITY,
-    CollisionTypes,
-    LINEAR_FORCE,
-)
 from spg.agent import Agent
-from spg.agent.part import (
-    AnchoredPart,
-    PhysicalPart,
-)
+from spg.agent.controller import BoolController, CenteredContinuousController
 from spg.agent.interactor import Interactor
+from spg.agent.part import AnchoredPart, PhysicalPart
+from spg.utils.definitions import ANGULAR_VELOCITY, LINEAR_FORCE, CollisionTypes
 
 
 class MockBase(PhysicalPart):

@@ -3,20 +3,18 @@ Module containing classes to generate random positions and trajectories
 
 """
 from __future__ import annotations
+
 import math
-from collections.abc import Generator
-from typing import Tuple, Optional, Union, List, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from ..entity import EmbodiedEntity
-
-
 from abc import ABC, abstractmethod
+from collections.abc import Generator
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import numpy as np
 
 from .contour import Contour
 
+if TYPE_CHECKING:
+    from ..entity import EmbodiedEntity
 
 Coordinate = Tuple[Tuple[float, float], float]
 
@@ -25,15 +23,17 @@ class CoordinateSampler(ABC):
     """Sampler for a random position within a particular area
 
     Example:
-        area_1 = PositionAreaSampler(area_shape='rectangle', center=[70, 70], shape=[30, 100])
-        area_2 = PositionAreaSampler(area_shape='gaussian', center=[150, 50], variance = 300, radius=60)
+        area_1 = PositionAreaSampler(area_shape='rectangle',
+                                    center=[70, 70], shape=[30, 100])
+        area_2 = PositionAreaSampler(area_shape='gaussian',
+                                    center=[150, 50], variance = 300, radius=60)
 
     """
 
     def __init__(
         self,
         distribution: str,
-        contour: Optional[Contour] = None,
+        contour: Contour,
         angle: Optional[Union[float, Tuple[float, float]]] = None,
         **kwargs,
     ):
@@ -89,12 +89,13 @@ class CoordinateSampler(ABC):
 
     @property
     @abstractmethod
-    def _center(self):
+    def _center(self) -> Tuple[float, float]:
         ...
 
-    def sample(self) -> List[Coordinate]:
+    def sample(self):
         """
-        Sample probabiity for all possible coordinates, then sort them by order of posterior.
+        Sample probabiity for all possible coordinates,
+        then sort them by order of posterior.
         """
 
         uniform_sampling = self._rng.uniform(size=self._contour.mask_size)
@@ -136,11 +137,13 @@ class AnchoredCoordinateSampler(CoordinateSampler):
 
 
 class Trajectory(Generator):
-    """Trajectory is a generator which is used to define a list of positions that an entity follows.
+    """Trajectory is a generator used to define a list of positions that an entity follows.
 
     Example:
-    trajectory = Trajectory('waypoints', 300, waypoints=[[20, 20], [20, 180], [180,180], [180,20]])
-    trajectory = Trajectory('shape', 200, 8, shape='square', center=[100, 70, 0], radius=50)
+    trajectory = Trajectory('waypoints',
+               300, waypoints=[[20, 20], [20, 180], [180,180], [180,20]])
+    trajectory = Trajectory('shape',
+               200, 8, shape='square', center=[100, 70, 0], radius=50)
 
     """
 
@@ -156,19 +159,22 @@ class Trajectory(Generator):
 
         Args:
             trajectory_type (str): 'waypoints' or 'shape'
-            trajectory_duration (:obj:'int'): number of steps to complete a full trajectory
-            n_rotations (:obj:'int'): number of entity rotations during one full trajectory.
+            trajectory_duration (:obj:'int'): number of steps
+                to complete a full trajectory
+            n_rotations (:obj:'int'): number of entity rotations
+                during one full trajectory.
                 Default is 0.
-            index_start (:obj:'int'): offset for the start of the trajectory
+            index_start (:obj:'int'): offset for the start of the
+                trajectory.
                 Default is 0.
             **kwargs: Arbitrary keyword arguments
 
         Keyword Arguments:
             shape (str): 'line', 'circle', 'square', 'pentagpn', 'hexagon'
-            center (:obj:'list' of :obj:'int'): if shape is used, (x,y,orientation) of the center of a shape
-            radius (:obj:'int'): if shape is used, radius of the shape that entity is following
-            waypoints (:obj:'list' of :obj:'int'): if 'waypoints' is used, list of waypoints
-            counter_clockwise (:obj:'bool): direction of the trajectory. Default is False
+            center (:obj:'list' of :obj:'int'): coordinates of the center of a shape
+            radius (:obj:'int'): radius of the shape that entity is following
+            waypoints (:obj:'list' of :obj:'int'): list of waypoints
+            counter_clockwise (:obj:'bool): direction of trajectory. Default is False
 
         """
 
@@ -236,10 +242,8 @@ class Trajectory(Generator):
 
         shifted_waypoints = self.waypoints[1:] + self.waypoints[:1]
         total_length = sum(
-            [
-                math.sqrt((x1[0] - x2[0]) ** 2 + (x1[1] - x2[1]) ** 2)
-                for x1, x2 in zip(self.waypoints, shifted_waypoints)
-            ]
+            math.sqrt((x1[0] - x2[0]) ** 2 + (x1[1] - x2[1]) ** 2)
+            for x1, x2 in zip(self.waypoints, shifted_waypoints)
         )
 
         trajectory_points = []
@@ -278,7 +282,9 @@ class Trajectory(Generator):
         return trajectory_points
 
     def send(self, ignored_args) -> Coordinate:
-        """Function for generator. Sends current position, then changes current position depending on rotation side.
+        """Function for generator.
+        Sends current position, then changes current position
+        depending on rotation side.
 
         Args:
             ignored_args:
@@ -303,14 +309,15 @@ class Trajectory(Generator):
 
     # pylint: disable=redefined-builtin
     # pylint: disable=arguments-differ
-    def throw(self, type=None, value=None, traceback=None):
+    def throw(self, typ=None, val=None, tb=None):
         raise StopIteration
 
     def reset(self, index_start=None):
         """Resets the trajectory to its initial position.
 
         Args:
-            index_start (:obj:'list' of :obj:'int'): optional. If provided, changes the initial index for trajectory
+            index_start (:obj:'list' of :obj:'int'): optional.
+            If provided, changes the initial index for trajectory
 
         Returns:
 

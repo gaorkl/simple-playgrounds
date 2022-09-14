@@ -3,8 +3,7 @@ import pytest
 from spg.playground import Playground
 
 # Add test Interactions to collisions
-from tests.mock_entities import MockPhysicalMovable, MockBarrier
-
+from tests.mock_entities import MockBarrier, MockPhysicalMovable
 
 coord_center = ((0, 0), 0)
 

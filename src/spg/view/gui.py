@@ -1,13 +1,15 @@
 from __future__ import annotations
-from typing import Optional, Tuple, TYPE_CHECKING, Union, Dict
-from .view import TopDownView
 
-
-if TYPE_CHECKING:
-    from ..playground import Playground
-    from ..agent import HeadAgent
+from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 import arcade
+
+from .view import TopDownView
+
+if TYPE_CHECKING:
+    from ..agent import HeadAgent
+    from ..agent.controller import Command, Controller
+    from ..playground import Playground
 
 
 class GUI(TopDownView):
@@ -38,7 +40,7 @@ class GUI(TopDownView):
 
         self._agent = agent
 
-        self._agent_commands = {}
+        self._agent_commands: Dict[Controller, Command] = {}
         self.print_rewards = print_rewards
 
         self._playground.window.on_draw = self.on_draw
@@ -54,7 +56,7 @@ class GUI(TopDownView):
         self.update()
         self._fbo.use()
 
-    def on_update(self, delta_time):
+    def on_update(self, _):
 
         commands = self.commands
         self._playground.step(commands=commands)
@@ -92,7 +94,7 @@ class GUI(TopDownView):
         elif key == arcade.key.DOWN:
             self._agent_commands[self._agent.base.forward_controller] = -0.2
 
-        if not (modifiers & arcade.key.MOD_SHIFT):
+        if not modifiers & arcade.key.MOD_SHIFT:
             if key == arcade.key.LEFT:
                 self._agent_commands[self._agent.base.angular_vel_controller] = 0.2
             elif key == arcade.key.RIGHT:
@@ -118,7 +120,7 @@ class GUI(TopDownView):
             self._agent_commands[self._agent.base.forward_controller] = 0
         elif key == arcade.key.DOWN:
             self._agent_commands[self._agent.base.forward_controller] = 0
-        if not (modifiers & arcade.key.MOD_SHIFT):
+        if not modifiers & arcade.key.MOD_SHIFT:
             if key == arcade.key.LEFT:
                 self._agent_commands[self._agent.base.angular_vel_controller] = 0
             elif key == arcade.key.RIGHT:

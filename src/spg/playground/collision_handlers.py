@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from ..agent.part import PhysicalPart
-from ..agent.interactor import Grasper
 
+from typing import TYPE_CHECKING
+
+from ..agent.interactor import Grasper
+from ..agent.part import PhysicalPart
 
 if TYPE_CHECKING:
     from .playground import Playground
@@ -28,7 +29,7 @@ def get_colliding_entities(playground: Playground, arbiter):
 # Collision Handlers
 
 
-def grasper_grasps_graspable(arbiter, space, data):
+def grasper_grasps_graspable(arbiter, _, data):
 
     playground: Playground = data["playground"]
     (grasper, _), (entity, _) = get_colliding_entities(playground, arbiter)
@@ -66,13 +67,15 @@ def grasper_grasps_graspable(arbiter, space, data):
 # def agent_activates_element(arbiter, space, data):
 
 #     playground: Playground = data['playground']
-#     (part, agent), (activable_element, _) = get_colliding_entities(playground, arbiter)
+#     (part, agent), (activable_element, _) =
+# get_colliding_entities(playground, arbiter)
 
 #     if not activable_element:
 #         return True
 
 #     assert isinstance(activable_element, InteractiveElement)
-# def grasper_grasps_graspable(arbiter, space, data):#     assert isinstance(agent, Agent)
+# def grasper_grasps_graspable(arbiter, space, data)
+#     assert isinstance(agent, Agent)
 
 #     # Note: later, should handle the case where two agents activate simultaneously.
 #     for actuator in agent.actuators:

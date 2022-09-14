@@ -3,17 +3,15 @@ Module defining the Base Classes for Sensors.
 """
 
 from __future__ import annotations
-from typing import List, Optional, Union
 
 import math
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
+from typing import List, Optional, Union
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
 
-from ..device import Device
 from ...entity import Entity
-
+from ..device import Device
 
 SensorValue = Union[np.ndarray, List[np.ndarray]]
 
@@ -99,7 +97,6 @@ class Sensor(Device):
     @abstractmethod
     def shape(self) -> tuple:
         """Returns the shape of the numpy array, if applicable."""
-        ...
 
     @abstractmethod
     def draw(self, view):
@@ -116,11 +113,10 @@ class ExternalSensor(Sensor, ABC):
         self,
         fov: float,
         resolution: int,
-        range: float,
+        range: float,  # pylint: disable=redefined-builtin
         invisible_elements: Optional[Union[List[Entity], Entity]] = None,
         **kwargs,
     ):
-
         """
 
         Args:
@@ -155,8 +151,6 @@ class ExternalSensor(Sensor, ABC):
         if self._range < 0:
             raise ValueError("range must be more than 1")
 
-        # Temporary invisible to manage elements that are invisible to the agent or sensor.
-        # Manages dynamic invisibility. Elements are invisible some times.
         self._temporary_invisible: List[Entity] = []
 
     def pre_step(self):

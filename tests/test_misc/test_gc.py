@@ -1,13 +1,8 @@
-import pytest
 import gc
 
-from spg.playground import Playground
-from tests.mock_entities import (
-    MockPhysicalMovable,
-    MockPhysicalInteractive,
-    MockHalo,
-)
 from spg.entity.physical import PhysicalEntity
+from spg.playground import Playground
+from tests.mock_entities import MockHalo, MockPhysicalInteractive, MockPhysicalMovable
 
 coord_center = (0, 0), 0
 
@@ -71,9 +66,7 @@ def test_gc_remove_anchored():
         [
             obj
             for obj in gc.get_objects()
-            if isinstance(obj, MockPhysicalInteractive)
-            or isinstance(obj, PhysicalEntity)
-            or isinstance(obj, MockHalo)
+            if isinstance(obj, (MockPhysicalInteractive, PhysicalEntity, MockHalo))
         ]
     )
     assert in_gc
@@ -85,9 +78,7 @@ def test_gc_remove_anchored():
         [
             obj
             for obj in gc.get_objects()
-            if isinstance(obj, MockPhysicalInteractive)
-            or isinstance(obj, PhysicalEntity)
-            or isinstance(obj, MockHalo)
+            if isinstance(obj, (MockPhysicalInteractive, PhysicalEntity, MockHalo))
         ]
     )
     assert in_gc
@@ -100,9 +91,7 @@ def test_gc_remove_anchored():
         [
             obj
             for obj in gc.get_objects()
-            if isinstance(obj, MockPhysicalInteractive)
-            or isinstance(obj, PhysicalEntity)
-            or isinstance(obj, MockHalo)
+            if isinstance(obj, (MockPhysicalInteractive, PhysicalEntity, MockHalo))
         ]
     )
     assert not in_gc

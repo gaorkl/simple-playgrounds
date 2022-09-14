@@ -1,10 +1,9 @@
-from typing import Optional, Tuple, List, Union
-from enum import IntEnum, auto
-
 import math
+from enum import IntEnum, auto
+from typing import List, Optional, Tuple, Union
+
 import numpy as np
 import pymunk
-
 import skimage.draw
 
 
@@ -20,28 +19,21 @@ class GeometricShapes(IntEnum):
 
 
 class Contour:
-
-    def __init__(self,
-                 shape: Optional[Union[str, GeometricShapes]],
-                 binary_mask: Optional[np.ndarray] = None,
-                 **kwargs,
-                 ):
+    def __init__(
+        self,
+        shape: Union[str, GeometricShapes],
+        **kwargs,
+    ):
 
         self._shape: GeometricShapes
         self._radius: Optional[float] = None
         self._size: Optional[Tuple[float, float]] = None
         self._vertices: Optional[List[Tuple[float, float]]] = None
 
-        if binary_mask:
-            self._shape = GeometricShapes.POLYGON
-            self._get_contour_from_mask(binary_mask, **kwargs)
-
-        else:
-            assert shape
-            if isinstance(shape, str):
-                shape = GeometricShapes[shape.upper()]
-            self._shape = shape
-            self._get_contour_from_shape(**kwargs)
+        if isinstance(shape, str):
+            shape = GeometricShapes[shape.upper()]
+        self._shape = shape
+        self._get_contour_from_shape(**kwargs)
 
         self._mask = self.compute_mask()
 
@@ -64,10 +56,10 @@ class Contour:
     @property
     def dict_attributes(self):
         return {
-            'shape': self._shape,
-            'radius': self._radius,
-            'vertices': self._vertices,
-            'size': self._size
+            "shape": self._shape,
+            "radius": self._radius,
+            "vertices": self._vertices,
+            "size": self._size,
         }
 
     @property
@@ -82,17 +74,13 @@ class Contour:
     def mask_center(self):
         return self._mask_center
 
-    def _get_contour_from_mask(self,
-                               binary_mask,
-                               **kwargs):
-        raise ValueError('Not implemented')
-
-    def _get_contour_from_shape(self,
-                                radius: Optional[float] = None,
-                                size: Optional[Tuple[float, float]] = None,
-                                vertices: Optional[List[Tuple[float, float]]] = None,
-                                **kwargs):
-
+    def _get_contour_from_shape(
+        self,
+        radius: Optional[float] = None,
+        size: Optional[Tuple[float, float]] = None,
+        vertices: Optional[List[Tuple[float, float]]] = None,
+        **_,
+    ):
 
         # Dimensions of the entity
 
@@ -130,7 +118,7 @@ class Contour:
             self._vertices = [pymunk.Vec2d(*pt) for pt in vertices]
 
         else:
-            raise ValueError('Wrong physical shape: {}.'.format(self._shape))
+            raise ValueError(f"Wrong physical shape: {self._shape}")
 
         self._mask_size = (2 * int(self._radius) + 1, 2 * int(self._radius) + 1)
         self._mask_center = (int(self._radius), int(self._radius))
@@ -142,10 +130,10 @@ class Contour:
             width, length = self._size
 
             vertices = [
-                pymunk.Vec2d(width / 2., length / 2.),
-                pymunk.Vec2d(width / 2., -length / 2.),
-                pymunk.Vec2d(-width / 2., -length / 2.),
-                pmunk.Vec2d(-width / 2., length / 2.)
+                pymunk.Vec2d(width / 2.0, length / 2.0),
+                pymunk.Vec2d(width / 2.0, -length / 2.0),
+                pymunk.Vec2d(-width / 2.0, -length / 2.0),
+                pymunk.Vec2d(-width / 2.0, length / 2.0),
             ]
 
         elif self._shape in [
@@ -161,8 +149,7 @@ class Contour:
 
             vertices = []
             for n_sides in range(number_sides):
-                vertices.append(
-                    orig.rotated(n_sides * 2 * math.pi / number_sides))
+                vertices.append(orig.rotated(n_sides * 2 * math.pi / number_sides))
 
         elif self._shape == GeometricShapes.POLYGON:
             vertices = self._vertices
@@ -190,11 +177,16 @@ class Contour:
     def expand(self, additional_length):
 
         self._radius += additional_length
-        self._size = self._size[0] + additional_length, self._size[1] + additional_length
+        self._size = (
+            self._size[0] + additional_length,
+            self._size[1] + additional_length,
+        )
 
         if self._vertices:
-            self._vertices = [pymunk.Vec2d(x, y) + pymunk.Vec2d(x, y).normalized() * additional_length
-                              for x, y in self._vertices]
+            self._vertices = [
+                pymunk.Vec2d(x, y) + pymunk.Vec2d(x, y).normalized() * additional_length
+                for x, y in self._vertices
+            ]
 
     def compute_mask(self, angle: Optional[float] = 0):
 
@@ -207,6 +199,6 @@ class Contour:
             vertices = self.get_rotated_vertices(angle=angle)
             polygon = np.asarray(vertices)
             polygon += self._mask_center
-            mask = skimage.draw.polygon2mask(self._mask_size, polygon=polygon)*1
+            mask = skimage.draw.polygon2mask(self._mask_size, polygon=polygon) * 1
 
         return mask

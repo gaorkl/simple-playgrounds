@@ -6,13 +6,15 @@ from spg.playground import Playground
 from spg.utils.definitions import CollisionTypes
 from tests.mock_entities import (
     MockPhysicalInteractive,
-    passive_interaction,
     MockZoneInteractive,
+    passive_interaction,
 )
 
 coord_0 = ((0, 0), 0)
 
 # teams of element 1 ; team of element 2 ; is interacting?
+
+
 @pytest.fixture(
     scope="module",
     params=[

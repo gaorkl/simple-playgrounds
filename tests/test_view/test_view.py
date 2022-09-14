@@ -1,8 +1,10 @@
 import math
+
 import numpy as np
 
 from spg.playground import Playground
 from spg.view import TopDownView
+
 from ..mock_entities import (
     MockPhysicalFromShape,
     MockPhysicalInteractive,
@@ -23,7 +25,6 @@ def test_empty_pg(view_size, zoom, color_bg):
     view.update()
 
     assert np.all(view.get_np_img()[0, 0] == color_bg)
-    # assert view.img.shape == (*view_size, 3)
 
 
 def test_shape(geometry, position, center):
@@ -117,7 +118,6 @@ def test_traversable(geometry, position, zoom):
 def test_transparent(geometry, position, zoom):
 
     color_1 = (123, 122, 54)
-    color_2 = (13, 12, 54)
 
     playground = Playground()
     ent_1 = MockPhysicalFromShape(
@@ -144,10 +144,6 @@ def test_transparent(geometry, position, zoom):
 
     ent_pos_on_image = (150 + int(position[0] * zoom), 150 + int(position[1] * zoom))
 
-    # print(position)
-    # print(center)
-    # view.imdisplay()
-    # assert np.all(view.img[0, 0] == color_bg)
     assert np.all(
         view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
     )
@@ -155,7 +151,6 @@ def test_transparent(geometry, position, zoom):
 
 def test_remove_entity():
 
-    color_ent = (123, 122, 54)
     playground = Playground()
     ent_1 = MockPhysicalInteractive(interaction_range=5)
     playground.add(ent_1, ((0, 0), 0))
@@ -178,7 +173,7 @@ def test_remove_entity():
     )
 
     playground.remove(ent_1)
-    assert ent_1 not in view._sprites
+    assert ent_1 not in view.sprites
 
     view.update()
 

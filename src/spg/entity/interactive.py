@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Optional
 
 from abc import ABC
+from typing import TYPE_CHECKING, List, Optional
 
 import pymunk
 
@@ -29,8 +29,8 @@ class InteractiveEntity(EmbodiedEntity, ABC):
 
         # self._base_sprite.alpha = INVISIBLE_ALPHA
 
-    def get_sprite(self, zoom: float = 1):
-        sprite = super().get_sprite(zoom)
+    def get_sprite(self, zoom: float = 1, color_uid=None):
+        sprite = super().get_sprite(zoom, color_uid)
         sprite.alpha = INVISIBLE_ALPHA
 
         return sprite

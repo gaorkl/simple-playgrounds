@@ -9,38 +9,33 @@ Examples can be found in :
     - spg/playgrounds/empty.py
     - spg/playgrounds/collection
 """
+# pylint: disable=too-many-public-methods
+
 from __future__ import annotations
 
-from typing import List, Dict, Optional, Type, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Type, Union
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pymunk
+import pymunk.matplotlib_util
 from arcade import Window
 
 from spg.element.element import PhysicalElement, SceneElement
-from ..utils.position import Coordinate
 
-import pymunk
-import numpy as np
-
-import matplotlib.pyplot as plt
-import pymunk.matplotlib_util
-
-from ..entity import InteractiveAnchored
-
-
+from ..agent import Agent
+from ..agent.communicator import Communicator, Message
+from ..agent.controller import Command, Controller
+from ..agent.part import AnchoredPart, PhysicalPart
+from ..agent.sensor import Sensor, SensorValue
+from ..entity import EmbodiedEntity, Entity, InteractiveAnchored
 from ..utils.definitions import (
     PYMUNK_STEPS,
     SPACE_DAMPING,
     CollisionTypes,
     PymunkCollisionCategories,
 )
-from ..agent import Agent
-from ..agent.part import AnchoredPart, PhysicalPart
-from ..entity import Entity, EmbodiedEntity
-
-from ..agent.controller import Controller, Command
-from ..agent.communicator import Communicator, Message
-from ..agent.sensor import Sensor, SensorValue
-
+from ..utils.position import Coordinate
 from .collision_handlers import grasper_grasps_graspable
 
 # pylint: disable=unused-argument
@@ -65,7 +60,8 @@ class Playground:
         done: bool, True if the playground reached termination.
 
     Notes:
-          In the case of multi-agent setting, individual initial positions can be defined when
+          In the case of multi-agent setting,
+          individual initial positions can be defined when
           instantiating the playground.
 
           Always reset the playground before starting a run.
@@ -92,6 +88,9 @@ class Playground:
         # By default, size is infinite and center is at (0,0)
         self._center = (0, 0)
         self._size = size
+        self._width: Optional[int]
+        self._height: Optional[int]
+
         if size:
             self._width, self._height = size
         else:
@@ -288,9 +287,11 @@ class Playground:
             pymunk_steps: Number of steps for the pymunk physics engine to run.
 
         Notes:
-            pymunk_steps only influences the micro-steps that the physical engine is taking to render
+            pymunk_steps only influences the micro-steps that
+            the physical engine is taking to render
             the movement of objects and collisions.
-            From an external point of view, one unit of time passes independent on the number
+            From an external point of view,
+            one unit of time passes independent on the number
             of pymunk_steps.
 
         """
@@ -344,7 +345,9 @@ class Playground:
     def _transmit_messages(self, messages):
 
         if not messages:
-            return
+            return None
+
+        return messages
 
     def _compute_observations(self):
 
@@ -528,7 +531,7 @@ class Playground:
 
         new_team = False
         for team in entity.teams:
-            if team not in self._teams.keys():
+            if team not in self._teams:
                 self.add_team(team)
                 new_team = True
 
@@ -685,7 +688,7 @@ class Playground:
         return min(self.agents, key=lambda a: entity.position.get_dist_sqrd(a.position))
 
     def get_entity_from_shape(self, shape: pymunk.Shape):
-        assert shape in self._shapes_to_entities.keys()
+        assert shape in self._shapes_to_entities
 
         entity = self._shapes_to_entities[shape]
 

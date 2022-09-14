@@ -2,20 +2,18 @@
 Module that defines Base Class SceneElement
 """
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
-from matplotlib.pyplot import interactive
-from spg.entity.interactive import (
+from ..entity import (
+    Entity,
+    Graspable,
     InteractiveAnchored,
-    InteractiveEntity,
     InteractiveZone,
+    PhysicalEntity,
 )
-
-from spg.utils.definitions import CollisionTypes
-from ..entity import PhysicalEntity
-
-from ..entity import Graspable
+from ..utils.definitions import CollisionTypes
 
 
 class SceneElement(ABC):
@@ -30,6 +28,8 @@ class PhysicalElement(PhysicalEntity, SceneElement):
 
         self._grasped_by = []
         self._graspable = False
+
+        self._produced_by: Optional[Entity] = None
 
     @property
     def graspable(self):
@@ -48,6 +48,10 @@ class PhysicalElement(PhysicalEntity, SceneElement):
     @property
     def grasped_by(self):
         return self._grasped_by
+
+    @property
+    def produced_by(self):
+        return self._produced_by
 
     @property
     def interactives(self):

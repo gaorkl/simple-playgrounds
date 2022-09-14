@@ -1,12 +1,15 @@
-import pytest
+# pylint: disable=protected-access
 import math
+
+import pytest
+
 from spg.playground import Playground
 from tests.mock_entities import (
+    MockPhysicalFromShape,
     MockPhysicalMovable,
     MockPhysicalUnmovable,
-    NonConvexPlus,
     NonConvexC,
-    MockPhysicalFromShape,
+    NonConvexPlus,
     NonConvexPlus_Approx,
 )
 

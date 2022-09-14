@@ -1,4 +1,5 @@
 from abc import ABC
+
 import numpy as np
 
 from .sensor import ExternalSensor

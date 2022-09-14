@@ -1,3 +1,5 @@
+# pylint: disable=too-many-public-methods
+
 """ Contains the base class for agents.
 
 Agent class should be inherited to create agents.
@@ -8,28 +10,22 @@ Examples can be found in spg/agents/agents.py
 
 """
 from __future__ import annotations
-from abc import abstractmethod
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
-from gym.spaces import space
+from typing import Dict, List, Optional, Union
+
 import numpy as np
 
-from .controller import Controller
-
-from ..utils.position import Coordinate
-from ..entity import EmbodiedEntity, Entity
-
 from ..element import Teleporter
-
-if TYPE_CHECKING:
-    from .sensor import Sensor
-    from .controller import Commands
-    from .interactor import Interactor
-    from .communicator import Communicator
-
+from ..entity import EmbodiedEntity, Entity
+from ..utils.position import Coordinate
+from .communicator import Communicator
+from .controller import Command, Controller
 from .part import PhysicalPart
+from .sensor import Sensor
 
 _BORDER_IMAGE = 3
+
+Commands = Dict[Controller, Command]
 
 
 class Agent(Entity):
@@ -132,21 +128,21 @@ class Agent(Entity):
         }
 
     @property
-    def observation_space(self) -> Dict[Sensor, space.Space]:
-        return {
-            sens: sens.observation_space
-            for part in self._parts
-            for sens in part.devices
-            if isinstance(sens, Sensor)
-        }
-
-    @property
     def controllers(self):
         return [
             contr
             for part in self._parts
             for contr in part.devices
             if isinstance(contr, Controller)
+        ]
+
+    @property
+    def communicators(self):
+        return [
+            comm
+            for part in self._parts
+            for comm in part.devices
+            if isinstance(comm, Communicator)
         ]
 
     @property
@@ -158,15 +154,7 @@ class Agent(Entity):
             if isinstance(sensor, Sensor)
         ]
 
-    def compute_observations(
-        self, keys_are_str: bool = True, return_np_arrays: bool = True
-    ):
-
-        # For sensor in sensors:
-        # test if view has been updated withon sensors
-        # calculate observation
-        # return dict of Sensor:SensorValue
-
+    def compute_observations(self):
         pass
 
     def compute_rewards(self):
@@ -251,7 +239,6 @@ class Agent(Entity):
     ###############
 
     def move_to(self, coord: Coordinate, **kwargs):
-
         """
         After moving, the agent body is back in its original configuration.
         Default angle, etc.
@@ -279,164 +266,10 @@ class Agent(Entity):
         entity: EmbodiedEntity,
     ) -> bool:
 
-        for part in self.parts:
+        assert self._playground
 
+        for part in self.parts:
             if self._playground.overlaps(part, entity):
                 return True
 
         return False
-
-    # @property
-    # def grasped_elements(self):
-    #     list_hold = []
-    #     for part in self._parts:
-    #         if isinstance(part, GraspPart):
-    #             list_hold + part.grasped_elements
-    #     return list_hold
-
-    def generate_sensor_image(
-        self, width_sensor: int = 200, height_sensor: int = 30, plt_mode: bool = False
-    ):
-        """
-        Generate a full image containing all the sensor representations of an Agent.
-        Args:
-            width_sensor: width of the display for drawing.
-            height_sensor: when applicable (1D sensor), the height of the display.
-            plt_mode: if True, returns images compatible with pyplot.
-
-        Returns:
-
-        """
-
-        list_sensor_images = []
-        for sensor in self._sensors:
-            list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
-
-        full_height = sum([im.shape[0] for im in list_sensor_images]) + len(
-            list_sensor_images
-        ) * (_BORDER_IMAGE + 1)
-
-        full_img = np.ones((full_height, width_sensor, 3))
-
-        current_height = 0
-        for sensor_image in list_sensor_images:
-            current_height += _BORDER_IMAGE
-            full_img[
-                current_height : sensor_image.shape[0] + current_height, :, :
-            ] = sensor_image[:, :, :]
-            current_height += sensor_image.shape[0]
-
-        if plt_mode:
-            full_img = full_img[:, :, ::-1]
-
-        return full_img
-
-    # def generate_actions_image(self, **kwargs):
-    #     """
-    #     Function that draws all action values of the agent.
-
-    #     Args:
-    #         width_action: width of the action image in pixels.
-    #         height_action: height of a single action image in pixels.
-    #         plt_mode: if True, returns a pyplot-compatible image.
-
-    #     Returns:
-    #         Image of the agent's current actions.
-
-    #     """
-    #     # pylint: disable=too-many-locals
-
-    #     all_action_images = []
-
-    #     for part in self._parts:
-    #         img_action = part.draw_action(**kwargs)
-
-    #     number_parts_with_actions = len(self._parts)
-
-    #     assert isinstance(self._current_actions, dict)
-    #     count_all_actions = len(self._current_actions)
-
-    #     total_height_actions = number_parts_with_actions * (_BORDER_IMAGE + height_action) \
-    #                            + (_BORDER_IMAGE + height_action) * count_all_actions + _BORDER_IMAGE
-
-    #     img_actions = Image.new("RGB", (width_action, total_height_actions),
-    #                             (255, 255, 255))
-    #     drawer_action_image = ImageDraw.Draw(img_actions)
-
-    #     fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf",
-    #                              int(height_action * 2 / 3))
-
-    #     current_height = 0
-
-    #     for part in self.parts:
-
-    #         w_text, h_text = fnt.getsize(text=part.name.upper())
-    #         drawer_action_image.text(
-    #             (width_action / 2.0 - w_text / 2,
-    #              current_height + height_action / 2 - h_text / 2),
-    #             part.name.upper(),
-    #             font=fnt,
-    #             fill=(0, 0, 0))
-
-    #         start = (0, current_height)
-    #         end = (width_action, current_height + height_action)
-    #         drawer_action_image.rectangle([start, end],
-    #                                       outline=(0, 0, 0),
-    #                                       width=2)
-
-    #         current_height += _BORDER_IMAGE + height_action
-
-    #         all_action_parts = [
-    #             (action, value)
-    #             for action, value in self._current_actions.items()
-    #             if action.part.name == part.name
-    #         ]
-
-    #         for actuator, _ in all_action_parts:
-
-    #             actuator.draw(drawer_action_image, width_action,
-    #                           current_height, height_action, fnt)
-    #             current_height += _BORDER_IMAGE + height_action
-
-    #     img_actions = np.asarray(img_actions) / 255.
-
-    #     if plt_mode:
-    #         img_actions = img_actions[:, :, ::-1]
-
-    #     return img_actions
-
-    # def generate_sensor_image(self,
-    #                           width_sensor: int = 200,
-    #                           height_sensor: int = 30,
-    #                           plt_mode: bool = False):
-    #     """
-    #     Generate a full image containing all the sensor representations of an Agent.
-    #     Args:
-    #         width_sensor: width of the display for drawing.
-    #         height_sensor: when applicable (1D sensor), the height of the display.
-    #         plt_mode: if True, returns images compatible with pyplot.
-
-    #     Returns:
-
-    #     """
-
-    #     list_sensor_images = []
-    #     for sensor in self.sensors:
-    #         list_sensor_images.append(sensor.draw(width_sensor, height_sensor))
-
-    #     full_height = sum([im.shape[0] for im in list_sensor_images])\
-    #                   + len(list_sensor_images) * (_BORDER_IMAGE + 1)
-
-    #     full_img = np.ones((full_height, width_sensor, 3))
-
-    #     current_height = 0
-    #     for sensor_image in list_sensor_images:
-    #         current_height += _BORDER_IMAGE
-    #         full_img[current_height:sensor_image.shape[0] + current_height, :, :] \
-    #             = sensor_image[:, :, :]
-    #         current_height += sensor_image.shape[0]
-
-    #     if plt_mode:
-    #         full_img = full_img[:, :, ::-1]
-
-    #     return full_img

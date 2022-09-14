@@ -1,9 +1,19 @@
 from .controller import (
-    Controller,
-    Command,
-    CenteredContinuousController,
-    ContinuousController,
     BoolController,
+    CenteredContinuousController,
+    Command,
+    ContinuousController,
+    Controller,
     DiscreteController,
     RangeController,
 )
+
+__all__ = [
+    "BoolController",
+    "CenteredContinuousController",
+    "Command",
+    "ContinuousController",
+    "Controller",
+    "DiscreteController",
+    "RangeController",
+]

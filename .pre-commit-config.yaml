@@ -1,0 +1,43 @@
+repos:
+  - repo: https://github.com/ambv/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        language_version: python3
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        language_version: python3
+        args: ["--filter-files"]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        language_version: python3
+
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args: ["-j 0"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: trailing-whitespace
+        language_version: python3
+      - id: check-added-large-files
+        language_version: python3
+      - id: check-ast
+        language_version: python3
+      - id: check-yaml
+        language_version: python3
+      - id: check-json
+        language_version: python3
+      - id: detect-private-key
+        language_version: python3

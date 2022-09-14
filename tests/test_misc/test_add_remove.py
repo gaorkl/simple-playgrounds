@@ -1,8 +1,10 @@
+# pylint: disable=protected-access
+
 from spg.playground import Playground
 from tests.mock_entities import (
+    MockPhysicalInteractive,
     MockPhysicalMovable,
     MockZoneInteractive,
-    MockPhysicalInteractive,
 )
 
 coord_center = (0, 0), 0

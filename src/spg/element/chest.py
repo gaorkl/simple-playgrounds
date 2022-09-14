@@ -1,5 +1,4 @@
 from ..utils.definitions import CollisionTypes
-from ..entity import PhysicalEntity
 from .element import PhysicalElement, RewardElement
 
 

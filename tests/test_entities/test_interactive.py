@@ -1,15 +1,12 @@
 from spg.playground import Playground
 from spg.utils.definitions import CollisionTypes
-
-
 from tests.mock_entities import (
     MockHalo,
     MockPhysicalInteractive,
-    passive_interaction,
-    NonConvexC,
     MockZoneInteractive,
+    NonConvexC,
+    passive_interaction,
 )
-
 
 coord_center = (0, 0), 0
 

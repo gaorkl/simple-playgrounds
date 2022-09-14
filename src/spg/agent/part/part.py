@@ -7,27 +7,22 @@ Examples on how to add Parts to an agent can be found
 in spg/agents/agents.py
 """
 from __future__ import annotations
+
+import math
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import pymunk
-import math
-from spg.agent.controller.controller import Controller
-from spg.agent.device import Device
-from spg.agent.interactor.interactor import ActiveInteractor, Grasper
 
-
-from ..controller import (
-    Command,
-)
-from ...utils.definitions import (
-    CollisionTypes,
-)
 from ...entity import PhysicalEntity
+from ...utils.definitions import CollisionTypes
+from ..controller import Command, Controller
+from ..device import Device
+from ..interactor.interactor import ActiveInteractor, Grasper
 
 if TYPE_CHECKING:
-    from ..agent import Agent
     from ...utils.position import Coordinate
+    from ..agent import Agent
 
 CommandDict = Dict[Command, Union[float, int]]
 
@@ -80,7 +75,7 @@ class PhysicalPart(PhysicalEntity, ABC):
     ):
 
         elem.anchor = self
-        elem._teams = self._teams
+        elem.teams = self._teams
 
         if isinstance(elem, AnchoredPart):
             if anchor_coordinates:
@@ -105,7 +100,7 @@ class PhysicalPart(PhysicalEntity, ABC):
         self.grasper_controller = grasper.grasp_controller
         self.add(self.grasper_controller)
 
-    def move_to(
+    def move_to(  # pylint: disable=arguments-differ
         self,
         coordinates: Coordinate,
         move_anchors=False,

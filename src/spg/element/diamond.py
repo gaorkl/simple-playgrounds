@@ -1,6 +1,6 @@
+from ..entity import Graspable
 from ..utils.definitions import CollisionTypes
 from .element import PhysicalElement, RewardElement
-from ..entity import Graspable
 
 
 class Diamond(PhysicalElement, RewardElement):

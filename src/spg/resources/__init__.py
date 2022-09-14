@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from arcade.resources import add_resource_handle
 
 #: The absolute path to this directory

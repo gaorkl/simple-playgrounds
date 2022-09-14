@@ -1,6 +1,6 @@
 import pytest
 
-from spg.utils import Contour
+from spg.utils.contour import Contour
 
 
 @pytest.fixture(scope="module", params=["circle", "square", "rectangle", "polygon"])

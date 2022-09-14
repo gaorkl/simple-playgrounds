@@ -1,4 +1,5 @@
 import pytest
+
 from spg.playground import Playground
 from tests.mock_entities import MockPhysicalFromResource
 

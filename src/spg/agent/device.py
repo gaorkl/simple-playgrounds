@@ -1,14 +1,12 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional, Tuple
-from arcade import Texture
+
+from typing import Optional, Tuple
 
 from pymunk import Circle
 
 from spg.utils.sprite import get_texture_from_shape
 
-
 from ..entity import InteractiveAnchored
-
 from ..utils.definitions import CollisionTypes
 
 DEVICE_RADIUS = 5

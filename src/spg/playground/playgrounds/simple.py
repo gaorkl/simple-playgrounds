@@ -1,17 +1,15 @@
-from spg.playground.playground import Playground
-from spg.element.wall import (
-    create_wall_from_blocks,
-    BrickWallBlock,
-)
 from typing import Tuple
+
+from ...element.wall import BrickWallBlock, create_wall_from_blocks
+from ..playground import Playground
 
 
 class WallClosedPG(Playground):
     def __init__(self, size: Tuple[int, int], seed=None, background=None):
         super().__init__(size, seed, background)
 
-        assert self._width
-        assert self._height
+        assert isinstance(self._width, int)
+        assert isinstance(self._height, int)
 
         pts = [
             [

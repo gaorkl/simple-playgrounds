@@ -1,8 +1,10 @@
-import pytest
-from spg.agent.controller import ContinuousController, RangeController
+# pylint: disable=protected-access
 
+import pytest
+
+from spg.agent.controller import ContinuousController, RangeController
 from spg.playground import Playground
-from tests.mock_agents import MockAgent, MockAgentWithArm, MockHaloPart
+from tests.mock_agents import MockAgent, MockAgentWithArm
 from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
 
 
@@ -25,7 +27,7 @@ def test_agent_in_playground():
 
     assert agent not in playground.agents
     assert not playground.space.shapes
-    assert playground._shapes_to_entities != {}
+    assert playground._shapes_to_entities
 
     playground.reset()
 
@@ -35,7 +37,7 @@ def test_agent_in_playground():
 
     assert agent not in playground.agents
     assert not playground.space.shapes
-    assert playground._shapes_to_entities == {}
+    assert not playground._shapes_to_entities
 
     playground.reset()
 

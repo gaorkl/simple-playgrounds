@@ -1,14 +1,11 @@
 from __future__ import annotations
-import random
-from abc import ABC, abstractmethod
-from typing import Optional, Dict, TYPE_CHECKING, Union, List
 
-from ..device import PocketDevice
+from abc import abstractmethod
+from typing import List, Union
+
 import numpy as np
 
-
-if TYPE_CHECKING:
-    from ..part import PhysicalPart
+from ..device import PocketDevice
 
 Command = Union[float, int, bool]
 
@@ -27,18 +24,16 @@ class Controller(PocketDevice):
 
         super().__init__(color=CONTROLLER_COLOR)
 
-        self._noise: bool = False
         self._disabled: bool = False
-
         self._command = self.default
         self._hard_check = hard_check
 
     @property
     def _rng(self):
         if self._playground:
-            return self._playground._rng
-        else:
-            return np.random.default_rng()
+            return self._playground.rng
+
+        return np.random.default_rng()
 
     @property
     @abstractmethod
@@ -76,14 +71,8 @@ class Controller(PocketDevice):
     def _check(self, command) -> bool:
         ...
 
-    @abstractmethod
-    def _apply_noise(self, command, no_noise=False, **_) -> Command:
-        ...
-
     @property
     def command_value(self) -> Command:
-        if self._noise:
-            return self._apply_noise(self._command)
         return self._command
 
 
@@ -111,38 +100,8 @@ class DiscreteController(Controller):
 
         self._valid_command_values = command_values
 
-        self._change_proba: float = self._get_noise_params(**kwargs)
-
-    def _get_noise_params(
-        self, error_probability: Optional[float] = None, **_
-    ) -> float:
-
-        if not error_probability:
-            self._noise = False
-            return 0
-
-        self._noise = True
-        return error_probability
-
-    def _check(self, command, hard_check=True, **_) -> Command:
+    def _check(self, command) -> bool:
         return command in self._valid_command_values
-
-    def _apply_noise(
-        self,
-        command: int,
-        no_noise: Optional[bool] = False,
-        **_,
-    ) -> int:
-
-        if no_noise:
-            return command
-
-        proba = self._rng.random()
-
-        if proba < self._change_proba:
-            command = self.command_value
-
-        return command
 
     @property
     def default(self) -> int:
@@ -157,10 +116,6 @@ class BoolController(DiscreteController):
     def __init__(self, **kwargs):
         super().__init__(command_values=[0, 1], **kwargs)
 
-    @property
-    def default(self) -> int:
-        return 0
-
 
 class RangeController(DiscreteController):
     def __init__(self, n: int, **kwargs):
@@ -172,7 +127,7 @@ class RangeController(DiscreteController):
 ###################
 
 
-class ContinuousController(Controller, ABC):
+class ContinuousController(Controller):
     def __init__(self, min_value: float, max_value: float, **kwargs):
 
         super().__init__(**kwargs)
@@ -198,34 +153,6 @@ class ContinuousController(Controller, ABC):
     @property
     def max(self) -> float:
         return self._max
-
-    def _apply_noise(self, command, no_noise, **_) -> Command:
-
-        if self._noise == "gaussian":
-
-            value = random.gauss(self._mean, self._scale)
-
-            value = value if value > self.min else self.min
-            value = value if value < self.max else self.max
-
-            return value
-
-        else:
-            raise ValueError("Noise type not implemented")
-
-    def _parse_noise_params(
-        self,
-        noise_params: Dict[str, float],
-        **_,
-    ):
-
-        if self._noise == "gaussian":
-
-            self._mean = noise_params.get("mean", 0)
-            self._scale = noise_params.get("scale", 0.01)
-
-        else:
-            raise ValueError("Noise type not implemented")
 
 
 class CenteredContinuousController(ContinuousController):

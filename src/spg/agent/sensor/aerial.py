@@ -1,3 +1,8 @@
+from abc import ABC
+
+from .sensor import ExternalSensor
+
+
 class TopDownSensor(ExternalSensor, ABC):
 
     """
@@ -5,5 +10,3 @@ class TopDownSensor(ExternalSensor, ABC):
     Image based sensors are computed using the top-down rendering of the playground.
 
     """
-
-

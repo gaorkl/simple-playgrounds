@@ -9,7 +9,7 @@ It bridges the gap between simple and efficient grid environments, and complex a
 The playgrounds are 2D environments where agents can move around and interact with scene elements.
 The game engine, based on [Pymunk](http://www.pymunk.org) and [Pygame](https://www.pygame.org), deals with simple physics, such as collision and friction.
 Agents can act through continuous movements and discrete interactive actions.
-They perceive the scene with realistic first-person view sensors, top-down view sensors, and 
+They perceive the scene with realistic first-person view sensors, top-down view sensors, and
 semantic sensors.
 
 ![Alt Text](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/assets/spg.gif)
@@ -69,18 +69,18 @@ Different bases are available, each of them with different actuators.
 
 The actuators controlling the base and body parts are managed by a controller.
 The controller can be:
-- Random: each actuator is set randomly at every timestep. 
-- Keyboard: the agent is controlled by pressing keys on the Keyboard. 
+- Random: each actuator is set randomly at every timestep.
+- Keyboard: the agent is controlled by pressing keys on the Keyboard.
 - External: used to set the actions from outside of the simulators (used in RL)
 
 Agents perceive their surroundings through a large collection of first-person view sensors:
 - RGB Camera / Grey Level Camera
-- Lidar 
+- Lidar
 - Touch Sensor
 - Top-down view
 - Semantic Sensors (Rays or Cones)
 
-Any number of sensors can be added to the agent. The sensors are parameterizable in terms of 
+Any number of sensors can be added to the agent. The sensors are parameterizable in terms of
 field of view, range, and resolution.
 
 ### Noise
@@ -89,20 +89,20 @@ Sensors as well as Actuators can be noisy.
 
 ## Playground
 
-Agents act and perceive in a Playground. 
+Agents act and perceive in a Playground.
 A playground is composed of scene elements, which can be fixed or movable.
 An agent can grasp, eat, activate or absorb certain scene elements.
-Depending on their nature, particular scene elements will provide reward to the agent 
+Depending on their nature, particular scene elements will provide reward to the agent
 interacting with them.
 
 ### Coordinate System
 
-A playground is described using a Cartesian coordinate system. 
-Each element has a position (x,y, &theta), 
+A playground is described using a Cartesian coordinate system.
+Each element has a position (x,y, &theta),
 with x along the horizontal axis, y along the vertical axis, and
 theta the orientation, aligned on the horizontal axis.
 
-A playground has a size [width, length], with the width along x-axis, 
+A playground has a size [width, length], with the width along x-axis,
 and length along y-axis
 
 When applicable, the length of a scene element follows the element's x-axis.
@@ -135,11 +135,11 @@ Because of its flexibility, and the numerous sensors and actuators, SPG allows t
 
 # Acknowledgements
 
-The first version of the simulator was called Flatland, and was designed by 
+The first version of the simulator was called Flatland, and was designed by
 Hugo Caselles-Dupre, Louis Annabi, Oksana Hagen and Michael Garcia Ortiz.
 
 The new version was developed by Vince Jankovics, Hugo Caselles-Dupre, Louis Annabi and Michael Garcia Ortiz.
 
-We would like to thank Clement Moulin-Frier and Younes Rabii for their helpful 
+We would like to thank Clement Moulin-Frier and Younes Rabii for their helpful
 suggestions and their contributions to the new version of the simulator.
 

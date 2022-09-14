@@ -1,7 +1,7 @@
 import math
-from .part import ForwardBase, Head
-from .interactor import Grasper
+
 from .agent import Agent
+from .part import ForwardBase, Head
 
 
 class HeadAgent(Agent):
@@ -16,5 +16,3 @@ class HeadAgent(Agent):
         base.add(self.head)
 
         self.base.add_grasper()
-
-        

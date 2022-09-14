@@ -1,14 +1,9 @@
-import pytest
-from spg.agent.controller import (
-    ContinuousController,
-    RangeController,
-)
-
-from spg.playground import Playground
+# from spg.agent.controller import ContinuousController, RangeController
+# from spg.playground import Playground
+# from tests.mock_agents import MockAgent
 
 # from spg.agent.sensor import RGB
 
-from tests.mock_agents import MockAgent
 
 # from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
 

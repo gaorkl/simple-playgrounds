@@ -1,27 +1,17 @@
+# pylint: disable=too-many-public-methods
+
 from __future__ import annotations
-
-
-from abc import ABC
-from typing import Optional
-
-import pymunk
-
 
 import math
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, List, Union
-from arcade import Texture, Sprite
+from typing import List, Optional, Union
 
+import pymunk
+from arcade import Sprite, Texture
 from PIL import Image
 
-from ..utils.definitions import FRICTION_ENTITY, ELASTICITY_ENTITY
-
-from ..utils.position import (
-    CoordinateSampler,
-    InitCoord,
-    Coordinate,
-)
-
+from ..utils.definitions import ELASTICITY_ENTITY, FRICTION_ENTITY
+from ..utils.position import Coordinate, CoordinateSampler, InitCoord
 from .entity import Entity
 
 Teams = Union[str, List[str]]
@@ -54,7 +44,14 @@ class EmbodiedEntity(Entity, ABC):
 
         # Get the base sprite
         self._sprite_front_is_up = sprite_front_is_up
-        self._base_sprite = Sprite(texture=texture, filename=filename, hit_box_algorithm="Detailed", hit_box_detail=1, flipped_diagonally=sprite_front_is_up, flipped_horizontally=sprite_front_is_up)  # type: ignore
+        self._base_sprite = Sprite(
+            texture=texture,
+            filename=filename,
+            hit_box_algorithm="Detailed",
+            hit_box_detail=1,
+            flipped_diagonally=sprite_front_is_up,
+            flipped_horizontally=sprite_front_is_up,
+        )  # type: ignore
 
         # Get the scale and dimensions
         self._scale, self._radius, self._width, self._length = self._get_dimensions(
@@ -69,12 +66,11 @@ class EmbodiedEntity(Entity, ABC):
         self._set_pm_collision_type()
 
         # Flags
-        self._produced_by: Optional[Entity] = None
         self._moved = False
 
         # At the begining, not in playground
         self._allow_overlapping = False
-        self._initial_coordinates = None
+        self._initial_coordinates: Optional[InitCoord] = None
 
     #############
     # Properties
@@ -112,10 +108,6 @@ class EmbodiedEntity(Entity, ABC):
         return self._length
 
     @property
-    def produced_by(self):
-        return self._produced_by
-
-    @property
     def coordinates(self):
         return self.position, self.angle
 
@@ -147,7 +139,7 @@ class EmbodiedEntity(Entity, ABC):
         if self._moved:
             return True
 
-        elif self._pm_body.body_type == pymunk.Body.DYNAMIC:
+        if self._pm_body.body_type == pymunk.Body.DYNAMIC:
 
             vel = self._pm_body.velocity.length
             if vel > 0.001:
@@ -181,7 +173,7 @@ class EmbodiedEntity(Entity, ABC):
     def _get_dimensions(self, radius, width, length):
 
         orig_radius = max(
-            [pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()]
+            pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()
         )
 
         horiz = [pymunk.Vec2d(*vert).x for vert in self._base_sprite.get_hit_box()]
@@ -218,10 +210,10 @@ class EmbodiedEntity(Entity, ABC):
             pm_shapes = [pymunk.Circle(self._pm_body, self._radius)]
 
         elif shape_approximation == "box":
-            top = max([vert[0] for vert in vertices])
-            bottom = min([vert[0] for vert in vertices])
-            left = min([vert[1] for vert in vertices])
-            right = max([vert[1] for vert in vertices])
+            top = max(vert[0] for vert in vertices)
+            bottom = min(vert[0] for vert in vertices)
+            left = min(vert[1] for vert in vertices)
+            right = max(vert[1] for vert in vertices)
 
             box_vertices = ((top, left), (top, right), (bottom, right), (bottom, left))
 
@@ -319,11 +311,10 @@ class EmbodiedEntity(Entity, ABC):
     ###################
 
     @abstractmethod
-    def _get_pm_body(self, *_) -> pymunk.Body:
+    def _get_pm_body(self) -> pymunk.Body:
         """
         Set pymunk body. Shapes are attached to a body.
         """
-        ...
 
     def _set_pm_collision_type(self):
         for pm_shape in self._pm_shapes:
@@ -332,11 +323,9 @@ class EmbodiedEntity(Entity, ABC):
     @property
     @abstractmethod
     def _collision_type(self):
-
         """
         Set the collision type for the pm shapes.
         """
-        ...
 
     def update_team_filter(self):
 
@@ -411,9 +400,3 @@ class EmbodiedEntity(Entity, ABC):
 
     def pre_step(self):
         self._moved = False
-
-    def reset(self):
-        super().reset()
-
-    def post_step(self):
-        pass

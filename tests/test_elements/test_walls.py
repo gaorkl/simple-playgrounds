@@ -1,10 +1,5 @@
-from spg.playground import Playground
-from spg.element import (
-    ColorWall,
-    create_wall_from_blocks,
-    BrickWallBlock,
-)
-from spg.playground import WallClosedPG
+from spg.element import BrickWallBlock, ColorWall, create_wall_from_blocks
+from spg.playground import Playground, WallClosedPG
 
 
 def test_wall_size():
@@ -29,4 +24,4 @@ def test_wall_blocks():
 
 def test_wall_room():
 
-    playground = WallClosedPG(size=(400, 200), background=(10, 134, 200))
+    WallClosedPG(size=(400, 200), background=(10, 134, 200))

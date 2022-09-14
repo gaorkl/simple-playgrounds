@@ -1,10 +1,11 @@
 import random
+
 import numpy as np
 
-from spg.view import TopDownView
-from spg.playground import WallClosedPG
-from spg.element import Ball
 from spg.agent import HeadAgent
+from spg.element import Ball
+from spg.playground import WallClosedPG
+from spg.view import TopDownView
 
 
 def test_move_object():

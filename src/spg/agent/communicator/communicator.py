@@ -1,8 +1,11 @@
 from __future__ import annotations
-from typing import Optional, Any, List, Tuple
+
+from typing import Any, List, Optional, Tuple
 
 from ...entity import EmbodiedEntity
 from ..device import Device
+
+Message = Any
 
 
 class Communicator(Device):
@@ -13,7 +16,7 @@ class Communicator(Device):
         receiver_capacity: Optional[int] = None,
     ):
         """
-        By default, Communicatorunication has infinite range and infinite receiver capacity.
+        By default, Communicator has infinite range and infinite receiver capacity.
         However, it can only send one message at a time.
 
 
@@ -42,10 +45,12 @@ class Communicator(Device):
 
     @property
     def position(self):
+        assert self._anchor
         return self._anchor.position
 
     @property
     def id(self):
+        assert self._anchor
         return self._anchor.name
 
     @property
@@ -58,7 +63,11 @@ class Communicator(Device):
 
     def update_list_comms_in_range(self):
 
-        comms = self._playground.communication_devices
+        assert self._playground
+
+        comms = []
+        for agent in self._playground.agents:
+            comms += agent.communicators
 
         valid_comms = [com for com in comms if com is not self]
 
@@ -79,7 +88,7 @@ class Communicator(Device):
             return True
 
         # If only one has infinite range:
-        elif (not comm.transmission_range) and self.transmission_range:
+        if (not comm.transmission_range) and self.transmission_range:
             if dist < self.transmission_range:
                 return True
 
@@ -119,7 +128,4 @@ class Communicator(Device):
                     : self._receiver_capacity
                 ]
 
-
-Message = Any
-Communication = Tuple[Communicator, Message, Optional[Communicator]]
-Stream = List[Communication]
+        return None

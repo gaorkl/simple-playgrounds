@@ -1,15 +1,12 @@
-from spg.utils.definitions import CollisionTypes
-from spg.playground.collision_handlers import get_colliding_entities
-from spg.playground import Playground
-from spg.playground import WallClosedPG
-
-from spg.element import Diamond, Chest
-
 from spg.agent import HeadAgent
+from spg.element import Chest, Diamond
+from spg.playground import Playground, WallClosedPG
+from spg.playground.collision_handlers import get_colliding_entities
+from spg.utils.definitions import CollisionTypes
 from spg.view import GUI
 
 
-def diamond_chest_collision(arbiter, space, data):
+def diamond_chest_collision(arbiter, _, data):
 
     playground: Playground = data["playground"]
     (diamond, _), (chest, _) = get_colliding_entities(playground, arbiter)

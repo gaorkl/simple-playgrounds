@@ -1,17 +1,14 @@
 import numpy as np
-from skimage import draw, morphology
-from PIL import Image
 import pymunk
-
 from arcade.texture import Texture
+from PIL import Image
+from skimage import draw, morphology
 
-from spg.utils import CollisionTypes, PymunkCollisionCategories, get_texture_from_shape
-
-
-from spg.element import ColorWall
+from spg.element import ColorWall, PhysicalElement, ZoneElement
 from spg.entity import InteractiveAnchored
-from spg.element import PhysicalElement, ZoneElement
 from spg.playground import get_colliding_entities
+from spg.utils.definitions import CollisionTypes, PymunkCollisionCategories
+from spg.utils.sprite import get_texture_from_shape
 
 
 class MockPhysicalFromResource(PhysicalElement):
@@ -30,7 +27,7 @@ class MockPhysicalMovable(PhysicalElement):
             mass=10,
             radius=radius,
             filename=":resources:onscreen_controls/flat_light/play.png",
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -44,7 +41,7 @@ class MockPhysicalUnmovable(PhysicalElement):
         super().__init__(
             radius=radius,
             filename=":resources:onscreen_controls/flat_light/close.png",
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -102,7 +99,7 @@ class MockPhysicalInteractive(PhysicalElement):
             radius=radius,
             mass=10,
             filename=":resources:onscreen_controls/flat_light/star_round.png",
-            **kwargs
+            **kwargs,
         )
 
         self.halo = MockHalo(
@@ -121,7 +118,7 @@ class MockZoneInteractive(ZoneElement):
         super().__init__(
             radius=radius,
             filename=":resources:onscreen_controls/flat_light/star_square.png",
-            **kwargs
+            **kwargs,
         )
         self._activated = False
 
@@ -157,7 +154,7 @@ class NonConvexPlus_Approx(MockPhysicalMovable):
         PIL_image = Image.fromarray(np.uint8(img * 255)).convert("RGBA")
 
         texture = Texture(
-            name="PLus_%i_%i".format(radius, int),
+            name=f"PLus_{radius}_{width}",
             image=PIL_image,
             hit_box_algorithm="Detailed",
             hit_box_detail=2,
@@ -192,7 +189,7 @@ class NonConvexPlus(MockPhysicalMovable):
         PIL_image = Image.fromarray(np.uint8(img * 255)).convert("RGBA")
 
         texture = Texture(
-            name="PLus_%i_%i".format(radius, int),
+            name=f"PLus_{radius}_{width}",
             image=PIL_image,
             hit_box_algorithm="Detailed",
             hit_box_detail=1,
@@ -231,7 +228,7 @@ class NonConvexC(MockPhysicalMovable):
         PIL_image = Image.fromarray(np.uint8(img * 255)).convert("RGBA")
 
         texture = Texture(
-            name="C_%i_%i".format(radius, width),
+            name=f"C_{radius}_{width}",
             image=PIL_image,
             hit_box_algorithm="Detailed",
             hit_box_detail=1,
@@ -269,13 +266,10 @@ class MockBarrier(ColorWall):
             pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
 
 
-def active_interaction(arbiter, space, data):
+def active_interaction(arbiter, _, data):
 
     playground = data["playground"]
     (activator, _), (activated, _) = get_colliding_entities(playground, arbiter)
-
-    # if not activator.teams and activated.teams:
-    #     return True
 
     if activator.activated:
         activated.activate()
@@ -283,106 +277,12 @@ def active_interaction(arbiter, space, data):
     return True
 
 
-def passive_interaction(arbiter, space, data):
+def passive_interaction(arbiter, _, data):
 
     playground = data["playground"]
     (activated_1, _), (activated_2, _) = get_colliding_entities(playground, arbiter)
-
-    # if (not activated_1.teams and activated_2.teams) or :(not activated_1.teams and activated_2.teams)
-    #     return True
 
     activated_1.activate()
     activated_2.activate()
 
     return True
-
-
-# class MockPhysical(PhysicalElement):
-
-#     def __init__(self, pg, coord, **kwargs):
-#         super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
-
-#     def post_step(self):
-#         pass
-
-#     def _set_pm_collision_type(self):
-#         pass
-
-# class MockHaloTrigger(AnchoredInteractive):
-
-#     def __init__(self, anchor, **kwargs):
-#         super().__init__(anchor=anchor, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
-#         self.activated = False
-
-#     def pre_step(self):
-#         self.activated = False
-
-#     def post_step(self):
-#         pass
-
-#     def _set_pm_collision_type(self):
-#         self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
-
-#     def trigger(self):
-#         self.activated = True
-
-
-# class MockHaloTriggered(MockHaloTrigger):
-
-#     def _set_pm_collision_type(self):
-#         self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
-
-
-# class MockZoneTrigger(StandAloneInteractive):
-
-#     def __init__(self, pg, coord, **kwargs):
-#         super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
-#         self.activated = False
-
-#     def _set_pm_collision_type(self):
-#         self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGER
-
-#     def pre_step(self):
-#         self.activated = False
-
-#     def post_step(self):
-#         pass
-
-#     def trigger(self):
-#         self.activated = True
-
-
-# class MockZoneTriggered(MockZoneTrigger):
-
-#     def _set_pm_collision_type(self):
-#         self._pm_shape.collision_type = CollisionTypes.TEST_TRIGGERED
-
-
-# class MockBarrier(PhysicalElement):
-
-#     def __init__(self, pg, coord, **kwargs):
-#         super().__init__(playground=pg, initial_coordinates=coord, appearance=ColorTexture(color=(121, 10, 220)), **kwargs)
-
-#     def update_team_filter(self):
-
-#         # if not self._teams:
-#         #     return
-
-#         categ = 2 ** PymunkCollisionCategories.NO_TEAM.value
-#         for team in self._teams:
-#             categ = categ | 2 ** self._playground.teams[team]
-
-#         mask = 0
-#         for team in self._playground.teams:
-
-#             if team not in self._teams:
-#                 mask = mask | 2 ** self._playground.teams[team]
-
-#         self._pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
-
-
-#     def post_step(self):
-#         pass
-
-#     def _set_pm_collision_type(self):
-#         pass

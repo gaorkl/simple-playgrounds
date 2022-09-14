@@ -1,5 +1,4 @@
-from spg.element.element import PhysicalElement, SceneElement
-from ..entity import PhysicalEntity
+from .element import PhysicalElement
 
 
 class Ball(PhysicalElement):

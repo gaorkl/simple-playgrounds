@@ -1,6 +1,6 @@
-from spg.playground import WallClosedPG
-from spg.element import Ball
 from spg.agent import HeadAgent
+from spg.element import Ball
+from spg.playground import WallClosedPG
 
 
 def test_scenario():

@@ -1,21 +1,20 @@
 from __future__ import annotations
+
 from abc import abstractmethod
-
-from typing import List, TYPE_CHECKING
-
-from spg.agent.device import Device
-
-if TYPE_CHECKING:
-    from ..part import PhysicalPart
-    from ...entity import Graspable
-    from ...utils.position import Coordinate
+from typing import TYPE_CHECKING
 
 import pymunk
 
-from ..controller import BoolController, Controller
-
-from ...utils.definitions import CollisionTypes
 from ...entity import EmbodiedEntity
+from ...utils.definitions import CollisionTypes
+from ..controller import BoolController
+from ..device import Device
+
+if TYPE_CHECKING:
+    from ...entity import Graspable
+    from ...utils.position import Coordinate
+    from ..part import PhysicalPart
+
 
 INTERACTOR_RADIUS = 5
 

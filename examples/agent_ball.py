@@ -1,9 +1,7 @@
-from spg.agent.interactor import Grasper
-from spg.playground import WallClosedPG
-from spg.element import Ball
 from spg.agent import HeadAgent
+from spg.element import Ball
+from spg.playground import WallClosedPG
 from spg.view import GUI
-
 
 playground = WallClosedPG(size=(500, 200))
 

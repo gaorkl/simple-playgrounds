@@ -1,13 +1,13 @@
-import pymunk
 import numpy as np
-
+import pymunk
+from arcade import Texture
 from PIL import Image
-from arcade import Texture, Sprite
 from skimage.draw import disk, polygon
+
 
 def get_texture_from_shape(pm_shape, color, name_texture):
 
-    color_rgba = [c for c in color] + [255]
+    color_rgba = list(color) + [255]
 
     if isinstance(pm_shape, pymunk.Segment):
         radius = int(pm_shape.radius)
@@ -25,10 +25,10 @@ def get_texture_from_shape(pm_shape, color, name_texture):
     elif isinstance(pm_shape, pymunk.Poly):
         vertices = pm_shape.get_vertices()
 
-        top = max([vert[0] for vert in vertices])
-        bottom = min([vert[0] for vert in vertices])
-        left = min([vert[1] for vert in vertices])
-        right = max([vert[1] for vert in vertices])
+        top = max(vert[0] for vert in vertices)
+        bottom = min(vert[0] for vert in vertices)
+        left = min(vert[1] for vert in vertices)
+        right = max(vert[1] for vert in vertices)
 
         w = int(right - left)
         h = int(top - bottom)

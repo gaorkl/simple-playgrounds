@@ -1,7 +1,7 @@
 import pytest
 
 ###########################
-# ENTITY PROPERTIES 
+# ENTITY PROPERTIES
 ###########################
 
 
@@ -10,16 +10,11 @@ def radius(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=['segment', 'circle', 'square'])
+@pytest.fixture(scope="module", params=["segment", "circle", "square"])
 def geometry(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=['circle', 'box', 'decomposition', None])
+@pytest.fixture(scope="module", params=["circle", "box", "decomposition", None])
 def shape_approx(request):
     return request.param
-
-
-
-
-

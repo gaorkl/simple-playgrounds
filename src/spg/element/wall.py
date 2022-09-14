@@ -1,22 +1,21 @@
 from __future__ import annotations
-from abc import ABC
 
-from typing import Type, TYPE_CHECKING
-import pymunk
-from PIL import Image
 import math
+from abc import ABC
+from typing import TYPE_CHECKING, Type
+
+import pymunk
 from arcade.texture import Texture
+from PIL import Image
 
 from spg.element.element import PhysicalElement
-
 
 if TYPE_CHECKING:
     from ..playground import Playground
 
 
 class WallBlock(PhysicalElement, ABC):
-    def __init__(self, filename, **kwargs):
-        super().__init__(filename=filename, **kwargs)
+    pass
 
 
 def create_wall_from_blocks(
@@ -24,8 +23,6 @@ def create_wall_from_blocks(
 ):
     length = (pymunk.Vec2d(*pos_start) - pos_end).length
     orientation = (pymunk.Vec2d(*pos_end) - pos_start).angle
-
-    position = (pymunk.Vec2d(*pos_start) + pos_end) / 2
 
     n_blocks = int(length / width)
 
@@ -41,9 +38,6 @@ def create_wall_from_blocks(
 
         wall_block = wall_block_cls(width=width)
         playground.add(wall_block, (block_position, orientation))
-
-    # wall_block = wall_block_cls(width=width)
-    # playground.add(wall_block, (pos_end, orientation))
 
 
 class BrickWallBlock(WallBlock):
@@ -66,7 +60,7 @@ class ColorWall(PhysicalElement):
         img = Image.new("RGBA", (int(width), int(length)), color)
 
         texture = Texture(
-            name="Barrier_%i_%i".format(int(width), int(length)),
+            name=f"Barrier_{width}_{length}",
             image=img,
             hit_box_algorithm="Detailed",
             hit_box_detail=1,

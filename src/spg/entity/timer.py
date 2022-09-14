@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from abc import ABC
-from typing import Union, List, Tuple, TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+
 if TYPE_CHECKING:
     from spg.playground.playground import Playground
 
@@ -30,7 +32,6 @@ class Timer(ABC):
     def reset(self):
         self.stop()
         self._time = 0
-
 
     @property
     def playground(self):
@@ -91,8 +92,7 @@ class PeriodicTimer(Timer):
             self._tic = False
 
         if self._time == self._current_duration:
-            self._index_duration = (self._index_duration + 1) % len(
-                self._durations)
+            self._index_duration = (self._index_duration + 1) % len(self._durations)
             self._current_duration = self._durations[self._index_duration]
 
             self._time = 0
