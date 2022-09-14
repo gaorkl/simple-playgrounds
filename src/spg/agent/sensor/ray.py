@@ -5,6 +5,10 @@ import numpy as np
 from .sensor import ExternalSensor
 
 
+class RayShader:
+    pass
+
+
 class RaySensor(ExternalSensor, ABC):
     """
     Base class for Ray Based sensors.
