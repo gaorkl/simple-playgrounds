@@ -70,6 +70,11 @@ class TopDownView:
         self._playground.add_view(self)
 
     @property
+    def texture(self):
+        """The OpenGL texture containing the map pixel data"""
+        return self.fbo.color_attachments[0]
+
+    @property
     def zoom(self):
         return self._zoom
 

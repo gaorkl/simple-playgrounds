@@ -10,7 +10,7 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-from ...entity import Entity
+from ...entity import EmbodiedEntity
 from ..device import Device
 
 SensorValue = Union[np.ndarray, List[np.ndarray]]
@@ -114,7 +114,9 @@ class ExternalSensor(Sensor, ABC):
         fov: float,
         resolution: int,
         range: float,  # pylint: disable=redefined-builtin
-        invisible_elements: Optional[Union[List[Entity], Entity]] = None,
+        invisible_elements: Optional[
+            Union[List[EmbodiedEntity], EmbodiedEntity]
+        ] = None,
         **kwargs,
     ):
         """
@@ -130,12 +132,12 @@ class ExternalSensor(Sensor, ABC):
 
         super().__init__(**kwargs)
 
-        self._invisible_elements: List[Entity]
+        self._invisible_elements: List[EmbodiedEntity]
 
         # Invisible elements
         if not invisible_elements:
             self._invisible_elements = []
-        elif isinstance(invisible_elements, Entity):
+        elif isinstance(invisible_elements, EmbodiedEntity):
             self._invisible_elements = [invisible_elements]
         else:
             self._invisible_elements = invisible_elements
@@ -151,11 +153,15 @@ class ExternalSensor(Sensor, ABC):
         if self._range < 0:
             raise ValueError("range must be more than 1")
 
-        self._temporary_invisible: List[Entity] = []
+        self._temporary_invisible: List[EmbodiedEntity] = []
 
     def pre_step(self):
         super().pre_step()
         self._temporary_invisible = []
 
-    def set_temporary_invisible(self, temporary_invisible: List[Entity]):
+    def set_temporary_invisible(self, temporary_invisible: List[EmbodiedEntity]):
         self._temporary_invisible = temporary_invisible
+
+    @property
+    def invisible_ids(self):
+        return [ent.uid for ent in self._temporary_invisible + self._invisible_elements]
