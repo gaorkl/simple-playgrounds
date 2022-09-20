@@ -270,7 +270,7 @@ class DistanceSensor(RaySensor):
         for ind_pt in range(len(view_xy)):
 
             color = (int(dist[ind_pt] * 255),
-                     int(dist[ind_pt] * 255), int(dist[ind_pt] * 255), 100)
+                     int(dist[ind_pt] * 255), int(dist[ind_pt] * 255), 255)
             arcade.draw_line(center_xy[ind_pt, 0], center_xy[ind_pt, 1],
                              view_xy[ind_pt, 0], view_xy[ind_pt, 1], color)
 
@@ -284,7 +284,7 @@ class RGBSensor(RaySensor):
 
         view_xy = self.hitpoints[:, :2]
         center_xy = self.hitpoints[:, 6:8]
-        color = (self.value * 255).astype(np.uint8)[:, ::-1]
+        color = (self.value).astype(np.uint8)
 
         for ind_pt in range(len(view_xy)):
 
@@ -302,7 +302,7 @@ class SemanticSensor(RaySensor):
 
         view_xy = self.hitpoints[:, :2]
         center_xy = self.hitpoints[:, 6:8]
-        id_detection = self.hitpoints[:, 8].astype(np.int)
+        id_detection = self.hitpoints[:, 8]
 
         for ind_pt in range(len(view_xy)):
 

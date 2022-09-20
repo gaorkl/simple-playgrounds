@@ -16,7 +16,7 @@ class HeadAgent(Agent):
         self.head = Head(rotation_range=math.pi)
         base.add(self.head)
 
-        self.rgb = SemanticSensor(fov=90, resolution=64, range=100,
+        self.rgb = DistanceSensor(fov=90, resolution=64, range=100,
                                   invisible_elements=self._parts)
         self.head.add(self.rgb)
 

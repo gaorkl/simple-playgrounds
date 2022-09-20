@@ -60,7 +60,7 @@ class ColorWall(PhysicalElement):
         img = Image.new("RGBA", (int(width), int(length)), color)
 
         texture = Texture(
-            name=f"Barrier_{width}_{length}",
+            name=f"Barrier_{width}_{length}_{color}",
             image=img,
             hit_box_algorithm="Detailed",
             hit_box_detail=1,
