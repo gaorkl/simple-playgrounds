@@ -1,13 +1,13 @@
             # version 440
-            
+
             layout(local_size_x=MAX_N_RAYS) in;
-            
+
             struct HitPoint
             {
                 // Position of hitpoint on view
                 float view_pos_x;
                 float view_pos_y;
-                
+
                 // Position of hitpoint in env
                 float env_pos_x;
                 float env_pos_y;
@@ -51,7 +51,7 @@
             } Params;
 
             layout(std430, binding = 3) buffer coordinates
-            { 
+            {
                 Coordinate coords[N_SENSORS];
             } In;
 
@@ -90,8 +90,8 @@
                 float n_points = s_param.n_points;
 
                 // VIEW PARAMETERS
-                float center_view_x = ViewParams.center_view_x; 
-                float center_view_y = ViewParams.center_view_y; 
+                float center_view_x = ViewParams.center_view_x;
+                float center_view_y = ViewParams.center_view_y;
                 float zoom = ViewParams.zoom;
                 float view_w = ViewParams.w;
                 float view_h = ViewParams.h;
@@ -100,7 +100,7 @@
                 Coordinate in_coord = In.coords[i_sensor];
                 float sensor_pos_x = in_coord.pos_x;
                 float sensor_pos_y = in_coord.pos_y;
-                
+
                 float sensor_x_on_view = (sensor_pos_x - center_view_x)*zoom + view_w/2;
                 float sensor_y_on_view = (sensor_pos_y - center_view_y)*zoom + view_h/2;
 
@@ -144,15 +144,15 @@
 
                         }
 
-                        if (!invisible) 
+                        if (!invisible)
                         {
                             break;
                         }
-    
+
                     }
 
                 }
-                
+
                 float dx = sample_point.x - sensor_x_on_view;
                 float dy = sample_point.y - sensor_y_on_view;
                 float dist = sqrt( (dx*dx) + (dy*dy) )/zoom;
@@ -160,13 +160,13 @@
                 // CONVERT IN THE FRAME OF THE ENVIRONMENT
 
                 HitPoint out_pt;
-                
+
                 out_pt.view_pos_x = sample_point.x;
                 out_pt.view_pos_y = sample_point.y;
 
                 out_pt.env_pos_x = (sample_point.x - view_w/2)/zoom + center_view_x ;
                 out_pt.env_pos_y = (sample_point.y - view_h/2)/zoom + center_view_y ;
-                
+
                 //float rel_pos_x = (sample_point.x - center_x)*cos(angle) - (sample_point.y - center_y)*sin(angle);
                 //out_pt.env_rel_pos_x = rel_pos_x/zoom;
 
@@ -176,7 +176,7 @@
                 out_pt.sensor_x_on_view = sensor_x_on_view ;
                 out_pt.sensor_y_on_view = sensor_y_on_view ;
 
-                out_pt.id = float(id_out);               
+                out_pt.id = float(id_out);
                 out_pt.dist = dist/zoom;
 
                 //out_pt.r = color_out.z*255;
@@ -184,6 +184,6 @@
                 //out_pt.b = color_out.x*255;
 
                 Out.hpts[i_ray + i_sensor*MAX_N_RAYS] = out_pt;
-                
+
             }
- 
+

@@ -2,7 +2,7 @@ import math
 
 from .agent import Agent
 from .part import ForwardBase, Head
-from .sensor import DistanceSensor, RGBSensor, SemanticSensor
+from .sensor import DistanceSensor, RGBSensor
 
 
 class HeadAgent(Agent):
@@ -16,8 +16,16 @@ class HeadAgent(Agent):
         self.head = Head(rotation_range=math.pi)
         base.add(self.head)
 
-        self.rgb = DistanceSensor(fov=90, resolution=64, range=100,
-                                  invisible_elements=self._parts)
+        self.distance = DistanceSensor(
+            fov=360, resolution=36, range=400, invisible_elements=self._parts
+        )
+
+        self.base.add(self.distance)
+
+        self.rgb = RGBSensor(
+            fov=90, resolution=64, range=400, invisible_elements=self._parts
+        )
+
         self.head.add(self.rgb)
 
         self.base.add_grasper()

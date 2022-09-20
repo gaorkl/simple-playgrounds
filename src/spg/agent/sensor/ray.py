@@ -32,7 +32,12 @@ class RayShader:
             draw_transparent=False,
         )
         self._color_view = TopDownView(
-            playground, size, center, zoom, draw_interactive=False, draw_transparent=True
+            playground,
+            size,
+            center,
+            zoom,
+            draw_interactive=False,
+            draw_transparent=False,
         )
 
         self._sensors: List[RaySensor] = []
@@ -91,8 +96,7 @@ class RayShader:
         output_rays_buffer = self.ctx.buffer(
             data=array("f", self._generate_output_buffer())
         )
-        inv_buffer = self.ctx.buffer(data=array(
-            "I", self._generate_invisible_buffer()))
+        inv_buffer = self.ctx.buffer(data=array("I", self._generate_invisible_buffer()))
 
         param_buffer.bind_to_storage_buffer(binding=2)
         position_buffer.bind_to_storage_buffer(binding=3)
@@ -167,8 +171,7 @@ class RayShader:
         new_source = self._source_compute_ids
         new_source = new_source.replace("N_SENSORS", str(len(self._sensors)))
         new_source = new_source.replace("MAX_N_RAYS", str(self._max_n_rays))
-        new_source = new_source.replace(
-            "MAX_N_INVISIBLE", str(self._max_invisible))
+        new_source = new_source.replace("MAX_N_INVISIBLE", str(self._max_invisible))
         id_shader = self.ctx.compute_shader(source=new_source)
 
         new_source = self._source_compute_colors
@@ -248,6 +251,7 @@ class RaySensor(ExternalSensor, ABC):
     def _apply_normalization(self):
         pass
 
+    @property
     def shape(self):
         pass
 
@@ -257,7 +261,6 @@ class RaySensor(ExternalSensor, ABC):
 
 
 class DistanceSensor(RaySensor):
-
     def _compute_raw_sensor(self):
         self.value = self.hitpoints[:, 9]
 
@@ -269,14 +272,21 @@ class DistanceSensor(RaySensor):
 
         for ind_pt in range(len(view_xy)):
 
-            color = (int(dist[ind_pt] * 255),
-                     int(dist[ind_pt] * 255), int(dist[ind_pt] * 255), 255)
-            arcade.draw_line(center_xy[ind_pt, 0], center_xy[ind_pt, 1],
-                             view_xy[ind_pt, 0], view_xy[ind_pt, 1], color)
+            color = (
+                int(dist[ind_pt] * 255),
+                int(dist[ind_pt] * 255),
+                int(dist[ind_pt] * 255),
+            )
+            arcade.draw_line(
+                center_xy[ind_pt, 0],
+                center_xy[ind_pt, 1],
+                view_xy[ind_pt, 0],
+                view_xy[ind_pt, 1],
+                color,
+            )
 
 
 class RGBSensor(RaySensor):
-
     def _compute_raw_sensor(self):
         self.value = self.hitpoints[:, 10:13]
 
@@ -289,12 +299,16 @@ class RGBSensor(RaySensor):
         for ind_pt in range(len(view_xy)):
 
             color_pt = color[ind_pt]
-            arcade.draw_line(center_xy[ind_pt, 0], center_xy[ind_pt, 1],
-                             view_xy[ind_pt, 0], view_xy[ind_pt, 1], color_pt)
+            arcade.draw_line(
+                center_xy[ind_pt, 0],
+                center_xy[ind_pt, 1],
+                view_xy[ind_pt, 0],
+                view_xy[ind_pt, 1],
+                color_pt,
+            )
 
 
 class SemanticSensor(RaySensor):
-
     def _compute_raw_sensor(self):
         self.value = self.hitpoints[:, 10:13]
 
@@ -302,11 +316,18 @@ class SemanticSensor(RaySensor):
 
         view_xy = self.hitpoints[:, :2]
         center_xy = self.hitpoints[:, 6:8]
-        id_detection = self.hitpoints[:, 8]
+        id_detection = self.hitpoints[:, 8].astype(np.int)
 
         for ind_pt in range(len(view_xy)):
 
-            color = id_to_pixel(id_detection[ind_pt])
+            if id_detection[ind_pt] != 0:
 
-            arcade.draw_line(center_xy[ind_pt, 0], center_xy[ind_pt, 1],
-                             view_xy[ind_pt, 0], view_xy[ind_pt, 1], color)
+                color = id_to_pixel(id_detection[ind_pt])
+
+                arcade.draw_line(
+                    center_xy[ind_pt, 0],
+                    center_xy[ind_pt, 1],
+                    view_xy[ind_pt, 0],
+                    view_xy[ind_pt, 1],
+                    color,
+                )

@@ -1,4 +1,3 @@
-from ..entity import Graspable
 from ..utils.definitions import CollisionTypes
 from .element import PhysicalElement, RewardElement
 
@@ -11,9 +10,6 @@ class Diamond(PhysicalElement, RewardElement):
             filename=":spg:platformer/items/diamond_green.png",
             radius=10,
         )
-
-        grasp_halo = Graspable(anchor=self)
-        self.add(grasp_halo)
 
         self.chest = chest
 

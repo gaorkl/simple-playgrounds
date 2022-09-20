@@ -127,6 +127,9 @@ class GUI(TopDownView):
         if key == arcade.key.G:
             self._agent_commands[self._agent.base.grasper_controller] = 1
 
+        if key == arcade.key.S:
+            self._draw_sensors = not self._draw_sensors
+
     def on_key_release(self, key, modifiers):
 
         if key == arcade.key.UP:

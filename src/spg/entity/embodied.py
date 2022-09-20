@@ -278,8 +278,14 @@ class EmbodiedEntity(Entity, ABC):
         for i in range(img_uid.size[0]):
             for j in range(img_uid.size[1]):
 
-                if pixels_texture[i, j] != (0, 0, 0, 0):  # type: ignore
+                if pixels_texture[i, j][3] == 0:
+                    pixels[i, j] = (0, 0, 0, 0)
+
+                elif pixels_texture[i, j][:3] != (0, 0, 0):  # type: ignore
                     pixels[i, j] = self.color_uid  # type: ignore
+
+                else:
+                    pixels[i, j] = (0, 0, 0, 0)
 
         texture = Texture(
             name=str(self._uid),

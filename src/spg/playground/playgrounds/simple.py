@@ -16,10 +16,8 @@ class WallClosedPG(Playground):
                 (-self._width / 2, -self._height / 2),
                 (-self._width / 2, self._height / 2),
             ],
-            [(-self._width / 2, self._height / 2),
-             (self._width / 2, self._height / 2)],
-            [(self._width / 2, self._height / 2),
-             (self._width / 2, -self._height / 2)],
+            [(-self._width / 2, self._height / 2), (self._width / 2, self._height / 2)],
+            [(self._width / 2, self._height / 2), (self._width / 2, -self._height / 2)],
             [
                 (self._width / 2, -self._height / 2),
                 (-self._width / 2, -self._height / 2),
@@ -28,8 +26,7 @@ class WallClosedPG(Playground):
 
         for begin_pt, end_pt in pts:
 
-            create_wall_from_blocks(
-                self, BrickWallBlock, begin_pt, end_pt, width=10)
+            create_wall_from_blocks(self, BrickWallBlock, begin_pt, end_pt, width=10)
 
 
 class WallClosedColorPG(Playground):
@@ -44,10 +41,8 @@ class WallClosedColorPG(Playground):
                 (-self._width / 2, -self._height / 2),
                 (-self._width / 2, self._height / 2),
             ],
-            [(-self._width / 2, self._height / 2),
-             (self._width / 2, self._height / 2)],
-            [(self._width / 2, self._height / 2),
-             (self._width / 2, -self._height / 2)],
+            [(-self._width / 2, self._height / 2), (self._width / 2, self._height / 2)],
+            [(self._width / 2, self._height / 2), (self._width / 2, -self._height / 2)],
             [
                 (self._width / 2, -self._height / 2),
                 (-self._width / 2, -self._height / 2),
@@ -58,6 +53,5 @@ class WallClosedColorPG(Playground):
 
             random_color = list(self._rng.integers(0, 255, 3))
             random_color.append(255)
-            wall = ColorWall(begin_pt, end_pt, width=10,
-                             color=tuple(random_color))
+            wall = ColorWall(begin_pt, end_pt, width=10, color=tuple(random_color))
             self.add(wall, wall.wall_coordinates)

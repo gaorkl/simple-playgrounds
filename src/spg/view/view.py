@@ -96,7 +96,20 @@ class TopDownView:
 
     def add(self, entity):
 
-        if isinstance(entity, PhysicalEntity):
+        if isinstance(entity, InteractiveEntity):
+
+            if not self._draw_interactive:
+                return
+
+            if self._display_uid:
+                raise ValueError(
+                    "Cannot display uid of interactive, set draw_interactive to False"
+                )
+
+            sprite = entity.get_sprite(self._zoom)
+            self._interactive_sprites.append(sprite)
+
+        elif isinstance(entity, PhysicalEntity):
 
             sprite = entity.get_sprite(self._zoom, color_uid=self._display_uid)
 
@@ -110,19 +123,6 @@ class TopDownView:
             else:
                 self._visible_sprites.append(sprite)
 
-        elif isinstance(entity, InteractiveEntity):
-
-            if not self._draw_interactive:
-                return
-
-            if self._display_uid:
-                raise ValueError(
-                    "Cannot display uid of interactive, set draw_interactive to False"
-                )
-
-            sprite = entity.get_sprite(self._zoom)
-            self._interactive_sprites.append(sprite)
-
         else:
             raise ValueError("Not implemented")
 
@@ -131,9 +131,21 @@ class TopDownView:
 
     def remove(self, entity):
 
+        if isinstance(entity, InteractiveEntity):
+
+            if not self._draw_interactive:
+                return
+
         sprite = self._sprites.pop(entity)
 
-        if isinstance(entity, PhysicalEntity):
+        if isinstance(entity, InteractiveEntity):
+
+            if not self._draw_interactive:
+                return
+
+            self._interactive_sprites.remove(sprite)
+
+        elif isinstance(entity, PhysicalEntity):
 
             if entity.traversable:
                 self._traversable_sprites.remove(sprite)
@@ -143,10 +155,6 @@ class TopDownView:
 
             else:
                 self._visible_sprites.remove(sprite)
-
-        elif isinstance(entity, InteractiveEntity):
-
-            self._interactive_sprites.remove(sprite)
 
     def update_sprites(self, force=False):
 
@@ -160,13 +168,21 @@ class TopDownView:
         self.update_sprites(force)
 
         with self._fbo.activate() as fbo:
-            fbo.clear(self._background)
+
+            if self._display_uid:
+                fbo.clear()
+            else:
+                fbo.clear(self._background)
 
             # Change projection to match the contents
             self._ctx.projection_2d = 0, self._width, 0, self._height
 
-            self._transparent_sprites.draw(pixelated=True)
-            self._interactive_sprites.draw(pixelated=True)
+            if self._draw_transparent:
+                self._transparent_sprites.draw(pixelated=True)
+
+            if self._draw_interactive:
+                self._interactive_sprites.draw(pixelated=True)
+
             self._visible_sprites.draw(pixelated=True)
             self._traversable_sprites.draw(pixelated=True)
 

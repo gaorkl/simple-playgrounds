@@ -3,5 +3,4 @@ from .collision_handlers import get_colliding_entities
 from .playground import Playground
 from .playgrounds.simple import WallClosedColorPG, WallClosedPG
 
-__all__ = ["get_colliding_entities", "Playground",
-           "WallClosedPG", "WallClosedColorPG"]
+__all__ = ["get_colliding_entities", "Playground", "WallClosedPG", "WallClosedColorPG"]

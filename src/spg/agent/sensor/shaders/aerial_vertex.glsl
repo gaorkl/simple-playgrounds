@@ -23,6 +23,6 @@ in vec2 in_vert;
 	    0.0, 0.0, 1.0
 	);
 // uv = trans * rot * scale * vec3(in_uv - vec2(0.5), 1.0) + vec3(0.5);
-uv = scale* rot* trans * vec3(in_uv - vec2(0.5, 0.5), 1.0) + vec3(0.5, 0.5, 0) ; 
+uv = scale* rot* trans * vec3(in_uv - vec2(0.5, 0.5), 1.0) + vec3(0.5, 0.5, 0) ;
 }
- 
+

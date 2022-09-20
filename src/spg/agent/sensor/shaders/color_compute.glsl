@@ -1,13 +1,13 @@
             # version 440
-            
+
             layout(local_size_x=MAX_N_RAYS) in;
-            
+
             struct HitPoint
             {
                 // Position of hitpoint on view
                 float view_pos_x;
                 float view_pos_y;
-                
+
                 // Position of hitpoint in env
                 float env_pos_x;
                 float env_pos_y;
@@ -42,7 +42,7 @@
 
 
                 HitPoint hit_pt = In.hpts[i_ray + i_sensor*MAX_N_RAYS] ;
-                
+
                 float x = hit_pt.view_pos_x;
                 float y = hit_pt.view_pos_y;
 
@@ -55,6 +55,6 @@
                 hit_pt.b = color_out.z*255;
 
                 In.hpts[i_ray + i_sensor*MAX_N_RAYS] = hit_pt;
-                
+
             }
- 
+

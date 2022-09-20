@@ -3,7 +3,7 @@ from spg.element import Ball
 from spg.playground import WallClosedPG
 from spg.view import GUI
 
-playground = WallClosedPG(size=(500, 200))
+playground = WallClosedPG(size=(500, 200), background=(23, 23, 21))
 
 ball = Ball()
 ball.graspable = True
@@ -20,5 +20,3 @@ playground.add(agent)
 
 gui = GUI(playground, agent, draw_sensors=True)
 gui.run()
-
-playground.debug_draw()

@@ -11,8 +11,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 from ...entity import EmbodiedEntity
-from ...view import TopDownView
-from ..device import Device, PocketDevice
+from ..device import PocketDevice
 
 SensorValue = Union[np.ndarray, List[np.ndarray]]
 
@@ -99,7 +98,7 @@ class Sensor(PocketDevice):
         """Returns the shape of the numpy array, if applicable."""
 
     @abstractmethod
-    def draw(self, view: TopDownView):
+    def draw(self):
         ...
 
 
