@@ -27,7 +27,7 @@ from ..agent import Agent
 from ..agent.communicator import Communicator, Message
 from ..agent.controller import Command, Controller
 from ..agent.part import AnchoredPart, PhysicalPart
-from ..agent.sensor import Sensor, SensorValue
+from ..agent.sensor import RaySensor, RayShader, Sensor, SensorValue
 from ..entity import EmbodiedEntity, Entity, InteractiveAnchored
 from ..utils.definitions import (
     PYMUNK_STEPS,
@@ -123,8 +123,11 @@ class Playground:
         self._views = []
 
         # Arcade window necessary to create contexts, views, sensors and gui
-        self._window = Window(1, 1, visible=False, antialiasing=True)  # type: ignore
+        self._window = Window(1, 1, visible=False,
+                              antialiasing=True)  # type: ignore
         self._window.ctx.blend_func = self._window.ctx.ONE, self._window.ctx.ZERO
+
+        self._sensor_shader = None
 
     def debug_draw(self, plt_width=10, center=None, size=None):
 
@@ -159,6 +162,16 @@ class Playground:
     @property
     def window(self):
         return self._window
+
+    @property
+    def sensor_shader(self):
+
+        if not self._sensor_shader:
+            assert self._size
+            self._sensor_shader = RayShader(
+                self, self._size, self._center, zoom=1)
+
+        return self._sensor_shader
 
     @property
     def initial_agent_coordinates(self):
@@ -351,6 +364,9 @@ class Playground:
 
     def _compute_observations(self):
 
+        if self._sensor_shader:
+            self._sensor_shader.update_sensors()
+
         obs = {}
         for agent in self.agents:
             obs[agent] = agent.compute_observations()
@@ -450,6 +466,9 @@ class Playground:
                     allow_overlapping=allow_overlapping,
                     from_removed=from_removed,
                 )
+
+                if isinstance(device, RaySensor):
+                    self.sensor_shader.add(device)
 
         elif isinstance(entity, PhysicalElement):
             for interactive in entity.interactives:
@@ -732,7 +751,8 @@ class Playground:
 
         """
 
-        handler = self.space.add_collision_handler(collision_type_1, collision_type_2)
+        handler = self.space.add_collision_handler(
+            collision_type_1, collision_type_2)
         handler.pre_solve = interaction_function
         handler.data["playground"] = self
 

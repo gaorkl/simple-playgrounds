@@ -19,6 +19,7 @@ from ...utils.definitions import CollisionTypes
 from ..controller import Command, Controller
 from ..device import Device
 from ..interactor.interactor import ActiveInteractor, Grasper
+from ..sensor import RaySensor
 
 if TYPE_CHECKING:
     from ...utils.position import Coordinate
@@ -84,6 +85,9 @@ class PhysicalPart(PhysicalEntity, ABC):
 
         elif isinstance(elem, Device):
             self._devices.append(elem)
+
+            if isinstance(elem, RaySensor) and self._playground:
+                self.playground.sensor_shader.add(elem)
 
         else:
             raise ValueError("Not implemented")

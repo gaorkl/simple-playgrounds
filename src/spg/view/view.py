@@ -72,7 +72,7 @@ class TopDownView:
     @property
     def texture(self):
         """The OpenGL texture containing the map pixel data"""
-        return self.fbo.color_attachments[0]
+        return self._fbo.color_attachments[0]
 
     @property
     def zoom(self):

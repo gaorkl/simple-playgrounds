@@ -11,12 +11,16 @@ from typing import List, Optional, Union
 import numpy as np
 
 from ...entity import EmbodiedEntity
-from ..device import Device
+from ...view import TopDownView
+from ..device import Device, PocketDevice
 
 SensorValue = Union[np.ndarray, List[np.ndarray]]
 
 
-class Sensor(Device):
+SENSOR_COLOR = (23, 24, 113)
+
+
+class Sensor(PocketDevice):
     """Base class Sensor, used as an Interface for all sensors.
 
     Attributes:
@@ -55,7 +59,7 @@ class Sensor(Device):
 
         """
 
-        Device.__init__(self, **kwargs)
+        super().__init__(color=SENSOR_COLOR, **kwargs)
 
         self.sensor_values = None
 
@@ -86,10 +90,6 @@ class Sensor(Device):
         ...
 
     @abstractmethod
-    def _apply_noise(self):
-        ...
-
-    @abstractmethod
     def _default_value(self) -> np.ndarray:
         ...
 
@@ -99,7 +99,7 @@ class Sensor(Device):
         """Returns the shape of the numpy array, if applicable."""
 
     @abstractmethod
-    def draw(self, view):
+    def draw(self, view: TopDownView):
         ...
 
 
@@ -154,6 +154,18 @@ class ExternalSensor(Sensor, ABC):
             raise ValueError("range must be more than 1")
 
         self._temporary_invisible: List[EmbodiedEntity] = []
+
+    @property
+    def range(self):
+        return self._range
+
+    @property
+    def fov(self):
+        return self._fov
+
+    @property
+    def resolution(self):
+        return self._resolution
 
     def pre_step(self):
         super().pre_step()

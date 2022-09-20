@@ -155,6 +155,9 @@ class Agent(Entity):
         ]
 
     def compute_observations(self):
+        for sensor in self.sensors:
+            sensor.update()
+
         pass
 
     def compute_rewards(self):

@@ -5,8 +5,10 @@ from array import array
 from os import path
 from typing import TYPE_CHECKING, List
 
+import arcade
 import numpy as np
 
+from ...utils.uid import id_to_pixel
 from ...view import TopDownView
 from .sensor import ExternalSensor
 
@@ -30,7 +32,7 @@ class RayShader:
             draw_transparent=False,
         )
         self._color_view = TopDownView(
-            playground, size, center, zoom, draw_interactive=True, draw_transparent=True
+            playground, size, center, zoom, draw_interactive=False, draw_transparent=True
         )
 
         self._sensors: List[RaySensor] = []
@@ -50,22 +52,21 @@ class RayShader:
 
         self._view_params_buffer.bind_to_storage_buffer(binding=6)
 
-        (
-            self._position_buffer,
-            self._param_buffer,
-            self._output_rays_buffer,
-            self._inv_buffer,
-        ) = self._generate_buffers()
+        self._position_buffer = None
+        self._param_buffer = None
+        self._output_rays_buffer = None
+        self._inv_buffer = None
 
-        shader_dir = path.abspath(path.join(__file__, "shaders"))
+        shader_dir = path.abspath(path.join(__file__, "../shaders"))
 
-        with open(shader_dir + "id_compute.glsl", "rt", encoding="utf-8") as f_id:
+        with open(shader_dir + "/id_compute.glsl", "rt", encoding="utf-8") as f_id:
             self._source_compute_ids = f_id.read()
 
-        with open(shader_dir + "color_compute.glsl", encoding="utf-8") as f_col:
+        with open(shader_dir + "/color_compute.glsl", "rt", encoding="utf-8") as f_col:
             self._source_compute_colors = f_col.read()
 
-        self._id_shader, self._color_shader = self._generate_shaders()
+        self._id_shader = None
+        self._color_shader = None
 
     @property
     def _n_sensors(self):
@@ -73,7 +74,7 @@ class RayShader:
 
     @property
     def _max_n_rays(self):
-        return max(sensor.n_rays for sensor in self._sensors)
+        return max(sensor.resolution for sensor in self._sensors)
 
     @property
     def _max_invisible(self):
@@ -90,7 +91,8 @@ class RayShader:
         output_rays_buffer = self.ctx.buffer(
             data=array("f", self._generate_output_buffer())
         )
-        inv_buffer = self.ctx.buffer(data=array("I", self._generate_invisible_buffer()))
+        inv_buffer = self.ctx.buffer(data=array(
+            "I", self._generate_invisible_buffer()))
 
         param_buffer.bind_to_storage_buffer(binding=2)
         position_buffer.bind_to_storage_buffer(binding=3)
@@ -104,14 +106,14 @@ class RayShader:
         for sensor in self._sensors:
             yield sensor.range
             yield sensor.fov
-            yield sensor.n_rays
+            yield sensor.resolution
             yield sensor.n_points
 
     def _generate_position_buffer(self):
 
         for sensor in self._sensors:
             yield sensor.position[0]
-            yield sensor.center[1]
+            yield sensor.position[1]
             yield sensor.angle
 
     def _generate_output_buffer(self):
@@ -165,7 +167,8 @@ class RayShader:
         new_source = self._source_compute_ids
         new_source = new_source.replace("N_SENSORS", str(len(self._sensors)))
         new_source = new_source.replace("MAX_N_RAYS", str(self._max_n_rays))
-        new_source = new_source.replace("MAX_N_INVISIBLE", str(self._max_invisible))
+        new_source = new_source.replace(
+            "MAX_N_INVISIBLE", str(self._max_invisible))
         id_shader = self.ctx.compute_shader(source=new_source)
 
         new_source = self._source_compute_colors
@@ -186,7 +189,7 @@ class RayShader:
 
         self._id_shader, self._color_shader = self._generate_shaders()
 
-    def update_sensor(self):
+    def update_sensors(self):
 
         self._id_view.update(force=True)
         self._color_view.update(force=True)
@@ -231,19 +234,79 @@ class RaySensor(ExternalSensor, ABC):
         self.value = 0
         self.hitpoints = 0
 
+    @property
+    def spatial_resolution(self):
+        return self._spatial_resolution
+
+    @property
+    def n_points(self):
+        return self._n_points
+
     def update_value(self, hitpoints):
         self.hitpoints = hitpoints
 
+    def _apply_normalization(self):
+        pass
+
+    def shape(self):
+        pass
+
+    @property
+    def _default_value(self):
+        pass
+
 
 class DistanceSensor(RaySensor):
-    def update_value(self, hitpoints):
 
-        super().update_value(hitpoints)
-        self.value = hitpoints[:, 9]
+    def _compute_raw_sensor(self):
+        self.value = self.hitpoints[:, 9]
+
+    def draw(self):
+
+        view_xy = self.hitpoints[:, :2]
+        center_xy = self.hitpoints[:, 6:8]
+        dist = 1 - self.hitpoints[:, 9] / self._range
+
+        for ind_pt in range(len(view_xy)):
+
+            color = (int(dist[ind_pt] * 255),
+                     int(dist[ind_pt] * 255), int(dist[ind_pt] * 255), 100)
+            arcade.draw_line(center_xy[ind_pt, 0], center_xy[ind_pt, 1],
+                             view_xy[ind_pt, 0], view_xy[ind_pt, 1], color)
 
 
 class RGBSensor(RaySensor):
-    def update_value(self, hitpoints):
 
-        super().update_value(hitpoints)
-        self.value = hitpoints[:, 10:13]
+    def _compute_raw_sensor(self):
+        self.value = self.hitpoints[:, 10:13]
+
+    def draw(self):
+
+        view_xy = self.hitpoints[:, :2]
+        center_xy = self.hitpoints[:, 6:8]
+        color = (self.value * 255).astype(np.uint8)[:, ::-1]
+
+        for ind_pt in range(len(view_xy)):
+
+            color_pt = color[ind_pt]
+            arcade.draw_line(center_xy[ind_pt, 0], center_xy[ind_pt, 1],
+                             view_xy[ind_pt, 0], view_xy[ind_pt, 1], color_pt)
+
+
+class SemanticSensor(RaySensor):
+
+    def _compute_raw_sensor(self):
+        self.value = self.hitpoints[:, 10:13]
+
+    def draw(self):
+
+        view_xy = self.hitpoints[:, :2]
+        center_xy = self.hitpoints[:, 6:8]
+        id_detection = self.hitpoints[:, 8].astype(np.int)
+
+        for ind_pt in range(len(view_xy)):
+
+            color = id_to_pixel(id_detection[ind_pt])
+
+            arcade.draw_line(center_xy[ind_pt, 0], center_xy[ind_pt, 1],
+                             view_xy[ind_pt, 0], view_xy[ind_pt, 1], color)

@@ -23,6 +23,7 @@ class GUI(TopDownView):
         display_uid: bool = False,
         draw_transparent: bool = True,
         draw_interactive: bool = True,
+        draw_sensors: bool = False,
         print_rewards: bool = True,
     ) -> None:
         super().__init__(
@@ -47,6 +48,8 @@ class GUI(TopDownView):
         self._playground.window.on_update = self.on_update
         self._playground.window.on_key_press = self.on_key_press
         self._playground.window.on_key_release = self.on_key_release
+
+        self._draw_sensors = draw_sensors
 
     def run(self):
         self._playground.window.run()
@@ -73,11 +76,19 @@ class GUI(TopDownView):
 
     def update(self, force=False):
 
+        arcade.start_render()
+
         self.update_sprites(force)
 
         self._playground.window.use()
 
         self._playground.window.clear(self._background)
+
+        if self._draw_sensors:
+
+            for agent in self._playground.agents:
+                for sensor in agent.sensors:
+                    sensor.draw()
 
         # Change projection to match the contents
 
@@ -85,6 +96,8 @@ class GUI(TopDownView):
         self._interactive_sprites.draw(pixelated=True)
         self._visible_sprites.draw(pixelated=True)
         self._traversable_sprites.draw(pixelated=True)
+
+        arcade.finish_render()
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
