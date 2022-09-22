@@ -146,6 +146,11 @@ class PhysicalPart(PhysicalEntity, ABC):
         for device in self._devices:
             device.pre_step()
 
+    def post_step(self):
+        super().post_step()
+        for device in self._devices:
+            device.post_step()
+
     def reset(self):
         super().reset()
 

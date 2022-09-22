@@ -24,9 +24,9 @@ class Controller(PocketDevice):
 
         super().__init__(color=CONTROLLER_COLOR)
 
-        self._disabled: bool = False
         self._command = self.default
         self._hard_check = hard_check
+        self._currently_disabled = False
 
     @property
     def _rng(self):
@@ -52,17 +52,17 @@ class Controller(PocketDevice):
             raise ValueError(command)
 
         # Maybe replace by closest later?
-        if not check_passed:
+        if not check_passed or self._currently_disabled:
             command = self.default
 
         self._command = command
 
     def pre_step(self):
+        super().pre_step()
         self._command = self.default
-        self._disabled = False
 
-    def disable(self):
-        self._disabled = True
+    def post_step(self):
+        self._currently_disabled = self._disabled
 
     def reset(self):
         self.pre_step()
@@ -115,6 +115,10 @@ class DiscreteController(Controller):
 class BoolController(DiscreteController):
     def __init__(self, **kwargs):
         super().__init__(command_values=[0, 1], **kwargs)
+
+
+class GrasperController(BoolController):
+    pass
 
 
 class RangeController(DiscreteController):

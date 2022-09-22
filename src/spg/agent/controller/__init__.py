@@ -5,6 +5,7 @@ from .controller import (
     ContinuousController,
     Controller,
     DiscreteController,
+    GrasperController,
     RangeController,
 )
 
@@ -16,4 +17,5 @@ __all__ = [
     "Controller",
     "DiscreteController",
     "RangeController",
+    "GrasperController",
 ]

@@ -7,7 +7,7 @@ import pymunk
 
 from ...entity import EmbodiedEntity
 from ...utils.definitions import CollisionTypes
-from ..controller import BoolController
+from ..controller import GrasperController
 from ..device import Device
 
 if TYPE_CHECKING:
@@ -53,7 +53,7 @@ class Grasper(ActiveInteractor):
     def __init__(self, anchor: PhysicalPart, **kwargs):
         super().__init__(anchor=anchor, **kwargs)
 
-        self.grasp_controller = BoolController()
+        self.grasp_controller = GrasperController()
 
         self._grasped_entities = []
         self._grasping = False

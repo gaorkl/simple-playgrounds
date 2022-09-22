@@ -390,7 +390,7 @@ class Playground:
                 self.remove(element, definitive=True)
             elif element.removed:
                 self.add(element, from_removed=True)
-            elif element.movable:
+            elif isinstance(element, PhysicalElement) and element.movable:
                 assert element.initial_coordinates
                 element.move_to(
                     element.initial_coordinates,

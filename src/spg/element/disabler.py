@@ -1,5 +1,6 @@
 from typing import List, Optional, Union
 
+from ..agent.controller import Controller
 from ..agent.device import Device
 from ..agent.sensor import Sensor
 from ..utils.definitions import CollisionTypes
@@ -32,3 +33,15 @@ class SensorDisabler(Disabler):
             sensors = Sensor
 
         super().__init__(disable_cls=sensors)
+
+
+class ControllerDisabler(Disabler):
+    def __init__(
+        self,
+        controllers: Optional[Union[List[type[Controller]], type[Controller]]] = None,
+    ):
+
+        if not controllers:
+            controllers = Controller
+
+        super().__init__(disable_cls=controllers)

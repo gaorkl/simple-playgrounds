@@ -257,6 +257,8 @@ class DistanceSensor(RaySensor):
 
     def draw(self):
 
+        if self._disabled:
+            return
         view_xy = self._hitpoints[:, :2]
         center_xy = self._hitpoints[:, 6:8]
         dist = 1 - self._values / self._range
@@ -290,6 +292,8 @@ class RGBSensor(RaySensor):
         self._values = self._hitpoints[:, 10:13]
 
     def draw(self):
+        if self._disabled:
+            return
         view_xy = self._hitpoints[:, :2]
         center_xy = self._hitpoints[:, 6:8]
         color = (self._values).astype(np.uint8)
@@ -319,6 +323,9 @@ class SemanticSensor(RaySensor):
         self._values = self._hitpoints[:, 10:13]
 
     def draw(self):
+
+        if self._disabled:
+            return
 
         view_xy = self._hitpoints[:, :2]
         center_xy = self._hitpoints[:, 6:8]
