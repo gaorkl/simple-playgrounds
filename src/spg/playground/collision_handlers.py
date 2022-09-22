@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..agent.device import Device
 from ..agent.interactor import Grasper
 from ..agent.part import PhysicalPart
+from ..element import Disabler
 
 if TYPE_CHECKING:
     from .playground import Playground
@@ -38,6 +40,19 @@ def grasper_grasps_graspable(arbiter, _, data):
 
     if grasper.start_grasping:
         grasper.grasp(entity)
+
+    return True
+
+
+def disabler_disables_device(arbiter, space, data):
+
+    playground: Playground = data['playground']
+    (disabler, _), (device, _) = get_colliding_entities(playground, arbiter)
+
+    assert isinstance(device, Device)
+    assert isinstance(disabler, Disabler)
+
+    disabler.disable(device)
 
     return True
 
@@ -134,18 +149,5 @@ def grasper_grasps_graspable(arbiter, _, data):
 #         return True
 
 #     teleport.energize(agent)
-
-#     return True
-
-
-# def modifier_modifies_device(arbiter, space, data):
-
-#     playground: Playground = data['playground']
-#     (modifier, _), (device, _) = get_colliding_entities(playground, arbiter)
-
-#     assert isinstance(device, Device)
-#     assert isinstance(modifier, ModifierElement)
-
-#     modifier.modify(device)
 
 #     return True
