@@ -36,7 +36,7 @@ from ..utils.definitions import (
     PymunkCollisionCategories,
 )
 from ..utils.position import Coordinate
-from .collision_handlers import grasper_grasps_graspable
+from .collision_handlers import disabler_disables_device, grasper_grasps_graspable
 
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
@@ -719,6 +719,9 @@ class Playground:
             CollisionTypes.GRASPER, CollisionTypes.GRASPABLE, grasper_grasps_graspable
         )
 
+        self.add_interaction(
+            CollisionTypes.DISABLER, CollisionTypes.DEVICE, disabler_disables_device
+        )
         # self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
 
     #                              agent_touches_element)
@@ -729,8 +732,6 @@ class Playground:
     #                              gem_activates_element)
     #         self.add_interaction(CollisionTypes.PART, CollisionTypes.TELEPORT,
     #                              agent_teleports)
-    #         self.add_interaction(CollisionTypes.MODIFIER, CollisionTypes.DEVICE,
-    #                              modifier_modifies_device)
 
     def add_interaction(
         self,

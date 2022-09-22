@@ -158,8 +158,6 @@ class Agent(Entity):
         for sensor in self.sensors:
             sensor.update()
 
-        pass
-
     def compute_rewards(self):
         pass
 

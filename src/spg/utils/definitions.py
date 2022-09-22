@@ -56,7 +56,7 @@ class CollisionTypes(IntEnum):
     TELEPORT = auto()
 
     DEVICE = auto()
-    MODIFIER = auto()
+    DISABLER = auto()
 
     GRASPER = auto()
     ACTIVATOR = auto()
