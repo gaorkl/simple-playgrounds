@@ -7,7 +7,6 @@ from .element import ZoneElement
 
 
 class Disabler(ZoneElement):
-
     def __init__(self, disable_cls: Union[List[type[Device]], type[Device]]):
 
         super().__init__(filename=":spg:platformer/tiles/area_forbidden.png")
@@ -25,8 +24,9 @@ class Disabler(ZoneElement):
 
 
 class SensorDisabler(Disabler):
-
-    def __init__(self, sensors: Optional[Union[List[type[Sensor]], type[Sensor]]] = None):
+    def __init__(
+        self, sensors: Optional[Union[List[type[Sensor]], type[Sensor]]] = None
+    ):
 
         if not sensors:
             sensors = Sensor

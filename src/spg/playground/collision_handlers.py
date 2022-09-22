@@ -44,9 +44,9 @@ def grasper_grasps_graspable(arbiter, _, data):
     return True
 
 
-def disabler_disables_device(arbiter, space, data):
+def disabler_disables_device(arbiter, _, data):
 
-    playground: Playground = data['playground']
+    playground: Playground = data["playground"]
     (disabler, _), (device, _) = get_colliding_entities(playground, arbiter)
 
     assert isinstance(device, Device)

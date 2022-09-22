@@ -123,8 +123,7 @@ class Playground:
         self._views = []
 
         # Arcade window necessary to create contexts, views, sensors and gui
-        self._window = Window(1, 1, visible=False,
-                              antialiasing=True)  # type: ignore
+        self._window = Window(1, 1, visible=False, antialiasing=True)  # type: ignore
         self._window.ctx.blend_func = self._window.ctx.ONE, self._window.ctx.ZERO
 
         self._sensor_shader = None
@@ -168,8 +167,7 @@ class Playground:
 
         if not self._sensor_shader:
             assert self._size
-            self._sensor_shader = RayShader(
-                self, self._size, self._center, zoom=1)
+            self._sensor_shader = RayShader(self, self._size, self._center, zoom=1)
 
         return self._sensor_shader
 
@@ -721,8 +719,9 @@ class Playground:
             CollisionTypes.GRASPER, CollisionTypes.GRASPABLE, grasper_grasps_graspable
         )
 
-        self.add_interaction(CollisionTypes.DISABLER, CollisionTypes.DEVICE,
-                             disabler_disables_device)
+        self.add_interaction(
+            CollisionTypes.DISABLER, CollisionTypes.DEVICE, disabler_disables_device
+        )
         # self.add_interaction(CollisionTypes.PART, CollisionTypes.CONTACT,
 
     #                              agent_touches_element)
@@ -751,8 +750,7 @@ class Playground:
 
         """
 
-        handler = self.space.add_collision_handler(
-            collision_type_1, collision_type_2)
+        handler = self.space.add_collision_handler(collision_type_1, collision_type_2)
         handler.pre_solve = interaction_function
         handler.data["playground"] = self
 

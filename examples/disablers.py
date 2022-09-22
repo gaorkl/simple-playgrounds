@@ -17,9 +17,6 @@ playground.add(agent)
 sensor_disabler = SensorDisabler(sensors=RGBSensor)
 playground.add(sensor_disabler, ((150, -150), 0))
 
-playground._compute_observations()
-playground._sensor_shader._id_view.draw()
-
 gui = GUI(playground, agent)
 gui.run()
 
