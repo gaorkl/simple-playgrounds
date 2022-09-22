@@ -88,6 +88,7 @@ class Sensor(PocketDevice):
     def _apply_normalization(self):
         ...
 
+    @property
     @abstractmethod
     def _default_value(self) -> np.ndarray:
         ...

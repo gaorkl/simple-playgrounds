@@ -96,8 +96,7 @@ class RayShader:
         output_rays_buffer = self.ctx.buffer(
             data=array("f", self._generate_output_buffer())
         )
-        inv_buffer = self.ctx.buffer(data=array(
-            "I", self._generate_invisible_buffer()))
+        inv_buffer = self.ctx.buffer(data=array("I", self._generate_invisible_buffer()))
 
         param_buffer.bind_to_storage_buffer(binding=2)
         position_buffer.bind_to_storage_buffer(binding=3)
@@ -172,8 +171,7 @@ class RayShader:
         new_source = self._source_compute_ids
         new_source = new_source.replace("N_SENSORS", str(len(self._sensors)))
         new_source = new_source.replace("MAX_N_RAYS", str(self._max_n_rays))
-        new_source = new_source.replace(
-            "MAX_N_INVISIBLE", str(self._max_invisible))
+        new_source = new_source.replace("MAX_N_INVISIBLE", str(self._max_invisible))
         id_shader = self.ctx.compute_shader(source=new_source)
 
         new_source = self._source_compute_colors
@@ -216,8 +214,7 @@ class RayShader:
             ).reshape(self._n_sensors, self._max_n_rays, 13)
 
             for index, sensor in enumerate(self._sensors):
-                sensor.update_hitpoints(
-                    hitpoints[index, : sensor.resolution, :])
+                sensor.update_hitpoints(hitpoints[index, : sensor.resolution, :])
 
 
 class RaySensor(ExternalSensor, ABC):
@@ -255,7 +252,6 @@ class RaySensor(ExternalSensor, ABC):
 
 
 class DistanceSensor(RaySensor):
-
     def _compute_raw_sensor(self):
         self._values = self._hitpoints[:, 9]
 
