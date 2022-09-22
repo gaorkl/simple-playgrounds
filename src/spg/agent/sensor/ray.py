@@ -96,7 +96,8 @@ class RayShader:
         output_rays_buffer = self.ctx.buffer(
             data=array("f", self._generate_output_buffer())
         )
-        inv_buffer = self.ctx.buffer(data=array("I", self._generate_invisible_buffer()))
+        inv_buffer = self.ctx.buffer(data=array(
+            "I", self._generate_invisible_buffer()))
 
         param_buffer.bind_to_storage_buffer(binding=2)
         position_buffer.bind_to_storage_buffer(binding=3)
@@ -171,7 +172,8 @@ class RayShader:
         new_source = self._source_compute_ids
         new_source = new_source.replace("N_SENSORS", str(len(self._sensors)))
         new_source = new_source.replace("MAX_N_RAYS", str(self._max_n_rays))
-        new_source = new_source.replace("MAX_N_INVISIBLE", str(self._max_invisible))
+        new_source = new_source.replace(
+            "MAX_N_INVISIBLE", str(self._max_invisible))
         id_shader = self.ctx.compute_shader(source=new_source)
 
         new_source = self._source_compute_colors
@@ -214,7 +216,8 @@ class RayShader:
             ).reshape(self._n_sensors, self._max_n_rays, 13)
 
             for index, sensor in enumerate(self._sensors):
-                sensor.update_value(hitpoints[index, : sensor.resolution, :])
+                sensor.update_hitpoints(
+                    hitpoints[index, : sensor.resolution, :])
 
 
 class RaySensor(ExternalSensor, ABC):
@@ -234,8 +237,7 @@ class RaySensor(ExternalSensor, ABC):
         self._spatial_resolution = spatial_resolution
         self._n_points = int(self._range / self._spatial_resolution)
 
-        self.value = 0
-        self.hitpoints = 0
+        self._hitpoints = 0
 
     @property
     def spatial_resolution(self):
@@ -245,30 +247,23 @@ class RaySensor(ExternalSensor, ABC):
     def n_points(self):
         return self._n_points
 
-    def update_value(self, hitpoints):
-        self.hitpoints = hitpoints
+    def update_hitpoints(self, hitpoints):
+        self._hitpoints = hitpoints
 
     def _apply_normalization(self):
         pass
 
-    @property
-    def shape(self):
-        pass
-
-    @property
-    def _default_value(self):
-        pass
-
 
 class DistanceSensor(RaySensor):
+
     def _compute_raw_sensor(self):
-        self.value = self.hitpoints[:, 9]
+        self._values = self._hitpoints[:, 9]
 
     def draw(self):
 
-        view_xy = self.hitpoints[:, :2]
-        center_xy = self.hitpoints[:, 6:8]
-        dist = 1 - self.hitpoints[:, 9] / self._range
+        view_xy = self._hitpoints[:, :2]
+        center_xy = self._hitpoints[:, 6:8]
+        dist = 1 - self._values / self._range
 
         for ind_pt in range(len(view_xy)):
 
@@ -285,16 +280,23 @@ class DistanceSensor(RaySensor):
                 color,
             )
 
+    @property
+    def shape(self):
+        return self._resolution, 1
+
+    @property
+    def _default_value(self):
+        return np.zeros(self.shape)
+
 
 class RGBSensor(RaySensor):
     def _compute_raw_sensor(self):
-        self.value = self.hitpoints[:, 10:13]
+        self._values = self._hitpoints[:, 10:13]
 
     def draw(self):
-
-        view_xy = self.hitpoints[:, :2]
-        center_xy = self.hitpoints[:, 6:8]
-        color = (self.value).astype(np.uint8)
+        view_xy = self._hitpoints[:, :2]
+        center_xy = self._hitpoints[:, 6:8]
+        color = (self._values).astype(np.uint8)
 
         for ind_pt in range(len(view_xy)):
 
@@ -307,16 +309,24 @@ class RGBSensor(RaySensor):
                 color_pt,
             )
 
+    @property
+    def shape(self):
+        return self._resolution, 3
+
+    @property
+    def _default_value(self):
+        return np.zeros(self.shape)
+
 
 class SemanticSensor(RaySensor):
     def _compute_raw_sensor(self):
-        self.value = self.hitpoints[:, 10:13]
+        self._values = self._hitpoints[:, 10:13]
 
     def draw(self):
 
-        view_xy = self.hitpoints[:, :2]
-        center_xy = self.hitpoints[:, 6:8]
-        id_detection = self.hitpoints[:, 8].astype(np.int)
+        view_xy = self._hitpoints[:, :2]
+        center_xy = self._hitpoints[:, 6:8]
+        id_detection = self._hitpoints[:, 8].astype(np.int)
 
         for ind_pt in range(len(view_xy)):
 
@@ -331,3 +341,11 @@ class SemanticSensor(RaySensor):
                     view_xy[ind_pt, 1],
                     color,
                 )
+
+    @property
+    def shape(self):
+        return self._resolution, 3
+
+    @property
+    def _default_value(self):
+        return np.zeros(self.shape)

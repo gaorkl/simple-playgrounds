@@ -60,7 +60,7 @@ class Sensor(PocketDevice):
 
         super().__init__(color=SENSOR_COLOR, **kwargs)
 
-        self.sensor_values = None
+        self._values = None
 
         self._normalize = normalize
 
@@ -69,7 +69,7 @@ class Sensor(PocketDevice):
     def update(self):
 
         if self._disabled:
-            self.sensor_values = self._default_value()
+            self._values = self._default_value
 
         else:
             self._compute_raw_sensor()
