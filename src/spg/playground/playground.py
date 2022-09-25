@@ -42,10 +42,11 @@ from .collision_handlers import disabler_disables_device, grasper_grasps_graspab
 # pylint: disable=line-too-long
 
 CommandsDict = Dict[Agent, Dict[Controller, Command]]
-SentMessagesDict = Dict[Agent, Dict[Communicator, Message]]
+TargetCommunicator = Optional[Union[Communicator, List[Communicator]]]
+SentMessagesDict = Dict[Agent, Dict[Communicator, Tuple[Message, TargetCommunicator]]]
 
 ObservationsDict = Dict[Agent, Dict[Sensor, SensorValue]]
-ReceivedMessagesDict = Dict[Agent, Dict[Communicator, Message]]
+ReceivedMessagesDict = Dict[Agent, Dict[Communicator, Tuple[Message, Communicator]]]
 RewardsDict = Dict[Agent, float]
 
 
@@ -357,6 +358,39 @@ class Playground:
 
         if not messages:
             return None
+
+        msgs = {agent: {} for agent in self.agents}
+
+        for agent, comms in messages.items():
+
+            for source, (message, target) in comms.items():
+                msg = source.send(message)
+
+                if not msg:
+                    continue
+
+                if isinstance(target, list):
+
+                    for targ in target:
+                        assert isinstance(targ, Communicator)
+                        agent_targ = targ.agent
+                        received_msg = targ.receive(source, msg)
+                        msgs[agent_targ][targ] = (received_msg, source)
+
+                elif isinstance(target, Communicator):
+                    agent_targ = target.agent
+                    received_msg = target.receive(source, msg)
+                    msgs[agent_targ][target] = (received_msg, source)
+
+                elif target is None:
+                    for agent in self._agents:
+                        for comm in agent.communicators:
+                            agent_targ = comm.agent
+                            received_msg = target.receive(source, msg)
+                            msgs[agent_targ][comm] = (received_msg, source)
+
+                else:
+                    raise ValueError
 
         return messages
 

@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional
 
-from ...entity import EmbodiedEntity
-from ..device import Device
+from ..device import PocketDevice
 
 Message = Any
 
 
-class Communicator(Device):
+COMM_COLOR = (123, 134, 13)
+
+
+class Communicator(PocketDevice):
     def __init__(
         self,
-        anchor: EmbodiedEntity,
         transmission_range: Optional[float] = None,
-        receiver_capacity: Optional[int] = None,
     ):
         """
         By default, Communicator has infinite range and infinite receiver capacity.
@@ -26,40 +26,23 @@ class Communicator(Device):
             receiver_capacity:
         """
 
-        super().__init__(anchor=anchor)
+        super().__init__(color=COMM_COLOR)
 
         self._transmission_range = transmission_range
-        self._receiver_capacity = receiver_capacity
 
-        self._received_messages: List[Tuple[Communicator, Message]] = []
         self._comms_in_range: List[Communicator] = []
 
     def pre_step(self):
         super().pre_step()
-        self.reset()
         self.update_list_comms_in_range()
 
     def reset(self):
-        self._received_messages = []
-        self._comms_in_range = []
-
-    @property
-    def position(self):
-        assert self._anchor
-        return self._anchor.position
-
-    @property
-    def id(self):
-        assert self._anchor
-        return self._anchor.name
+        self.pre_step()
+        super().reset()
 
     @property
     def transmission_range(self):
         return self._transmission_range
-
-    @property
-    def received_message(self):
-        return self._received_messages
 
     def update_list_comms_in_range(self):
 
@@ -84,19 +67,19 @@ class Communicator(Device):
         dist = comm.position.get_distance(self.position)
 
         # If both have infinite range:
-        if not (comm.transmission_range or self.transmission_range):
+        if not (comm.transmission_range or self._transmission_range):
             return True
 
         # If only one has infinite range:
-        if (not comm.transmission_range) and self.transmission_range:
-            if dist < self.transmission_range:
+        if (not comm.transmission_range) and self._transmission_range:
+            if dist < self._transmission_range:
                 return True
 
-        elif comm.transmission_range and (not self.transmission_range):
+        elif comm.transmission_range and (not self._transmission_range):
             if dist < comm.transmission_range:
                 return True
 
-        elif dist < comm.transmission_range and dist < self.transmission_range:
+        elif dist < comm.transmission_range and dist < self._transmission_range:
             return True
 
         return False
@@ -109,8 +92,6 @@ class Communicator(Device):
         if self._disabled:
             return None
 
-        # Filter and Noise go here
-
         return msg
 
     def receive(self, sender, msg):
@@ -119,13 +100,6 @@ class Communicator(Device):
             return None
 
         if self.in_transmission_range(sender):
-            self._received_messages.append((sender, msg))
-            self._received_messages.sort(
-                key=(lambda s_m: self.position.get_distance(s_m[0].position))
-            )
-            if self._receiver_capacity:
-                self._received_messages = self._received_messages[
-                    : self._receiver_capacity
-                ]
+            return msg
 
         return None
