@@ -40,6 +40,11 @@ class Device(InteractiveAnchored):
     def disable(self):
         self._disabled = True
 
+    @property
+    def agent(self):
+        assert self._anchor
+        return self._anchor.agent
+
 
 class PocketDevice(Device):
     def __init__(
