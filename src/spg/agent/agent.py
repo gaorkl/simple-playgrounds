@@ -185,6 +185,7 @@ class Agent(Entity):
             if isinstance(controller, str):
                 controller = self._name_to_controller[controller]
 
+            assert controller.agent is self
             controller.command = command
 
     def apply_commands(self):

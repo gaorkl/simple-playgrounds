@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 from ..device import PocketDevice
 
@@ -31,10 +31,12 @@ class Communicator(PocketDevice):
         self._transmission_range = transmission_range
 
         self._comms_in_range: List[Communicator] = []
+        self._received_messages: List[Tuple[Communicator, Message]] = []
 
     def pre_step(self):
         super().pre_step()
         self.update_list_comms_in_range()
+        self._received_messages = []
 
     def reset(self):
         self.pre_step()
@@ -61,6 +63,10 @@ class Communicator(PocketDevice):
     @property
     def comms_in_range(self):
         return self._comms_in_range
+
+    @property
+    def received_messages(self):
+        return self._received_messages
 
     def in_transmission_range(self, comm: Communicator):
 
@@ -100,6 +106,30 @@ class Communicator(PocketDevice):
             return None
 
         if self.in_transmission_range(sender):
+            self._received_messages.append((sender, msg))
             return msg
 
         return None
+
+
+class LimitedCommunicator(Communicator):
+    def __init__(self, capacity: Optional[int] = None, **kwargs):
+
+        self._capacity = capacity
+
+        super().__init__(**kwargs)
+
+    @property
+    def receiver_capacity(self):
+        return self._capacity
+
+    def receive(self, sender, msg):
+        msg = super().receive(sender, msg)
+
+        if self._capacity:
+            self._received_messages.sort(
+                key=(lambda s_m: self.position.get_distance(s_m[0].anchor.position))
+            )
+            self._received_messages = self._received_messages[: self._capacity]
+
+        return msg

@@ -1,5 +1,6 @@
 from typing import List, Optional, Union
 
+from ..agent.communicator import Communicator
 from ..agent.controller import Controller
 from ..agent.device import Device
 from ..agent.sensor import Sensor
@@ -45,3 +46,17 @@ class ControllerDisabler(Disabler):
             controllers = Controller
 
         super().__init__(disable_cls=controllers)
+
+
+class CommunicatorDisabler(Disabler):
+    def __init__(
+        self,
+        communicators: Optional[
+            Union[List[type[Communicator]], type[Communicator]]
+        ] = None,
+    ):
+
+        if not communicators:
+            communicators = Communicator
+
+        super().__init__(disable_cls=communicators)

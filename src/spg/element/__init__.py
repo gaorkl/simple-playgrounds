@@ -1,7 +1,7 @@
 from .ball import Ball
 from .chest import Chest
 from .diamond import Diamond
-from .disabler import ControllerDisabler, Disabler, SensorDisabler
+from .disabler import CommunicatorDisabler, ControllerDisabler, Disabler, SensorDisabler
 from .element import (
     PhysicalElement,
     RewardElement,
@@ -23,6 +23,7 @@ __all__ = [
     "Disabler",
     "ControllerDisabler",
     "SensorDisabler",
+    "CommunicatorDisabler",
     "BrickWallBlock",
     "ColorWall",
     "WallBlock",

@@ -43,10 +43,10 @@ from .collision_handlers import disabler_disables_device, grasper_grasps_graspab
 
 CommandsDict = Dict[Agent, Dict[Controller, Command]]
 TargetCommunicator = Optional[Union[Communicator, List[Communicator]]]
-SentMessagesDict = Dict[Agent, Dict[Communicator, Tuple[Message, TargetCommunicator]]]
+SentMessagesDict = Dict[Agent, Dict[Communicator, Tuple[TargetCommunicator, Message]]]
 
 ObservationsDict = Dict[Agent, Dict[Sensor, SensorValue]]
-ReceivedMessagesDict = Dict[Agent, Dict[Communicator, Tuple[Message, Communicator]]]
+ReceivedMessagesDict = Dict[Agent, Dict[Communicator, Tuple[Communicator, Message]]]
 RewardsDict = Dict[Agent, float]
 
 
@@ -319,7 +319,9 @@ class Playground:
         if not skip_state_compute:
             obs = self._compute_observations()
             rew = self._compute_rewards()
-            mess = self._transmit_messages(messages)
+            mess = None
+            if messages:
+                mess = self._transmit_messages(messages)
         else:
             obs, mess, rew = None, None, None
 
@@ -356,43 +358,50 @@ class Playground:
 
     def _transmit_messages(self, messages):
 
-        if not messages:
-            return None
-
         msgs = {agent: {} for agent in self.agents}
 
-        for agent, comms in messages.items():
+        all_sent_messages = [
+            (agent, comm_source, target)
+            for agent, comms_dict in messages.items()
+            for comm_source, target in comms_dict.items()
+        ]
 
-            for source, (message, target) in comms.items():
-                msg = source.send(message)
+        for agent, comm_source, target in all_sent_messages:
 
-                if not msg:
-                    continue
+            assert comm_source.agent is agent
 
-                if isinstance(target, list):
+            comm_target, message = target
+            msg = comm_source.send(message)
 
-                    for targ in target:
-                        assert isinstance(targ, Communicator)
-                        agent_targ = targ.agent
-                        received_msg = targ.receive(source, msg)
-                        msgs[agent_targ][targ] = (received_msg, source)
+            if not msg:
+                continue
 
-                elif isinstance(target, Communicator):
-                    agent_targ = target.agent
-                    received_msg = target.receive(source, msg)
-                    msgs[agent_targ][target] = (received_msg, source)
+            if isinstance(comm_target, list):
 
-                elif target is None:
-                    for agent in self._agents:
-                        for comm in agent.communicators:
-                            agent_targ = comm.agent
-                            received_msg = target.receive(source, msg)
-                            msgs[agent_targ][comm] = (received_msg, source)
+                for targ in comm_target:
+                    assert isinstance(targ, Communicator)
+                    received_msg = targ.receive(comm_source, msg)
 
-                else:
-                    raise ValueError
+                    if received_msg:
+                        msgs[targ.agent][targ] = (comm_source, received_msg)
 
-        return messages
+            elif isinstance(comm_target, Communicator):
+                received_msg = comm_target.receive(comm_source, msg)
+
+                if received_msg:
+                    msgs[comm_target.agent][comm_target] = (comm_source, received_msg)
+
+            elif comm_target is None:
+                for agent in self.agents:
+                    for comm in agent.communicators:
+                        received_msg = comm.receive(comm_source, msg)
+                        if received_msg:
+                            msgs[comm.agent][comm] = (comm_source, received_msg)
+
+            else:
+                raise ValueError
+
+        return msgs
 
     def _compute_observations(self):
 

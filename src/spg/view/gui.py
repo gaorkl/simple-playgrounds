@@ -25,6 +25,7 @@ class GUI(TopDownView):
         draw_interactive: bool = True,
         draw_sensors: bool = False,
         print_rewards: bool = True,
+        print_messages: bool = True,
     ) -> None:
         super().__init__(
             playground,
@@ -42,7 +43,9 @@ class GUI(TopDownView):
         self._agent = agent
 
         self._agent_commands: Dict[Controller, Command] = {}
+        self._message = None
         self.print_rewards = print_rewards
+        self.print_messages = print_messages
 
         self._playground.window.on_draw = self.on_draw
         self._playground.window.on_update = self.on_update
@@ -62,13 +65,23 @@ class GUI(TopDownView):
     def on_update(self, _):
 
         commands = self.commands
-        self._playground.step(commands=commands)
+
+        self._playground.step(commands=commands, messages=self._message)
 
         if self.print_rewards:
 
             for agent in self._playground.agents:
                 if agent.reward != 0:
                     print(agent.reward)
+
+        if self.print_messages:
+
+            for agent in self._playground.agents:
+                for comm in agent.communicators:
+                    for _, msg in comm.received_messages:
+                        print(f"Agent {agent.name} received message {msg}")
+
+        self._message = {}
 
     @property
     def commands(self):
@@ -117,6 +130,17 @@ class GUI(TopDownView):
                 self._agent_commands[self._agent.head.joint_controller] = 0.1
             elif key == arcade.key.RIGHT:
                 self._agent_commands[self._agent.head.joint_controller] = -0.1
+
+        if key == arcade.key.M:
+            self._message = {
+                self._agent: {
+                    self._agent.comm: (
+                        None,
+                        f"Currently at timestep {self._playground.timestep}",
+                    )
+                }
+            }
+            print(f"Agent {self._agent.name} sends message")
 
         if key == arcade.key.Q:
             self._playground.window.close()

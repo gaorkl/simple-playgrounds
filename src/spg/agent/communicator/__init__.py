@@ -1,6 +1,3 @@
-from .communicator import Communicator, Message
+from .communicator import Communicator, LimitedCommunicator, Message
 
-__all__ = [
-    "Communicator",
-    "Message",
-]
+__all__ = ["Communicator", "Message", "LimitedCommunicator"]
