@@ -17,7 +17,7 @@ class HeadAgent(Agent):
         base.add(self.head)
 
         self.distance = DistanceSensor(
-            fov=360, resolution=36, range=400, invisible_elements=self._parts
+            fov=360, resolution=36, range=100, invisible_elements=self._parts
         )
 
         self.base.add(self.distance)
