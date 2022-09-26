@@ -153,10 +153,13 @@
 
                 }
 
-                float dx = sample_point.x - sensor_x_on_view;
+		float dist = range;
+		if (id_out != 0)
+		{
+			float dx = sample_point.x - sensor_x_on_view;
                 float dy = sample_point.y - sensor_y_on_view;
-                float dist = sqrt( (dx*dx) + (dy*dy) )/zoom;
-
+                dist = sqrt( (dx*dx) + (dy*dy) )/zoom;
+		}
                 // CONVERT IN THE FRAME OF THE ENVIRONMENT
 
                 HitPoint out_pt;
