@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import pymunk
 from arcade import Sprite, Texture
@@ -38,6 +38,7 @@ class EmbodiedEntity(Entity, ABC):
         shape_approximation: Optional[str] = None,
         sprite_front_is_up: bool = False,
         teams: Optional[Teams] = None,
+        color: Optional[Tuple[int, int, int]] = None,
     ):
 
         super().__init__(name, teams, temporary)
@@ -52,6 +53,8 @@ class EmbodiedEntity(Entity, ABC):
             flipped_diagonally=sprite_front_is_up,
             flipped_horizontally=sprite_front_is_up,
         )  # type: ignore
+
+        self._color = color
 
         # Get the scale and dimensions
         self._scale, self._radius, self._width, self._length = self._get_dimensions(
@@ -266,6 +269,9 @@ class EmbodiedEntity(Entity, ABC):
             hit_box_algorithm="Detailed",
             hit_box_detail=1,
         )
+
+        if self._color and not color_uid:
+            sprite.color = self._color
 
         return sprite
 
