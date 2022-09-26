@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Type, Union
 
 from ..agent.communicator import Communicator
 from ..agent.controller import Controller
@@ -9,7 +9,7 @@ from .element import ZoneElement
 
 
 class Disabler(ZoneElement):
-    def __init__(self, disable_cls: Union[List[type[Device]], type[Device]]):
+    def __init__(self, disable_cls: Union[List[Type[Device]], Type[Device]]):
 
         super().__init__(filename=":spg:platformer/tiles/area_forbidden.png")
 
@@ -27,7 +27,7 @@ class Disabler(ZoneElement):
 
 class SensorDisabler(Disabler):
     def __init__(
-        self, sensors: Optional[Union[List[type[Sensor]], type[Sensor]]] = None
+        self, sensors: Optional[Union[List[Type[Sensor]], Type[Sensor]]] = None
     ):
 
         if not sensors:
@@ -39,7 +39,7 @@ class SensorDisabler(Disabler):
 class ControllerDisabler(Disabler):
     def __init__(
         self,
-        controllers: Optional[Union[List[type[Controller]], type[Controller]]] = None,
+        controllers: Optional[Union[List[Type[Controller]], Type[Controller]]] = None,
     ):
 
         if not controllers:
@@ -52,7 +52,7 @@ class CommunicatorDisabler(Disabler):
     def __init__(
         self,
         communicators: Optional[
-            Union[List[type[Communicator]], type[Communicator]]
+            Union[List[Type[Communicator]], Type[Communicator]]
         ] = None,
     ):
 
