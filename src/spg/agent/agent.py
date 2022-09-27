@@ -21,7 +21,7 @@ from ..utils.position import Coordinate
 from .communicator import Communicator
 from .controller import Command, Controller
 from .part import PhysicalPart
-from .sensor import Sensor
+from .sensor import ExternalSensor, Sensor
 
 _BORDER_IMAGE = 3
 
@@ -153,6 +153,10 @@ class Agent(Entity):
             for sensor in part.devices
             if isinstance(sensor, Sensor)
         ]
+
+    @property
+    def external_sensors(self):
+        return [sensor for sensor in self.sensors if isinstance(sensor, ExternalSensor)]
 
     def compute_observations(self):
         for sensor in self.sensors:

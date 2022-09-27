@@ -19,12 +19,20 @@ class HeadAgent(Agent):
 
         # SENSORS
         self.distance = DistanceSensor(
-            fov=360, resolution=36, range=100, invisible_elements=self._parts
+            fov=360,
+            resolution=36,
+            range=100,
+            invisible_elements=self._parts,
+            normalize=True,
         )
         self.base.add(self.distance)
 
         self.rgb = RGBSensor(
-            fov=90, resolution=64, range=400, invisible_elements=self._parts
+            fov=90,
+            resolution=64,
+            range=400,
+            invisible_elements=self._parts,
+            invisible_when_grasped=True,
         )
         self.head.add(self.rgb)
 

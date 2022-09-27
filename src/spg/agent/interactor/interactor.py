@@ -87,6 +87,10 @@ class Grasper(ActiveInteractor):
             for elem in self._grasped_entities:
                 self._add_joints(elem)
 
+                for sensor in self._anchor.agent.external_sensors:
+                    if sensor.invisible_grasped:
+                        sensor.add_to_temporary_invisible(elem)
+
             self._grasping = True
             self._start_grasping = False
 
@@ -109,6 +113,10 @@ class Grasper(ActiveInteractor):
 
         for entity in self._grasped_entities:
             entity.grasped_by.remove(self)
+
+            for sensor in self._anchor.agent.external_sensors:
+                if sensor.invisible_grasped:
+                    sensor.remove_from_temporary_invisible(entity)
 
         self._grasped_entities = []
 

@@ -163,7 +163,7 @@ class RayShader:
                 yield inv
                 count += 1
 
-            while count < self._max_invisible - 1:
+            while count < self._max_invisible:
                 yield 0
                 count += 1
 
@@ -183,6 +183,9 @@ class RayShader:
     def add(self, sensor):
         self._sensors.append(sensor)
 
+        self._update_buffers_and_shaders()
+
+    def _update_buffers_and_shaders(self):
         (
             self._position_buffer,
             self._param_buffer,
@@ -196,6 +199,14 @@ class RayShader:
 
         self._id_view.update(force=True)
         self._color_view.update(force=True)
+
+        update_inv = False
+        for sensor in self._sensors:
+            if sensor.require_invisible_update:
+                update_inv = True
+
+        if update_inv:
+            self._update_buffers_and_shaders()
 
         if self._sensors:
             self._position_buffer = self.ctx.buffer(
@@ -247,9 +258,6 @@ class RaySensor(ExternalSensor, ABC):
     def update_hitpoints(self, hitpoints):
         self._hitpoints = hitpoints
 
-    def _apply_normalization(self):
-        pass
-
 
 class DistanceSensor(RaySensor):
     def _compute_raw_sensor(self):
@@ -261,7 +269,7 @@ class DistanceSensor(RaySensor):
             return
         view_xy = self._hitpoints[:, :2]
         center_xy = self._hitpoints[:, 6:8]
-        dist = 1 - self._values / self._range
+        dist = 1 - self._hitpoints[:, 9] / self._range
 
         for ind_pt in range(len(view_xy)):
 
@@ -286,6 +294,9 @@ class DistanceSensor(RaySensor):
     def _default_value(self):
         return np.zeros(self.shape)
 
+    def _apply_normalization(self):
+        self._values = self._values / self._range
+
 
 class RGBSensor(RaySensor):
     def _compute_raw_sensor(self):
@@ -296,7 +307,7 @@ class RGBSensor(RaySensor):
             return
         view_xy = self._hitpoints[:, :2]
         center_xy = self._hitpoints[:, 6:8]
-        color = (self._values).astype(np.uint8)
+        color = self._hitpoints[:, 10:13].astype(np.uint8)
 
         for ind_pt in range(len(view_xy)):
 
@@ -317,10 +328,13 @@ class RGBSensor(RaySensor):
     def _default_value(self):
         return np.zeros(self.shape)
 
+    def _apply_normalization(self):
+        self._values = self._values / 255.0
+
 
 class SemanticSensor(RaySensor):
     def _compute_raw_sensor(self):
-        self._values = self._hitpoints[:, 10:13]
+        self._values = self._hitpoints[:, 8:10]
 
     def draw(self):
 
@@ -347,8 +361,11 @@ class SemanticSensor(RaySensor):
 
     @property
     def shape(self):
-        return self._resolution, 3
+        return self._resolution, 2
 
     @property
     def _default_value(self):
         return np.zeros(self.shape)
+
+    def _apply_normalization(self):
+        self._values = self._values / (1, self._range)
