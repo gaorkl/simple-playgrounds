@@ -46,5 +46,5 @@ jobs:
 
     - name: Run pytest
       run: |
-        set -o pipefail
+        # set -o pipefail
         xvfb-run pytest --cov-report=term-missing:skip-covered --cov=src tests/
