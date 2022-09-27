@@ -163,7 +163,7 @@ class RayShader:
                 yield inv
                 count += 1
 
-            while count < self._max_invisible - 1:
+            while count < self._max_invisible:
                 yield 0
                 count += 1
 
@@ -183,6 +183,9 @@ class RayShader:
     def add(self, sensor):
         self._sensors.append(sensor)
 
+        self._update_buffers_and_shaders()
+
+    def _update_buffers_and_shaders(self):
         (
             self._position_buffer,
             self._param_buffer,
@@ -196,6 +199,14 @@ class RayShader:
 
         self._id_view.update(force=True)
         self._color_view.update(force=True)
+
+        update_inv = False
+        for sensor in self._sensors:
+            if sensor.require_invisible_update:
+                update_inv = True
+
+        if update_inv:
+            self._update_buffers_and_shaders()
 
         if self._sensors:
             self._position_buffer = self.ctx.buffer(

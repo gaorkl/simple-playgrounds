@@ -117,6 +117,7 @@ class ExternalSensor(Sensor, ABC):
         invisible_elements: Optional[
             Union[List[EmbodiedEntity], EmbodiedEntity]
         ] = None,
+        invisible_when_grasped: bool = False,
         **kwargs,
     ):
         """
@@ -154,6 +155,8 @@ class ExternalSensor(Sensor, ABC):
             raise ValueError("range must be more than 1")
 
         self._temporary_invisible: List[EmbodiedEntity] = []
+        self._invisible_grasped = invisible_when_grasped
+        self._require_invisible_update = False
 
     @property
     def range(self):
@@ -167,13 +170,26 @@ class ExternalSensor(Sensor, ABC):
     def resolution(self):
         return self._resolution
 
-    def pre_step(self):
-        super().pre_step()
-        self._temporary_invisible = []
-
-    def set_temporary_invisible(self, temporary_invisible: List[EmbodiedEntity]):
-        self._temporary_invisible = temporary_invisible
-
     @property
     def invisible_ids(self):
         return [ent.uid for ent in self._temporary_invisible + self._invisible_elements]
+
+    @property
+    def invisible_grasped(self):
+        return self._invisible_grasped
+
+    @property
+    def require_invisible_update(self):
+        return self._require_invisible_update
+
+    def add_to_temporary_invisible(self, elem):
+        self._temporary_invisible.append(elem)
+        self._require_invisible_update = True
+
+    def remove_from_temporary_invisible(self, elem):
+        self._temporary_invisible.remove(elem)
+        self._require_invisible_update = True
+
+    def pre_step(self):
+        super().pre_step()
+        self._require_invisible_update = False
