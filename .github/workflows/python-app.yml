@@ -3,6 +3,9 @@
 
 name: Python application
 
+env:
+  ARCADE_HEADLESS: True
+
 on:
   push:
     branches: [ master, refactoring ]
@@ -41,6 +44,5 @@ jobs:
 
     - name: Run pytest
       run: |
-        export ARCADE_HEADLESS = True
         set -o pipefail
         pytest --cov-report=term-missing:skip-covered --cov=src tests/
