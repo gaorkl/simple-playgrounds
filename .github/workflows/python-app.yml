@@ -41,5 +41,6 @@ jobs:
 
     - name: Run pytest
       run: |
+        export ARCADE_HEADLESS = True
         set -o pipefail
         pytest --cov-report=term-missing:skip-covered --cov=src tests/

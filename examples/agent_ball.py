@@ -5,6 +5,9 @@ from spg.element import Ball
 from spg.playground import WallClosedPG
 from spg.view import GUI
 
+# import arcade
+
+
 playground = WallClosedPG(size=(500, 200), background=(23, 23, 21))
 
 ball = Ball()
