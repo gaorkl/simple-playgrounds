@@ -11,7 +11,7 @@ Examples can be found in spg/agents/agents.py
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import Dict, List
 
 import numpy as np
 
@@ -21,9 +21,6 @@ from .communicator import Communicator
 from .controller import Command, Controller
 from .part import PhysicalPart
 from .sensor import ExternalSensor, Sensor
-
-if TYPE_CHECKING:
-    from ..element import Teleporter
 
 _BORDER_IMAGE = 3
 
@@ -66,9 +63,6 @@ class Agent(Entity):
 
         # Reward
         self._reward: float = 0
-
-        # Teleport
-        self._teleported_to: Optional[Union[Coordinate, Teleporter]] = None
 
         self._initial_coordinates = None
         self._allow_overlapping = False
@@ -229,7 +223,6 @@ class Agent(Entity):
         """
 
         self._reward = 0
-        self._update_teleport(**kwargs)
 
         for part in self._parts:
             part.pre_step(**kwargs)
@@ -252,22 +245,6 @@ class Agent(Entity):
         Default angle, etc.
         """
         self.base.move_to(coordinates=coord, move_anchors=True, **kwargs)
-
-    @property
-    def teleported_to(self):
-        return self._teleported_to
-
-    @teleported_to.setter
-    def teleported_to(self, destination):
-        self._teleported_to = destination
-
-    def _update_teleport(self):
-
-        if isinstance(self._teleported_to, Teleporter):
-            if self._overlaps(self._teleported_to):
-                return
-
-        self._teleported_to = None
 
     def _overlaps(
         self,

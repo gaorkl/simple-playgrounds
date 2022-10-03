@@ -67,3 +67,7 @@ class ColorWall(PhysicalElement):
         )
 
         super().__init__(texture=texture, **kwargs)
+
+    @property
+    def length(self):
+        return self._height
