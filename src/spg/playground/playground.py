@@ -118,7 +118,7 @@ class Playground:
         # Mappings
         self._shapes_to_entities: Dict[pymunk.Shape, EmbodiedEntity] = {}
         self._name_to_agents: Dict[str, Agent] = {}
-        self._uids_to_elements: Dict[int, EmbodiedEntity] = {}
+        self._uids_to_entities: Dict[int, Entity] = {}
 
         self._handle_interactions()
         self._views = []
@@ -237,7 +237,7 @@ class Playground:
         while True:
             a = self._rng.integers(0, 2**24)
 
-            if a not in self._uids_to_elements and a != background:
+            if a not in self._uids_to_entities and a != background:
                 uid = a
                 break
 
@@ -249,6 +249,10 @@ class Playground:
             raise ValueError("Entity with this name already in Playground")
 
         return uid, name
+
+    def get_entity_from_uid(self, uid):
+
+        return self._uids_to_entities[uid]
 
     @property
     def agents(self):
@@ -563,7 +567,7 @@ class Playground:
 
         entity.uid, entity.name = self._get_identifier(entity)
 
-        self._uids_to_elements[entity.uid] = entity
+        self._uids_to_entities[entity.uid] = entity
 
         if isinstance(entity, Agent):
             self._agents.append(entity)
@@ -639,7 +643,7 @@ class Playground:
 
         assert entity.uid
 
-        self._uids_to_elements.pop(entity.uid)
+        self._uids_to_entities.pop(entity.uid)
 
         if isinstance(entity, Agent):
             self._agents.remove(entity)
