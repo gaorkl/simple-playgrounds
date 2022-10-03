@@ -627,6 +627,9 @@ class Playground:
             for interactive in entity.interactives:
                 self.remove(interactive, definitive)
 
+            for grasper in entity.grasped_by:
+                grasper.release(entity)
+
         entity.removed = True
 
     def _remove_from_space(self, entity):
