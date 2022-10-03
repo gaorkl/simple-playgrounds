@@ -102,7 +102,7 @@ Each element has a position (x,y, &theta),
 with x along the horizontal axis, y along the vertical axis, and
 theta the orientation, aligned on the horizontal axis.
 
-A playground has a size [width, length], with the width along x-axis,
+A playground has a size [width, height], with the width along x-axis,
 and length along y-axis
 
 When applicable, the length of a scene element follows the element's x-axis.

@@ -33,7 +33,7 @@ class EmbodiedEntity(Entity, ABC):
         texture: Optional[Texture] = None,
         radius: Optional[float] = None,
         width: Optional[float] = None,
-        length: Optional[float] = None,
+        height: Optional[float] = None,
         temporary: bool = False,
         shape_approximation: Optional[str] = None,
         sprite_front_is_up: bool = False,
@@ -57,8 +57,8 @@ class EmbodiedEntity(Entity, ABC):
         self._color = color
 
         # Get the scale and dimensions
-        self._scale, self._radius, self._width, self._length = self._get_dimensions(
-            radius, width, length
+        self._scale, self._radius, self._width, self._height = self._get_dimensions(
+            radius, width, height
         )
 
         # Get pymunk elements
@@ -107,8 +107,8 @@ class EmbodiedEntity(Entity, ABC):
         return self._width
 
     @property
-    def length(self):
-        return self._length
+    def height(self):
+        return self._height
 
     @property
     def coordinates(self):
@@ -173,7 +173,7 @@ class EmbodiedEntity(Entity, ABC):
     ##############
     # Init pm Elements
     ###############
-    def _get_dimensions(self, radius, width, length):
+    def _get_dimensions(self, radius, width, height):
 
         orig_radius = max(
             pymunk.Vec2d(*vert).length for vert in self._base_sprite.get_hit_box()
@@ -183,14 +183,14 @@ class EmbodiedEntity(Entity, ABC):
         vert = [pymunk.Vec2d(*vert).y for vert in self._base_sprite.get_hit_box()]
 
         orig_width = max(horiz) - min(horiz)
-        orig_length = max(vert) - min(vert)
+        orig_height = max(vert) - min(vert)
 
         # If radius imposed:
         if radius:
             scale = radius / orig_radius
 
-        elif length:
-            scale = length / orig_length
+        elif height:
+            scale = height / orig_height
 
         elif width:
             scale = width / orig_width
@@ -198,10 +198,10 @@ class EmbodiedEntity(Entity, ABC):
             scale = 1
 
         width = scale * orig_width
-        length = scale * orig_length
+        height = scale * orig_height
         radius = scale * orig_radius
 
-        return scale, radius, width, length
+        return scale, radius, width, height
 
     def _get_pm_shapes_from_sprite(self, shape_approximation):
 
