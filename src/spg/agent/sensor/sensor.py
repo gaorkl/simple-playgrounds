@@ -88,6 +88,11 @@ class Sensor(PocketDevice):
     def _apply_normalization(self):
         ...
 
+    def _apply_noise(self):
+        """
+        Implement this method on custom sensors to add noise to the values.
+        """
+
     @property
     @abstractmethod
     def _default_value(self) -> np.ndarray:
@@ -113,7 +118,7 @@ class ExternalSensor(Sensor, ABC):
         self,
         fov: float,
         resolution: int,
-        range: float,  # pylint: disable=redefined-builtin
+        max_range: float,  # pylint: disable=redefined-builtin
         invisible_elements: Optional[
             Union[List[EmbodiedEntity], EmbodiedEntity]
         ] = None,
@@ -143,7 +148,7 @@ class ExternalSensor(Sensor, ABC):
         else:
             self._invisible_elements = invisible_elements
 
-        self._range = range
+        self._range = max_range
         self._fov = fov * math.pi / 180
         self._resolution = resolution
 
@@ -159,7 +164,7 @@ class ExternalSensor(Sensor, ABC):
         self._require_invisible_update = False
 
     @property
-    def range(self):
+    def max_range(self):
         return self._range
 
     @property

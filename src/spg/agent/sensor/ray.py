@@ -108,7 +108,7 @@ class RayShader:
     def _generate_parameter_buffer(self):
 
         for sensor in self._sensors:
-            yield sensor.range
+            yield sensor.max_range
             yield sensor.fov
             yield sensor.resolution
             yield sensor.n_points
