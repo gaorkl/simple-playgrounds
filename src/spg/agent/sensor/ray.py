@@ -30,6 +30,7 @@ class RayShader:
             display_uid=True,
             draw_interactive=False,
             draw_transparent=False,
+            draw_zone=False,
         )
         self._color_view = TopDownView(
             playground,
@@ -38,6 +39,7 @@ class RayShader:
             zoom,
             draw_interactive=False,
             draw_transparent=False,
+            draw_zone=False,
         )
 
         self._sensors: List[RaySensor] = []

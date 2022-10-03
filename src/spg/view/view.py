@@ -7,7 +7,7 @@ import numpy as np
 from arcade import SpriteList
 from arcade.sprite import Sprite
 
-from ..entity import InteractiveEntity, PhysicalEntity
+from ..entity import InteractiveAnchored, InteractiveZone, PhysicalEntity
 
 if TYPE_CHECKING:
     from ..entity import EmbodiedEntity
@@ -24,6 +24,7 @@ class TopDownView:
         display_uid: bool = False,
         draw_transparent: bool = True,
         draw_interactive: bool = True,
+        draw_zone: bool = True,
     ) -> None:
 
         self._playground = playground
@@ -43,11 +44,13 @@ class TopDownView:
         self._zoom = zoom
         self._draw_transparent = draw_transparent
         self._draw_interactive = draw_interactive
+        self._draw_zone = draw_zone
         self._display_uid = display_uid
 
         self._transparent_sprites = SpriteList()
         self._visible_sprites = SpriteList()
         self._interactive_sprites = SpriteList()
+        self._zone_sprites = SpriteList()
         self._traversable_sprites = SpriteList()
 
         self._background = playground.background
@@ -96,7 +99,7 @@ class TopDownView:
 
     def add(self, entity):
 
-        if isinstance(entity, InteractiveEntity):
+        if isinstance(entity, InteractiveAnchored):
 
             if not self._draw_interactive:
                 return
@@ -108,6 +111,17 @@ class TopDownView:
 
             sprite = entity.get_sprite(self._zoom)
             self._interactive_sprites.append(sprite)
+
+        elif isinstance(entity, InteractiveZone):
+
+            if not self._draw_zone:
+                return
+
+            if self._display_uid:
+                raise ValueError("Cannot display uid of zones, set draw_zones to False")
+
+            sprite = entity.get_sprite(self._zoom)
+            self._zone_sprites.append(sprite)
 
         elif isinstance(entity, PhysicalEntity):
 
@@ -131,19 +145,19 @@ class TopDownView:
 
     def remove(self, entity):
 
-        if isinstance(entity, InteractiveEntity):
+        if isinstance(entity, InteractiveAnchored) and not self._draw_interactive:
+            return
 
-            if not self._draw_interactive:
-                return
+        if isinstance(entity, InteractiveZone) and not self._draw_zone:
+            return
 
         sprite = self._sprites.pop(entity)
 
-        if isinstance(entity, InteractiveEntity):
-
-            if not self._draw_interactive:
-                return
-
+        if isinstance(entity, InteractiveAnchored):
             self._interactive_sprites.remove(sprite)
+
+        elif isinstance(entity, InteractiveZone):
+            self._zone_sprites.remove(sprite)
 
         elif isinstance(entity, PhysicalEntity):
 
@@ -183,6 +197,9 @@ class TopDownView:
             if self._draw_interactive:
                 self._interactive_sprites.draw(pixelated=True)
 
+            if self._draw_zone:
+                self._zone_sprites.draw(pixelated=True)
+
             self._visible_sprites.draw(pixelated=True)
             self._traversable_sprites.draw(pixelated=True)
 
@@ -202,5 +219,6 @@ class TopDownView:
 
         self._transparent_sprites.clear()
         self._interactive_sprites.clear()
+        self._zone_sprites.clear()
         self._visible_sprites.clear()
         self._traversable_sprites.clear()

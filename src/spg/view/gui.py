@@ -23,6 +23,7 @@ class GUI(TopDownView):
         display_uid: bool = False,
         draw_transparent: bool = True,
         draw_interactive: bool = True,
+        draw_zone: bool = True,
         draw_sensors: bool = False,
         print_rewards: bool = True,
         print_messages: bool = True,
@@ -35,6 +36,7 @@ class GUI(TopDownView):
             display_uid,
             draw_transparent,
             draw_interactive,
+            draw_zone,
         )
 
         self._playground.window.set_size(*self._size)
@@ -107,6 +109,7 @@ class GUI(TopDownView):
 
         self._transparent_sprites.draw(pixelated=True)
         self._interactive_sprites.draw(pixelated=True)
+        self._zone_sprites.draw(pixelated=True)
         self._visible_sprites.draw(pixelated=True)
         self._traversable_sprites.draw(pixelated=True)
 
