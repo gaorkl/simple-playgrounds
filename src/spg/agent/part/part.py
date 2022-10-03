@@ -18,7 +18,8 @@ from ...entity import PhysicalEntity
 from ...utils.definitions import CollisionTypes
 from ..controller import Command, Controller
 from ..device import Device
-from ..interactor.interactor import ActiveInteractor, Grasper
+from ..interactor.grasper import Grasper
+from ..interactor.interactor import ActiveInteractor
 from ..sensor import RaySensor
 
 if TYPE_CHECKING:
@@ -89,20 +90,20 @@ class PhysicalPart(PhysicalEntity, ABC):
             if isinstance(elem, RaySensor) and self._playground:
                 self.playground.sensor_shader.add(elem)
 
+            elif isinstance(elem, Grasper):
+                if self.grasper:
+                    raise ValueError("Grasper already in. Only one grasper per part.")
+
+                self.grasper = elem
+                self.grasper_controller = elem.grasp_controller
+                self.add(self.grasper_controller)
+
         else:
             raise ValueError("Not implemented")
 
         if isinstance(elem, AnchoredPart):
             assert self._agent
             self._agent.add(elem)
-
-    def add_grasper(self):
-        grasper = Grasper(self)
-        self.add(grasper)
-        self.grasper = grasper
-
-        self.grasper_controller = grasper.grasp_controller
-        self.add(self.grasper_controller)
 
     def move_to(  # pylint: disable=arguments-differ
         self,

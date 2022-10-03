@@ -2,6 +2,7 @@
 
 import pytest
 
+from spg.agent.interactor import GraspHold
 from spg.playground import Playground
 from spg.utils.definitions import CollisionTypes
 from tests.mock_agents import MockAgentWithArm, MockAgentWithTriggerArm, MockHaloPart
@@ -146,8 +147,11 @@ def test_agent_grasping():
     playground = Playground()
 
     agent = MockAgentWithArm()
-    agent.left_arm.add_grasper()
+    grasper = GraspHold(agent.left_arm)
+    agent.left_arm.add(grasper)
     playground.add(agent)
+
+    print(agent.left_arm.devices)
 
     elem = MockPhysicalMovable()
     elem.graspable = True

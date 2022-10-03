@@ -38,8 +38,8 @@ def grasper_grasps_graspable(arbiter, _, data):
 
     assert isinstance(grasper, Grasper)
 
-    if grasper.start_grasping:
-        grasper.grasp(entity)
+    if grasper.can_grasp:
+        grasper.grasps(entity)
 
     return True
 

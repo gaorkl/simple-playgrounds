@@ -2,6 +2,7 @@ import math
 
 from .agent import Agent
 from .communicator import Communicator
+from .interactor import GraspHold
 from .part import ForwardBase, Head
 from .sensor import DistanceSensor, RGBSensor
 
@@ -40,4 +41,6 @@ class HeadAgent(Agent):
         self.comm = Communicator()
         self.base.add(self.comm)
 
-        self.base.add_grasper()
+        # Grapser
+        grasp = GraspHold(base)
+        self.base.add(grasp)
