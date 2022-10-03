@@ -91,8 +91,6 @@ class GUI(TopDownView):
 
     def update(self, force=False):
 
-        arcade.start_render()
-
         self.update_sprites(force)
 
         self._playground.window.use()
@@ -112,8 +110,6 @@ class GUI(TopDownView):
         self._zone_sprites.draw(pixelated=True)
         self._visible_sprites.draw(pixelated=True)
         self._traversable_sprites.draw(pixelated=True)
-
-        arcade.finish_render()
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
