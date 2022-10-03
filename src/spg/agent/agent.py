@@ -11,17 +11,19 @@ Examples can be found in spg/agents/agents.py
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 
-from ..element import Teleporter
 from ..entity import EmbodiedEntity, Entity
 from ..utils.position import Coordinate
 from .communicator import Communicator
 from .controller import Command, Controller
 from .part import PhysicalPart
 from .sensor import ExternalSensor, Sensor
+
+if TYPE_CHECKING:
+    from ..element import Teleporter
 
 _BORDER_IMAGE = 3
 
