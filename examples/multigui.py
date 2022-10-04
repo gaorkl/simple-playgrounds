@@ -1,6 +1,6 @@
-from multiprocessing import Pool
+# pylint: disable=import-outside-toplevel
 
-import arcade
+from multiprocessing import Pool
 
 from spg.agent import HeadAgent
 from spg.element import Ball
@@ -9,6 +9,8 @@ from spg.view import GUI
 
 
 def run_environment(env_id):
+
+    import arcade
 
     playground = WallClosedPG(size=(500, 200), background=(23, 23, 21))
     playground.window.set_caption(str(env_id))
@@ -37,7 +39,7 @@ def run_environment(env_id):
     agent = HeadAgent()
     playground.add(agent)
 
-    gui = GUI(playground, agent, draw_sensors=True)
+    gui = GUI(playground, agent, draw_sensors=False)
     gui.run()
 
 
