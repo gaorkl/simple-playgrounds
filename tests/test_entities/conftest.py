@@ -1,7 +1,5 @@
 import pytest
 
-from spg.utils.contour import Contour
-
 
 @pytest.fixture(scope="module", params=["circle", "square", "rectangle", "polygon"])
 def shape(request):
@@ -27,14 +25,6 @@ def size(request):
 )
 def vertices(request):
     return request.param
-
-
-@pytest.fixture(scope="function")
-def custom_contour(shape, radius, size, vertices):
-    return Contour(shape=shape, radius=radius, size=size, vertices=vertices)
-
-
-custom_contour_2 = custom_contour
 
 
 @pytest.fixture(scope="module", params=[5, 10])
