@@ -1,14 +1,15 @@
 import arcade
 
 from spg.agent import HeadAgent
-from spg.element import Ball
-from spg.playground import WallClosedPG
+from spg.element import Ball, TiledAlternateColorWall
+from spg.playground import Room
 from spg.view import GUI
 
 # import arcade
 
-
-playground = WallClosedPG(size=(500, 200), background=(23, 23, 21))
+playground = Room(
+    size=(500, 200), background=(23, 23, 21), wall_cls=TiledAlternateColorWall
+)
 
 ball = Ball()
 ball.graspable = True

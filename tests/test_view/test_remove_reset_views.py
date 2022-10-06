@@ -4,13 +4,13 @@ import numpy as np
 
 from spg.agent import HeadAgent
 from spg.element import Ball
-from spg.playground import WallClosedPG
+from spg.playground import Room
 from spg.view import TopDownView
 
 
 def test_move_object():
 
-    playground = WallClosedPG(size=(300, 200))
+    playground = Room(size=(300, 200))
     ball = Ball()
     playground.add(ball, ((100, 20), 0))
 
@@ -51,7 +51,7 @@ def test_move_object():
 
 def test_delete_object():
 
-    playground = WallClosedPG(size=(300, 200))
+    playground = Room(size=(300, 200))
     ball = Ball()
     playground.add(ball, ((100, 0), 0))
 
@@ -80,7 +80,7 @@ def test_delete_object():
 
 def test_delete_agent():
 
-    playground = WallClosedPG(size=(300, 200))
+    playground = Room(size=(300, 200))
     ball = Ball()
     playground.add(ball, ((100, 0), 0))
     agent = HeadAgent()

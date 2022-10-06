@@ -1,11 +1,11 @@
 from spg.agent import HeadAgent
 from spg.element import Ball
-from spg.playground import WallClosedPG
+from spg.playground import Room
 
 
 def test_scenario():
 
-    playground = WallClosedPG(size=(1000, 200))
+    playground = Room(size=(1000, 200))
     ball = Ball()
     playground.add(ball, ((200, 0), 0))
 

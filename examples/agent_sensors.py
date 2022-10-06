@@ -1,9 +1,10 @@
 from spg.agent import HeadAgent
 from spg.element import Ball
-from spg.playground import WallClosedColorPG
+from spg.playground import Room
+from spg.utils.position import UniformCoordinateSampler
 from spg.view import GUI
 
-playground = WallClosedColorPG(size=(1000, 1000))
+playground = Room(size=(500, 500))
 
 ball = Ball()
 ball.graspable = True
@@ -18,14 +19,15 @@ playground.add(ball, ((200, 40), 0))
 agent = HeadAgent()
 playground.add(agent)
 
+for _ in range(50):
 
-for x in range(-200, 250, 50):
-    for y in range(-50, 100, 50):
+    angle = playground.rng.uniform(0, 8)
+    sampler = UniformCoordinateSampler(
+        playground, center=playground.center, size=playground.size
+    )
 
-        angle = playground.rng.uniform(0, 8)
-
-        other_agent = HeadAgent()
-        playground.add(other_agent, ((x, y), angle))
+    other_agent = HeadAgent()
+    playground.add(other_agent, sampler, allow_overlapping=False)
 
 
 gui = GUI(playground, agent)

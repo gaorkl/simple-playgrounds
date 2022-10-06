@@ -2,10 +2,10 @@ from spg.agent import HeadAgent
 from spg.agent.controller import GrasperController
 from spg.agent.sensor import RGBSensor
 from spg.element import Ball, CommunicatorDisabler, ControllerDisabler, SensorDisabler
-from spg.playground import WallClosedPG
+from spg.playground import Room
 from spg.view import GUI
 
-playground = WallClosedPG(size=(400, 400))
+playground = Room(size=(400, 400))
 
 ball = Ball()
 ball.graspable = True

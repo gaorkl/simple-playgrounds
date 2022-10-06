@@ -291,7 +291,6 @@ class Playground:
         self,
         commands: Optional[CommandsDict] = None,
         messages: Optional[SentMessagesDict] = None,
-        skip_state_compute: bool = False,
         pymunk_steps: int = PYMUNK_STEPS,
     ):
         """Update the Playground
@@ -312,24 +311,26 @@ class Playground:
 
         """
 
+        obs, mess, rew = None, None, None
+
         self._pre_step()
-        self._apply_commands(commands)
 
-        for _ in range(pymunk_steps):
-            self.space.step(1.0 / pymunk_steps)
+        if not self._done:
 
-        self._post_step()
+            self._apply_commands(commands)
 
-        if not skip_state_compute:
+            for _ in range(pymunk_steps):
+                self.space.step(1.0 / pymunk_steps)
+
+            self._post_step()
+            self._done = self._has_terminated()
+
             obs = self._compute_observations()
-            rew = self._compute_rewards()
-            mess = None
+            rew = {agent: agent.reward for agent in self._agents}
             if messages:
                 mess = self._transmit_messages(messages)
-        else:
-            obs, mess, rew = None, None, None
 
-        self._timestep += 1
+            self._timestep += 1
 
         return obs, mess, rew, self._done
 
@@ -418,15 +419,10 @@ class Playground:
 
         return obs
 
-    def _compute_rewards(self):
+    def _has_terminated(self):
+        return False
 
-        rew = {}
-        for agent in self.agents:
-            rew[agent] = agent.compute_rewards()
-
-        return rew
-
-    def reset(self, **kwargs):
+    def reset(self):
         """
         Reset the Playground to its initial state.
         """
@@ -443,13 +439,17 @@ class Playground:
                     element.initial_coordinates,
                     element.allow_overlapping,
                 )
+            elif isinstance(element, EmbodiedEntity) and element.moved:
+                assert element.initial_coordinates
+                element.move_to(
+                    element.initial_coordinates,
+                    element.allow_overlapping,
+                )
 
             element.reset()
 
         for agent in self._agents:
-
             agent.reset()
-
             if agent.removed:
                 self.add(agent, from_removed=True)
             else:
@@ -459,13 +459,15 @@ class Playground:
                     move_anchors=True,
                 )
 
+        for view in self._views:
+            view.update(force=True)
+
         self._timestep = 0
         self._done = False
 
-        obs = self._compute_observations(**kwargs)
-        rew = self._compute_rewards(**kwargs)
+        obs = self._compute_observations()
 
-        return obs, rew, self.done
+        return obs, None, None, self._done
 
     # ADD REMOVE ENTITIES
 
@@ -746,6 +748,13 @@ class Playground:
             and not elem.shape.sensor
             and elem.shape not in entity.pm_shapes
         ]
+
+        if isinstance(entity, PhysicalPart):
+            agent_shapes = []
+            for part in entity.agent.parts:
+                agent_shapes += part.pm_shapes
+
+            overlaps = [elem for elem in overlaps if elem.shape not in agent_shapes]
 
         self.space.reindex_static()
 

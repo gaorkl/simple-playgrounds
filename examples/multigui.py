@@ -4,7 +4,7 @@ from multiprocessing import Pool
 
 from spg.agent import HeadAgent
 from spg.element import Ball
-from spg.playground import WallClosedPG
+from spg.playground import Room
 from spg.view import GUI
 
 
@@ -12,7 +12,7 @@ def run_environment(env_id):
 
     import arcade
 
-    playground = WallClosedPG(size=(500, 200), background=(23, 23, 21))
+    playground = Room(size=(500, 200), background=(23, 23, 21))
     playground.window.set_caption(str(env_id))
 
     ball = Ball()

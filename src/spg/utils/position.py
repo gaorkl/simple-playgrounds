@@ -24,9 +24,14 @@ class CoordinateSampler(ABC):
         radius: Optional[float] = None,
         width: Optional[float] = None,
         height: Optional[float] = None,
+        size: Optional[Tuple[float, float]] = None,
     ):
 
         self._radius = radius
+
+        if (not width) and size:
+            width, height = size
+
         self._width = width
         self._height = height
 
@@ -87,6 +92,7 @@ class CoordinateSampler(ABC):
 
         stacked = np.stack((rr, cc, posterior), axis=-1).reshape(-1, 3)
         sorted_coordinates = stacked[stacked[:, 2].argsort()]
+        sorted_coordinates = sorted_coordinates[::-1]
 
         for rel_x, rel_y, _ in sorted_coordinates:
 

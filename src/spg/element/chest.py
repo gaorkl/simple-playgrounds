@@ -3,11 +3,12 @@ from .element import PhysicalElement, RewardElement
 
 
 class Chest(PhysicalElement):
-    def __init__(self):
+    def __init__(self, color=None):
 
         super().__init__(
             radius=15,
-            filename=":spg:platformer/tiles/block_red.png",
+            filename=":spg:spg/goal.png",
+            color=color,
         )
 
     def _set_pm_collision_type(self):
