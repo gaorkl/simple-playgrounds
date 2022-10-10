@@ -5,7 +5,7 @@ from multiprocessing import Pool
 from spg.agent import HeadAgent
 from spg.element import Ball
 from spg.playground import Room
-from spg.view import GUI
+from spg.view import HeadAgentGUI
 
 
 def run_environment(env_id):
@@ -39,7 +39,7 @@ def run_environment(env_id):
     agent = HeadAgent()
     playground.add(agent)
 
-    gui = GUI(playground, agent, draw_sensors=False)
+    gui = HeadAgentGUI(playground, agent, draw_sensors=False)
     gui.run()
 
 

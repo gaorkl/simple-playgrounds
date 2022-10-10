@@ -1,4 +1,4 @@
-from .gui import GUI
+from .gui import GUI, HeadAgentGUI
 from .view import TopDownView
 
-__all__ = ["GUI", "TopDownView"]
+__all__ = ["GUI", "HeadAgentGUI", "TopDownView"]

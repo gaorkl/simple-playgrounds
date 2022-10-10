@@ -3,7 +3,7 @@ from spg.agent.controller import GrasperController
 from spg.agent.sensor import RGBSensor
 from spg.element import Ball, CommunicatorDisabler, ControllerDisabler, SensorDisabler
 from spg.playground import Room
-from spg.view import GUI
+from spg.view import HeadAgentGUI
 
 playground = Room(size=(400, 400))
 
@@ -37,5 +37,5 @@ communicator_disabler = CommunicatorDisabler()
 playground.add(communicator_disabler, ((-150, 150), 0))
 
 
-gui = GUI(playground, agent)
+gui = HeadAgentGUI(playground, agent, random_agents=True)
 gui.run()

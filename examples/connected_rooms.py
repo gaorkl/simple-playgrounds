@@ -5,7 +5,7 @@ from spg.element import Chest, Coin
 from spg.element.wall import TiledLongColorWall
 from spg.playground import ConnectedRooms, Playground, get_colliding_entities
 from spg.utils.definitions import CollisionTypes
-from spg.view import GUI
+from spg.view import HeadAgentGUI
 
 
 def coin_chest_collision(arbiter, _, data):
@@ -96,5 +96,5 @@ class ExampleRoom(ConnectedRooms):
 
 
 playground = ExampleRoom(1)
-gui = GUI(playground, playground.agent, draw_sensors=True)
+gui = HeadAgentGUI(playground, playground.agent, draw_sensors=True)
 gui.run()

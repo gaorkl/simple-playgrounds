@@ -5,7 +5,7 @@ from spg.element import Chest, Diamond
 from spg.playground import Playground, Room
 from spg.playground.collision_handlers import get_colliding_entities
 from spg.utils.definitions import CollisionTypes
-from spg.view import GUI
+from spg.view import HeadAgentGUI
 
 
 def diamond_chest_collision(arbiter, _, data):
@@ -42,5 +42,5 @@ agent = HeadAgent()
 
 playground.add(agent)
 
-gui = GUI(playground, agent)
+gui = HeadAgentGUI(playground, agent)
 gui.run()

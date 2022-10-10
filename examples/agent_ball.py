@@ -3,7 +3,7 @@ import arcade
 from spg.agent import HeadAgent
 from spg.element import Ball, TiledAlternateColorWall
 from spg.playground import Room
-from spg.view import GUI
+from spg.view import HeadAgentGUI
 
 # import arcade
 
@@ -36,5 +36,5 @@ playground.add(ball, ((-200, -40), 0))
 agent = HeadAgent()
 playground.add(agent)
 
-gui = GUI(playground, agent, draw_sensors=True)
+gui = HeadAgentGUI(playground, agent, draw_sensors=True)
 gui.run()

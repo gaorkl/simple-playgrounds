@@ -7,7 +7,7 @@ import arcade
 from .view import TopDownView
 
 if TYPE_CHECKING:
-    from ..agent import HeadAgent
+    from ..agent import Agent
     from ..agent.controller import Command, Controller
     from ..playground import Playground
 
@@ -16,7 +16,7 @@ class GUI(TopDownView):
     def __init__(
         self,
         playground: Playground,
-        agent: HeadAgent,
+        keyboard_agent: Optional[Agent] = None,
         size: Optional[Tuple[int, int]] = None,
         center: Tuple[float, float] = (0, 0),
         zoom: float = 1,
@@ -27,6 +27,7 @@ class GUI(TopDownView):
         draw_sensors: bool = False,
         print_rewards: bool = True,
         print_messages: bool = True,
+        random_agents: bool = True,
     ) -> None:
         super().__init__(
             playground,
@@ -42,10 +43,12 @@ class GUI(TopDownView):
         self._playground.window.set_size(*self._size)
         self._playground.window.set_visible(True)
 
-        self._agent = agent
+        self._keyboard_agent = keyboard_agent
+        self._random_agents = random_agents
 
         self._agent_commands: Dict[Controller, Command] = {}
         self._message = None
+
         self.print_rewards = print_rewards
         self.print_messages = print_messages
 
@@ -66,7 +69,7 @@ class GUI(TopDownView):
 
     def on_update(self, _):
 
-        commands = self.commands
+        commands = self._get_commands()
 
         self._playground.step(commands=commands, messages=self._message)
 
@@ -85,9 +88,18 @@ class GUI(TopDownView):
 
         self._message = {}
 
-    @property
-    def commands(self):
-        return {self._agent: self._agent_commands}
+    def _get_commands(self):
+
+        command_dict = {}
+
+        if self._random_agents:
+            for agent in self._playground.agents:
+                command_dict[agent] = agent.get_random_commands()
+
+        if self._keyboard_agent:
+            command_dict[self._keyboard_agent] = self._agent_commands
+
+        return command_dict
 
     def update(self, force=False):
 
@@ -114,32 +126,7 @@ class GUI(TopDownView):
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed."""
 
-        if key == arcade.key.UP:
-            self._agent_commands[self._agent.base.forward_controller] = 0.2
-        elif key == arcade.key.DOWN:
-            self._agent_commands[self._agent.base.forward_controller] = -0.2
-
-        if not modifiers & arcade.key.MOD_SHIFT:
-            if key == arcade.key.LEFT:
-                self._agent_commands[self._agent.base.angular_vel_controller] = 0.2
-            elif key == arcade.key.RIGHT:
-                self._agent_commands[self._agent.base.angular_vel_controller] = -0.2
-        else:
-            if key == arcade.key.LEFT:
-                self._agent_commands[self._agent.head.joint_controller] = 0.1
-            elif key == arcade.key.RIGHT:
-                self._agent_commands[self._agent.head.joint_controller] = -0.1
-
-        if key == arcade.key.M:
-            self._message = {
-                self._agent: {
-                    self._agent.comm: (
-                        None,
-                        f"Currently at timestep {self._playground.timestep}",
-                    )
-                }
-            }
-            print(f"Agent {self._agent.name} sends message")
+        self._keyboard_agent_key_press(key, modifiers)
 
         if key == arcade.key.Q:
             self._playground.window.close()
@@ -147,28 +134,81 @@ class GUI(TopDownView):
         if key == arcade.key.R:
             self._playground.reset()
 
-        if key == arcade.key.G:
-            self._agent_commands[self._agent.base.grasper_controller] = 1
-
         if key == arcade.key.S:
             self._draw_sensors = not self._draw_sensors
 
     def on_key_release(self, key, modifiers):
 
+        self._keyboard_agent_key_release(key, modifiers)
+
+    def _keyboard_agent_key_press(self, key, modifiers):
+        """
+        Implement for your agent
+        """
+
+    def _keyboard_agent_key_release(self, key, modifiers):
+        """
+        Implement for your agent
+        """
+
+
+class HeadAgentGUI(GUI):
+    def _keyboard_agent_key_press(self, key, modifiers):
+
         if key == arcade.key.UP:
-            self._agent_commands[self._agent.base.forward_controller] = 0
+            self._agent_commands[self._keyboard_agent.base.forward_controller] = 0.2
         elif key == arcade.key.DOWN:
-            self._agent_commands[self._agent.base.forward_controller] = 0
+            self._agent_commands[self._keyboard_agent.base.forward_controller] = -0.2
+
         if not modifiers & arcade.key.MOD_SHIFT:
             if key == arcade.key.LEFT:
-                self._agent_commands[self._agent.base.angular_vel_controller] = 0
+                self._agent_commands[
+                    self._keyboard_agent.base.angular_vel_controller
+                ] = 0.2
             elif key == arcade.key.RIGHT:
-                self._agent_commands[self._agent.base.angular_vel_controller] = 0
+                self._agent_commands[
+                    self._keyboard_agent.base.angular_vel_controller
+                ] = -0.2
         else:
             if key == arcade.key.LEFT:
-                self._agent_commands[self._agent.head.joint_controller] = 0
+                self._agent_commands[self._keyboard_agent.head.joint_controller] = 0.1
             elif key == arcade.key.RIGHT:
-                self._agent_commands[self._agent.head.joint_controller] = 0
+                self._agent_commands[self._keyboard_agent.head.joint_controller] = -0.1
+
+        if key == arcade.key.M:
+            self._message = {
+                self._keyboard_agent: {
+                    self._keyboard_agent.comm: (
+                        None,
+                        f"Currently at timestep {self._playground.timestep}",
+                    )
+                }
+            }
+            print(f"Agent {self._keyboard_agent.name} sends message")
 
         if key == arcade.key.G:
-            self._agent_commands[self._agent.base.grasper_controller] = 0
+            self._agent_commands[self._keyboard_agent.base.grasper_controller] = 1
+
+    def _keyboard_agent_key_release(self, key, modifiers):
+
+        if key == arcade.key.UP:
+            self._agent_commands[self._keyboard_agent.base.forward_controller] = 0
+        elif key == arcade.key.DOWN:
+            self._agent_commands[self._keyboard_agent.base.forward_controller] = 0
+        if not modifiers & arcade.key.MOD_SHIFT:
+            if key == arcade.key.LEFT:
+                self._agent_commands[
+                    self._keyboard_agent.base.angular_vel_controller
+                ] = 0
+            elif key == arcade.key.RIGHT:
+                self._agent_commands[
+                    self._keyboard_agent.base.angular_vel_controller
+                ] = 0
+        else:
+            if key == arcade.key.LEFT:
+                self._agent_commands[self._keyboard_agent.head.joint_controller] = 0
+            elif key == arcade.key.RIGHT:
+                self._agent_commands[self._keyboard_agent.head.joint_controller] = 0
+
+        if key == arcade.key.G:
+            self._agent_commands[self._keyboard_agent.base.grasper_controller] = 0

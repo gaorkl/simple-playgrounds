@@ -2,7 +2,7 @@ from spg.agent import HeadAgent
 from spg.element import Ball
 from spg.playground import Room
 from spg.utils.position import UniformCoordinateSampler
-from spg.view import GUI
+from spg.view import HeadAgentGUI
 
 playground = Room(size=(500, 500))
 
@@ -30,5 +30,5 @@ for _ in range(50):
     playground.add(other_agent, sampler, allow_overlapping=False)
 
 
-gui = GUI(playground, agent)
+gui = HeadAgentGUI(playground, agent, random_agents=True)
 gui.run()

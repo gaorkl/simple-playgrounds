@@ -190,6 +190,9 @@ class Agent(Entity):
         for part in self._parts:
             part.apply_commands()
 
+    def get_random_commands(self):
+        return {contr: contr.get_random_commands() for contr in self.controllers}
+
     ################
     # Rewards
     ################

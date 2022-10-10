@@ -40,6 +40,10 @@ class Controller(PocketDevice):
     def default(self) -> Command:
         ...
 
+    @abstractmethod
+    def get_random_commands(self):
+        ...
+
     @property
     def command(self):
         return self._command
@@ -111,6 +115,9 @@ class DiscreteController(Controller):
     def valid_commands(self):
         return self._valid_command_values
 
+    def get_random_commands(self):
+        return self._playground.rng.choice(self._valid_command_values)
+
 
 class BoolController(DiscreteController):
     def __init__(self, **kwargs):
@@ -157,6 +164,9 @@ class ContinuousController(Controller):
     @property
     def max(self) -> float:
         return self._max
+
+    def get_random_commands(self):
+        return self._playground.rng.uniform(self._min, self._max)
 
 
 class CenteredContinuousController(ContinuousController):
