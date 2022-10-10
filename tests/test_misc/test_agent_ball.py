@@ -12,7 +12,7 @@ def test_scenario():
     agent = HeadAgent()
     playground.add(agent)
 
-    commands = {agent: {agent.base.forward_controller: 1}}
+    commands = {agent: {"forward": 1}}
 
     for _ in range(200):
         playground.step(commands=commands)

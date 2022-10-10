@@ -27,8 +27,8 @@ def test_move_object():
     for _ in range(50):
         commands = {
             agent: {
-                agent.base.forward_controller: random.uniform(0, 1),
-                agent.base.angular_vel_controller: random.uniform(-1, 1),
+                "forward": random.uniform(0, 1),
+                "angular": random.uniform(-1, 1),
             }
         }
 

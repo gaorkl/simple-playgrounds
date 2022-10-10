@@ -23,10 +23,10 @@ class MockBase(PhysicalPart):
             **kwargs,
         )
 
-        self.forward_controller = CenteredContinuousController()
+        self.forward_controller = CenteredContinuousController("forward")
         self.add(self.forward_controller)
 
-        self.angular_vel_controller = CenteredContinuousController()
+        self.angular_vel_controller = CenteredContinuousController("angular")
         self.add(self.angular_vel_controller)
 
     def _apply_commands(self, **kwargs):
@@ -42,7 +42,7 @@ class MockBase(PhysicalPart):
 
 
 class MockAnchoredPart(AnchoredPart):
-    def __init__(self, **kwargs):
+    def __init__(self, name_joint, **kwargs):
         super().__init__(
             mass=10,
             filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
@@ -50,7 +50,7 @@ class MockAnchoredPart(AnchoredPart):
             **kwargs,
         )
 
-        self.joint_controller = CenteredContinuousController()
+        self.joint_controller = CenteredContinuousController(name_joint)
         self.add(self.joint_controller)
 
     def _apply_commands(self, **kwargs):
@@ -130,14 +130,14 @@ class MockInteractor(Interactor):
 
 
 class MockTriggerPart(MockAnchoredPart):
-    def __init__(self, rotation_range: float, **kwargs):
+    def __init__(self, name_joint, rotation_range: float, **kwargs):
 
-        super().__init__(rotation_range=rotation_range, **kwargs)
+        super().__init__(name_joint=name_joint, rotation_range=rotation_range, **kwargs)
 
         self.interactor = MockInteractor(self)
         self.add(self.interactor)
 
-        self.trigger = BoolController()
+        self.trigger = BoolController(name_joint + "_trigger")
         self.add(self.trigger)
 
     def _apply_commands(self, **_):
@@ -160,12 +160,14 @@ class MockAgentWithArm(MockAgent):
 
         rel_left = ((15, 15), math.pi / 3)
         self.left_arm = MockAnchoredPart(
+            "left_joint",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.left_arm, rel_left)
 
         rel_right = ((15, -15), -math.pi / 3)
         self.right_arm = MockAnchoredPart(
+            "right_joint",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.right_arm, rel_right)
@@ -177,12 +179,14 @@ class MockAgentWithTriggerArm(MockAgent):
 
         rel_left = ((15, 15), math.pi / 3)
         self.left_arm = MockTriggerPart(
+            "left_joint",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.left_arm, rel_left)
 
         rel_right = ((15, -15), -math.pi / 3)
         self.right_arm = MockTriggerPart(
+            "right_joint",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.right_arm, rel_right)

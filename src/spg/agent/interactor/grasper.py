@@ -19,7 +19,7 @@ class Grasper(ActiveInteractor, ABC):
     def __init__(self, anchor: PhysicalPart, **kwargs):
         super().__init__(anchor=anchor, **kwargs)
 
-        self.grasp_controller = GrasperController()
+        self.grasp_controller = GrasperController("grasper")
 
         self._grasped_entities: List[EmbodiedEntity] = []
 

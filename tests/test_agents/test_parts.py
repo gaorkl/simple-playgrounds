@@ -58,7 +58,7 @@ def test_move_reset(pos, angle):
     # agent = MockAgent()
     playground.add(agent, (pos, angle))
 
-    commands = {agent: {agent.base.forward_controller: 1}}
+    commands = {agent: {"forward": 1}}
 
     # Check that joints are correct. Agent shouldn't move
     for _ in range(100):
@@ -84,8 +84,8 @@ def test_move_arm(pos, angle):
 
     commands = {
         agent: {
-            agent.left_arm.joint_controller: 1,
-            agent.right_arm.joint_controller: -1,
+            "left_joint": 1,
+            "right_joint": -1,
         }
     }
 

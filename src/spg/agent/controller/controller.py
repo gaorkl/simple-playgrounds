@@ -20,9 +20,9 @@ class Controller(PocketDevice):
         - interactive actions (eat, grasp, ...)
     """
 
-    def __init__(self, hard_check=True, **_):
+    def __init__(self, name, hard_check=True, **_):
 
-        super().__init__(color=CONTROLLER_COLOR)
+        super().__init__(name=name, color=CONTROLLER_COLOR)
 
         self._command = self.default
         self._hard_check = hard_check
@@ -94,10 +94,11 @@ class DiscreteController(Controller):
 
     def __init__(
         self,
+        name: str,
         command_values: List[int],
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(name=name, **kwargs)
 
         if not isinstance(command_values, (list, tuple)):
             raise ValueError("Set of values must be list or tuple")
@@ -120,8 +121,8 @@ class DiscreteController(Controller):
 
 
 class BoolController(DiscreteController):
-    def __init__(self, **kwargs):
-        super().__init__(command_values=[0, 1], **kwargs)
+    def __init__(self, name, **kwargs):
+        super().__init__(name=name, command_values=[0, 1], **kwargs)
 
 
 class GrasperController(BoolController):
@@ -129,8 +130,8 @@ class GrasperController(BoolController):
 
 
 class RangeController(DiscreteController):
-    def __init__(self, n: int, **kwargs):
-        super().__init__(command_values=list(range(n)), **kwargs)
+    def __init__(self, name, n: int, **kwargs):
+        super().__init__(name=name, command_values=list(range(n)), **kwargs)
 
 
 ###################
@@ -139,9 +140,9 @@ class RangeController(DiscreteController):
 
 
 class ContinuousController(Controller):
-    def __init__(self, min_value: float, max_value: float, **kwargs):
+    def __init__(self, name, min_value: float, max_value: float, **kwargs):
 
-        super().__init__(**kwargs)
+        super().__init__(name=name, **kwargs)
 
         if min_value > max_value:
             raise ValueError
@@ -170,10 +171,10 @@ class ContinuousController(Controller):
 
 
 class CenteredContinuousController(ContinuousController):
-    def __init__(self, **kwargs):
-        super().__init__(min_value=-1, max_value=1, **kwargs)
+    def __init__(self, name, **kwargs):
+        super().__init__(name=name, min_value=-1, max_value=1, **kwargs)
 
 
 class NormalContinuousController(ContinuousController):
-    def __init__(self, **kwargs):
-        super().__init__(min_value=0, max_value=1, **kwargs)
+    def __init__(self, name, **kwargs):
+        super().__init__(name=name, min_value=0, max_value=1, **kwargs)

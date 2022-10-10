@@ -51,7 +51,7 @@ def range_controller(request):
 
 def test_range_controller(range_controller):
 
-    controller = RangeController(n=range_controller)
+    controller = RangeController("range", n=range_controller)
 
     for n in range(range_controller):
         controller.command = n
@@ -74,11 +74,11 @@ def test_cont_controller(min_controller, max_controller):
 
     if min_controller > max_controller:
         with pytest.raises(ValueError):
-            ContinuousController(min_controller, max_controller)
+            ContinuousController("continuous", min_controller, max_controller)
 
     else:
 
-        controller = ContinuousController(min_controller, max_controller)
+        controller = ContinuousController("continous", min_controller, max_controller)
 
         with pytest.raises(ValueError):
             controller.command = min_controller - 0.1
@@ -93,7 +93,7 @@ def test_controller_forward():
     agent = MockAgent()
     playground.add(agent)
 
-    commands = {agent: {agent.base.forward_controller: 1}}
+    commands = {agent: {"forward": 1}}
 
     assert agent.position == (0, 0)
 
@@ -116,7 +116,7 @@ def test_controller_rotate():
     agent = MockAgent()
     playground.add(agent)
 
-    commands = {agent: {agent.base.angular_vel_controller: 1}}
+    commands = {agent: {"angular": 1}}
 
     assert agent.position == (0, 0)
     assert agent.angle == 0
@@ -146,9 +146,7 @@ def test_agent_forward_movable():
     obstacle = MockPhysicalMovable()
     playground.add(obstacle, ((100, 0), 0))
 
-    commands = {
-        agent: {agent.base.forward_controller: agent.base.forward_controller.max}
-    }
+    commands = {agent: {"forward": agent.base.forward_controller.max}}
 
     for _ in range(100):
         playground.step(commands=commands)

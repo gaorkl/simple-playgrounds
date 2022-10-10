@@ -24,10 +24,10 @@ class ForwardBase(PhysicalPart):
             **kwargs,
         )
 
-        self.forward_controller = CenteredContinuousController()
+        self.forward_controller = CenteredContinuousController("forward")
         self.add(self.forward_controller)
 
-        self.angular_vel_controller = CenteredContinuousController()
+        self.angular_vel_controller = CenteredContinuousController("angular")
         self.add(self.angular_vel_controller)
 
         self.linear_ratio = LINEAR_FORCE * linear_ratio
@@ -54,7 +54,7 @@ class Head(AnchoredPart):
             sprite_front_is_up=True,
             **kwargs,
         )
-        self.joint_controller = CenteredContinuousController()
+        self.joint_controller = CenteredContinuousController("head")
         self.add(self.joint_controller)
 
     def _apply_commands(self, **kwargs):

@@ -13,8 +13,6 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-import numpy as np
-
 from ..entity import EmbodiedEntity, Entity
 from ..utils.position import Coordinate
 from .communicator import Communicator
@@ -54,9 +52,6 @@ class Agent(Entity):
     ):
 
         super().__init__(**kwargs)
-
-        self._name_count = {}
-        self._name_to_controller = {}
 
         # Body parts
         self._parts: List[PhysicalPart] = []
@@ -133,6 +128,10 @@ class Agent(Entity):
         ]
 
     @property
+    def _name_to_controller(self):
+        return {contr.name: contr for contr in self.controllers}
+
+    @property
     def communicators(self):
         return [
             comm
@@ -172,16 +171,8 @@ class Agent(Entity):
 
     def receive_commands(self, commands: Commands):
 
-        # Set command values
-        if isinstance(commands, np.ndarray):
-            for index, controller in enumerate(self.controllers):
-                controller.command = commands[index]
-            return
-
         for controller, command in commands.items():
-            if isinstance(controller, str):
-                controller = self._name_to_controller[controller]
-
+            controller = self._name_to_controller[controller]
             assert controller.agent is self
             controller.command = command
 
@@ -191,7 +182,7 @@ class Agent(Entity):
             part.apply_commands()
 
     def get_random_commands(self):
-        return {contr: contr.get_random_commands() for contr in self.controllers}
+        return {contr.name: contr.get_random_commands() for contr in self.controllers}
 
     ################
     # Rewards

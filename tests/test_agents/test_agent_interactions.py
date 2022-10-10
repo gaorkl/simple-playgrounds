@@ -125,7 +125,7 @@ def test_agent_interacts_active():
 
     print(agent.left_arm.interactor._teams)
     print(agent.right_arm.interactor._teams)
-    commands = {agent: {agent.left_arm.trigger: 1, agent.right_arm.trigger: 1}}
+    commands = {agent: {"left_joint_trigger": 1, "right_joint_trigger": 1}}
 
     playground.step(commands=commands)
 
@@ -157,7 +157,7 @@ def test_agent_grasping():
     elem.graspable = True
     playground.add(elem, ((60, 60), 0))
 
-    commands = {agent: {agent.left_arm.grasper_controller: 1}}
+    commands = {agent: {"grasper": 1}}
 
     playground.step(commands=commands)
 
