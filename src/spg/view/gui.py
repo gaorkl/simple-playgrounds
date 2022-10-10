@@ -156,24 +156,20 @@ class HeadAgentGUI(GUI):
     def _keyboard_agent_key_press(self, key, modifiers):
 
         if key == arcade.key.UP:
-            self._agent_commands[self._keyboard_agent.base.forward_controller] = 0.2
+            self._agent_commands["forward"] = 0.2
         elif key == arcade.key.DOWN:
-            self._agent_commands[self._keyboard_agent.base.forward_controller] = -0.2
+            self._agent_commands["forward"] = -0.2
 
         if not modifiers & arcade.key.MOD_SHIFT:
             if key == arcade.key.LEFT:
-                self._agent_commands[
-                    self._keyboard_agent.base.angular_vel_controller
-                ] = 0.2
+                self._agent_commands["angular"] = 0.2
             elif key == arcade.key.RIGHT:
-                self._agent_commands[
-                    self._keyboard_agent.base.angular_vel_controller
-                ] = -0.2
+                self._agent_commands["angular"] = -0.2
         else:
             if key == arcade.key.LEFT:
-                self._agent_commands[self._keyboard_agent.head.joint_controller] = 0.1
+                self._agent_commands["head"] = 0.1
             elif key == arcade.key.RIGHT:
-                self._agent_commands[self._keyboard_agent.head.joint_controller] = -0.1
+                self._agent_commands["head"] = -0.1
 
         if key == arcade.key.M:
             self._message = {
@@ -187,28 +183,25 @@ class HeadAgentGUI(GUI):
             print(f"Agent {self._keyboard_agent.name} sends message")
 
         if key == arcade.key.G:
-            self._agent_commands[self._keyboard_agent.base.grasper_controller] = 1
+            self._agent_commands["grasper"] = 1
 
     def _keyboard_agent_key_release(self, key, modifiers):
 
         if key == arcade.key.UP:
-            self._agent_commands[self._keyboard_agent.base.forward_controller] = 0
+            self._agent_commands["forward"] = 0
         elif key == arcade.key.DOWN:
-            self._agent_commands[self._keyboard_agent.base.forward_controller] = 0
+            self._agent_commands["forward"] = 0
         if not modifiers & arcade.key.MOD_SHIFT:
             if key == arcade.key.LEFT:
-                self._agent_commands[
-                    self._keyboard_agent.base.angular_vel_controller
-                ] = 0
+                self._agent_commands["angular"] = 0
             elif key == arcade.key.RIGHT:
-                self._agent_commands[
-                    self._keyboard_agent.base.angular_vel_controller
-                ] = 0
+
+                self._agent_commands["angular"] = 0
         else:
             if key == arcade.key.LEFT:
-                self._agent_commands[self._keyboard_agent.head.joint_controller] = 0
+                self._agent_commands["joint"] = 0
             elif key == arcade.key.RIGHT:
-                self._agent_commands[self._keyboard_agent.head.joint_controller] = 0
+                self._agent_commands["joint"] = 0
 
         if key == arcade.key.G:
-            self._agent_commands[self._keyboard_agent.base.grasper_controller] = 0
+            self._agent_commands["grasper"] = 0
