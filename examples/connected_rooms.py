@@ -95,6 +95,6 @@ class ExampleRoom(ConnectedRooms):
         return False
 
 
-playground = ExampleRoom(1)
+playground = ExampleRoom(3)
 gui = HeadAgentGUI(playground, playground.agent, draw_sensors=True)
 gui.run()

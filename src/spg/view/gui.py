@@ -199,9 +199,9 @@ class HeadAgentGUI(GUI):
                 self._agent_commands["angular"] = 0
         else:
             if key == arcade.key.LEFT:
-                self._agent_commands["joint"] = 0
+                self._agent_commands["head"] = 0
             elif key == arcade.key.RIGHT:
-                self._agent_commands["joint"] = 0
+                self._agent_commands["head"] = 0
 
         if key == arcade.key.G:
             self._agent_commands["grasper"] = 0

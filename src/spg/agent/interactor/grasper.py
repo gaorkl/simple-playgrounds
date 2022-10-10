@@ -48,7 +48,7 @@ class Grasper(ActiveInteractor, ABC):
 
         if entity not in self._grasped_entities:
 
-            if self._max_grasped and self._max_grasped < len(self._grasped_entities):
+            if self._max_grasped and self._max_grasped <= len(self._grasped_entities):
                 return
 
             self._grasped_entities.append(entity)
