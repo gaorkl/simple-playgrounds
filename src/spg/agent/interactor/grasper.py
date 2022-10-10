@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pymunk
 
@@ -16,7 +16,9 @@ if TYPE_CHECKING:
 
 
 class Grasper(ActiveInteractor, ABC):
-    def __init__(self, anchor: PhysicalPart, **kwargs):
+    def __init__(
+        self, anchor: PhysicalPart, max_grasped: Optional[int] = None, **kwargs
+    ):
         super().__init__(anchor=anchor, **kwargs)
 
         self.grasp_controller = GrasperController("grasper")
@@ -26,6 +28,8 @@ class Grasper(ActiveInteractor, ABC):
         self._grasp_joints: Dict[EmbodiedEntity, List[pymunk.PinJoint]] = {}
 
         self._can_grasp = False
+
+        self._max_grasped = max_grasped
 
     @property
     def can_grasp(self):
@@ -43,6 +47,10 @@ class Grasper(ActiveInteractor, ABC):
         entity = graspable.anchor
 
         if entity not in self._grasped_entities:
+
+            if self._max_grasped and self._max_grasped < len(self._grasped_entities):
+                return
+
             self._grasped_entities.append(entity)
             self._add_joints(entity)
             entity.grasped_by.append(self)
