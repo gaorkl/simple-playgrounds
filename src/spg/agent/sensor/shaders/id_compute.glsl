@@ -112,8 +112,8 @@
                 // CENTER AND END OF RAY
                 vec2 center = vec2(sensor_x_on_view, sensor_y_on_view);
                 vec2 end_pos = vec2(
-                        sensor_x_on_view + range*cos(angle -fov/2 + i_ray*fov/n_rays)*zoom,
-                        sensor_y_on_view + range*sin(angle -fov/2 + i_ray*fov/n_rays)*zoom);
+                        sensor_x_on_view + range*cos(angle -fov/2 + i_ray*(fov+1)/n_rays)*zoom,
+                        sensor_y_on_view + range*sin(angle -fov/2 + i_ray*(fov+1)/n_rays)*zoom);
 
                 // OUTPUTS
                 ivec2 sample_point = ivec2(0,0);
