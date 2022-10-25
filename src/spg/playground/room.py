@@ -163,6 +163,7 @@ class Room(ConnectedRooms):
         background=None,
         wall_cls=ColorWall,
         wall_color=None,
+        **kwargs,
     ):
 
         super().__init__(
@@ -174,4 +175,5 @@ class Room(ConnectedRooms):
             background=background,
             wall_cls=wall_cls,
             wall_color=wall_color,
+            **kwargs,
         )
