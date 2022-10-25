@@ -1,4 +1,4 @@
-from .ray import DistanceSensor, RaySensor, RayShader, RGBSensor, SemanticSensor
+from .ray import DistanceSensor, RayCompute, RaySensor, RGBSensor, SemanticSensor
 from .sensor import ExternalSensor, Sensor, SensorValue
 
 __all__ = [
@@ -6,7 +6,7 @@ __all__ = [
     "Sensor",
     "ExternalSensor",
     "RGBSensor",
-    "RayShader",
+    "RayCompute",
     "RaySensor",
     "DistanceSensor",
     "SemanticSensor",

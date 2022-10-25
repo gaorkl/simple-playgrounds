@@ -48,7 +48,13 @@
 
                 ivec2 pos = ivec2(x, y);
 
-                vec4 color_out = texelFetch(color_texture, pos, 0);
+                float id = int(hit_pt.id);
+
+                vec4 color_out = vec4(0,0,0,0);
+                if (id != 0)
+                {
+                color_out = texelFetch(color_texture, pos, 0);
+                }
 
                 hit_pt.r = color_out.x*255;
                 hit_pt.g = color_out.y*255;

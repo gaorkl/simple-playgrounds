@@ -18,6 +18,7 @@ class ConnectedRooms(Playground):
         background=None,
         wall_cls=ColorWall,
         wall_color=None,
+        **kwargs,
     ):
 
         size = (size_room[0] * room_layout[0], size_room[1] * room_layout[1])
@@ -29,7 +30,7 @@ class ConnectedRooms(Playground):
         self._centered_doorstep = centered_doorstep
         self._color = wall_color
 
-        super().__init__(size, seed, background)
+        super().__init__(size, seed, background, **kwargs)
 
         self._room_coordinates = self._get_room_coordinates()
         self._room_centers, self._room_corners = self._get_room_positions()

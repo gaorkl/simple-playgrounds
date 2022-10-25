@@ -27,7 +27,7 @@ from ..agent import Agent
 from ..agent.communicator import Communicator, Message
 from ..agent.controller import Command, Controller
 from ..agent.part import AnchoredPart, PhysicalPart
-from ..agent.sensor import RaySensor, RayShader, Sensor, SensorValue
+from ..agent.sensor import RayCompute, RaySensor, Sensor, SensorValue
 from ..entity import EmbodiedEntity, Entity, InteractiveAnchored
 from ..utils.definitions import (
     PYMUNK_STEPS,
@@ -81,6 +81,7 @@ class Playground:
         background: Optional[
             Union[Tuple[int, int, int], List[int], Tuple[int, int, int, int]]
         ] = None,
+        use_shaders=True,
     ):
 
         # Random number generator for replication, rewind, etc.
@@ -127,7 +128,8 @@ class Playground:
         self._window = Window(1, 1, visible=False, antialiasing=True)  # type: ignore
         self._window.ctx.blend_func = self._window.ctx.ONE, self._window.ctx.ZERO
 
-        self._sensor_shader = None
+        self._ray_compute = None
+        self._use_shaders = use_shaders
 
     def debug_draw(self, plt_width=10, center=None, size=None):
 
@@ -164,13 +166,15 @@ class Playground:
         return self._window
 
     @property
-    def sensor_shader(self):
+    def ray_compute(self):
 
-        if not self._sensor_shader:
+        if not self._ray_compute:
             assert self._size
-            self._sensor_shader = RayShader(self, self._size, self._center, zoom=1)
+            self._ray_compute = RayCompute(
+                self, self._size, self._center, zoom=1, use_shader=self._use_shaders
+            )
 
-        return self._sensor_shader
+        return self._ray_compute
 
     @property
     def initial_agent_coordinates(self):
@@ -410,8 +414,8 @@ class Playground:
 
     def _compute_observations(self):
 
-        if self._sensor_shader:
-            self._sensor_shader.update_sensors()
+        if self._ray_compute:
+            self._ray_compute.update_sensors()
 
         obs = {}
         for agent in self.agents:
@@ -515,7 +519,7 @@ class Playground:
                 )
 
                 if isinstance(device, RaySensor):
-                    self.sensor_shader.add(device)
+                    self.ray_compute.add(device)
 
         elif isinstance(entity, PhysicalElement):
             for interactive in entity.interactives:

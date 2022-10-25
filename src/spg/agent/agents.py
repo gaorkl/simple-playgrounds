@@ -29,7 +29,7 @@ class HeadAgent(Agent):
         self.base.add(self.distance)
 
         self.rgb = RGBSensor(
-            fov=90,
+            fov=180,
             resolution=64,
             max_range=400,
             invisible_elements=self._parts,
