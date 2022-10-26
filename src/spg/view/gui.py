@@ -64,8 +64,9 @@ class GUI(TopDownView):
 
     def on_draw(self):
 
-        self.update()
+        self._playground.window.clear()
         self._fbo.use()
+        self.update()
 
     def on_update(self, _):
 
