@@ -2,5 +2,5 @@
 include requirements.txt
 
 # Include configs:
-recursive-include src/spg/resources *.txt *.md *.url
+recursive-include src/spg/resources *.txt *.md *.url *.png *.jpg *.jpeg
 
