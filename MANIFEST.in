@@ -2,17 +2,5 @@
 include requirements.txt
 
 # Include configs:
-include src/spg/configs/agent_parts.yml
-include src/spg/configs/agent_sensors.yml
-include src/spg/configs/element_activable.yml
-include src/spg/configs/element_conditioning.yml
-include src/spg/configs/element_basic.yml
-include src/spg/configs/element_contact.yml
-include src/spg/configs/element_gem.yml
-include src/spg/configs/element_proximity.yml
-include src/spg/configs/element_teleport.yml
-include src/spg/configs/element_zone.yml
-include src/spg/configs/element_modifier.yml
-include src/spg/configs/playground.yml
-
+recursive-include src/spg/resources *.txt *.md *.url
 
