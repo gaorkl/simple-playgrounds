@@ -14,7 +14,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="spg",
-    version="0.1.8",
+    version="0.1.9",
     description="Simulator for Reinforcement Learning",
     author="Michael Garcia Ortiz",
     author_email="michael.garcia.ortiz@gmail.com",
