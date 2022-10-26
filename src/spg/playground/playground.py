@@ -125,8 +125,10 @@ class Playground:
         self._views = []
 
         # Arcade window necessary to create contexts, views, sensors and gui
-        self._window = Window(1, 1, visible=False, antialiasing=True)  # type: ignore
-        self._window.ctx.blend_func = self._window.ctx.ONE, self._window.ctx.ZERO
+        self._window = Window(
+            1, 1, visible=False
+        )  # , antialiasing=True)  # type: ignore
+        # self._window.ctx.blend_func = self._window.ctx.ONE, self._window.ctx.ZERO
 
         self._ray_compute = None
         self._use_shaders = use_shaders
