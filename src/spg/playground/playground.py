@@ -21,13 +21,16 @@ import pymunk
 import pymunk.matplotlib_util
 from arcade import Window
 
+from gymnasium import spaces
+from gymnasium.core import ActType
+
+
 from spg.element.element import PhysicalElement, SceneElement
 
 from ..agent import Agent
-from ..agent.communicator import Communicator, Message
-from ..agent.controller import Command, Controller
+from ..agent.device.communicator import Communicator, Message
 from ..agent.part import AnchoredPart, PhysicalPart
-from ..agent.sensor import RayCompute, RaySensor, Sensor, SensorValue
+from ..agent.device.sensor import RayCompute, RaySensor, Sensor, SensorValue
 from ..entity import EmbodiedEntity, Entity, InteractiveAnchored
 from ..utils.definitions import (
     PYMUNK_STEPS,
@@ -41,7 +44,6 @@ from .collision_handlers import disabler_disables_device, grasper_grasps_graspab
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
 
-CommandsDict = Dict[Agent, Dict[Controller, Command]]
 TargetCommunicator = Optional[Union[Communicator, List[Communicator]]]
 SentMessagesDict = Dict[Agent, Dict[Communicator, Tuple[TargetCommunicator, Message]]]
 
@@ -130,6 +132,8 @@ class Playground:
 
         self._ray_compute = None
         self._use_shaders = use_shaders
+
+        self.pymunk_steps = PYMUNK_STEPS
 
     def debug_draw(self, plt_width=10, center=None, size=None):
 
@@ -229,7 +233,7 @@ class Playground:
     # Entities
     ###############
 
-    def _get_identifier(self, entity: Entity):
+    def _get_uid(self, entity: Entity):
 
         uid = None
         background = (
@@ -245,14 +249,7 @@ class Playground:
                 uid = a
                 break
 
-        name = entity.name
-        if not name:
-            name = type(entity).__name__ + "_" + str(uid)
-
-        if name in [ent.name for ent in self.elements]:
-            raise ValueError("Entity with this name already in Playground")
-
-        return uid, name
+        return uid
 
     def get_entity_from_uid(self, uid):
 
@@ -265,6 +262,11 @@ class Playground:
     @property
     def elements(self):
         return [elem for elem in self._elements if not elem.removed]
+
+    @property
+    def action_space(self):
+        return spaces.Dict({agent.name: agent.action_space for agent in self.agents})
+
 
     ###########
     # TEAMS
@@ -291,12 +293,7 @@ class Playground:
     # STEP
     ###############
 
-    def step(
-        self,
-        commands: Optional[CommandsDict] = None,
-        messages: Optional[SentMessagesDict] = None,
-        pymunk_steps: int = PYMUNK_STEPS,
-    ):
+    def step(self, action: ActType):
         """Update the Playground
 
         Updates the Playground.
@@ -306,7 +303,6 @@ class Playground:
             pymunk_steps: Number of steps for the pymunk physics engine to run.
 
         Notes:
-            pymunk_steps only influences the micro-steps that
             the physical engine is taking to render
             the movement of objects and collisions.
             From an external point of view,
@@ -321,18 +317,20 @@ class Playground:
 
         if not self._done:
 
-            self._apply_commands(commands)
+            for agent_name, agent_action in action.items():
+                agent = self._name_to_agents[agent_name]
+                agent.apply_action(agent_action)
 
-            for _ in range(pymunk_steps):
-                self.space.step(1.0 / pymunk_steps)
+            for _ in range(PYMUNK_STEPS):
+                self.space.step(1.0 / PYMUNK_STEPS)
 
             self._post_step()
             self._done = self._has_terminated()
 
             obs = self._compute_observations()
             rew = {agent: agent.reward for agent in self._agents}
-            if messages:
-                mess = self._transmit_messages(messages)
+            # if messages:
+            #     mess = self._transmit_messages(messages)
 
             self._timestep += 1
 
@@ -353,17 +351,6 @@ class Playground:
 
         for agent in self.agents:
             agent.post_step()
-
-    def _apply_commands(self, commands):
-
-        if not commands:
-            return
-
-        for agent, command_dict in commands.items():
-            agent.receive_commands(command_dict)
-
-        for agent in self._agents:
-            agent.apply_commands()
 
     def _transmit_messages(self, messages):
 
@@ -511,7 +498,7 @@ class Playground:
                     part, allow_overlapping=allow_overlapping, from_removed=from_removed
                 )
 
-            for device in entity.devices:
+            for device in entity.devices.values():
                 self.add(
                     device,
                     allow_overlapping=allow_overlapping,
@@ -571,8 +558,7 @@ class Playground:
 
     def _add_to_mappings(self, entity):
 
-        entity.uid, entity.name = self._get_identifier(entity)
-
+        entity.uid = self._get_uid(entity)
         self._uids_to_entities[entity.uid] = entity
 
         if isinstance(entity, Agent):
@@ -755,7 +741,7 @@ class Playground:
 
         if isinstance(entity, PhysicalPart):
             agent_shapes = []
-            for part in entity.agent.parts:
+            for part in entity.agent.parts.values():
                 agent_shapes += part.pm_shapes
 
             overlaps = [elem for elem in overlaps if elem.shape not in agent_shapes]

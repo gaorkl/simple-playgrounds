@@ -13,38 +13,37 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import pymunk
+from gymnasium import spaces
 
 from ...entity import PhysicalEntity
 from ...utils.definitions import CollisionTypes
-from ..controller import Command, Controller
 from ..device import Device
-from ..interactor.grasper import Grasper
-from ..interactor.interactor import ActiveInteractor
-from ..sensor import RaySensor
+from ..device.interactor.grasper import Grasper
+from ..device.sensor import RaySensor
 
 if TYPE_CHECKING:
     from ...utils.position import Coordinate
     from ..agent import Agent
 
-CommandDict = Dict[Command, Union[float, int]]
-
 
 class PhysicalPart(PhysicalEntity, ABC):
-    def __init__(self, **kwargs):
+    def __init__(self, name, **kwargs):
 
         super().__init__(
+            name=name,
             teams=None,
             **kwargs,
         )
 
         # Add physical motors if needed
         self._anchored: List[AnchoredPart] = []
-        self._devices: List[Device] = []
+        self._devices: Dict[str, Device] = {}
 
         self._agent: Optional[Agent] = None
 
-        self.grasper_controller: Optional[Controller] = None
         self.grasper: Optional[Grasper] = None
+
+        self._disabled = False
 
     @property
     def agent(self):
@@ -80,12 +79,18 @@ class PhysicalPart(PhysicalEntity, ABC):
         elem.teams = self._teams
 
         if isinstance(elem, AnchoredPart):
+
+            assert elem.name not in self.agent.parts
+
             if anchor_coordinates:
                 elem.anchor_coordinates = anchor_coordinates
             self._anchored.append(elem)
 
         elif isinstance(elem, Device):
-            self._devices.append(elem)
+
+            assert elem.name not in self._devices
+
+            self._devices[elem.name] = elem
 
             if isinstance(elem, RaySensor) and self._playground:
                 self.playground.sensor_shader.add(elem)
@@ -95,8 +100,6 @@ class PhysicalPart(PhysicalEntity, ABC):
                     raise ValueError("Grasper already in. Only one grasper per part.")
 
                 self.grasper = elem
-                self.grasper_controller = elem.grasp_controller
-                self.add(self.grasper_controller)
 
         else:
             raise ValueError("Not implemented")
@@ -127,29 +130,50 @@ class PhysicalPart(PhysicalEntity, ABC):
     def update_team_filter(self):
         super().update_team_filter()
 
-        for device in self._devices:
+        for device in self._devices.values():
             device.update_team_filter()
 
-    def apply_commands(self, **kwargs):
+    @property
+    def action_space(self) -> spaces.Dict:
 
-        self._apply_commands(**kwargs)
+        sp = {'motor': self._action_space}
 
-        for device in self.devices:
-            if isinstance(device, ActiveInteractor):
-                device.apply_commands(**kwargs)
+        for device in self.devices.values():
+            if device.action_space:
+                sp[device.name] = device.action_space
+
+        return spaces.Dict(sp)
+
+    @property
+    @abstractmethod
+    def _action_space(self):
+        ...
+
+    def apply_action(self, action: spaces.Dict):
+
+        action_motor = action.get('motor', None)
+
+        if action_motor:
+            self._apply_action(action_motor)
+
+        for device_name, device in self._devices.items():
+
+            device_action = action.get(device_name, None)
+            if device_action:
+                device.apply_action(device_action)
 
     @abstractmethod
-    def _apply_commands(self, **kwargs):
+    def _apply_action(self, action):
         ...
 
     def pre_step(self):
         super().pre_step()
-        for device in self._devices:
+        for device in self._devices.values():
             device.pre_step()
 
     def post_step(self):
         super().post_step()
-        for device in self._devices:
+        for device in self._devices.values():
             device.post_step()
 
     def reset(self):

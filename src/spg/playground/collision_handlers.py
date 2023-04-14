@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..agent.device import Device
-from ..agent.interactor import Grasper
+from ..agent.device.interactor import Grasper
 from ..agent.part import PhysicalPart
 from ..element import Disabler
 

@@ -11,21 +11,21 @@ Examples can be found in spg/agents/agents.py
 """
 from __future__ import annotations
 
+from abc import abstractmethod, ABC
+
 from typing import Dict, List
+from gymnasium import spaces
 
 from ..entity import EmbodiedEntity, Entity
 from ..utils.position import Coordinate
-from .communicator import Communicator
-from .controller import Command, Controller
+from .device.communicator import Communicator
 from .part import PhysicalPart
-from .sensor import ExternalSensor, Sensor
+from .device.sensor import ExternalSensor, Sensor
 
 _BORDER_IMAGE = 3
 
-Commands = Dict[Controller, Command]
 
-
-class Agent(Entity):
+class Agent(Entity, ABC):
 
     """
     Base class for building agents.
@@ -48,13 +48,14 @@ class Agent(Entity):
 
     def __init__(
         self,
+        name,
         **kwargs,
     ):
 
-        super().__init__(**kwargs)
+        super().__init__(name=name, **kwargs)
 
         # Body parts
-        self._parts: List[PhysicalPart] = []
+        self._parts: Dict[str, PhysicalPart] = {}
 
         # Reward
         self._reward: float = 0
@@ -62,14 +63,20 @@ class Agent(Entity):
         self._initial_coordinates = None
         self._allow_overlapping = False
 
+        self._base = self._get_base()
+        self.add(self._base)
+
     def add(self, part: PhysicalPart):
         part.agent = self
         part.teams = self._teams
 
-        for device in part.devices:
+        for device in part.devices.values():
             device.teams = self._teams
 
-        self._parts.append(part)
+        if part.name in self._parts.values():
+            raise ValueError("Part should have a unique name within the agent")
+
+        self._parts[part.name] = part
 
     ################
     # Properties
@@ -77,7 +84,11 @@ class Agent(Entity):
 
     @property
     def base(self):
-        return self._parts[0]
+        return self._base
+
+    @abstractmethod
+    def _get_base(self) -> PhysicalPart:
+        ...
 
     @property
     def initial_coordinates(self):
@@ -86,7 +97,7 @@ class Agent(Entity):
     @initial_coordinates.setter
     def initial_coordinates(self, init_coord):
         self._initial_coordinates = init_coord
-        self._parts[0].initial_coordinates = init_coord
+        self._base.initial_coordinates = init_coord
 
     @property
     def allow_overlapping(self):
@@ -95,7 +106,7 @@ class Agent(Entity):
     @allow_overlapping.setter
     def allow_overlapping(self, allow):
         self._allow_overlapping = allow
-        self._parts[0].allow_overlapping = allow
+        self._base.allow_overlapping = allow
 
     @property
     def position(self):
@@ -119,19 +130,6 @@ class Agent(Entity):
         }
 
     @property
-    def controllers(self):
-        return [
-            contr
-            for part in self._parts
-            for contr in part.devices
-            if isinstance(contr, Controller)
-        ]
-
-    @property
-    def _name_to_controller(self):
-        return {contr.name: contr for contr in self.controllers}
-
-    @property
     def communicators(self):
         return [
             comm
@@ -144,8 +142,8 @@ class Agent(Entity):
     def sensors(self):
         return [
             sensor
-            for part in self._parts
-            for sensor in part.devices
+            for part in self._parts.values()
+            for sensor in part.devices.values()
             if isinstance(sensor, Sensor)
         ]
 
@@ -166,23 +164,14 @@ class Agent(Entity):
         return self._parts
 
     @property
-    def default_commands(self) -> Commands:
-        return {controller: controller.default for controller in self.controllers}
+    def action_space(self):
+        return spaces.Dict({part.name: part.action_space for part in self.parts.values()})
 
-    def receive_commands(self, commands: Commands):
-
-        for controller, command in commands.items():
-            controller = self._name_to_controller[controller]
-            assert controller.agent is self
-            controller.command = command
-
-    def apply_commands(self):
+    def apply_action(self, action):
         # Apply command to playground physics
-        for part in self._parts:
-            part.apply_commands()
-
-    def get_random_commands(self):
-        return {contr.name: contr.get_random_commands() for contr in self.controllers}
+        for part_name, action_part in action.items():
+            part = self._parts[part_name]
+            part.apply_action(action_part)
 
     ################
     # Rewards
@@ -201,7 +190,7 @@ class Agent(Entity):
     #############
 
     def update_team_filter(self):
-        for part in self._parts:
+        for part in self._parts.values():
             part.update_team_filter()
 
     ##############
@@ -215,15 +204,15 @@ class Agent(Entity):
 
         self._reward = 0
 
-        for part in self._parts:
+        for part in self._parts.values():
             part.pre_step(**kwargs)
 
     def reset(self):
-        for part in self._parts:
+        for part in self._parts.values():
             part.reset()
 
     def post_step(self, **kwargs):
-        for part in self._parts:
+        for part in self._parts.values():
             part.post_step(**kwargs)
 
     ###############
@@ -244,7 +233,7 @@ class Agent(Entity):
 
         assert self._playground
 
-        for part in self.parts:
+        for part in self.parts.values():
             if self._playground.overlaps(part, entity):
                 return True
 

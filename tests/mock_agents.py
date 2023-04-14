@@ -5,87 +5,16 @@ import math
 import numpy as np
 import pymunk
 
+from gymnasium import spaces
+
 from spg.agent import Agent
-from spg.agent.controller import BoolController, CenteredContinuousController
-from spg.agent.interactor import Interactor
-from spg.agent.part import AnchoredPart, PhysicalPart
-from spg.utils.definitions import ANGULAR_VELOCITY, LINEAR_FORCE, CollisionTypes
+from spg.agent.device import Device
+from spg.agent.part import ForwardBase, Arm
+from spg.utils.definitions import CollisionTypes
 
 
-class MockBase(PhysicalPart):
-    def __init__(self, **kwargs):
+class Detector(Device):
 
-        super().__init__(
-            mass=10,
-            filename=":resources:images/topdown_tanks/tankBody_blue_outline.png",
-            sprite_front_is_up=True,
-            shape_approximation="decomposition",
-            **kwargs,
-        )
-
-        self.forward_controller = CenteredContinuousController("forward")
-        self.add(self.forward_controller)
-
-        self.angular_vel_controller = CenteredContinuousController("angular")
-        self.add(self.angular_vel_controller)
-
-    def _apply_commands(self, **kwargs):
-
-        command_value = self.forward_controller.command_value
-
-        self._pm_body.apply_force_at_local_point(
-            pymunk.Vec2d(command_value, 0) * LINEAR_FORCE, (0, 0)
-        )
-
-        command_value = self.angular_vel_controller.command_value
-        self._pm_body.angular_velocity = command_value * ANGULAR_VELOCITY
-
-
-class MockAnchoredPart(AnchoredPart):
-    def __init__(self, name_joint, **kwargs):
-        super().__init__(
-            mass=10,
-            filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
-            sprite_front_is_up=True,
-            **kwargs,
-        )
-
-        self.joint_controller = CenteredContinuousController(name_joint)
-        self.add(self.joint_controller)
-
-    def _apply_commands(self, **kwargs):
-
-        assert self._anchor
-        assert self._motor
-
-        value = self.joint_controller.command_value
-        angle_offset = self._anchor_coordinates[1]
-
-        theta_part = self.angle
-        theta_anchor = self._anchor.angle
-
-        angle_centered = theta_part - (theta_anchor + angle_offset)
-        angle_centered = angle_centered % (2 * np.pi)
-        angle_centered = (
-            angle_centered - 2 * np.pi if angle_centered > np.pi else angle_centered
-        )
-
-        # Do not set the motor if the limb is close to limit
-        if (angle_centered < -self._rotation_range / 2 + np.pi / 20) and value < 0:
-            self._motor.rate = 0
-
-        elif (angle_centered > self._rotation_range / 2 - np.pi / 20) and value > 0:
-            self._motor.rate = 0
-
-        else:
-            self._motor.rate = -value * ANGULAR_VELOCITY
-
-    @property
-    def _pivot_position(self):
-        return (-self.radius, 0)
-
-
-class MockHaloPart(Interactor):
     def __init__(self, anchor, **kwargs):
         super().__init__(anchor=anchor, **kwargs)
         self._activated = False
@@ -94,9 +23,6 @@ class MockHaloPart(Interactor):
     def _collision_type(self):
         return CollisionTypes.PASSIVE_INTERACTOR
 
-    def _apply_commands(self, **_):
-        pass
-
     def pre_step(self):
         self._activated = False
 
@@ -107,51 +33,61 @@ class MockHaloPart(Interactor):
     def activated(self):
         return self._activated
 
+    @property
+    def action_space(self):
+        return None
 
-class MockInteractor(Interactor):
+    def apply_action(self):
+        pass
+
+
+class Trigger(Device):
     def __init__(self, anchor, **kwargs):
         super().__init__(anchor=anchor, **kwargs)
 
-        self._activated = False
+        self._triggered = False
 
     @property
     def _collision_type(self):
         return CollisionTypes.ACTIVE_INTERACTOR
 
     def pre_step(self):
-        self._activated = False
+        self._triggered = False
 
-    def activate(self):
-        self._activated = True
+    @property
+    def triggered(self):
+        return self._triggered
 
     @property
     def activated(self):
-        return self._activated
+        return self._triggered
+
+    @property
+    def action_space(self):
+        return spaces.Discrete(2)
+
+    def apply_action(self, action):
+
+        if action:
+            self._triggered = True
 
 
-class MockTriggerPart(MockAnchoredPart):
-    def __init__(self, name_joint, rotation_range: float, **kwargs):
+class TriggerArm(Arm):
 
-        super().__init__(name_joint=name_joint, rotation_range=rotation_range, **kwargs)
+    def __init__(self, **kwargs):
 
-        self.interactor = MockInteractor(self)
-        self.add(self.interactor)
+        super().__init__(**kwargs)
 
-        self.trigger = BoolController(name_joint + "_trigger")
+        self.trigger = Trigger(self, name='trigger')
         self.add(self.trigger)
-
-    def _apply_commands(self, **_):
-
-        if self.trigger.command_value:
-            self.interactor.activate()
 
 
 class MockAgent(Agent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        base = MockBase()
-        self.add(base)
+    def _get_base(self):
+        return ForwardBase(name="base")
 
 
 class MockAgentWithArm(MockAgent):
@@ -159,15 +95,15 @@ class MockAgentWithArm(MockAgent):
         super().__init__(**kwargs)
 
         rel_left = ((15, 15), math.pi / 3)
-        self.left_arm = MockAnchoredPart(
-            "left_joint",
+        self.left_arm = Arm(
+            name="left_arm",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.left_arm, rel_left)
 
         rel_right = ((15, -15), -math.pi / 3)
-        self.right_arm = MockAnchoredPart(
-            "right_joint",
+        self.right_arm = Arm(
+            name="right_arm",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.right_arm, rel_right)
@@ -178,15 +114,15 @@ class MockAgentWithTriggerArm(MockAgent):
         super().__init__(**kwargs)
 
         rel_left = ((15, 15), math.pi / 3)
-        self.left_arm = MockTriggerPart(
-            "left_joint",
+        self.left_arm = TriggerArm(
+            name="left_arm",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.left_arm, rel_left)
 
         rel_right = ((15, -15), -math.pi / 3)
-        self.right_arm = MockTriggerPart(
-            "right_joint",
+        self.right_arm = TriggerArm(
+            name="right_arm",
             rotation_range=math.pi / 4,
         )
         self.base.add(self.right_arm, rel_right)

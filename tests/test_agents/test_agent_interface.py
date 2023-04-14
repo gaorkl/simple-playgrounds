@@ -2,24 +2,23 @@
 
 import pytest
 
-from spg.agent.controller import ContinuousController, RangeController
 from spg.playground import Playground
-from tests.mock_agents import MockAgent, MockAgentWithArm
+from tests.mock_agents import MockAgent, MockAgentWithArm, MockAgentWithTriggerArm
 from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
 
 
 def test_agent_in_playground():
 
     playground = Playground()
-    agent = MockAgentWithArm()
+    agent = MockAgentWithArm(name='agent')
     playground.add(agent)
 
     assert agent in playground.agents
     assert playground.elements == []
     assert agent.base in playground._shapes_to_entities.values()
-    assert agent.base in agent.parts
+    assert agent.base in agent.parts.values()
 
-    for part in agent.parts:
+    for part in agent.parts.values():
         assert part in playground._shapes_to_entities.values()
         assert part.agent == agent
 
@@ -44,61 +43,53 @@ def test_agent_in_playground():
     assert agent not in playground.agents
 
 
-@pytest.fixture(scope="module", params=[1, 5])
-def range_controller(request):
-    return request.param
+def test_action_spaces():
 
-
-def test_range_controller(range_controller):
-
-    controller = RangeController("range", n=range_controller)
-
-    for n in range(range_controller):
-        controller.command = n
-
-    with pytest.raises(ValueError):
-        controller.command = range_controller
-
-
-@pytest.fixture(scope="module", params=[-2.12, 1.4, 0, 1.5, 2.43])
-def min_controller(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[-2.42, 1.5, 0, 1.3, 2.83])
-def max_controller(request):
-    return request.param
-
-
-def test_cont_controller(min_controller, max_controller):
-
-    if min_controller > max_controller:
-        with pytest.raises(ValueError):
-            ContinuousController("continuous", min_controller, max_controller)
-
-    else:
-
-        controller = ContinuousController("continous", min_controller, max_controller)
-
-        with pytest.raises(ValueError):
-            controller.command = min_controller - 0.1
-
-        with pytest.raises(ValueError):
-            controller.command = max_controller + 0.1
-
-
-def test_controller_forward():
-
-    playground = Playground()
-    agent = MockAgent()
+    playground = Playground(size=(200, 200))
+    agent = MockAgentWithTriggerArm(name='agent')
     playground.add(agent)
 
-    commands = {agent: {"forward": 1}}
+    for i in range(100):
+        action = playground.action_space.sample()
+        playground.step(action)
+
+    assert agent.position != (0,0)
+
+
+def test_null_action():
+
+    playground = Playground(size=(200, 200))
+    agent = MockAgentWithTriggerArm(name='agent')
+    playground.add(agent)
+
+    for i in range(100):
+        action = playground.action_space.sample()
+        playground.step(action)
+
+    for i in range(1000):
+        playground.step({})
+
+    assert pytest.approx(agent.base.velocity) == (0,0)
+
+
+
+def test_forward():
+
+    playground = Playground()
+    agent = MockAgent(name="agent")
+    playground.add(agent)
+
+    action = {agent.name: {
+        "base":{
+            "motor":{'forward_force': 0.9}
+        }
+    }
+                }
 
     assert agent.position == (0, 0)
 
     for _ in range(10):
-        playground.step(commands=commands)
+        playground.step(action)
 
     assert agent.position != (0, 0)
     assert agent.position.x > 0
@@ -110,18 +101,23 @@ def test_controller_forward():
     # playground.debug_draw()
 
 
-def test_controller_rotate():
+def test_rotate():
 
     playground = Playground()
-    agent = MockAgent()
+    agent = MockAgent(name="agent")
     playground.add(agent)
 
-    commands = {agent: {"angular": 1}}
+    action = {agent.name: {
+        "base":{
+            "motor":{'angular_velocity': 0.9}
+        }
+    }
+                }
 
     assert agent.position == (0, 0)
     assert agent.angle == 0
 
-    playground.step(commands=commands)
+    playground.step(action)
 
     assert agent.position == (0, 0)
     assert agent.angle > 0
@@ -130,7 +126,7 @@ def test_controller_rotate():
 def test_agent_initial_position():
 
     playground = Playground()
-    agent = MockAgent()
+    agent = MockAgent(name='agent')
     playground.add(agent)
 
     assert agent.position == (0, 0)
@@ -140,16 +136,21 @@ def test_agent_initial_position():
 def test_agent_forward_movable():
 
     playground = Playground()
-    agent = MockAgent()
+    agent = MockAgent(name='agent')
     playground.add(agent)
 
     obstacle = MockPhysicalMovable()
     playground.add(obstacle, ((100, 0), 0))
 
-    commands = {agent: {"forward": agent.base.forward_controller.max}}
+    action = {agent.name: {
+        "base":{
+            "motor":{'forward_force': 0.9}
+        }
+    }
+                }
 
     for _ in range(100):
-        playground.step(commands=commands)
+        playground.step(action)
 
     assert agent.position != (100, 0)
     assert agent.position.x > 100
@@ -162,7 +163,7 @@ def test_agent_overlapping():
     unmovable = MockPhysicalUnmovable(radius=4)
     playground.add(unmovable, ((0, 0), 0))
 
-    agent = MockAgent()
+    agent = MockAgent(name='agent')
 
     with pytest.raises(ValueError):
         playground.add(agent, allow_overlapping=False)

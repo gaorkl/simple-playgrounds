@@ -19,6 +19,7 @@ Teams = Union[str, List[str]]
 
 
 class Entity(ABC):
+
     """
     Base class that defines the entities that composing a Playground.
     Entities can be: SceneElement, Agent, Spawner, Timer, ...

@@ -25,7 +25,7 @@ def keep_velocity(request):
 def test_move(pos, angle):
 
     playground = Playground()
-    agent = MockAgentWithArm()
+    agent = MockAgentWithArm(name='agent')
     playground.add(agent, (pos, angle))
 
     assert agent.position.x == pos[0]

@@ -1,10 +1,10 @@
 import math
 
 from .agent import Agent
-from .communicator import Communicator
-from .interactor import GraspHold
+from .device.communicator import Communicator
+from .device.interactor import GraspHold
 from .part import ForwardBase, Head
-from .sensor import DistanceSensor, RGBSensor
+from .device.sensor import DistanceSensor, RGBSensor
 
 
 class HeadAgent(Agent):
