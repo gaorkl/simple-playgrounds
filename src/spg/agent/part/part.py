@@ -37,7 +37,7 @@ class PhysicalPart(PhysicalEntity, ABC):
 
         # Add physical motors if needed
         self._anchored: List[AnchoredPart] = []
-        self._devices: Dict[str, Device] = {}
+        self._devices: List[Device] = []
 
         self._agent: Optional[Agent] = None
 
@@ -90,7 +90,7 @@ class PhysicalPart(PhysicalEntity, ABC):
 
             assert elem.name not in self._devices
 
-            self._devices[elem.name] = elem
+            self._devices.append(elem)
 
             if isinstance(elem, RaySensor) and self._playground:
                 self.playground.sensor_shader.add(elem)
@@ -130,7 +130,7 @@ class PhysicalPart(PhysicalEntity, ABC):
     def update_team_filter(self):
         super().update_team_filter()
 
-        for device in self._devices.values():
+        for device in self._devices:
             device.update_team_filter()
 
     @property
@@ -138,7 +138,7 @@ class PhysicalPart(PhysicalEntity, ABC):
 
         sp = {'motor': self._action_space}
 
-        for device in self.devices.values():
+        for device in self.devices:
             if device.action_space:
                 sp[device.name] = device.action_space
 
@@ -156,9 +156,9 @@ class PhysicalPart(PhysicalEntity, ABC):
         if action_motor:
             self._apply_action(action_motor)
 
-        for device_name, device in self._devices.items():
+        for device in self._devices:
 
-            device_action = action.get(device_name, None)
+            device_action = action.get(device.name, None)
             if device_action:
                 device.apply_action(device_action)
 
@@ -168,12 +168,12 @@ class PhysicalPart(PhysicalEntity, ABC):
 
     def pre_step(self):
         super().pre_step()
-        for device in self._devices.values():
+        for device in self._devices:
             device.pre_step()
 
     def post_step(self):
         super().post_step()
-        for device in self._devices.values():
+        for device in self._devices:
             device.post_step()
 
     def reset(self):

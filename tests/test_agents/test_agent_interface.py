@@ -5,7 +5,7 @@ import pytest
 from spg.playground import Playground
 from tests.mock_agents import MockAgent, MockAgentWithArm, MockAgentWithTriggerArm
 from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
-
+from spg.utils.actions import fill_action_space
 
 def test_agent_in_playground():
 
@@ -67,7 +67,7 @@ def test_null_action():
         playground.step(action)
 
     for i in range(1000):
-        playground.step({})
+        playground.step(playground.null_action)
 
     assert pytest.approx(agent.base.velocity) == (0,0)
 
@@ -87,6 +87,8 @@ def test_forward():
                 }
 
     assert agent.position == (0, 0)
+
+    action = fill_action_space(playground, action)
 
     for _ in range(10):
         playground.step(action)

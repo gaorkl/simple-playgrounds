@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 
-from typing import Dict, List
+from typing import List
 from gymnasium import spaces
 
 from ..entity import EmbodiedEntity, Entity
@@ -55,7 +55,7 @@ class Agent(Entity, ABC):
         super().__init__(name=name, **kwargs)
 
         # Body parts
-        self._parts: Dict[str, PhysicalPart] = {}
+        self._parts: List[PhysicalPart] = []
 
         # Reward
         self._reward: float = 0
@@ -70,13 +70,13 @@ class Agent(Entity, ABC):
         part.agent = self
         part.teams = self._teams
 
-        for device in part.devices.values():
+        for device in part.devices:
             device.teams = self._teams
 
-        if part.name in self._parts.values():
+        if part.name in [p.name for p in self._parts]:
             raise ValueError("Part should have a unique name within the agent")
 
-        self._parts[part.name] = part
+        self._parts.append(part)
 
     ################
     # Properties
@@ -142,8 +142,8 @@ class Agent(Entity, ABC):
     def sensors(self):
         return [
             sensor
-            for part in self._parts.values()
-            for sensor in part.devices.values()
+            for part in self._parts
+            for sensor in part.devices
             if isinstance(sensor, Sensor)
         ]
 
@@ -165,12 +165,12 @@ class Agent(Entity, ABC):
 
     @property
     def action_space(self):
-        return spaces.Dict({part.name: part.action_space for part in self.parts.values()})
+        return spaces.Dict({part.name: part.action_space for part in self.parts})
 
     def apply_action(self, action):
         # Apply command to playground physics
         for part_name, action_part in action.items():
-            part = self._parts[part_name]
+            part = next((x for x in self._parts if x.name == part_name), None)
             part.apply_action(action_part)
 
     ################
@@ -190,7 +190,7 @@ class Agent(Entity, ABC):
     #############
 
     def update_team_filter(self):
-        for part in self._parts.values():
+        for part in self._parts:
             part.update_team_filter()
 
     ##############
@@ -204,15 +204,15 @@ class Agent(Entity, ABC):
 
         self._reward = 0
 
-        for part in self._parts.values():
+        for part in self._parts:
             part.pre_step(**kwargs)
 
     def reset(self):
-        for part in self._parts.values():
+        for part in self._parts:
             part.reset()
 
     def post_step(self, **kwargs):
-        for part in self._parts.values():
+        for part in self._parts:
             part.post_step(**kwargs)
 
     ###############
@@ -233,7 +233,7 @@ class Agent(Entity, ABC):
 
         assert self._playground
 
-        for part in self.parts.values():
+        for part in self.parts:
             if self._playground.overlaps(part, entity):
                 return True
 

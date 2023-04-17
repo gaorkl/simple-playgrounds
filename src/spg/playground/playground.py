@@ -23,6 +23,7 @@ from arcade import Window
 
 from gymnasium import spaces
 from gymnasium.core import ActType
+import gymnasium
 
 
 from spg.element.element import PhysicalElement, SceneElement
@@ -41,6 +42,8 @@ from ..utils.definitions import (
 from ..utils.position import Coordinate
 from .collision_handlers import disabler_disables_device, grasper_grasps_graspable
 
+from ..utils.actions import zero_action_space
+
 # pylint: disable=unused-argument
 # pylint: disable=line-too-long
 
@@ -52,7 +55,7 @@ ReceivedMessagesDict = Dict[Agent, Dict[Communicator, Tuple[Communicator, Messag
 RewardsDict = Dict[Agent, float]
 
 
-class Playground:
+class Playground(gymnasium.Env):
     """Playground is a Base Class that manages the physical simulation.
 
     Playground manages the interactions between Agents and Scene Elements.
@@ -267,6 +270,9 @@ class Playground:
     def action_space(self):
         return spaces.Dict({agent.name: agent.action_space for agent in self.agents})
 
+    @property
+    def null_action(self):
+        return zero_action_space(self)
 
     ###########
     # TEAMS
@@ -498,7 +504,7 @@ class Playground:
                     part, allow_overlapping=allow_overlapping, from_removed=from_removed
                 )
 
-            for device in entity.devices.values():
+            for device in entity.devices:
                 self.add(
                     device,
                     allow_overlapping=allow_overlapping,
@@ -741,7 +747,7 @@ class Playground:
 
         if isinstance(entity, PhysicalPart):
             agent_shapes = []
-            for part in entity.agent.parts.values():
+            for part in entity.agent.parts:
                 agent_shapes += part.pm_shapes
 
             overlaps = [elem for elem in overlaps if elem.shape not in agent_shapes]

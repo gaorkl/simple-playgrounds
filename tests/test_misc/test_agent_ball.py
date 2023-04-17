@@ -1,7 +1,7 @@
 from spg.agent import HeadAgent
 from spg.element import Ball
 from spg.playground import Room
-
+from spg.utils.actions import fill_action_space
 
 def test_scenario():
 
@@ -9,13 +9,15 @@ def test_scenario():
     ball = Ball()
     playground.add(ball, ((200, 0), 0))
 
-    agent = HeadAgent()
+    agent = HeadAgent(name="agent")
     playground.add(agent)
 
-    commands = {agent: {"forward": 1}}
+    agent_forward_action = {agent.name: {
+    "base": { "motor": { "forward_force": 1}}}}
+    action = fill_action_space(playground, agent_forward_action)
 
     for _ in range(200):
-        playground.step(commands=commands)
+        playground.step(action)
 
     assert ball.position != (200, 0)
     assert agent.position != (0, 0)

@@ -11,6 +11,7 @@ from spg.agent import Agent
 from spg.agent.device import Device
 from spg.agent.part import ForwardBase, Arm
 from spg.utils.definitions import CollisionTypes
+from spg.utils.actions import fill_action_space
 
 
 class Detector(Device):
@@ -89,6 +90,14 @@ class MockAgent(Agent):
     def _get_base(self):
         return ForwardBase(name="base")
 
+    @property
+    def forward_action(self):
+        
+        agent_forward_action = {self.name: {
+        "base": { "motor": { "forward_force": 1}}}}
+        action = fill_action_space(self.playground, agent_forward_action)
+
+        return action 
 
 class MockAgentWithArm(MockAgent):
     def __init__(self, **kwargs):
@@ -126,3 +135,4 @@ class MockAgentWithTriggerArm(MockAgent):
             rotation_range=math.pi / 4,
         )
         self.base.add(self.right_arm, rel_right)
+

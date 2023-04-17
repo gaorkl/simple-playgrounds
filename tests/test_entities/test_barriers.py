@@ -50,5 +50,5 @@ def test_barrier(barrier_params, entity_transparent, barrier_transparent):
     ent_1 = MockPhysicalMovable(teams=team_entity, transparent=entity_transparent)
     playground.add(ent_1, coord_center)
 
-    playground.step()
+    playground.step(playground.null_action)
     assert barrier_blocks != (ent_1.coordinates == coord_center)

@@ -14,7 +14,7 @@ def test_move_object():
     ball = Ball()
     playground.add(ball, ((100, 20), 0))
 
-    agent = HeadAgent()
+    agent = HeadAgent(name='agent')
     playground.add(agent)
 
     view = TopDownView(playground)
@@ -25,14 +25,7 @@ def test_move_object():
     random.seed(2)
 
     for _ in range(50):
-        commands = {
-            agent: {
-                "forward": random.uniform(0, 1),
-                "angular": random.uniform(-1, 1),
-            }
-        }
-
-        playground.step(commands=commands)
+        playground.step(playground.action_space.sample())
 
     assert ball.position != (200, 0)
     assert agent.position != (0, 0)
@@ -55,7 +48,7 @@ def test_delete_object():
     ball = Ball()
     playground.add(ball, ((100, 0), 0))
 
-    agent = HeadAgent()
+    agent = HeadAgent(name='agent')
     playground.add(agent)
 
     view = TopDownView(playground)
@@ -83,7 +76,7 @@ def test_delete_agent():
     playground = Room(size=(300, 200))
     ball = Ball()
     playground.add(ball, ((100, 0), 0))
-    agent = HeadAgent()
+    agent = HeadAgent(name='agent')
     playground.add(agent)
 
     view = TopDownView(playground)

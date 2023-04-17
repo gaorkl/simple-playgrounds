@@ -16,6 +16,7 @@ from tests.mock_entities import (
 
 coord_center = (0, 0), 0
 
+from spg.utils.actions import fill_action_space
 
 # team of barrier ; team of agent ; is it blocked?
 @pytest.fixture(
@@ -42,13 +43,13 @@ def test_agent_barrier(barrier_params):
     playground.add(agent, coord_center)
 
     for _ in range(1000):
-        playground.step(action={})
+        playground.step(playground.null_action)
 
     barrier = MockBarrier((10, 30), (10, -30), width=10, teams=team_barrier)
     playground.add(barrier, barrier.wall_coordinates)
 
     for _ in range(1000):
-        playground.step(action={})
+        playground.step(playground.null_action)
 
     moved = agent.position != (0, 0)
 
@@ -81,7 +82,7 @@ def test_agent_interacts_passive():
     assert not interactive_part_l.activated
     assert not interactive_part_r.activated
 
-    playground.step({})
+    playground.step(playground.null_action)
 
     assert zone_1.activated
     assert interactive_part_l.activated
@@ -113,7 +114,7 @@ def test_agent_interacts_active():
     assert not zone_1.activated
     assert not zone_2.activated
 
-    playground.step({})
+    playground.step(playground.null_action)
 
     assert not agent.left_arm.trigger.triggered
     assert not agent.right_arm.trigger.triggered
@@ -125,6 +126,8 @@ def test_agent_interacts_active():
                            
               }
 
+    action = fill_action_space(playground, action)
+
     playground.step(action=action)
 
     assert agent.left_arm.trigger.triggered
@@ -132,7 +135,7 @@ def test_agent_interacts_active():
     assert zone_1.activated
     assert not zone_2.activated
 
-    playground.step({})
+    playground.step(playground.null_action)
 
     assert not agent.left_arm.trigger.triggered
     assert not agent.right_arm.trigger.triggered
@@ -160,6 +163,8 @@ def test_agent_grasping():
                 }
             }
         }
+
+    action = fill_action_space(playground, action)
 
     playground.step(action)
 

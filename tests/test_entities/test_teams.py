@@ -53,7 +53,7 @@ def test_team_phys_phys(team_params):
     ent_2 = MockPhysicalInteractive(teams=team_2, interaction_range=10)
     playground.add(ent_2, coord_2)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     triggered = ent_1.halo.activated and ent_2.halo.activated
 
@@ -78,7 +78,7 @@ def test_team_phys_halo(team_params):
     zone_1 = MockZoneInteractive(35, teams=team_2)
     playground.add(zone_1, coord_2)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert (ent_1.halo.activated and zone_1.activated) or (
         (not ent_1.halo.activated) and (not zone_1.activated)

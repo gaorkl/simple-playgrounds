@@ -59,7 +59,7 @@ def test_traversable_traversable():
     ent_2 = MockPhysicalMovable(traversable=True)
     playground.add(ent_2, coord_shift)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert ent_1.coordinates == coord_center
     assert ent_2.coordinates == coord_shift
@@ -77,7 +77,7 @@ def test_traversable_basic():
     ent_2 = MockPhysicalMovable(traversable=True)
     playground.add(ent_2, coord_shift)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert ent_1.coordinates == coord_center
     assert ent_2.coordinates == coord_shift
@@ -93,7 +93,7 @@ def test_basic_basic():
     ent_2 = MockPhysicalUnmovable()
     playground.add(ent_2, coord_shift)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert ent_1.coordinates != coord_center
     assert ent_2.coordinates == coord_shift
@@ -109,7 +109,7 @@ def test_transparent_basic():
     ent_2 = MockPhysicalUnmovable()
     playground.add(ent_2, coord_shift)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert ent_1.coordinates != coord_center
     assert ent_2.coordinates == coord_shift
@@ -125,7 +125,7 @@ def test_transparent_transparent():
     ent_2 = MockPhysicalUnmovable(transparent=True)
     playground.add(ent_2, coord_shift)
 
-    playground.step()
+    playground.step(playground.null_action)
     assert ent_1.coordinates != coord_center
     assert ent_2.coordinates == coord_shift
 
@@ -141,7 +141,7 @@ def test_non_convex_entity():
     playground.add(ent_2, coord_center)
 
     for _ in range(100):
-        playground.step()
+        playground.step(playground.null_action)
 
     assert ent_1.coordinates == coord_center
     assert ent_2.coordinates == coord_center
@@ -156,7 +156,7 @@ def test_non_convex_entity_moving():
     ent_2 = NonConvexC(40, 20)
     playground.add(ent_2, coord_shift)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert ent_1.coordinates != coord_center
     assert ent_2.coordinates != coord_shift
