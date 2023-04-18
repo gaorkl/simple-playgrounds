@@ -10,7 +10,7 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-from ...entity import EmbodiedEntity
+from ....entity import EmbodiedEntity
 from ..device import PocketDevice
 
 SensorValue = Union[np.ndarray, List[np.ndarray]]
@@ -106,6 +106,13 @@ class Sensor(PocketDevice):
     @abstractmethod
     def draw(self):
         ...
+
+    @property
+    def action_space(self):
+        return None
+
+    def apply_action(self, action):
+        pass
 
 
 ##################

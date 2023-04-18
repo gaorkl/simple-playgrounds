@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, List
 import arcade
 import numpy as np
 
-from ...utils.uid import id_to_pixel
-from ...view import TopDownView
+from ....utils.uid import id_to_pixel
+from ....view import TopDownView
 from .sensor import ExternalSensor
 
 if TYPE_CHECKING:

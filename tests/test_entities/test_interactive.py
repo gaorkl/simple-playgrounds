@@ -32,7 +32,7 @@ def test_trigger():
     triggered_2 = MockPhysicalInteractive(radius=10, interaction_range=5)
     playground.add(triggered_2, center_2)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     # Assert activations are correct
     assert trigger_1.halo.activated
@@ -63,7 +63,7 @@ def test_non_convex_entity():
     ent_2 = MockPhysicalInteractive(radius=20, interaction_range=10)
     playground.add(ent_2, coord_center)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert ent_1.coordinates == coord_center
     assert ent_2.coordinates == coord_center
@@ -87,7 +87,7 @@ def test_zone_triggers():
     ent_2 = MockPhysicalInteractive(radius=20, interaction_range=10)
     playground.add(ent_2, coord_center)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert zone_1.coordinates == coord_center
     assert ent_2.coordinates == coord_center
@@ -111,7 +111,7 @@ def test_physical_triggers():
     ent_2 = MockPhysicalInteractive(radius=20, interaction_range=5)
     playground.add(ent_2, coord_center)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert zone_1.coordinates == coord_center
     assert ent_2.coordinates == coord_center
@@ -139,13 +139,13 @@ def test_trigger_same_team():
     )
     playground.add(triggered_1, center_1)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     # Assert activations are correct
     assert trigger_1.halo.activated
     assert triggered_1.halo.activated
 
-    playground.step()
+    playground.step(playground.null_action)
     assert trigger_1.coordinates == center_0
     assert triggered_1.coordinates == center_1
 
@@ -169,7 +169,7 @@ def test_trigger_different_team():
     )
     playground.add(triggered_1, center_1)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     # Assert activations are correct
     assert not trigger_1.halo.activated
@@ -201,7 +201,7 @@ def test_trigger_common_team():
     )
     playground.add(triggered_1, center_1)
 
-    playground.step()
+    playground.step(playground.null_action)
 
     # Assert activations are correct
     assert trigger_1.halo.activated

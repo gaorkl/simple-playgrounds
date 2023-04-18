@@ -1,9 +1,9 @@
 from typing import List, Optional, Type, Union
 
-from ..agent.communicator import Communicator
-from ..agent.controller import Controller
+from ..agent.device.communicator import Communicator
 from ..agent.device import Device
-from ..agent.sensor import Sensor
+from ..agent.device.sensor import Sensor
+from ..agent.part import PhysicalPart
 from ..utils.definitions import CollisionTypes
 from .element import ZoneElement
 
@@ -36,16 +36,16 @@ class SensorDisabler(Disabler):
         super().__init__(disable_cls=sensors)
 
 
-class ControllerDisabler(Disabler):
+class PartDisabler(Disabler):
     def __init__(
         self,
-        controllers: Optional[Union[List[Type[Controller]], Type[Controller]]] = None,
+        parts: Optional[Union[List[Type[PhysicalPart]], Type[PhysicalPart]]] = None,
     ):
 
-        if not controllers:
-            controllers = Controller
+        if not parts:
+            parts = PhysicalPart
 
-        super().__init__(disable_cls=controllers)
+        super().__init__(disable_cls=parts)
 
 
 class CommunicatorDisabler(Disabler):

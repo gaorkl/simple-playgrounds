@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from typing import TYPE_CHECKING
+from gymnasium import Space
 
 from ..device import Device
 
@@ -37,6 +38,6 @@ class Interactor(Device):
 
 
 class ActiveInteractor(Interactor):
-    @abstractmethod
-    def apply_commands(self, **kwargs):
-        ...
+    pass
+
+    

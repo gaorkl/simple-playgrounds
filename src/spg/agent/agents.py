@@ -1,10 +1,9 @@
 import math
 
 from .agent import Agent
-from .communicator import Communicator
-from .interactor import GraspHold
+from .device.interactor import GraspHold
 from .part import ForwardBase, Head
-from .sensor import DistanceSensor, RGBSensor
+from .device.sensor import DistanceSensor, RGBSensor
 
 
 class HeadAgent(Agent):
@@ -12,14 +11,12 @@ class HeadAgent(Agent):
 
         super().__init__(**kwargs)
 
-        base = ForwardBase(linear_ratio=10)
-        self.add(base)
-
-        self.head = Head(rotation_range=math.pi)
-        base.add(self.head)
+        self.head = Head(name='head', rotation_range=math.pi)
+        self.base.add(self.head)
 
         # SENSORS
         self.distance = DistanceSensor(
+            name='distance',
             fov=360,
             resolution=36,
             max_range=100,
@@ -29,6 +26,7 @@ class HeadAgent(Agent):
         self.base.add(self.distance)
 
         self.rgb = RGBSensor(
+            name='rgb',
             fov=180,
             resolution=64,
             max_range=400,
@@ -37,10 +35,10 @@ class HeadAgent(Agent):
         )
         self.head.add(self.rgb)
 
-        # COMMS
-        self.comm = Communicator()
-        self.base.add(self.comm)
-
         # Grapser
-        grasp = GraspHold(base)
+        grasp = GraspHold(self.base, name='grasp')
         self.base.add(grasp)
+
+    def _get_base(self):
+        base = ForwardBase(name='base', linear_ratio=10)
+        return base

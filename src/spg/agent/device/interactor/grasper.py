@@ -1,35 +1,36 @@
 from __future__ import annotations
 
+from gymnasium.spaces import Discrete
+
 from abc import ABC
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pymunk
 
-from ...entity import EmbodiedEntity
-from ...utils.definitions import CollisionTypes
-from ..controller import GrasperController
+from ....entity import EmbodiedEntity
+from ....utils.definitions import CollisionTypes
 from .interactor import ActiveInteractor
 
 if TYPE_CHECKING:
-    from ...entity import Graspable
-    from ..part import PhysicalPart
+    from ....entity import Graspable
+    from ...part import PhysicalPart
 
 
 class Grasper(ActiveInteractor, ABC):
+
     def __init__(
         self, anchor: PhysicalPart, max_grasped: Optional[int] = None, **kwargs
     ):
         super().__init__(anchor=anchor, **kwargs)
 
-        self.grasp_controller = GrasperController("grasper")
-
         self._grasped_entities: List[EmbodiedEntity] = []
-
         self._grasp_joints: Dict[EmbodiedEntity, List[pymunk.PinJoint]] = {}
-
         self._can_grasp = False
-
         self._max_grasped = max_grasped
+
+    @property
+    def action_space(self):
+        return Discrete(2)
 
     @property
     def can_grasp(self):
@@ -112,10 +113,9 @@ class GraspHold(Grasper):
 
         self._is_grasping = False
 
-    def apply_commands(self, **kwargs):
-        command_value = self.grasp_controller.command_value
+    def apply_action(self, action):
 
-        if not command_value:
+        if not action:
             self._release_grasping()
             self._is_grasping = False
         else:
@@ -128,10 +128,9 @@ class GraspHold(Grasper):
 
 
 class GraspMagnet(Grasper):
-    def apply_commands(self, **kwargs):
-        command_value = self.grasp_controller.command_value
+    def apply_action(self, action):
 
-        if not command_value:
+        if not action:
             self._release_grasping()
         else:
             self._can_grasp = True

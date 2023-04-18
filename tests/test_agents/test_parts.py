@@ -4,6 +4,7 @@ import random
 import pytest
 
 from spg.playground.playground import Playground
+from spg.utils.actions import fill_action_space
 from tests.mock_agents import MockAgentWithArm
 
 
@@ -25,7 +26,7 @@ def keep_velocity(request):
 def test_move(pos, angle):
 
     playground = Playground()
-    agent = MockAgentWithArm()
+    agent = MockAgentWithArm(name='agent')
     playground.add(agent, (pos, angle))
 
     assert agent.position.x == pos[0]
@@ -33,7 +34,7 @@ def test_move(pos, angle):
     assert agent.angle == angle % (2 * math.pi)
 
     for _ in range(100):
-        playground.step()
+        playground.step(playground.null_action)
 
     assert agent.position.x == pytest.approx(pos[0], 0.001)
     assert agent.position.y == pytest.approx(pos[1], 0.001)
@@ -45,7 +46,7 @@ def test_move(pos, angle):
 
     # Check that joints are correct. Agent shouldn't move
     for _ in range(100):
-        playground.step()
+        playground.step(playground.null_action)
 
     assert agent.position.x == pytest.approx(random_pos[0], 0.001)
     assert agent.position.y == pytest.approx(random_pos[1], 0.001)
@@ -54,15 +55,13 @@ def test_move(pos, angle):
 def test_move_reset(pos, angle):
 
     playground = Playground()
-    agent = MockAgentWithArm()
-    # agent = MockAgent()
+    agent = MockAgentWithArm(name='agent')
     playground.add(agent, (pos, angle))
 
-    commands = {agent: {"forward": 1}}
 
     # Check that joints are correct. Agent shouldn't move
     for _ in range(100):
-        playground.step(commands=commands)
+        playground.step(agent.forward_action)
 
     assert agent.position.x != pytest.approx(pos[0], 0.001)
     assert agent.position.y != pytest.approx(pos[1], 0.001)
@@ -70,7 +69,7 @@ def test_move_reset(pos, angle):
     playground.reset()
 
     for _ in range(100):
-        playground.step()
+        playground.step(action=playground.null_action)
 
     assert agent.position.x == pytest.approx(pos[0], 0.001)
     assert agent.position.y == pytest.approx(pos[1], 0.001)
@@ -79,21 +78,21 @@ def test_move_reset(pos, angle):
 def test_move_arm(pos, angle):
 
     playground = Playground()
-    agent = MockAgentWithArm()
+    agent = MockAgentWithArm(name='agent')
     playground.add(agent, (pos, angle))
 
     commands = {
-        agent: {
-            "left_joint": 1,
-            "right_joint": -1,
+        agent.name: {
+            "left_arm": {'motor':1},
+            "right_arm": {'motor':-1},
         }
     }
 
+    action = fill_action_space(playground, commands)
+
     # Check that joints are correct. Agent shouldn't move
     for _ in range(1000):
-        playground.step(commands=commands)
-
-    # playground.debug_draw(5, size=(200, 200))
+        playground.step(action)
 
     assert math.pi / 3 + math.pi / 8 - math.pi / 20 < agent.left_arm.relative_angle
     assert agent.left_arm.relative_angle < math.pi / 3 + math.pi / 8

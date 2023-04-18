@@ -1,6 +1,6 @@
 import pytest
 
-from spg.agent.communicator import Communicator, LimitedCommunicator
+from spg.agent.device.communicator import Communicator, LimitedCommunicator
 from spg.playground import Playground
 from tests.mock_agents import MockAgent
 
@@ -9,11 +9,11 @@ def test_equip_communication(comm_radius):
 
     playground = Playground()
 
-    agent_1 = MockAgent()
+    agent_1 = MockAgent(name="agent_1")
     comm_1 = Communicator(transmission_range=comm_radius)
     agent_1.base.add(comm_1)
 
-    agent_2 = MockAgent()
+    agent_2 = MockAgent(name="agent_2")
     comm_2 = Communicator(transmission_range=comm_radius)
     agent_2.base.add(comm_2)
 

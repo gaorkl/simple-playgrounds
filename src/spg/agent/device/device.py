@@ -1,24 +1,26 @@
 from __future__ import annotations
 
 from typing import Optional, Tuple
-
+from abc import abstractmethod, ABC
 from pymunk import Circle
+from gymnasium import spaces
 
 from spg.utils.sprite import get_texture_from_shape
 
-from ..entity import InteractiveAnchored
-from ..utils.definitions import CollisionTypes
+from ...entity import InteractiveAnchored
+from ...utils.definitions import CollisionTypes
 
 DEVICE_RADIUS = 5
 
 
-class Device(InteractiveAnchored):
+class Device(InteractiveAnchored, ABC):
     def __init__(
         self,
+        name,
         **kwargs,
     ):
         super().__init__(
-            **kwargs,
+            name = name, **kwargs,
         )
         self._disabled = False
 
@@ -44,6 +46,15 @@ class Device(InteractiveAnchored):
     def agent(self):
         assert self._anchor
         return self._anchor.agent
+
+    @property
+    @abstractmethod
+    def action_space(self) -> spaces.Space:
+        ...
+
+    @abstractmethod
+    def apply_action(self, action):
+        ...
 
 
 class PocketDevice(Device):

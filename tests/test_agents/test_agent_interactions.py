@@ -2,10 +2,10 @@
 
 import pytest
 
-from spg.agent.interactor import GraspHold
+from spg.agent.device.interactor import GraspHold
 from spg.playground import Playground
 from spg.utils.definitions import CollisionTypes
-from tests.mock_agents import MockAgentWithArm, MockAgentWithTriggerArm, MockHaloPart
+from tests.mock_agents import MockAgentWithArm, MockAgentWithTriggerArm, Detector
 from tests.mock_entities import (
     MockBarrier,
     MockPhysicalMovable,
@@ -16,6 +16,7 @@ from tests.mock_entities import (
 
 coord_center = (0, 0), 0
 
+from spg.utils.actions import fill_action_space
 
 # team of barrier ; team of agent ; is it blocked?
 @pytest.fixture(
@@ -38,17 +39,17 @@ def test_agent_barrier(barrier_params):
 
     playground = Playground()
 
-    agent = MockAgentWithArm(teams=team_agent)
+    agent = MockAgentWithArm(name='agent', teams=team_agent)
     playground.add(agent, coord_center)
 
     for _ in range(1000):
-        playground.step()
+        playground.step(playground.null_action)
 
     barrier = MockBarrier((10, 30), (10, -30), width=10, teams=team_barrier)
     playground.add(barrier, barrier.wall_coordinates)
 
     for _ in range(1000):
-        playground.step()
+        playground.step(playground.null_action)
 
     moved = agent.position != (0, 0)
 
@@ -64,11 +65,11 @@ def test_agent_interacts_passive():
         passive_interaction,
     )
 
-    agent = MockAgentWithArm(teams="team_1")
-    interactive_part_l = MockHaloPart(agent.left_arm)
+    agent = MockAgentWithArm(name='agent', teams="team_1")
+    interactive_part_l = Detector(agent.left_arm, name='part_l')
     agent.left_arm.add(interactive_part_l)
 
-    interactive_part_r = MockHaloPart(agent.right_arm)
+    interactive_part_r = Detector(agent.right_arm, name='part_r')
     agent.right_arm.add(interactive_part_r)
     playground.add(agent)
 
@@ -81,7 +82,7 @@ def test_agent_interacts_passive():
     assert not interactive_part_l.activated
     assert not interactive_part_r.activated
 
-    playground.step()
+    playground.step(playground.null_action)
 
     assert zone_1.activated
     assert interactive_part_l.activated
@@ -99,7 +100,7 @@ def test_agent_interacts_active():
         active_interaction,
     )
 
-    agent = MockAgentWithTriggerArm(teams="team_1")
+    agent = MockAgentWithTriggerArm(name="agent", teams="team_1")
     playground.add(agent)
 
     zone_1 = MockZoneInteractive(10, teams="team_1")
@@ -108,36 +109,36 @@ def test_agent_interacts_active():
     zone_2 = MockZoneInteractive(10, teams="team_2")
     playground.add(zone_2, ((30, -30), 0))
 
-    assert not agent.left_arm.interactor.activated
-    assert not agent.right_arm.interactor.activated
+    assert not agent.left_arm.trigger.triggered
+    assert not agent.right_arm.trigger.triggered
     assert not zone_1.activated
     assert not zone_2.activated
 
-    playground.step()
+    playground.step(playground.null_action)
 
-    assert not agent.left_arm.interactor.activated
-    assert not agent.right_arm.interactor.activated
+    assert not agent.left_arm.trigger.triggered
+    assert not agent.right_arm.trigger.triggered
     assert not zone_1.activated
     assert not zone_2.activated
 
-    print(zone_1.teams, zone_1.pm_shapes[0].filter)
-    print(zone_2.teams, zone_2.pm_shapes[0].filter)
+    action = {agent.name: {"left_arm": { 'trigger':1}, 
+                           "right_arm": {'trigger':1}}
+                           
+              }
 
-    print(agent.left_arm.interactor._teams)
-    print(agent.right_arm.interactor._teams)
-    commands = {agent: {"left_joint_trigger": 1, "right_joint_trigger": 1}}
+    action = fill_action_space(playground, action)
 
-    playground.step(commands=commands)
+    playground.step(action=action)
 
-    assert agent.left_arm.interactor.activated
-    assert agent.right_arm.interactor.activated
+    assert agent.left_arm.trigger.triggered
+    assert agent.right_arm.trigger.triggered
     assert zone_1.activated
     assert not zone_2.activated
 
-    playground.step()
+    playground.step(playground.null_action)
 
-    assert not agent.left_arm.interactor.activated
-    assert not agent.right_arm.interactor.activated
+    assert not agent.left_arm.trigger.triggered
+    assert not agent.right_arm.trigger.triggered
     assert not zone_1.activated
     assert not zone_2.activated
 
@@ -146,20 +147,26 @@ def test_agent_grasping():
 
     playground = Playground()
 
-    agent = MockAgentWithArm()
-    grasper = GraspHold(agent.left_arm)
+    agent = MockAgentWithArm(name="agent")
+    grasper = GraspHold(agent.left_arm, name='grasper')
     agent.left_arm.add(grasper)
     playground.add(agent)
-
-    print(agent.left_arm.devices)
 
     elem = MockPhysicalMovable()
     elem.graspable = True
     playground.add(elem, ((60, 60), 0))
 
-    commands = {agent: {"grasper": 1}}
+    action = {
+        agent.name: {
+            "left_arm": {
+                 "grasper": 1
+                }
+            }
+        }
 
-    playground.step(commands=commands)
+    action = fill_action_space(playground, action)
+
+    playground.step(action)
 
     assert elem in agent.left_arm.grasper._grasped_entities
     assert len(agent.left_arm.grasper._grasped_entities) == 1

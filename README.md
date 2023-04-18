@@ -12,6 +12,12 @@ Agents can act through continuous movements and discrete interactive actions.
 They perceive the scene with realistic first-person view sensors, top-down view sensors, and
 semantic sensors.
 
+# API
+
+Simple PLaygrounds follows the gymnasium environment definitions.
+
+
+
 ![Alt Text](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/assets/spg.gif)
 
 This simulator is easy to handle, and very flexible. It allows very fast design of AI experiments
