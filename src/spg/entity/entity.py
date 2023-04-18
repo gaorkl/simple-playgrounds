@@ -35,7 +35,7 @@ class Entity(ABC):
     ):
 
         # Unique identifiers
-        self._uid = None
+        self._uid : Optional[int] = None
         self._name = name
 
         # Teams
@@ -50,7 +50,7 @@ class Entity(ABC):
 
         self._removed = False
 
-        self._playground = None
+        self._playground : Optional[Playground] = None
 
     @property
     def uid(self):
@@ -89,7 +89,7 @@ class Entity(ABC):
         return self._playground
 
     @playground.setter
-    def playground(self, playground: Optional[Playground]):
+    def playground(self, playground: Playground):
         self._playground = playground
 
     @property
@@ -104,7 +104,7 @@ class Entity(ABC):
 
     def reset(self):
         """
-        Upon reset of the Playgroung,
+        Upon reset of the Playground,
         revert the entity back to its original state.
         """
 
