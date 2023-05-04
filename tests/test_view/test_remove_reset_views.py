@@ -2,9 +2,9 @@ import random
 
 import numpy as np
 
-from spg.agent import HeadAgent
-from spg.element import Ball
-from spg.playground import Room
+from spg import Ball
+from spg import HeadAgent
+from spg import Room
 from spg.view import TopDownView
 
 
@@ -14,7 +14,7 @@ def test_move_object():
     ball = Ball()
     playground.add(ball, ((100, 20), 0))
 
-    agent = HeadAgent(name='agent')
+    agent = HeadAgent(name="agent")
     playground.add(agent)
 
     view = TopDownView(playground)
@@ -48,7 +48,7 @@ def test_delete_object():
     ball = Ball()
     playground.add(ball, ((100, 0), 0))
 
-    agent = HeadAgent(name='agent')
+    agent = HeadAgent(name="agent")
     playground.add(agent)
 
     view = TopDownView(playground)
@@ -76,7 +76,7 @@ def test_delete_agent():
     playground = Room(size=(300, 200))
     ball = Ball()
     playground.add(ball, ((100, 0), 0))
-    agent = HeadAgent(name='agent')
+    agent = HeadAgent(name="agent")
     playground.add(agent)
 
     view = TopDownView(playground)

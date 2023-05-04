@@ -1,14 +1,10 @@
 import pytest
 
-from spg.playground import Playground
-
+from spg.playground import EmptyPlayground
 # Add test Interactions to collisions
-from spg.utils.definitions import CollisionTypes
-from tests.mock_entities import (
-    MockPhysicalInteractive,
-    MockZoneInteractive,
-    passive_interaction,
-)
+from tests.mock_entities import MockStaticElement
+from tests.mock_interactives import ActivableMoving, ActivableZone, MockElementWithHalo, MockDynamicTrigger, \
+    MockStaticTrigger
 
 coord_0 = ((0, 0), 0)
 
@@ -32,58 +28,36 @@ def team_params(request):
     return request.param
 
 
-coord_1 = ((0, 0), 0)
-coord_2 = ((0, 1), 0)
+coord_center = ((0, 0), 0)
+coord_shift = ((0, 1), 0)
 
 
-def test_team_phys_phys(team_params):
+@pytest.mark.parametrize("TestElement", [MockDynamicTrigger, MockStaticTrigger])
+@pytest.mark.parametrize(
+    "Activable", [ActivableMoving, ActivableZone, MockElementWithHalo]
+)
+def test_element_activates(TestElement, Activable, team_params):
 
-    playground = Playground()
-    playground.add_interaction(
-        CollisionTypes.PASSIVE_INTERACTOR,
-        CollisionTypes.PASSIVE_INTERACTOR,
-        passive_interaction,
-    )
+    team_1, team_2, is_interacting = team_params
 
-    team_1, team_2, interacts = team_params
+    playground = EmptyPlayground(size=(100, 100))
 
-    ent_1 = MockPhysicalInteractive(teams=team_1, interaction_range=10)
-    playground.add(ent_1, coord_1)
+    elem = TestElement(teams=team_1)
+    playground.add(elem, coord_center)
 
-    ent_2 = MockPhysicalInteractive(teams=team_2, interaction_range=10)
-    playground.add(ent_2, coord_2)
-
-    playground.step(playground.null_action)
-
-    triggered = ent_1.halo.activated and ent_2.halo.activated
-
-    assert triggered == interacts
-    assert ent_1.coordinates != coord_1 and ent_2.coordinates != coord_2
-
-
-def test_team_phys_halo(team_params):
-
-    playground = Playground()
-    playground.add_interaction(
-        CollisionTypes.PASSIVE_INTERACTOR,
-        CollisionTypes.PASSIVE_INTERACTOR,
-        passive_interaction,
-    )
-
-    team_1, team_2, interacts = team_params
-
-    ent_1 = MockPhysicalInteractive(teams=team_1, interaction_range=10)
-    playground.add(ent_1, coord_1)
-
-    zone_1 = MockZoneInteractive(35, teams=team_2)
-    playground.add(zone_1, coord_2)
+    activable = Activable(teams=team_2)
+    playground.add(activable, coord_shift)
 
     playground.step(playground.null_action)
 
-    assert (ent_1.halo.activated and zone_1.activated) or (
-        (not ent_1.halo.activated) and (not zone_1.activated)
-    )
-    triggered = ent_1.halo.activated and zone_1.activated
+    if isinstance(activable, ActivableZone) and isinstance(elem, MockStaticElement):
+        activated = False
+    else:
+        activated = True
 
-    assert triggered == interacts
-    assert ent_1.coordinates == coord_1 and zone_1.coordinates == coord_2
+    activated = activated and is_interacting
+
+    if isinstance(activable, MockElementWithHalo):
+        assert activable.halo.activated == activated
+    else:
+        assert activable.activated == activated

@@ -5,11 +5,6 @@ import pytest
 ###########################
 
 
-@pytest.fixture(scope="module", params=[1, 5, 10, 20])
-def radius(request):
-    return request.param
-
-
 @pytest.fixture(scope="module", params=["segment", "circle", "square"])
 def geometry(request):
     return request.param

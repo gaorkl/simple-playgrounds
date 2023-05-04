@@ -1,7 +1,7 @@
 import pytest
 
-from spg.agent.device.communicator import Communicator, LimitedCommunicator
-from spg.playground import Playground
+from spg import Communicator, LimitedCommunicator
+from spg import Playground
 from tests.mock_agents import MockAgent
 
 

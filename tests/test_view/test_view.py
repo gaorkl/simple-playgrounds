@@ -2,10 +2,9 @@ import math
 
 import numpy as np
 
-from spg.playground import Playground
+from spg import Playground
 from spg.view import TopDownView
-
-from ..mock_entities import (
+from tests.mock_entities import (
     MockPhysicalFromShape,
     MockPhysicalInteractive,
     MockPhysicalMovable,

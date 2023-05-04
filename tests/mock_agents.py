@@ -2,20 +2,16 @@ from __future__ import annotations
 
 import math
 
-import numpy as np
-import pymunk
-
 from gymnasium import spaces
 
-from spg.agent import Agent
-from spg.agent.device import Device
-from spg.agent.part import ForwardBase, Arm
-from spg.utils.definitions import CollisionTypes
-from spg.utils.actions import fill_action_space
+from spg import Agent
+from spg import Arm, ForwardBase
+from spg import Device
+from spg.definitions import CollisionTypes
+from spg.playground.actions import fill_action_space
 
 
 class Detector(Device):
-
     def __init__(self, anchor, **kwargs):
         super().__init__(anchor=anchor, **kwargs)
         self._activated = False
@@ -74,12 +70,11 @@ class Trigger(Device):
 
 
 class TriggerArm(Arm):
-
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
 
-        self.trigger = Trigger(self, name='trigger')
+        self.trigger = Trigger(self, name="trigger")
         self.add(self.trigger)
 
 
@@ -92,12 +87,12 @@ class MockAgent(Agent):
 
     @property
     def forward_action(self):
-        
-        agent_forward_action = {self.name: {
-        "base": { "motor": { "forward_force": 1}}}}
+
+        agent_forward_action = {self.name: {"base": {"motor": {"forward_force": 1}}}}
         action = fill_action_space(self.playground, agent_forward_action)
 
-        return action 
+        return action
+
 
 class MockAgentWithArm(MockAgent):
     def __init__(self, **kwargs):
@@ -135,4 +130,3 @@ class MockAgentWithTriggerArm(MockAgent):
             rotation_range=math.pi / 4,
         )
         self.base.add(self.right_arm, rel_right)
-

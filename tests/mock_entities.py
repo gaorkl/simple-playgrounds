@@ -1,56 +1,49 @@
+# import numpy as np
+# import pymunk
+#
+# from spg.element import ColorWall, PhysicalElement, ZoneElement
+# from spg.entity import InteractiveAnchored
+# from spg.playground import get_colliding_entities
+
 import numpy as np
 import pymunk
-from arcade.texture import Texture
 from PIL import Image
+from arcade.texture import Texture
 from skimage import draw, morphology
 
-from spg.element import ColorWall, PhysicalElement, ZoneElement
-from spg.entity import InteractiveAnchored
-from spg.playground import get_colliding_entities
-from spg.utils.definitions import CollisionTypes, PymunkCollisionCategories
-from spg.utils.sprite import get_texture_from_shape
+from spg.entity import Element, Entity
+from spg.entity.mixin import (
+    AttachedDynamicMixin,
+    AttachedStaticMixin,
+    BaseDynamicMixin,
+    BaseStaticMixin,
+)
+from spg.entity.mixin.interaction import BarrierMixin
+from spg.entity.mixin.sprite import get_texture_from_shape
 
 
-class MockPhysicalFromResource(PhysicalElement):
-    def __init__(self, filename, **kwargs):
-        super().__init__(mass=10, filename=filename, **kwargs)
+class MockElement(Element):
 
-    @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
-
-
-class MockPhysicalMovable(PhysicalElement):
-    def __init__(self, radius=None, **kwargs):
-
+    def __init__(self, **kwargs):
         super().__init__(
-            mass=10,
-            radius=radius,
             filename=":resources:onscreen_controls/flat_light/play.png",
             **kwargs,
         )
 
-    @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
+
+class MockDynamicElement(MockElement, BaseDynamicMixin):
+
+    def __init__(self, **kwargs):
+        super().__init__(mass=1, **kwargs)
 
 
-class MockPhysicalUnmovable(PhysicalElement):
-    def __init__(self, radius=None, **kwargs):
-
-        super().__init__(
-            radius=radius,
-            filename=":resources:onscreen_controls/flat_light/close.png",
-            **kwargs,
-        )
-
-    @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
+class MockStaticElement(MockElement, BaseStaticMixin):
+    pass
 
 
-class MockPhysicalFromShape(PhysicalElement):
-    def __init__(self, geometry, size, color, mass=None, **kwargs):
+class ElementFromGeometry(Element):
+
+    def __init__(self, geometry, size, color, **kwargs):
 
         if geometry == "segment":
             pm_shape = pymunk.Segment(None, (-size, 0), (size, 0), radius=5)
@@ -65,116 +58,26 @@ class MockPhysicalFromShape(PhysicalElement):
 
         texture = get_texture_from_shape(pm_shape, color, "geometry_" + str(size))
 
-        super().__init__(mass=mass, texture=texture, **kwargs)
-
-    @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
-
-
-class MockHalo(InteractiveAnchored):
-    def __init__(self, anchor: PhysicalElement, interaction_range):
-        super().__init__(anchor, interaction_range)
-        self._activated = False
-
-    @property
-    def _collision_type(self):
-        return CollisionTypes.PASSIVE_INTERACTOR
-
-    def pre_step(self):
-        self._activated = False
-
-    def activate(self):
-        self._activated = True
-
-    @property
-    def activated(self):
-        return self._activated
-
-
-class MockPhysicalInteractive(PhysicalElement):
-    def __init__(self, interaction_range, radius=None, **kwargs):
-
-        super().__init__(
-            radius=radius,
-            mass=10,
-            filename=":resources:onscreen_controls/flat_light/star_round.png",
-            **kwargs,
-        )
-
-        self.halo = MockHalo(
-            self,
-            interaction_range=interaction_range,
-        )
-        self.add(self.halo)
-
-    @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
-
-
-class MockZoneInteractive(ZoneElement):
-    def __init__(self, radius=None, **kwargs):
-        super().__init__(
-            radius=radius,
-            filename=":resources:onscreen_controls/flat_light/star_square.png",
-            **kwargs,
-        )
-        self._activated = False
-
-    @property
-    def _collision_type(self):
-        return CollisionTypes.PASSIVE_INTERACTOR
-
-    def pre_step(self):
-        self._activated = False
-
-    def activate(self):
-        self._activated = True
-
-    @property
-    def activated(self):
-        return self._activated
-
-
-class NonConvexPlus_Approx(MockPhysicalMovable):
-    def __init__(self, radius, width, **kwargs):
-
-        img = np.zeros((2 * radius + 2 * width + 1, 2 * radius + 2 * width + 1, 4))
-
-        rr, cc = draw.line(width, radius + width, width + 2 * radius, radius + width)
-        img[rr, cc, :] = 1
-
-        rr, cc = draw.line(radius + width, width, radius + width, width + 2 * radius)
-        img[rr, cc, :] = 1
-
-        for _ in range(int(width / 2) - 1):
-            img = morphology.binary_dilation(img)
-
-        PIL_image = Image.fromarray(np.uint8(img * 255)).convert("RGBA")
-
-        texture = Texture(
-            name=f"PLus_{radius}_{width}",
-            image=PIL_image,
-            hit_box_algorithm="Detailed",
-            hit_box_detail=2,
-        )
-
         super().__init__(texture=texture, **kwargs)
 
-    @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
+
+class StaticElementFromGeometry(ElementFromGeometry, BaseStaticMixin):
+    pass
 
 
-class NonConvexPlus(MockPhysicalMovable):
+class DynamicElementFromGeometry(ElementFromGeometry, BaseDynamicMixin):
+    def __init__(self, **kwargs):
+        super().__init__(mass=1, **kwargs)
+
+
+class NonConvexPlus_Approx(Element, BaseDynamicMixin):
+
     def __init__(
         self,
         radius,
         width,
-        shape_approximation="decomposition",
+        **kwargs,
     ):
-
         img = np.zeros((2 * radius + 2 * width + 1, 2 * radius + 2 * width + 1, 4))
 
         rr, cc = draw.line(width, radius + width, width + 2 * radius, radius + width)
@@ -197,20 +100,22 @@ class NonConvexPlus(MockPhysicalMovable):
 
         super().__init__(
             texture=texture,
-            shape_approximation=shape_approximation,
+            **kwargs,
         )
 
-    @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
+
+class NonConvexPlus(NonConvexPlus_Approx):
+    def __int__(self):
+        super().__init__(shape_approximation="decomposition")
 
 
-class NonConvexC(MockPhysicalMovable):
+class NonConvexC(Element, BaseDynamicMixin):
+
     def __init__(
         self,
         radius,
         width,
-        shape_approximation="decomposition",
+        **kwargs,
     ):
         img = np.zeros((2 * radius + 2 * width + 1, 2 * radius + 2 * width + 1, 4))
 
@@ -236,53 +141,69 @@ class NonConvexC(MockPhysicalMovable):
 
         super().__init__(
             texture=texture,
-            shape_approximation=shape_approximation,
+            shape_approximation="decomposition",
+            **kwargs,
+        )
+
+
+class MockAttachment(Entity, AttachedDynamicMixin):
+
+    def __init__(self, **kwargs):
+        super().__init__(
+            mass=1,
+            filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
+            sprite_front_is_up=True,
+            **kwargs,
+        )
+
+    def _get_joint(self):
+        joint = pymunk.PivotJoint(
+            self.anchor.pm_body,
+            self.pm_body,
+            self.anchor.attachment_points[self][0],
+            self.attachment_point,
+        )
+        joint.collide_bodies = False
+        return joint
+
+    @property
+    def attachment_point(self):
+        return -self.radius, 0
+
+
+class MockFixedAttachment(Entity, AttachedStaticMixin):
+
+    def __init__(self, **kwargs):
+        super().__init__(
+            filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
+            sprite_front_is_up=True,
+            **kwargs,
         )
 
     @property
-    def _collision_type(self):
-        return CollisionTypes.ELEMENT
+    def attachment_point(self):
+        return -self.radius, 0
 
 
-class MockBarrier(ColorWall):
-    def __init__(self, begin_pt, end_pt, width, **kwargs):
+class MockElemWithAttachment(MockDynamicElement):
 
-        super().__init__(begin_pt, end_pt, width=width, color=(0, 10, 2), **kwargs)
+    def __init__(self, anchor_point, relative_angle, **kwargs):
 
-    def update_team_filter(self):
+        super().__init__(**kwargs)
 
-        assert self._playground
-
-        categ = 2**PymunkCollisionCategories.NO_TEAM.value
-        for team in self._teams:
-            categ = categ | 2 ** self._playground.teams[team]
-
-        mask = 0
-        for team_name, team_id in self._playground.teams.items():
-            if team_name not in self._teams:
-                mask = mask | 2**team_id
-
-        for pm_shape in self.pm_shapes:
-            pm_shape.filter = pymunk.ShapeFilter(categories=categ, mask=mask)
+        self.arm = MockAttachment()
+        self.add(self.arm, anchor_point, relative_angle)
 
 
-def active_interaction(arbiter, _, data):
+class MockElemWithFixedAttachment(MockDynamicElement):
+    def __init__(self, anchor_point, relative_angle, **kwargs):
 
-    playground = data["playground"]
-    (activator, _), (activated, _) = get_colliding_entities(playground, arbiter)
+        super().__init__(**kwargs)
 
-    if activator.activated:
-        activated.activate()
-
-    return True
+        self.arm = MockFixedAttachment()
+        self.add(self.arm, anchor_point, relative_angle)
 
 
-def passive_interaction(arbiter, _, data):
+class MockBarrier(MockStaticElement, BarrierMixin):
+    pass
 
-    playground = data["playground"]
-    (activated_1, _), (activated_2, _) = get_colliding_entities(playground, arbiter)
-
-    activated_1.activate()
-    activated_2.activate()
-
-    return True

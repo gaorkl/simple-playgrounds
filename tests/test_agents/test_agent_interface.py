@@ -2,15 +2,16 @@
 
 import pytest
 
-from spg.playground import Playground
+from spg import Playground
+from spg.playground.actions import fill_action_space
 from tests.mock_agents import MockAgent, MockAgentWithArm, MockAgentWithTriggerArm
 from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
-from spg.utils.actions import fill_action_space
+
 
 def test_agent_in_playground():
 
     playground = Playground()
-    agent = MockAgentWithArm(name='agent')
+    agent = MockAgentWithArm(name="agent")
     playground.add(agent)
 
     assert agent in playground.agents
@@ -46,20 +47,20 @@ def test_agent_in_playground():
 def test_action_spaces():
 
     playground = Playground(size=(200, 200))
-    agent = MockAgentWithTriggerArm(name='agent')
+    agent = MockAgentWithTriggerArm(name="agent")
     playground.add(agent)
 
     for i in range(100):
         action = playground.action_space.sample()
         playground.step(action)
 
-    assert agent.position != (0,0)
+    assert agent.position != (0, 0)
 
 
 def test_null_action():
 
     playground = Playground(size=(200, 200))
-    agent = MockAgentWithTriggerArm(name='agent')
+    agent = MockAgentWithTriggerArm(name="agent")
     playground.add(agent)
 
     for i in range(100):
@@ -69,8 +70,7 @@ def test_null_action():
     for i in range(1000):
         playground.step(playground.null_action)
 
-    assert pytest.approx(agent.base.velocity) == (0,0)
-
+    assert pytest.approx(agent.base.velocity) == (0, 0)
 
 
 def test_forward():
@@ -79,12 +79,7 @@ def test_forward():
     agent = MockAgent(name="agent")
     playground.add(agent)
 
-    action = {agent.name: {
-        "base":{
-            "motor":{'forward_force': 0.9}
-        }
-    }
-                }
+    action = {agent.name: {"base": {"motor": {"forward_force": 0.9}}}}
 
     assert agent.position == (0, 0)
 
@@ -109,12 +104,7 @@ def test_rotate():
     agent = MockAgent(name="agent")
     playground.add(agent)
 
-    action = {agent.name: {
-        "base":{
-            "motor":{'angular_velocity': 0.9}
-        }
-    }
-                }
+    action = {agent.name: {"base": {"motor": {"angular_velocity": 0.9}}}}
 
     assert agent.position == (0, 0)
     assert agent.angle == 0
@@ -128,7 +118,7 @@ def test_rotate():
 def test_agent_initial_position():
 
     playground = Playground()
-    agent = MockAgent(name='agent')
+    agent = MockAgent(name="agent")
     playground.add(agent)
 
     assert agent.position == (0, 0)
@@ -138,18 +128,13 @@ def test_agent_initial_position():
 def test_agent_forward_movable():
 
     playground = Playground()
-    agent = MockAgent(name='agent')
+    agent = MockAgent(name="agent")
     playground.add(agent)
 
     obstacle = MockPhysicalMovable()
     playground.add(obstacle, ((100, 0), 0))
 
-    action = {agent.name: {
-        "base":{
-            "motor":{'forward_force': 0.9}
-        }
-    }
-                }
+    action = {agent.name: {"base": {"motor": {"forward_force": 0.9}}}}
 
     for _ in range(100):
         playground.step(action)
@@ -165,7 +150,7 @@ def test_agent_overlapping():
     unmovable = MockPhysicalUnmovable(radius=4)
     playground.add(unmovable, ((0, 0), 0))
 
-    agent = MockAgent(name='agent')
+    agent = MockAgent(name="agent")
 
     with pytest.raises(ValueError):
         playground.add(agent, allow_overlapping=False)

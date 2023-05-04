@@ -12,6 +12,7 @@ Agents can act through continuous movements and discrete interactive actions.
 They perceive the scene with realistic first-person view sensors, top-down view sensors, and
 semantic sensors.
 
+
 # API
 
 Simple PLaygrounds follows the gymnasium environment definitions.

@@ -3,8 +3,8 @@ import random
 
 import pytest
 
-from spg.playground.playground import Playground
-from spg.utils.actions import fill_action_space
+from spg import Playground
+from spg.playground.actions import fill_action_space
 from tests.mock_agents import MockAgentWithArm
 
 
@@ -26,7 +26,7 @@ def keep_velocity(request):
 def test_move(pos, angle):
 
     playground = Playground()
-    agent = MockAgentWithArm(name='agent')
+    agent = MockAgentWithArm(name="agent")
     playground.add(agent, (pos, angle))
 
     assert agent.position.x == pos[0]
@@ -55,9 +55,8 @@ def test_move(pos, angle):
 def test_move_reset(pos, angle):
 
     playground = Playground()
-    agent = MockAgentWithArm(name='agent')
+    agent = MockAgentWithArm(name="agent")
     playground.add(agent, (pos, angle))
-
 
     # Check that joints are correct. Agent shouldn't move
     for _ in range(100):
@@ -78,13 +77,13 @@ def test_move_reset(pos, angle):
 def test_move_arm(pos, angle):
 
     playground = Playground()
-    agent = MockAgentWithArm(name='agent')
+    agent = MockAgentWithArm(name="agent")
     playground.add(agent, (pos, angle))
 
     commands = {
         agent.name: {
-            "left_arm": {'motor':1},
-            "right_arm": {'motor':-1},
+            "left_arm": {"motor": 1},
+            "right_arm": {"motor": -1},
         }
     }
 
