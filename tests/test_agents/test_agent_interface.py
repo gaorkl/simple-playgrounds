@@ -1,16 +1,12 @@
-# pylint: disable=protected-access
-
 import pytest
 
-from spg import Playground
-from spg.playground.actions import fill_action_space
-from tests.mock_agents import MockAgent, MockAgentWithArm, MockAgentWithTriggerArm
-from tests.mock_entities import MockPhysicalMovable, MockPhysicalUnmovable
+from spg.playground import EmptyPlayground
 
 
+@pytest.mark.parametrize("Agent", [MockAgentWithArm, MockAgentWithTriggerArm])
 def test_agent_in_playground():
 
-    playground = Playground()
+    playground = EmptyPlayground()
     agent = MockAgentWithArm(name="agent")
     playground.add(agent)
 

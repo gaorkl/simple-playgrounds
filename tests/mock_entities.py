@@ -19,7 +19,7 @@ from spg.entity.mixin import (
     BaseStaticMixin,
 )
 from spg.entity.mixin.interaction import BarrierMixin
-from spg.entity.mixin.sprite import get_texture_from_shape
+from spg.entity.mixin.sprite import get_texture_from_geometry
 
 
 class MockElement(Element):
@@ -43,22 +43,12 @@ class MockStaticElement(MockElement, BaseStaticMixin):
 
 class ElementFromGeometry(Element):
 
-    def __init__(self, geometry, size, color, **kwargs):
+    def __init__(self, **kwargs):
 
-        if geometry == "segment":
-            pm_shape = pymunk.Segment(None, (-size, 0), (size, 0), radius=5)
-        elif geometry == "circle":
-            pm_shape = pymunk.Circle(None, size)
-        elif geometry == "square":
-            pm_shape = pymunk.Poly(
-                None, ((-size, -size), (-size, size), (size, size), (size, -size))
-            )
-        else:
-            raise ValueError
+        texture, offset = get_texture_from_geometry(**kwargs)
+        self.offset = offset
 
-        texture = get_texture_from_shape(pm_shape, color, "geometry_" + str(size))
-
-        super().__init__(texture=texture, **kwargs)
+        super().__init__(texture=texture, shape_approximation='decomposition', **kwargs)
 
 
 class StaticElementFromGeometry(ElementFromGeometry, BaseStaticMixin):

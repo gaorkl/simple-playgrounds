@@ -10,20 +10,19 @@ from spg.definitions import INVISIBLE_ALPHA
 
 
 class SpriteMixin:
-
     uid: int
 
     def __init__(
-        self,
-        filename: Optional[str] = None,
-        texture: Optional[Texture] = None,
-        radius: Optional[float] = None,
-        width: Optional[float] = None,
-        height: Optional[float] = None,
-        sprite_front_is_up: bool = False,
-        color: Optional[Tuple[int, int, int]] = None,
-        transparency: Optional[float] = None,
-        **_,
+            self,
+            filename: Optional[str] = None,
+            texture: Optional[Texture] = None,
+            radius: Optional[float] = None,
+            width: Optional[float] = None,
+            height: Optional[float] = None,
+            sprite_front_is_up: bool = False,
+            color: Optional[Tuple[int, int, int]] = None,
+            transparency: Optional[float] = None,
+            **_,
     ):
 
         assert texture is not None or filename is not None
@@ -125,13 +124,13 @@ class SpriteMixin:
             for j in range(img_uid.size[1]):
 
                 if pixels_texture[i, j][3] == 0:
-                    pixels[i, j] = (0, 0, 0, 0)
+                    pixels[i, j] = (0, 0, 0, 0)  # type: ignore
 
-                elif pixels_texture[i, j][:3] != (0, 0, 0):  # type: ignore
+                elif pixels_texture[i, j][:3] != (0, 0, 0):
                     pixels[i, j] = self.color_uid  # type: ignore
 
                 else:
-                    pixels[i, j] = (0, 0, 0, 0)
+                    pixels[i, j] = (0, 0, 0, 0)  # type: ignore
 
         texture = Texture(
             name=str(self.uid),
@@ -143,49 +142,58 @@ class SpriteMixin:
         return texture
 
 
-def get_texture_from_shape(pm_shape, color, name_texture):
-
+def get_texture_from_geometry(geometry: str,
+                              radius: Optional[int] = None,
+                              size: Optional[Tuple[int, int]] = None,
+                              vertices: Optional[np.ndarray] = None,
+                              color: Optional[Tuple[int, int, int]] = None,
+                              name_texture: Optional[str] = None,
+                              **_: object,
+                              ) -> object:
     color_rgba = list(color) + [255]
 
-    if isinstance(pm_shape, pymunk.Segment):
-        radius = int(pm_shape.radius)
-        length = int((pm_shape.a - pm_shape.b).length)
-        img = np.zeros((radius, length, 4))
+    offset = 0, 0
+
+    if geometry == "rectangle":
+        assert size is not None, "Size must be provided for rectangle"
+        assert len(size) == 2, "Size must be a tuple of length 2"
+        img = np.zeros((*size, 4), dtype=np.uint8)
         img[:, :] = color_rgba
 
-    elif isinstance(pm_shape, pymunk.Circle):
-        radius = int(pm_shape.radius)
-
+    elif geometry == "circle":
+        assert radius is not None, "Radius must be provided for circle"
         img = np.zeros((2 * radius + 1, 2 * radius + 1, 4))
         rr, cc = disk((radius, radius), radius)
         img[rr, cc] = color_rgba
 
-    elif isinstance(pm_shape, pymunk.Poly):
-        vertices = pm_shape.get_vertices()
+    elif geometry == "polygon":
+        assert vertices is not None, "Vertices must be provided for polygon"
+        assert vertices.ndim == 2, "Vertices must be a 2D array"
+        assert vertices.shape[1] == 2, "Vertices must have 2 columns (x, y)"
 
-        top = max(vert[0] for vert in vertices)
-        bottom = min(vert[0] for vert in vertices)
-        left = min(vert[1] for vert in vertices)
-        right = max(vert[1] for vert in vertices)
+        bottom, left = np.min(vertices, axis=0)
+        top, right = np.max(vertices, axis=0)
 
-        w = int(right - left)
-        h = int(top - bottom)
+        r = [y - left for x, y in vertices]
+        c = [x - bottom for x, y in vertices]
 
-        center = int(h / 2), int(w / 2)
+        rr, cc = polygon(c, r)
 
-        img = np.zeros((h, w, 4))
-        r = [y + center[0] for x, y in vertices]
-        c = [x + center[1] for x, y in vertices]
-
-        rr, cc = polygon(r, c, (h, w))
-
+        # create image based on rr, cc
+        img = np.zeros((int(np.max(rr))+1, int(np.max(cc))+1, 4))
         img[rr, cc] = color_rgba
 
+        # rotate image by 90 degrees
+        img = np.rot90(img, k=1)
+
+        center = (top - bottom) // 2, (right - left) // 2
+
+        offset = int(bottom) + center[0], int(left) + center[1]
+
     else:
-        raise ValueError
+        raise ValueError(f"Invalid shape: {geometry}")
 
-    PIL_image = Image.fromarray(np.uint8(img)).convert("RGBA")
-
+    PIL_image = Image.fromarray(np.uint8(img))
     texture = Texture(
         name=name_texture,
         image=PIL_image,
@@ -193,4 +201,4 @@ def get_texture_from_shape(pm_shape, color, name_texture):
         hit_box_detail=1,
     )
 
-    return texture
+    return texture, offset

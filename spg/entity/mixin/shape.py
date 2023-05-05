@@ -1,10 +1,15 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, TYPE_CHECKING
 
+import arcade
 import pymunk
+from pymunk import autogeometry
 
 from spg.definitions import ELASTICITY_ENTITY, FRICTION_ENTITY
+
+if TYPE_CHECKING:
+    from spg.entity import Entity
 
 Teams = Union[str, List[str]]
 
@@ -13,6 +18,13 @@ class ShapeMixin:
     """
     Mixin for entities with shapes.
     """
+
+    sprite: arcade.Sprite
+    scale: float
+    radius: float
+    pm_body: pymunk.Body
+    collision_type: int
+    attached: List[Entity]
 
     def __init__(
         self,
@@ -56,13 +68,13 @@ class ShapeMixin:
 
         elif shape_approximation == "decomposition":
 
-            if not pymunk.autogeometry.is_closed(vertices):
+            if not autogeometry.is_closed(vertices):
                 vertices += [vertices[0]]
 
             if pymunk.area_for_poly(vertices) < 0:
                 vertices = list(reversed(vertices))
 
-            list_vertices = pymunk.autogeometry.convex_decomposition(
+            list_vertices = autogeometry.convex_decomposition(
                 vertices, tolerance=0.5
             )
 

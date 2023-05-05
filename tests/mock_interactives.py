@@ -64,3 +64,48 @@ class MockStaticTrigger(MockStaticElement):
 
 class MockDynamicTrigger(MockDynamicElement):
     collision_type = CollisionTypes.TRIGGER
+
+
+class ActivableZoneTeleport(ActivableZone):
+
+    entities_to_move = []
+
+    def __init__(self, teleport_coordinates, **kwargs):
+        super().__init__(**kwargs)
+
+        self.teleport_coordinates = teleport_coordinates
+
+    def activate(self, entity, **kwargs):
+        self.entities_to_move.append(entity.base)
+        self.activated = True
+
+    def pre_step(self):
+        super().pre_step()
+        self.activated = False
+        self.entities_to_move = []
+
+    def post_step(self):
+
+        for entity in set(self.entities_to_move):
+            self.entities_to_move.remove(entity)
+            entity.move_to(self.teleport_coordinates)
+
+
+class ActivableZoneRemove(ActivableZone):
+
+    entities_to_remove = []
+
+    def activate(self, entity, **kwargs):
+        self.activated = True
+        self.entities_to_remove.append(entity)
+
+    def pre_step(self):
+        super().pre_step()
+        self.activated = False
+        self.entities_to_remove = []
+
+    def post_step(self):
+        for entity in set(self.entities_to_remove):
+            self.entities_to_remove.remove(entity)
+            self.playground.remove(entity)
+

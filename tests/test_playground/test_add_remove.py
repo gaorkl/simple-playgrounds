@@ -1,122 +1,91 @@
-# pylint: disable=protected-access
+import pytest
 
-from spg.playground import Playground
-from tests.mock_entities import (
-    MockPhysicalInteractive,
-    MockPhysicalMovable,
-    MockZoneInteractive,
-)
+from spg.playground import EmptyPlayground
+from tests.mock_entities import MockDynamicElement, MockStaticElement, MockElemWithAttachment, \
+    MockElemWithFixedAttachment
+from tests.mock_interactives import MockElementWithHalo
 
 coord_center = (0, 0), 0
 
 
-def test_playground_interface_basic_element():
+class MockPlayground(EmptyPlayground):
 
-    playground = Playground()
+    def __init__(self, elem_cls, *args, **kwargs):
+        self.elem_cls = elem_cls
+        super().__init__(*args, **kwargs)
 
-    assert not playground._elements
-
-    ent_1 = MockPhysicalMovable()
-    playground.add(ent_1, coord_center)
-    assert ent_1 in playground.elements
-
-    playground.remove(ent_1)
-    assert ent_1 not in playground.elements
-    assert ent_1 in playground._elements
-    assert ent_1._removed
-
-    playground.reset()
-
-    assert ent_1 in playground.elements
-    assert not ent_1.removed
-
-    playground.remove(ent_1, definitive=True)
-
-    assert ent_1 not in playground.elements
-    assert ent_1 not in playground._elements
-    assert ent_1._removed
-
-    playground.reset()
-
-    assert ent_1 not in playground.elements
-    assert ent_1 not in playground._elements
-    assert ent_1._removed
-
-    assert not playground.space.shapes
-    assert not playground.space.bodies
+    def place_elements(self):
+        self.elem = self.elem_cls()
+        self.add(self.elem, coord_center)
 
 
-def test_playground_interface_interactive_element():
+# test for MockDynamicElement, MockStaticElement, MockElemWithFixedAttachment, MockElemWithAttachment
+@pytest.mark.parametrize("TestElement",
+                         [MockDynamicElement, MockStaticElement, MockElementWithHalo])
+def test_playground_interface_basic_element(TestElement):
+    playground = MockPlayground(TestElement, size=(100, 100))
 
-    playground = Playground()
+    assert len(playground.elements) == 1
+    assert playground.elem in playground.elements
 
-    assert not playground._elements
+    elem_2 = TestElement()
+    playground.add(elem_2, coord_center)
 
-    ent_1 = MockZoneInteractive(35)
-    playground.add(ent_1, coord_center)
+    assert len(playground.elements) == 2
+    assert elem_2 in playground.elements
 
-    assert ent_1 in playground.elements
+    playground.remove(elem_2)
+    assert len(playground.elements) == 1
+    assert elem_2 not in playground.elements
 
-    playground.remove(ent_1)
-
-    assert ent_1 not in playground.elements
-    assert ent_1 in playground._elements
-    assert ent_1._removed
-
-    playground.reset()
-
-    assert ent_1 in playground.elements
-    assert not ent_1.removed
-
-    playground.remove(ent_1, definitive=True)
-
-    assert ent_1 not in playground.elements
-    assert ent_1 not in playground._elements
-    assert ent_1._removed
-
-    playground.reset()
-
-    assert ent_1 not in playground.elements
-    assert ent_1 not in playground._elements
-    assert ent_1._removed
+    playground.remove(playground.elem)
+    assert len(playground.elements) == 0
+    assert playground.elem not in playground.elements
 
     assert not playground.space.shapes
     assert not playground.space.bodies
 
-
-def test_playground_interface_anchored_interactive_element():
-
-    playground = Playground()
-
-    assert not playground._elements
-
-    ent_1 = MockPhysicalInteractive(radius=20, interaction_range=10)
-    playground.add(ent_1, coord_center)
-
-    assert ent_1 in playground.elements
-
-    playground.remove(ent_1)
-
-    assert ent_1 not in playground.elements
-    assert ent_1 in playground._elements
-    assert ent_1._removed
-
     playground.reset()
 
-    assert ent_1 in playground.elements
-    assert not ent_1.removed
+    assert len(playground.elements) == 1
+    assert playground.elem in playground.elements
+    assert elem_2 not in playground.elements
 
-    playground.remove(ent_1, definitive=True)
 
-    assert ent_1 not in playground.elements
-    assert ent_1 not in playground._elements
-    assert ent_1._removed
+# test with MockElemWithFixedAttachment, MockElemWithAttachment
+@pytest.mark.parametrize("TestElement", [MockElemWithFixedAttachment, MockElemWithAttachment])
+def test_playground_interface_attached_element(TestElement):
 
-    playground.reset()
+    playground = EmptyPlayground(size=(100, 100))
 
-    assert ent_1 not in playground.elements
-    assert ent_1 not in playground._elements
-    assert ent_1._removed
+    elem_1 = TestElement((0,0), 0)
+
+    playground.add(elem_1, coord_center)
+
+    assert len(playground.elements) == 1
+    assert elem_1 in playground.elements
+
+    elem_2 = TestElement((0,0), 0)
+
+    playground.add(elem_2, coord_center)
+    assert len(playground.elements) == 2
+    assert elem_2 in playground.elements
+
+    playground.remove(elem_1)
+    assert len(playground.elements) == 1
+
+    playground.remove(elem_2)
+    assert len(playground.elements) == 0
 
     assert not playground.space.shapes
     assert not playground.space.bodies
+
+    playground.reset()
+
+    assert len(playground.elements) == 0
+    assert elem_1 not in playground.elements
+    assert elem_2 not in playground.elements
+
+    assert not playground.space.shapes
+    assert not playground.space.bodies
+

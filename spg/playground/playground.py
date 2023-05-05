@@ -165,6 +165,9 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
         if not entity.name:
             entity.name = f"{entity.__class__.__name__}_{entity.uid}"
 
+        if entity.name in self.name_to_agents:
+            raise ValueError(f"Agent {entity.name} already exists in the playground")
+
         if isinstance(entity, Element):
             self.elements.append(entity)
 
@@ -204,18 +207,21 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
 
         self.uids_to_entities.pop(entity.uid)
 
-        self.space.remove(entity.pm_body, *entity.pm_shapes)
+        if entity.pm_body is not None:
+            self.space.remove(entity.pm_body)
+
+        self.space.remove(*entity.pm_shapes)
 
         for attached_entity in entity.attached:
             self.remove(attached_entity)
 
-            if attached_entity.joint is not None:
+            if hasattr(entity, 'joint') and entity.joint is not None:
                 self.space.remove(attached_entity.joint)
 
-            if attached_entity.motor is not None:
+            if hasattr(entity, 'motor') and entity.motor is not None:
                 self.space.remove(attached_entity.motor)
 
-            if attached_entity.limit is not None:
+            if hasattr(entity, 'limit') and entity.limit is not None:
                 self.space.remove(attached_entity.limit)
 
         for view in self.views:

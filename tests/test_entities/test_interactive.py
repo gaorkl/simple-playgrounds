@@ -2,7 +2,7 @@ import pytest
 
 from spg.playground import EmptyPlayground
 from tests.mock_interactives import ActivableMoving, ActivableZone, MockElementWithHalo, MockDynamicTrigger, \
-    MockStaticTrigger
+    MockStaticTrigger, ActivableZoneTeleport, ActivableZoneRemove
 
 coord_center = (0, 0), 0
 coord_shift = (0, 1), 0.3
@@ -31,7 +31,6 @@ def test_activable_element_activates_zone():
     "Activable", [ActivableMoving, ActivableZone, MockElementWithHalo]
 )
 def test_element_activates(TestElement, Activable):
-
     playground = EmptyPlayground(size=(100, 100))
 
     elem = TestElement()
@@ -54,7 +53,6 @@ def test_element_activates(TestElement, Activable):
 
 
 def test_halo_doesnt_activate_itself():
-
     playground = EmptyPlayground(size=(200, 200))
 
     elem = MockElementWithHalo()
@@ -67,7 +65,6 @@ def test_halo_doesnt_activate_itself():
 
 @pytest.mark.parametrize("TestElement", [ActivableMoving, ActivableZone])
 def test_far_doesnt_activate(TestElement):
-
     playground = EmptyPlayground(size=(200, 200))
 
     elem = MockDynamicTrigger(radius=10)
@@ -79,3 +76,38 @@ def test_far_doesnt_activate(TestElement):
     playground.step(playground.null_action)
 
     assert not activ.activated
+
+
+@pytest.mark.parametrize("angle", [0, 0.5, 1])
+@pytest.mark.parametrize("position", [(0, 0), (50, 50), (-100, 100)])
+def test_activate_move(angle, position):
+    playground = EmptyPlayground(size=(200, 200))
+
+    elem = MockDynamicTrigger()
+    playground.add(elem, coord_center)
+
+    activ = ActivableZoneTeleport(teleport_coordinates=(position, angle))
+    playground.add(activ, coord_shift)
+
+    playground.step(playground.null_action)
+
+    assert elem.position == position
+    assert elem.angle == angle
+
+    assert activ.activated
+
+
+def test_activate_remove():
+    playground = EmptyPlayground(size=(200, 200))
+
+    elem = MockDynamicTrigger()
+    playground.add(elem, coord_center)
+
+    activ = ActivableZoneRemove()
+    playground.add(activ, coord_shift)
+
+    playground.step(playground.null_action)
+
+    assert elem not in playground.elements
+    assert activ.activated
+
