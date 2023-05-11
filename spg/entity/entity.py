@@ -4,8 +4,8 @@ from abc import ABC
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import pymunk
+from gymnasium import spaces
 
-from spg.definitions import CollisionTypes
 from spg.position import Coordinate
 from .mixin import (
     ActionMixin,
@@ -16,6 +16,7 @@ from .mixin import (
     SpriteMixin,
 )
 from .mixin.body import BodyMixin
+from ..playground.collision import CollisionTypes
 
 if TYPE_CHECKING:
     from ..playground import Playground
@@ -56,6 +57,16 @@ class Entity(SpriteMixin, BodyMixin, ShapeMixin, ABC):
         self.attached: List[Entity] = []
         self.attachment_points: Dict[Entity, Coordinate] = {}
         self.anchor: Optional[Entity] = None
+
+    @property
+    def all_attached(self):
+        """
+        Returns all entities attached to the agent.
+        """
+        attached = self.attached.copy()
+        for entity in self.attached:
+            attached.extend(entity.all_attached)
+        return attached
 
     def pre_step(self):
         """
@@ -111,3 +122,38 @@ class Agent(Entity, BaseMixin, ActionMixin, ObservationMixin):
     def post_step(self):
         super().post_step()
         self.cumulative_reward += self.reward
+
+    @property
+    def agent_action_space(self):
+
+        act_space = {self.name: self.action_space }
+
+        # Add attached entities' action spaces
+        for attached in self.all_attached:
+            if hasattr(attached, 'action_space'):
+                act_space[attached.name] = attached.action_space
+
+        return spaces.Dict(act_space)
+
+    def agent_apply_action(self, action):
+
+        self.apply_action(action[self.name])
+
+        # Apply attached entities' actions
+        for attached in self.all_attached:
+            if hasattr(attached, 'apply_action'):
+                attached.apply_action(action[attached.name])
+
+    @property
+    def agent_observation_space(self):
+
+        obs_space = {self.name: self.observation_space }
+
+        # Add attached entities' observation spaces
+        for attached in self.all_attached:
+            if hasattr(attached, 'observation_space'):
+                obs_space[attached.name] = attached.observation_space
+
+        return spaces.Dict(obs_space)
+
+

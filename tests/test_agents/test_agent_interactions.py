@@ -1,164 +1,141 @@
 # pylint: disable=protected-access
+import math
 
+import numpy as np
 import pytest
 
-from spg.agent.device.interactor import GraspHold
-from spg.definitions import CollisionTypes
-from spg.playground import Playground
-from tests.mock_agents import Detector, MockAgentWithArm, MockAgentWithTriggerArm
-from tests.mock_entities import (
-    MockBarrier,
-    MockPhysicalMovable,
-    MockZoneInteractive,
-    active_interaction,
-    passive_interaction,
-)
+from spg.playground import EmptyPlayground
+from tests.mock_agents import DynamicAgentWithTrigger, DynamicAgentWithArm, DynamicAgent, StaticAgentWithTrigger, \
+    DynamicAgentWithGrasper, MockGraspable
+from tests.mock_entities import MockBarrier
+from tests.mock_interactives import ActivableZone
 
 coord_center = (0, 0), 0
 
 from spg.playground.actions import fill_action_space
 
 
-# team of barrier ; team of agent ; is it blocked?
-@pytest.fixture(
-    scope="module",
-    params=[
-        ("team_0", "team_0", False),
-        ("team_0", None, False),
-        (None, "team_0", True),
-        ("team_0", "team_1", True),
-        (["team_0", "team_1"], "team_0", False),
-    ],
-)
-def barrier_params(request):
-    return request.param
+@pytest.mark.parametrize("Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger])
+def test_agent_barrier(Agent):
+    playground = EmptyPlayground(size=(100, 100))
+
+    agent = Agent(name="agent", arm_position=(0, 0), arm_angle=0)
+
+    barrier = MockBarrier()
+    playground.add(barrier, coord_center)
+
+    barrier.block(agent)
+
+    for _ in range(1000):
+        playground.step(playground.null_action)
+
+    assert agent.position != coord_center
 
 
-def test_agent_barrier(barrier_params):
+@pytest.mark.parametrize("Agent", [StaticAgentWithTrigger, DynamicAgentWithTrigger])
+def test_agent_interacts_activable(Agent):
+    playground = EmptyPlayground(size=(100, 100))
 
-    team_barrier, team_agent, barrier_blocks = barrier_params
-
-    playground = Playground()
-
-    agent = MockAgentWithArm(name="agent", teams=team_agent)
+    agent = Agent(name="agent", arm_position=(0, 0), arm_angle=0)
     playground.add(agent, coord_center)
 
-    for _ in range(1000):
-        playground.step(playground.null_action)
+    zone = ActivableZone(radius=100)
+    playground.add(zone, coord_center)
 
-    barrier = MockBarrier((10, 30), (10, -30), width=10, teams=team_barrier)
-    playground.add(barrier, barrier.wall_coordinates)
-
-    for _ in range(1000):
-        playground.step(playground.null_action)
-
-    moved = agent.position != (0, 0)
-
-    assert barrier_blocks == moved
-
-
-def test_agent_interacts_passive():
-
-    playground = Playground()
-    playground.add_interaction(
-        CollisionTypes.PASSIVE_INTERACTOR,
-        CollisionTypes.PASSIVE_INTERACTOR,
-        passive_interaction,
-    )
-
-    agent = MockAgentWithArm(name="agent", teams="team_1")
-    interactive_part_l = Detector(agent.left_arm, name="part_l")
-    agent.left_arm.add(interactive_part_l)
-
-    interactive_part_r = Detector(agent.right_arm, name="part_r")
-    agent.right_arm.add(interactive_part_r)
-    playground.add(agent)
-
-    zone_1 = MockZoneInteractive(10, teams="team_1")
-    playground.add(zone_1, ((30, 30), 0))
-
-    zone_2 = MockZoneInteractive(10, teams="team_2")
-    playground.add(zone_2, ((30, -30), 0))
-
-    assert not interactive_part_l.activated
-    assert not interactive_part_r.activated
+    assert not agent.trigger.activated
 
     playground.step(playground.null_action)
 
-    assert zone_1.activated
-    assert interactive_part_l.activated
-
-    assert not zone_2.activated
-    assert not interactive_part_r.activated
-
-
-def test_agent_interacts_active():
-
-    playground = Playground()
-    playground.add_interaction(
-        CollisionTypes.ACTIVE_INTERACTOR,
-        CollisionTypes.PASSIVE_INTERACTOR,
-        active_interaction,
-    )
-
-    agent = MockAgentWithTriggerArm(name="agent", teams="team_1")
-    playground.add(agent)
-
-    zone_1 = MockZoneInteractive(10, teams="team_1")
-    playground.add(zone_1, ((30, 30), 0))
-
-    zone_2 = MockZoneInteractive(10, teams="team_2")
-    playground.add(zone_2, ((30, -30), 0))
-
-    assert not agent.left_arm.trigger.triggered
-    assert not agent.right_arm.trigger.triggered
-    assert not zone_1.activated
-    assert not zone_2.activated
-
-    playground.step(playground.null_action)
-
-    assert not agent.left_arm.trigger.triggered
-    assert not agent.right_arm.trigger.triggered
-    assert not zone_1.activated
-    assert not zone_2.activated
-
-    action = {agent.name: {"left_arm": {"trigger": 1}, "right_arm": {"trigger": 1}}}
-
-    action = fill_action_space(playground, action)
-
-    playground.step(action=action)
-
-    assert agent.left_arm.trigger.triggered
-    assert agent.right_arm.trigger.triggered
-    assert zone_1.activated
-    assert not zone_2.activated
-
-    playground.step(playground.null_action)
-
-    assert not agent.left_arm.trigger.triggered
-    assert not agent.right_arm.trigger.triggered
-    assert not zone_1.activated
-    assert not zone_2.activated
+    assert zone.activated
+    assert agent.trigger.activated
 
 
 def test_agent_grasping():
+    playground = EmptyPlayground(size=(100, 100))
 
-    playground = Playground()
+    agent = DynamicAgentWithGrasper(name="agent", arm_position=(10, 10), arm_angle=math.pi / 4, grasper_radius=20)
+    playground.add(agent, coord_center)
 
-    agent = MockAgentWithArm(name="agent")
-    grasper = GraspHold(agent.left_arm, name="grasper")
-    agent.left_arm.add(grasper)
-    playground.add(agent)
+    elem = MockGraspable()
+    playground.add(elem, ((50, 50), 0))
 
-    elem = MockPhysicalMovable()
-    elem.graspable = True
-    playground.add(elem, ((60, 60), 0))
-
-    action = {agent.name: {"left_arm": {"grasper": 1}}}
-
+    action = {agent.name: {agent.grasper.name: 1}}
     action = fill_action_space(playground, action)
 
     playground.step(action)
 
-    assert elem in agent.left_arm.grasper._grasped_entities
-    assert len(agent.left_arm.grasper._grasped_entities) == 1
+    assert elem in agent.grasper.grasped
+    assert len(agent.grasper.grasped) == 1
+
+    playground.step(playground.null_action)
+
+    assert elem not in agent.grasper.grasped
+    assert len(agent.grasper.grasped) == 0
+    assert len(elem.grasped_by) == 0
+
+
+def test_agent_grasping_multiple():
+    playground = EmptyPlayground(size=(100, 100))
+
+    agent = DynamicAgentWithGrasper(name="agent", arm_position=(10, 10), arm_angle=math.pi / 4, grasper_radius=20,
+                                    rotation_range=math.pi / 2)
+    playground.add(agent, coord_center)
+
+    elem1 = MockGraspable()
+    playground.add(elem1, ((50, 50), 0))
+
+    elem3 = MockGraspable()
+    playground.add(elem3, ((50, 50), 0))
+
+    elem2 = MockGraspable()
+    playground.add(elem2, ((-50, 50), 0))
+
+    action = {agent.name: {agent.grasper.name: 1}}
+    action = fill_action_space(playground, action)
+
+    playground.step(action)
+
+    assert elem1 in agent.grasper.grasped
+    assert elem3 in agent.grasper.grasped
+    assert elem2 not in agent.grasper.grasped
+    assert len(agent.grasper.grasped) == 2
+
+    playground.step(playground.null_action)
+
+    assert elem1 not in agent.grasper.grasped
+    assert elem2 not in agent.grasper.grasped
+    assert len(agent.grasper.grasped) == 0
+    assert len(elem1.grasped_by) == 0
+    assert len(elem2.grasped_by) == 0
+
+
+def test_grasp_then_move():
+
+    playground = EmptyPlayground(size=(100, 100))
+
+    agent = DynamicAgentWithGrasper(name="agent", arm_position=(10, 10), arm_angle=math.pi / 4, grasper_radius=20,
+                                    rotation_range=math.pi / 2)
+
+    playground.add(agent, coord_center)
+
+    elem1 = MockGraspable()
+    playground.add(elem1, ((50, 50), 0))
+
+    # calculate distance between agent and elem1
+    distance = math.sqrt((agent.position[0] - elem1.position[0]) ** 2 + (agent.position[1] - elem1.position[1]) ** 2)
+
+    for _ in range(100):
+        base_action = np.random.rand(3) * 2 - 1
+        action = {agent.name: {agent.grasper.name: 1, agent.name: base_action}}
+        action = fill_action_space(playground, action)
+        playground.step(action)
+
+    assert elem1 in agent.grasper.grasped
+    assert len(agent.grasper.grasped) == 1
+
+    new_distance = math.sqrt(
+        (agent.position[0] - elem1.position[0]) ** 2 + (agent.position[1] - elem1.position[1]) ** 2)
+
+    assert new_distance == pytest.approx(distance, rel = 0.1)
+    assert agent.position != coord_center[0]
+    assert elem1.position != (50, 50)

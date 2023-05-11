@@ -12,7 +12,7 @@ from tests.mock_entities import (
     NonConvexC,
     NonConvexPlus,
     NonConvexPlus_Approx,
-    StaticElementFromGeometry,
+    StaticElementFromGeometry, MockStaticElementFromTexture,
 )
 
 coord_center = (0, 0), 0
@@ -71,7 +71,7 @@ def test_size_entities_rectangle(size):
 
 
 # test polygon with variations of vertices
-@pytest.mark.parametrize('vertices', [4, 5, 6])
+@pytest.mark.parametrize('vertices', [3, 4, 5, 6])
 def test_size_entities_polygon(vertices):
     playground = EmptyPlayground(size=(100, 100))
 
@@ -244,3 +244,84 @@ def test_shape_approximation(shape_approx):
     ent_1 = NonConvexPlus_Approx(20, 10, shape_approximation=shape_approx, mass=1)
 
     playground.add(ent_1, coord)
+
+
+@pytest.mark.parametrize("radius", [10, 20, 30])
+@pytest.mark.parametrize("vertices", [3, 4, 5])
+def test_entity_size(vertices, radius):
+
+    playground = EmptyPlayground(size=(100, 100))
+
+    # get regular vertices centered at (0, 0) as a np array
+    vertices = np.array(
+        [
+            (
+                math.cos(2 * math.pi * i / vertices) * radius,
+                math.sin(2 * math.pi * i / vertices) * radius,
+            )
+            for i in range(vertices)
+        ]
+    )
+
+    ent_1 = StaticElementFromGeometry(geometry="polygon", vertices=vertices, color=(0, 0, 1))
+    playground.add(ent_1, coord_center)
+
+    assert ent_1.radius == pytest.approx(radius, rel=0.2)
+
+
+
+@pytest.mark.parametrize("radius", [2, 3, 4, 5, 10, 20])
+@pytest.mark.parametrize("base_radius", [2, 3, 4, 5, 10, 20])
+def test_size_entities_radius(radius, base_radius):
+
+    base_entity = StaticElementFromGeometry(geometry="circle", radius=base_radius, color=(0, 0, 1))
+
+    texture = base_entity.texture
+
+    ent_1 = MockStaticElementFromTexture(texture=texture, radius=radius, color=(0, 0, 1))
+
+    assert ent_1.radius == pytest.approx(radius, 1)
+    assert ent_1.height == ent_1.width == pytest.approx(math.sqrt(2) * radius, 1)
+    assert ent_1.sprite.height / ent_1.sprite.scale == base_entity.sprite.height
+
+
+# test rectangle with variations of size
+@pytest.mark.parametrize("scale", [0.5, 1, 5, 10])
+def test_entity_scale(scale):
+
+    ent_base = MockDynamicElement()
+    radius_base = ent_base.radius
+
+    ent_1 = MockDynamicElement(radius = radius_base*scale)
+
+    assert ent_1.radius == pytest.approx(radius_base * scale, rel=0.2)
+
+
+def test_small_triangle():
+
+    playground = EmptyPlayground(size=(100, 100))
+
+    vertices = 3
+    radius = 10
+
+    # get regular vertices centered at (0, 0) as a np array
+    vertices = np.array(
+        [
+            (
+                math.cos(2 * math.pi * i / vertices) * radius,
+                math.sin(2 * math.pi * i / vertices) * radius,
+            )
+            for i in range(vertices)
+        ]
+    )
+
+    ent_1 = DynamicElementFromGeometry(geometry="polygon", vertices=vertices, color=(0, 0, 255))
+    playground.add(ent_1, coord_center)
+
+    # plt_draw(playground)
+    # plt.imshow(ent_1.texture.image)
+    # plt.show()
+
+    assert playground.space.point_query((0,0), max_distance=0, shape_filter=pymunk.ShapeFilter())
+
+

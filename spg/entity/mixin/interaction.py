@@ -9,13 +9,14 @@ if TYPE_CHECKING:
     from spg.entity import Entity, Agent
     from spg.playground import Playground
 
-from spg.definitions import CollisionTypes
+from spg.playground.collision import CollisionTypes
 
 
 class ActivableMixin:
 
     activated = False
     collision_type = CollisionTypes.ACTIVABLE
+    teams: List[str]
 
     @abstractmethod
     def activate(self, entity, **kwargs):
@@ -78,7 +79,12 @@ class BarrierMixin:
                 self.block(attached)
 
     def _block(self, entity):
+
+        if not hasattr(self, 'index_barrier'):
+            raise AttributeError('playground not set')
+
         for pm_shape in entity.pm_shapes:
             categories = pm_shape.filter.categories | 2**self.index_barrier
             mask = pm_shape.filter.mask | 2**self.index_barrier
             pm_shape.filter = pymunk.ShapeFilter(categories=categories, mask=mask)
+

@@ -6,7 +6,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from spg.definitions import CollisionTypes
 from spg.entity import (
     Entity,
     Graspable,
@@ -14,6 +13,7 @@ from spg.entity import (
     InteractiveZone,
     PhysicalEntity,
 )
+from spg.playground.collision import CollisionTypes
 
 
 class SceneElement(ABC):

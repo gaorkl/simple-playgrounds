@@ -1,5 +1,5 @@
-from spg.definitions import CollisionTypes
 from .element import PhysicalElement, RewardElement
+from ..playground.collision import CollisionTypes
 
 
 class Chest(PhysicalElement):

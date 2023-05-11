@@ -106,6 +106,9 @@ class BaseMixin(BodyMixin):
         for attached_entity in self.attached:
             attached_entity.move_relative()
 
+        if self.pm_body.space:
+            self.pm_body.space.reindex_shapes_for_body(self.pm_body)
+
     def fix_attached(self):
         for attachment in self.attached:
             attachment.fix()
@@ -139,7 +142,7 @@ class AttachmentMixin(BodyMixin):
         ...
 
     @property
-    def relative_coordinate(self):
+    def initial_relative_coordinate(self):
 
         anchor_attachment_point, relative_angle = self.anchor.attachment_points[self]
         anchor_attachment_point = pymunk.Vec2d(*anchor_attachment_point)
@@ -223,15 +226,23 @@ class AttachedDynamicMixin(AttachmentMixin):
 
     def _move_relative(self):
         position_anchor = pymunk.Vec2d(*self.anchor.position)
-        angle_anchor = self.anchor.angle
+        angle_anchor = self.anchor.pm_body.angle
 
-        position_entity = position_anchor + self.relative_coordinate[0].rotated(
+        position_entity = position_anchor + self.initial_relative_coordinate[0].rotated(
             angle_anchor
         )
-        angle_entity = angle_anchor + self.relative_coordinate[1]
+        angle_entity = angle_anchor + self.initial_relative_coordinate[1]
 
         self.pm_body.position = position_entity
         self.pm_body.angle = angle_entity
+
+        self.pm_body.velocity = 0, 0
+        self.pm_body.angular_velocity = 0
+        self.pm_body.force = (0, 0)
+        self.pm_body.torque = 0
+
+        if hasattr(self, "motor") and self.motor is not None:
+            self.motor.rate = 0
 
         if self.pm_body.space:
             self.pm_body.space.reindex_shapes_for_body(self.pm_body)

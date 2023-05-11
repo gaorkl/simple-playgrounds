@@ -2,10 +2,7 @@ import matplotlib.pyplot as plt
 import pymunk
 
 
-def debug_draw(playground, plt_width=10, center=None, size=None):
-
-    # todo: replace magic number by size calculation
-    # depending on object position (boundingbox)
+def plt_draw(playground, plt_width=10, center=None, size=None):
 
     if not center:
         center = (0, 0)

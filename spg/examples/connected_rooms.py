@@ -4,7 +4,7 @@ from spg import Chest, Coin
 from spg import ConnectedRooms, Playground, get_colliding_entities
 from spg import HeadAgent
 from spg import TiledLongColorWall
-from spg.definitions import CollisionTypes
+from spg.playground.collision import CollisionTypes
 from spg.view import HeadAgentGUI
 
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional, Tuple
 
 import numpy as np
@@ -5,8 +7,6 @@ import pymunk
 from PIL import Image
 from arcade import Sprite, Texture
 from skimage.draw import disk, polygon
-
-from spg.definitions import INVISIBLE_ALPHA
 
 
 class SpriteMixin:
@@ -179,14 +179,23 @@ def get_texture_from_geometry(geometry: str,
 
         rr, cc = polygon(c, r)
 
+        center = int((top - bottom) // 2), int((right - left) // 2)
+
         # create image based on rr, cc
+        # mask = np.zeros((int(np.max(rr))+1, int(np.max(cc))+1))
         img = np.zeros((int(np.max(rr))+1, int(np.max(cc))+1, 4))
+        # mask[rr, cc] = 1
+        # print(mask[center])
+        #
+        # flood_fill(mask, center, 2, connectivity=1, in_place=True)
+        # img[mask == 2] = color_rgba
+
         img[rr, cc] = color_rgba
+
 
         # rotate image by 90 degrees
         img = np.rot90(img, k=1)
 
-        center = (top - bottom) // 2, (right - left) // 2
 
         offset = int(bottom) + center[0], int(left) + center[1]
 
@@ -202,3 +211,7 @@ def get_texture_from_geometry(geometry: str,
     )
 
     return texture, offset
+
+
+VISIBLE_ALPHA = 255
+INVISIBLE_ALPHA = 75

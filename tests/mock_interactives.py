@@ -1,4 +1,3 @@
-from spg.definitions import CollisionTypes
 from spg.entity import Entity, Element
 from spg.entity.mixin import (
     ActivableMixin,
@@ -6,6 +5,7 @@ from spg.entity.mixin import (
     BaseDynamicMixin,
     BaseStaticMixin,
 )
+from spg.playground.collision import CollisionTypes
 from tests.mock_entities import MockElement, MockStaticElement, MockDynamicElement
 
 

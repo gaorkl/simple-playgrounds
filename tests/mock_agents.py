@@ -1,37 +1,44 @@
 import math
 
 import pymunk
-from gym.vector.utils import spaces
+from gymnasium import spaces
 
+from spg.agent.grasper import GrasperHold, GraspableMixin
+from spg.definitions import ANGULAR_VELOCITY
 from spg.entity import Agent, Entity
 from spg.entity.mixin import BaseStaticMixin, AttachedDynamicMixin, ActionMixin, ActivableMixin, AttachedStaticMixin, \
     BaseDynamicMixin
+from spg.entity.mixin.sprite import get_texture_from_geometry
+from tests.mock_entities import MockDynamicElement
 
 
-class MockAgent(Agent, BaseDynamicMixin):
+class MockAgent(Agent):
 
     def __init__(self, **kwargs):
         super().__init__(
-        mass=30,
         filename=":spg:puzzle/element/element_blue_square.png",
         sprite_front_is_up=True,
         shape_approximation="decomposition",
         **kwargs,
     )
 
-    def _apply_action(self, action):
-        pass
+    def apply_action(self, action):
+
+        forward_force, lateral_force, angular_velocity = action
+
+        self.pm_body.apply_force_at_local_point(
+            pymunk.Vec2d(forward_force, lateral_force) * 100, (0, 0)
+        )
+
+        self.pm_body.angular_velocity = angular_velocity * 0.3
 
     @property
     def action_space(self):
-        return None
+        return spaces.Box(low=-1, high=1, shape=(3,))
 
     @property
     def observation_space(self):
         return None
-
-
-
 
 
 class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
@@ -41,7 +48,6 @@ class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
             mass=1,
             filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
             sprite_front_is_up=True,
-            **kwargs,
         )
 
         self.rotation_range = rotation_range
@@ -59,33 +65,58 @@ class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
     def _get_limit(self):
 
         relative_angle = self.anchor.attachment_points[self][1]
+        relative_angle = self.pm_body.angle - self.anchor.pm_body.angle
+
         limit = pymunk.RotaryLimitJoint(
             self.anchor.pm_body,
             self.pm_body,
             relative_angle - self.rotation_range / 2,
             relative_angle + self.rotation_range / 2,
         )
+        limit.collide_bodies = False
         return limit
 
+
     def _get_motor(self):
-        return pymunk.SimpleMotor(self.anchor.pm_body, self.pm_body, 0)
+        motor = pymunk.SimpleMotor(self.anchor.pm_body, self.pm_body, 0)
+        motor.max_force = 10
+        motor.collide_bodies = False
+        return motor
 
     @property
     def attachment_point(self):
-        return -self.radius, 0
+        return -self.radius, 0.
 
     @property
     def action_space(self):
         return spaces.Box(-1, 1, shape=(1,))
 
     def apply_action(self, action):
-        self.motor.rate = action[0] * self.rotation_range
+        self.motor.rate = action * ANGULAR_VELOCITY
+        #
+        # relative_angle = self.anchor.angle - self.angle
+        #
+        # angle_centered = relative_angle % (2 * math.pi)
+        # angle_centered = (
+        #     angle_centered - 2 * math.pi if angle_centered > math.pi else angle_centered
+        # )
+        #
+        # # Do not set the motor if the limb is close to limit
+        # if (angle_centered < -self.rotation_range / 2 + math.pi / 20) and action < 0:
+        #     self.motor.rate = 0
+        #
+        # elif (angle_centered > self.rotation_range / 2 - math.pi / 20) and action > 0:
+        #     self.motor.rate = 0
 
+        pass
 
 class Trigger(Entity, ActivableMixin, AttachedStaticMixin):
 
     def __init__(self, **kwargs):
-        super().__init__(ghost=True, **kwargs)
+
+        texture, _ = get_texture_from_geometry(geometry='circle', radius=20, color = (255, 0, 0))
+
+        super().__init__(ghost=True, texture=texture, **kwargs)
 
         self.triggered = False
 
@@ -108,7 +139,8 @@ class Trigger(Entity, ActivableMixin, AttachedStaticMixin):
         if action == 1:
             self.triggered = True
 
-class StaticAgent(Agent, BaseStaticMixin):
+
+class StaticAgent(MockAgent, BaseStaticMixin):
     pass
 
 
@@ -129,6 +161,57 @@ class StaticAgentWithTrigger(StaticAgentWithArm):
         self.arm.add(self.trigger, (self.radius, 0))
 
 
+class DynamicAgent(MockAgent, BaseDynamicMixin):
+
+    def __init__(self, **kwargs):
+        super().__init__(mass = 10, **kwargs)
+
+
+class DynamicAgentWithArm(DynamicAgent):
+    def __init__(self, arm_position, arm_angle, rotation_range, **kwargs):
+
+        super().__init__(**kwargs)
+
+        self.arm = MockAttachedPart(rotation_range=rotation_range)
+        self.add(self.arm, arm_position, arm_angle)
+
+
+class DynamicAgentWithTrigger(DynamicAgentWithArm):
+    def __init__(self, arm_position, arm_angle, **kwargs):
+
+        super().__init__(arm_position, arm_angle, **kwargs)
+
+        self.trigger = Trigger()
+        self.arm.add(self.trigger, (self.radius, 0))
+
+
+class GrasperHand(Entity, AttachedStaticMixin, GrasperHold):
+
+    def __init__(self, grasper_radius, **kwargs):
+
+        texture, _ = get_texture_from_geometry(geometry='circle', radius=grasper_radius, color = (255, 0, 0))
+
+        super().__init__(
+            texture=texture,
+            ghost=True,
+            **kwargs,
+        )
+    def attachment_point(self):
+        return 0, 0
+
+
+class DynamicAgentWithGrasper(DynamicAgentWithArm):
+
+    def __init__(self, arm_position, arm_angle, grasper_radius, **kwargs):
+
+        super().__init__(arm_position, arm_angle, **kwargs)
+
+        self.grasper = GrasperHand(grasper_radius=grasper_radius)
+        self.arm.add(self.grasper, (self.arm.radius, 0))
+
+
+class MockGraspable(MockDynamicElement, GraspableMixin):
+    pass
 
 #
 # class Detector(Device):

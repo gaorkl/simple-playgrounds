@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
+from collections import namedtuple
 from typing import List, Optional, Union
 
 import numpy as np
@@ -205,3 +206,6 @@ class ExternalSensor(Sensor, ABC):
     def pre_step(self):
         super().pre_step()
         self._require_invisible_update = False
+
+
+Detection = namedtuple("Detection", "entity, distance, angle")

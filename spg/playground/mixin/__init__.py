@@ -1,4 +1,4 @@
-from .space_management import SpaceManager
-from .view_management import ViewManager
+from .space import SpaceManager
+from .view import ViewManager
 
 __all__ = ["ViewManager", "SpaceManager"]

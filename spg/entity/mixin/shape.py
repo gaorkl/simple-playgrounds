@@ -6,8 +6,6 @@ import arcade
 import pymunk
 from pymunk import autogeometry
 
-from spg.definitions import ELASTICITY_ENTITY, FRICTION_ENTITY
-
 if TYPE_CHECKING:
     from spg.entity import Entity
 
@@ -124,3 +122,7 @@ class ShapeMixin:
         for entity in self.attached:
             all_shapes += entity.get_all_shapes()
         return all_shapes
+
+
+FRICTION_ENTITY = 0.8
+ELASTICITY_ENTITY = 0.5

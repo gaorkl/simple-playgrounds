@@ -3,98 +3,84 @@ import random
 
 import pytest
 
-from spg import Playground
+from spg.playground import EmptyPlayground
 from spg.playground.actions import fill_action_space
-from tests.mock_agents import MockAgentWithArm
+from tests.mock_agents import DynamicAgentWithArm, DynamicAgentWithTrigger
+
+center_coord = (0, 0), 0
 
 
-@pytest.fixture(scope="module", params=[(20, 20), (-20, -20), (10, -10)])
-def pos(request):
-    return request.param
+# parametrize decorator with marks for position, angle, and rotational_range, separately
+@pytest.mark.parametrize("pos", [(20, 20), (-20, -20), (10, -10)])
+@pytest.mark.parametrize("angle", [-2, 1, 2, 6])
+@pytest.mark.parametrize("arm_angle", [-math.pi / 4, math.pi / 3, 0])
+@pytest.mark.parametrize("rotation_range", [math.pi / 4, math.pi / 3, math.pi / 2])
+@pytest.mark.parametrize("arm_position", [(10, 10), (-10, -10), (10, -10)])
+@pytest.mark.parametrize("Agent", [DynamicAgentWithArm, DynamicAgentWithTrigger])
+def test_move(pos, angle,arm_angle, rotation_range, arm_position, Agent):
 
+    playground = EmptyPlayground(size=(100, 100))
 
-@pytest.fixture(scope="module", params=[-4, 2, 1])
-def angle(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[True, False])
-def keep_velocity(request):
-    return request.param
-
-
-def test_move(pos, angle):
-
-    playground = Playground()
-    agent = MockAgentWithArm(name="agent")
+    agent = Agent(name="agent", arm_position=arm_position, arm_angle=arm_angle, rotation_range=rotation_range)
     playground.add(agent, (pos, angle))
 
-    assert agent.position.x == pos[0]
-    assert agent.position.y == pos[1]
-    assert agent.angle == angle % (2 * math.pi)
+    # plt_draw(playground)
 
     for _ in range(100):
         playground.step(playground.null_action)
+        # plt_draw(playground)
 
-    assert agent.position.x == pytest.approx(pos[0], 0.001)
-    assert agent.position.y == pytest.approx(pos[1], 0.001)
+    assert agent.position == pos
+    assert agent.angle == angle % (2 * math.pi)
+
+    for _ in range(100):
+        playground.step(playground.action_space.sample())
+
+    assert agent.position != pos
+    assert agent.angle != angle % (2 * math.pi)
 
     random_pos = (random.uniform(-10, 10), random.uniform(-10, 10))
     random_angle = random.uniform(-10, 10)
 
     agent.move_to((random_pos, random_angle))
 
+    assert agent.position == random_pos
+    assert agent.angle == random_angle % (2 * math.pi)
+
     # Check that joints are correct. Agent shouldn't move
     for _ in range(100):
         playground.step(playground.null_action)
 
-    assert agent.position.x == pytest.approx(random_pos[0], 0.001)
-    assert agent.position.y == pytest.approx(random_pos[1], 0.001)
+    assert agent.position == pytest.approx(random_pos, 0.001)
+    assert agent.angle == pytest.approx(random_angle% (2 * math.pi), 0.001)
 
 
-def test_move_reset(pos, angle):
+@pytest.mark.parametrize("arm_angle", [0, math.pi / 2, -math.pi, -math.pi / 3])
+@pytest.mark.parametrize("rotation_range", [math.pi / 4, math.pi / 3, math.pi / 2])
+@pytest.mark.parametrize("arm_position", [(10, 10), (-10, -10), (10, -10)])
+@pytest.mark.parametrize("action", [-1, 1])
+def test_move_arm(arm_position, arm_angle, rotation_range, action):
+    playground = EmptyPlayground(size=(100, 100))
 
-    playground = Playground()
-    agent = MockAgentWithArm(name="agent")
-    playground.add(agent, (pos, angle))
+    agent = DynamicAgentWithArm(name="agent", arm_position=arm_position, arm_angle=arm_angle,
+                                rotation_range=rotation_range)
+    playground.add(agent, center_coord)
 
-    # Check that joints are correct. Agent shouldn't move
-    for _ in range(100):
-        playground.step(agent.forward_action)
+    max_angle = - action * rotation_range / 2
 
-    assert agent.position.x != pytest.approx(pos[0], 0.001)
-    assert agent.position.y != pytest.approx(pos[1], 0.001)
-
-    playground.reset()
-
-    for _ in range(100):
-        playground.step(action=playground.null_action)
-
-    assert agent.position.x == pytest.approx(pos[0], 0.001)
-    assert agent.position.y == pytest.approx(pos[1], 0.001)
-
-
-def test_move_arm(pos, angle):
-
-    playground = Playground()
-    agent = MockAgentWithArm(name="agent")
-    playground.add(agent, (pos, angle))
-
-    commands = {
+    arm_action = fill_action_space(playground, {
         agent.name: {
-            "left_arm": {"motor": 1},
-            "right_arm": {"motor": -1},
+            agent.arm.name: action,
         }
-    }
+    })
 
-    action = fill_action_space(playground, commands)
-
-    # Check that joints are correct. Agent shouldn't move
     for _ in range(1000):
-        playground.step(action)
+        playground.step(arm_action)
 
-    assert math.pi / 3 + math.pi / 8 - math.pi / 20 < agent.left_arm.relative_angle
-    assert agent.left_arm.relative_angle < math.pi / 3 + math.pi / 8
+    arm_angle_test = (agent.arm.pm_body.angle - agent.pm_body.angle - arm_angle) % (2 * math.pi)
 
-    assert -math.pi / 3 - math.pi / 8 < agent.right_arm.relative_angle
-    assert agent.right_arm.relative_angle < -math.pi / 3 - math.pi / 8 + math.pi / 20
+    if arm_angle_test > math.pi:
+        arm_angle_test = arm_angle_test - 2 * math.pi
+
+    assert arm_angle_test == pytest.approx(max_angle, 0.001)
+

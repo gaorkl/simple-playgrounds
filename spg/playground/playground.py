@@ -12,13 +12,14 @@ from gymnasium.core import ActType
 from spg.playground.actions import zero_action_space
 from spg.position import Coordinate, CoordinateSampler
 from .mixin import SpaceManager, ViewManager
+from .mixin.collision import CollisionManager
 from ..entity import Agent, Element, Entity
 
 if TYPE_CHECKING:
     from ..entity.mixin.interaction import BarrierMixin
 
 
-class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
+class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC):
     def __init__(self, size: Tuple[int, int], **kwargs) -> None:
 
         self.size = size
@@ -43,7 +44,7 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
 
     @property
     def action_space(self):
-        return spaces.Dict({agent.name: agent.action_space for agent in self.agents})
+        return spaces.Dict({agent.name: agent.agent_action_space for agent in self.agents})
 
     @property
     def null_action(self):
@@ -52,7 +53,7 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
     @property
     def observation_space(self):
         return spaces.Dict(
-            {agent.name: agent.observation_space for agent in self.agents}
+            {agent.name: agent.agent_observation_space for agent in self.agents}
         )
 
     ###############
@@ -74,7 +75,7 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
 
         for agent_name, agent_action in action.items():
             agent = self.name_to_agents[agent_name]
-            agent.apply_action(agent_action)
+            agent.agent_apply_action(agent_action)
 
         self.pymunk_step()
 
@@ -121,6 +122,7 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
 
         # Initialization of the pymunk space, modelling all the physics
         self.initialize_space()
+        self.add_interactions()
 
         for view in self.views:
             view.reset()
@@ -173,6 +175,10 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
 
         elif isinstance(entity, Agent):
             self.agents.append(entity)
+
+            if entity.name in self.name_to_agents:
+                raise ValueError(f"Agent {entity.name} already exists in the playground")
+            
             self.name_to_agents[entity.name] = entity
 
         self.shapes_to_entities.update({shape: entity for shape in entity.pm_shapes})
@@ -215,13 +221,13 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, ABC):
         for attached_entity in entity.attached:
             self.remove(attached_entity)
 
-            if hasattr(entity, 'joint') and entity.joint is not None:
+            if hasattr(attached_entity, 'joint') and attached_entity.joint is not None:
                 self.space.remove(attached_entity.joint)
 
-            if hasattr(entity, 'motor') and entity.motor is not None:
+            if hasattr(attached_entity, 'motor') and attached_entity.motor is not None:
                 self.space.remove(attached_entity.motor)
 
-            if hasattr(entity, 'limit') and entity.limit is not None:
+            if hasattr(attached_entity, 'limit') and attached_entity.limit is not None:
                 self.space.remove(attached_entity.limit)
 
         for view in self.views:

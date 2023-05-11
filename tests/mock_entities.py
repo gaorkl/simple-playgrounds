@@ -30,6 +30,8 @@ class MockElement(Element):
             **kwargs,
         )
 
+class MockStaticElementFromTexture(Element, BaseStaticMixin):
+    pass
 
 class MockDynamicElement(MockElement, BaseDynamicMixin):
 
@@ -197,3 +199,6 @@ class MockElemWithFixedAttachment(MockDynamicElement):
 class MockBarrier(MockStaticElement, BarrierMixin):
     pass
 
+
+class MockPhysicalFromResource(Element, BaseStaticMixin):
+    pass

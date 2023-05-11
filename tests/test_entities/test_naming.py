@@ -1,7 +1,7 @@
 import pytest
 
 from spg.playground import EmptyPlayground
-from tests.mock_agents import MockAgent
+from tests.mock_agents import StaticAgent
 from tests.mock_entities import MockDynamicElement
 
 
@@ -41,8 +41,8 @@ def test_two_elem_with_same_name():
 def test_two_agents_with_same_name():
     playground = EmptyPlayground(size=(100, 100))
 
-    agent_1 = MockAgent(name="test_name")
-    agent_2 = MockAgent(name="test_name")
+    agent_1 = StaticAgent(name="test_name")
+    agent_2 = StaticAgent(name="test_name")
 
     playground.add(agent_1, ((0, 0), 0))
 

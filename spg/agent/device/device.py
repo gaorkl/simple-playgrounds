@@ -6,9 +6,9 @@ from typing import Optional, Tuple
 from gymnasium import spaces
 from pymunk import Circle
 
-from spg.definitions import CollisionTypes
 from spg.entity import InteractiveAnchored
 from spg.entity import get_texture_from_shape
+from spg.playground.collision import CollisionTypes
 
 DEVICE_RADIUS = 5
 

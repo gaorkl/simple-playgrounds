@@ -4,7 +4,7 @@ from spg import Chest, Diamond
 from spg import HeadAgent
 from spg import Playground, Room
 from spg import get_colliding_entities
-from spg.definitions import CollisionTypes
+from spg.playground.collision import CollisionTypes
 from spg.view import HeadAgentGUI
 
 
