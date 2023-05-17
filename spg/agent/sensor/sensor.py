@@ -11,8 +11,8 @@ from typing import List, Optional, Union
 
 import numpy as np
 
+from spg.agent.device.device import PocketDevice
 from spg.entity import EmbodiedEntity
-from ..device import PocketDevice
 
 SensorValue = Union[np.ndarray, List[np.ndarray]]
 

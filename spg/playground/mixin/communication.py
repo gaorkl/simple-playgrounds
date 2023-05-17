@@ -1,73 +1,47 @@
+from typing import Dict, List
+
 from spg.entity.mixin.communication import CommunicationMixin
 
 
 class CommunicationManager:
+    def __init__(self, **kwargs) -> None:
+        self._topics: Dict[str, List[CommunicationMixin]] = {}
+        self._communicators: List[CommunicationMixin] = []
 
-    _topics = {}
-
-    def subscribe(self, topic, func):
+    def subscribe(self, communicator: CommunicationMixin, topic: str):
         """Subscribe to a topic."""
         if topic not in self._topics:
             self._topics[topic] = []
-        self._topics[topic].append(func)
+        self._topics[topic].append(communicator)
+        self._communicators.append(communicator)
 
-    def unsubscribe(self, topic, func):
+    def unsubscribe(self, communicator, topic):
         """Unsubscribe from a topic."""
         if topic in self._topics:
-            self._topics[topic].remove(func)
+            self._topics[topic].remove(communicator)
 
-    def in_range(self, sender: CommunicationMixin, receiver: CommunicationMixin):
+    def publish(self, sender, topic, message):
+        """Publish a message to all subscribed topics."""
 
-        distance = sender.position.distance(receiver.position)
-        return distance <= sender.range
+        for receiver in self._topics[topic]:
+            if receiver is not sender and self.in_communication_range(sender, receiver):
+                receiver.receive_message(message)
 
+    def clear_messages(self):
+        """Clear all topics."""
+        for comm in self._communicators:
+            comm.received_messages = []
 
+    def in_communication_range(
+        self, sender: CommunicationMixin, receiver: CommunicationMixin
+    ):
 
-#
-# class CommunicationManagementMixin:
-#     def _transmit_messages(self, messages):
-#
-#         msgs = {agent: {} for agent in self.agents}
-#
-#         all_sent_messages = [
-#             (agent, comm_source, target)
-#             for agent, comms_dict in messages.items()
-#             for comm_source, target in comms_dict.items()
-#         ]
-#
-#         for agent, comm_source, target in all_sent_messages:
-#
-#             assert comm_source.agent is agent
-#
-#             comm_target, message = target
-#             msg = comm_source.send(message)
-#
-#             if not msg:
-#                 continue
-#
-#             if isinstance(comm_target, list):
-#
-#                 for targ in comm_target:
-#                     assert isinstance(targ, Communicator)
-#                     received_msg = targ.receive(comm_source, msg)
-#
-#                     if received_msg:
-#                         msgs[targ.agent][targ] = (comm_source, received_msg)
-#
-#             elif isinstance(comm_target, Communicator):
-#                 received_msg = comm_target.receive(comm_source, msg)
-#
-#                 if received_msg:
-#                     msgs[comm_target.agent][comm_target] = (comm_source, received_msg)
-#
-#             elif comm_target is None:
-#                 for agent in self.agents:
-#                     for comm in agent.communicators:
-#                         received_msg = comm.receive(comm_source, msg)
-#                         if received_msg:
-#                             msgs[comm.agent][comm] = (comm_source, received_msg)
-#
-#             else:
-#                 raise ValueError
-#
-#         return msgs
+        distance = sender.position.get_distance(receiver.position)
+
+        if sender.communication_range is None or receiver.communication_range is None:
+            return True
+
+        return (
+            distance <= sender.communication_range
+            and distance <= receiver.communication_range
+        )

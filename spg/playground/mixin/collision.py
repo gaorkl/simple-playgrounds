@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Dict
 
 import pymunk
 
-from ..collision import CollisionTypes
 from ...entity.mixin import ActivableMixin
+from ..collision import CollisionTypes
 
 if TYPE_CHECKING:
     from ..playground import Playground
@@ -16,10 +16,13 @@ SPACE_DAMPING = 0.9
 
 PYMUNK_STEPS = 10
 
+
 class CollisionManager:
 
     space: pymunk.Space
-    custom_collision_types: Dict[str, int] = {}
+
+    def __init__(self, **kwargs) -> None:
+        self.custom_collision_types: Dict[str, int] = {}
 
     def get_new_collision_type(self, name: str) -> int:
 
@@ -108,5 +111,3 @@ def activable_activable_interaction(arbiter, space, data):
     activable_2.activate(activable_1)
 
     return True
-
-

@@ -2,27 +2,31 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
+import arcade
 import numpy as np
 import pymunk
-from PIL import Image
 from arcade import Sprite, Texture
+from PIL import Image
 from skimage.draw import disk, polygon
+
+VISIBLE_ALPHA = 255
+INVISIBLE_ALPHA = 75
 
 
 class SpriteMixin:
     uid: int
 
     def __init__(
-            self,
-            filename: Optional[str] = None,
-            texture: Optional[Texture] = None,
-            radius: Optional[float] = None,
-            width: Optional[float] = None,
-            height: Optional[float] = None,
-            sprite_front_is_up: bool = False,
-            color: Optional[Tuple[int, int, int]] = None,
-            transparency: Optional[float] = None,
-            **_,
+        self,
+        filename: Optional[str] = None,
+        texture: Optional[Texture] = None,
+        radius: Optional[float] = None,
+        width: Optional[float] = None,
+        height: Optional[float] = None,
+        sprite_front_is_up: bool = False,
+        color_tint: Optional[Tuple[int, int, int]] = None,
+        transparent: bool = False,
+        **_,
     ):
 
         assert texture is not None or filename is not None
@@ -37,14 +41,14 @@ class SpriteMixin:
             flipped_horizontally=sprite_front_is_up,
         )  # type: ignore
 
-        self.color = color
+        self.color_tint = color_tint
 
         # Get the scale and dimensions
         self.scale, self.radius, self.width, self.height = self._get_dimensions(
             radius, width, height
         )
 
-        self._transparency = transparency
+        self.transparent = transparent
 
     @property
     def texture(self):
@@ -106,10 +110,10 @@ class SpriteMixin:
             hit_box_detail=1,
         )
 
-        if self.color and not color_uid:
-            sprite.color = self.color
+        if self.color_tint and not color_uid:
+            sprite.color = self.color_tint
 
-        if self._transparency:
+        if self.transparent and not color_uid:
             sprite.alpha = INVISIBLE_ALPHA
 
         return sprite
@@ -142,15 +146,19 @@ class SpriteMixin:
         return texture
 
 
-def get_texture_from_geometry(geometry: str,
-                              radius: Optional[int] = None,
-                              size: Optional[Tuple[int, int]] = None,
-                              vertices: Optional[np.ndarray] = None,
-                              color: Optional[Tuple[int, int, int]] = None,
-                              name_texture: Optional[str] = None,
-                              **_: object,
-                              ) -> object:
+def get_texture_from_geometry(
+    geometry: str,
+    radius: Optional[int] = None,
+    size: Optional[Tuple[int, int]] = None,
+    vertices: Optional[np.ndarray] = None,
+    color: Optional[Tuple[int, int, int]] = None,
+    **_: object,
+) -> object:
     color_rgba = list(color) + [255]
+
+    name_texture = arcade.generate_uuid_from_kwargs(
+        geometry=geometry, radius=radius, size=size, vertices=vertices, color=color
+    )
 
     offset = 0, 0
 
@@ -183,7 +191,7 @@ def get_texture_from_geometry(geometry: str,
 
         # create image based on rr, cc
         # mask = np.zeros((int(np.max(rr))+1, int(np.max(cc))+1))
-        img = np.zeros((int(np.max(rr))+1, int(np.max(cc))+1, 4))
+        img = np.zeros((int(np.max(rr)) + 1, int(np.max(cc)) + 1, 4))
         # mask[rr, cc] = 1
         # print(mask[center])
         #
@@ -192,17 +200,15 @@ def get_texture_from_geometry(geometry: str,
 
         img[rr, cc] = color_rgba
 
-
         # rotate image by 90 degrees
         img = np.rot90(img, k=1)
-
 
         offset = int(bottom) + center[0], int(left) + center[1]
 
     else:
         raise ValueError(f"Invalid shape: {geometry}")
 
-    PIL_image = Image.fromarray(np.uint8(img))
+    PIL_image = Image.fromarray(np.uint8(img), mode="RGBA")
     texture = Texture(
         name=name_texture,
         image=PIL_image,
@@ -211,7 +217,3 @@ def get_texture_from_geometry(geometry: str,
     )
 
     return texture, offset
-
-
-VISIBLE_ALPHA = 255
-INVISIBLE_ALPHA = 75

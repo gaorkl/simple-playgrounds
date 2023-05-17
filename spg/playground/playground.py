@@ -8,18 +8,29 @@ import pymunk
 import pymunk.matplotlib_util
 from gymnasium import spaces
 from gymnasium.core import ActType
+from matplotlib import pyplot as plt
 
 from spg.playground.actions import zero_action_space
 from spg.position import Coordinate, CoordinateSampler
+
+from ..entity import Agent, Element, Entity
+from ..entity.mixin.communication import CommunicationMixin
 from .mixin import SpaceManager, ViewManager
 from .mixin.collision import CollisionManager
-from ..entity import Agent, Element, Entity
+from .mixin.communication import CommunicationManager
 
 if TYPE_CHECKING:
     from ..entity.mixin.interaction import BarrierMixin
 
 
-class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC):
+class Playground(
+    gymnasium.Env,
+    SpaceManager,
+    ViewManager,
+    CollisionManager,
+    CommunicationManager,
+    ABC,
+):
     def __init__(self, size: Tuple[int, int], **kwargs) -> None:
 
         self.size = size
@@ -27,6 +38,8 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
 
         ViewManager.__init__(self, **kwargs)
         SpaceManager.__init__(self, **kwargs)
+        CollisionManager.__init__(self, **kwargs)
+        CommunicationManager.__init__(self, **kwargs)
 
         self.reset()
 
@@ -44,7 +57,9 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
 
     @property
     def action_space(self):
-        return spaces.Dict({agent.name: agent.agent_action_space for agent in self.agents})
+        return spaces.Dict(
+            {agent.name: agent.agent_action_space for agent in self.agents}
+        )
 
     @property
     def null_action(self):
@@ -88,11 +103,16 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
 
     def _pre_step(self):
 
+        for view in self.views:
+            view.updated = False
+
         for element in self.elements:
             element.pre_step()
 
         for agent in self.agents:
             agent.pre_step()
+
+        self.clear_messages()
 
     def _post_step(self):
 
@@ -107,8 +127,8 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
         # self.update_sensor_view()
 
         obs = {}
-        # for agent in self.agents:
-        #     obs[agent.name] = agent.observation
+        for agent in self.agents:
+            obs[agent.name] = agent.agent_observation
 
         return obs
 
@@ -177,16 +197,14 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
             self.agents.append(entity)
 
             if entity.name in self.name_to_agents:
-                raise ValueError(f"Agent {entity.name} already exists in the playground")
-            
+                raise ValueError(
+                    f"Agent {entity.name} already exists in the playground"
+                )
+
             self.name_to_agents[entity.name] = entity
 
         self.shapes_to_entities.update({shape: entity for shape in entity.pm_shapes})
         self.uids_to_entities[entity.uid] = entity
-
-        # Add to the views
-        for view in self.views:
-            view.add(entity)
 
         # Add to space:
         if entity.pm_body is not None:
@@ -201,6 +219,13 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
             assert coordinate is not None
             entity.move_to(coordinate, allow_overlapping)
             entity.fix_attached()
+
+            # Add to the views
+            for view in self.views:
+                view.add(entity)
+
+        if isinstance(entity, CommunicationMixin):
+            entity.subscribe_to_topics()
 
     def remove(self, entity):
 
@@ -221,17 +246,21 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
         for attached_entity in entity.attached:
             self.remove(attached_entity)
 
-            if hasattr(attached_entity, 'joint') and attached_entity.joint is not None:
+            if hasattr(attached_entity, "joint") and attached_entity.joint is not None:
                 self.space.remove(attached_entity.joint)
 
-            if hasattr(attached_entity, 'motor') and attached_entity.motor is not None:
+            if hasattr(attached_entity, "motor") and attached_entity.motor is not None:
                 self.space.remove(attached_entity.motor)
 
-            if hasattr(attached_entity, 'limit') and attached_entity.limit is not None:
+            if hasattr(attached_entity, "limit") and attached_entity.limit is not None:
                 self.space.remove(attached_entity.limit)
 
-        for view in self.views:
-            view.remove(entity)
+        if isinstance(entity, (Agent, Element)):
+            for view in self.views:
+                view.remove(entity)
+
+        if isinstance(entity, CommunicationMixin):
+            entity.unsubscribe_from_topics()
 
     def within_playground(
         self,
@@ -259,6 +288,30 @@ class Playground(gymnasium.Env, SpaceManager, ViewManager, CollisionManager, ABC
 
     def get_closest_agent(self, entity: Entity) -> Agent:
         return min(self.agents, key=lambda a: entity.position.get_dist_sqrd(a.position))
+
+    def draw(self, plt_width=10, center=None, size=None):
+
+        if not center:
+            center = (0, 0)
+
+        if not size:
+            size = self.size
+
+        fig_size = (plt_width, plt_width / size[0] * size[1])
+
+        fig = plt.figure(figsize=fig_size)
+
+        ax = plt.axes(
+            xlim=(center[0] - size[0] / 2, center[0] + size[0] / 2),
+            ylim=(center[1] - size[1] / 2, center[1] + size[1] / 2),
+        )
+        ax.set_aspect("equal")
+
+        options = pymunk.matplotlib_util.DrawOptions(ax)
+        options.collision_point_color = (10, 20, 30, 40)
+        self.space.debug_draw(options)
+        plt.show()
+        del fig
 
 
 class EmptyPlayground(Playground):

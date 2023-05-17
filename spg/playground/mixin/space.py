@@ -12,6 +12,7 @@ SPACE_DAMPING = 0.9
 
 PYMUNK_STEPS = 10
 
+
 class SpaceManager:
 
     space: pymunk.Space
@@ -30,8 +31,6 @@ class SpaceManager:
         self.space = pymunk.Space()
         self.space.gravity = pymunk.Vec2d(0.0, 0.0)
         self.space.damping = SPACE_DAMPING
-
-        self.add_interactions()
 
     def pymunk_step(self):
         for _ in range(self.pymunk_steps):

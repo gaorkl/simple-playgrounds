@@ -1,8 +1,9 @@
 import math
 
+from spg.agent.sensor import DistanceSensor, RGBSensor
+
 from .agent import Agent
 from .device.interactor import GraspHold
-from .device.sensor import DistanceSensor, RGBSensor
 from .part import ForwardBase, Head
 
 

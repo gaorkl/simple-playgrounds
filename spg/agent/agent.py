@@ -16,11 +16,12 @@ from typing import List
 
 from gymnasium import spaces
 
+from spg.agent.sensor import ExternalSensor, Sensor
 from spg.position import Coordinate
-from .device.communicator import Communicator
-from .device.sensor import ExternalSensor, Sensor
-from .part import PhysicalPart
+
 from ..base import EmbodiedEntity
+from .device.communicator import Communicator
+from .part import PhysicalPart
 
 _BORDER_IMAGE = 3
 

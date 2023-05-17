@@ -40,8 +40,9 @@ class ObservationMixin:
     def observation_space(self):
         ...
 
+    @property
     @abstractmethod
-    def get_observation(self):
+    def observation(self):
         ...
 
 
@@ -80,11 +81,10 @@ class BarrierMixin:
 
     def _block(self, entity):
 
-        if not hasattr(self, 'index_barrier'):
-            raise AttributeError('playground not set')
+        if not hasattr(self, "index_barrier"):
+            raise AttributeError("playground not set")
 
         for pm_shape in entity.pm_shapes:
             categories = pm_shape.filter.categories | 2**self.index_barrier
             mask = pm_shape.filter.mask | 2**self.index_barrier
             pm_shape.filter = pymunk.ShapeFilter(categories=categories, mask=mask)
-

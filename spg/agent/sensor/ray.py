@@ -10,6 +10,7 @@ import numpy as np
 
 from spg.agent.uid import id_to_pixel
 from spg.view import TopDownView
+
 from .sensor import ExternalSensor
 
 if TYPE_CHECKING:

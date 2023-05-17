@@ -3,24 +3,29 @@ import math
 import pymunk
 from gymnasium import spaces
 
-from spg.agent.grasper import GrasperHold, GraspableMixin
+from spg.agent.grasper import GraspableMixin, GrasperHold
 from spg.definitions import ANGULAR_VELOCITY
 from spg.entity import Agent, Entity
-from spg.entity.mixin import BaseStaticMixin, AttachedDynamicMixin, ActionMixin, ActivableMixin, AttachedStaticMixin, \
-    BaseDynamicMixin
+from spg.entity.mixin import (
+    ActionMixin,
+    ActivableMixin,
+    AttachedDynamicMixin,
+    AttachedStaticMixin,
+    BaseDynamicMixin,
+    BaseStaticMixin,
+)
 from spg.entity.mixin.sprite import get_texture_from_geometry
 from tests.mock_entities import MockDynamicElement
 
 
 class MockAgent(Agent):
-
     def __init__(self, **kwargs):
         super().__init__(
-        filename=":spg:puzzle/element/element_blue_square.png",
-        sprite_front_is_up=True,
-        shape_approximation="decomposition",
-        **kwargs,
-    )
+            filename=":spg:puzzle/element/element_blue_square.png",
+            sprite_front_is_up=True,
+            shape_approximation="decomposition",
+            **kwargs,
+        )
 
     def apply_action(self, action):
 
@@ -42,7 +47,6 @@ class MockAgent(Agent):
 
 
 class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
-
     def __init__(self, rotation_range, **kwargs):
         super().__init__(
             mass=1,
@@ -76,7 +80,6 @@ class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
         limit.collide_bodies = False
         return limit
 
-
     def _get_motor(self):
         motor = pymunk.SimpleMotor(self.anchor.pm_body, self.pm_body, 0)
         motor.max_force = 10
@@ -85,7 +88,7 @@ class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
 
     @property
     def attachment_point(self):
-        return -self.radius, 0.
+        return -self.radius, 0.0
 
     @property
     def action_space(self):
@@ -110,11 +113,13 @@ class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
 
         pass
 
-class Trigger(Entity, ActivableMixin, AttachedStaticMixin):
 
+class Trigger(Entity, ActivableMixin, AttachedStaticMixin):
     def __init__(self, **kwargs):
 
-        texture, _ = get_texture_from_geometry(geometry='circle', radius=20, color = (255, 0, 0))
+        texture, _ = get_texture_from_geometry(
+            geometry="circle", radius=20, color=(255, 0, 0)
+        )
 
         super().__init__(ghost=True, texture=texture, **kwargs)
 
@@ -149,8 +154,9 @@ class StaticAgentWithArm(StaticAgent):
 
         super().__init__(**kwargs)
 
-        self.arm = MockAttachedPart(rotation_range=math.pi/4)
+        self.arm = MockAttachedPart(rotation_range=math.pi / 4)
         self.add(self.arm, arm_position, arm_angle)
+
 
 class StaticAgentWithTrigger(StaticAgentWithArm):
     def __init__(self, arm_position, arm_angle, **kwargs):
@@ -162,9 +168,8 @@ class StaticAgentWithTrigger(StaticAgentWithArm):
 
 
 class DynamicAgent(MockAgent, BaseDynamicMixin):
-
     def __init__(self, **kwargs):
-        super().__init__(mass = 10, **kwargs)
+        super().__init__(mass=10, **kwargs)
 
 
 class DynamicAgentWithArm(DynamicAgent):
@@ -186,32 +191,34 @@ class DynamicAgentWithTrigger(DynamicAgentWithArm):
 
 
 class GrasperHand(Entity, AttachedStaticMixin, GrasperHold):
-
     def __init__(self, grasper_radius, **kwargs):
 
-        texture, _ = get_texture_from_geometry(geometry='circle', radius=grasper_radius, color = (255, 0, 0))
+        texture, _ = get_texture_from_geometry(
+            geometry="circle", radius=grasper_radius, color=(255, 0, 0)
+        )
 
         super().__init__(
             texture=texture,
             ghost=True,
             **kwargs,
         )
+
     def attachment_point(self):
         return 0, 0
 
 
 class DynamicAgentWithGrasper(DynamicAgentWithArm):
-
     def __init__(self, arm_position, arm_angle, grasper_radius, **kwargs):
 
         super().__init__(arm_position, arm_angle, **kwargs)
 
-        self.grasper = GrasperHand(grasper_radius=grasper_radius)
+        self.grasper = GrasperHand(grasper_radius=grasper_radius, traversable=True)
         self.arm.add(self.grasper, (self.arm.radius, 0))
 
 
 class MockGraspable(MockDynamicElement, GraspableMixin):
     pass
+
 
 #
 # class Detector(Device):

@@ -1,99 +1,63 @@
-import random
+import math
 
+import matplotlib.pyplot as plt
 import numpy as np
 
-from spg import Ball
-from spg import HeadAgent
-from spg import Room
-from spg.view import TopDownView
+from spg.playground import EmptyPlayground
+from spg.playground.actions import fill_action_space
+from spg.view import View
+from tests.mock_agents import DynamicAgent, DynamicAgentWithArm
+from tests.mock_entities import DynamicElementFromGeometry
+
+coord_center = (0, 0), 0
+coord_shifted_center = (100, 0), 0
 
 
 def test_move_object():
 
-    playground = Room(size=(300, 200))
-    ball = Ball()
-    playground.add(ball, ((100, 20), 0))
+    playground = EmptyPlayground(size=(400, 400))
 
-    agent = HeadAgent(name="agent")
-    playground.add(agent)
+    ent_1 = DynamicElementFromGeometry(
+        geometry="circle", radius=10, color=(100, 200, 13)
+    )
+    playground.add(ent_1, coord_shifted_center)
 
-    view = TopDownView(playground)
+    agent = DynamicAgent(name="agent")
+    playground.add(agent, coord_center)
 
-    view.update()
-    img_init = view.get_np_img()
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
+    img = view.get_np_img()
 
-    random.seed(2)
+    action = {agent.name: {agent.name: (1, 0, 0)}}
+    action = fill_action_space(playground, action)
 
-    for _ in range(50):
-        playground.step(playground.action_space.sample())
+    for i in range(20):
+        playground.step(action)
 
-    assert ball.position != (200, 0)
-    assert agent.position != (0, 0)
+    img_2 = view.get_np_img()
+    plt.imshow(img_2)
+    plt.show()
 
-    view.update()
-    img_after_mvt = view.get_np_img()
-
-    assert not np.all(img_after_mvt == img_init)
-
-    playground.reset()
-    view.update()
-    img_after_reset = view.get_np_img()
-
-    assert np.all(img_init == img_after_reset)
-
-
-def test_delete_object():
-
-    playground = Room(size=(300, 200))
-    ball = Ball()
-    playground.add(ball, ((100, 0), 0))
-
-    agent = HeadAgent(name="agent")
-    playground.add(agent)
-
-    view = TopDownView(playground)
-
-    view.update()
-    img_init = view.get_np_img()
-
-    playground.remove(ball)
-
-    view.update()
-    img_after_mvt = view.get_np_img()
-
-    assert not np.all(img_after_mvt == img_init)
-
-    playground.reset()
-    view.update()
-
-    img_after_reset = view.get_np_img()
-
-    assert np.all(img_init == img_after_reset)
+    assert not np.all(img == img_2)
 
 
 def test_delete_agent():
 
-    playground = Room(size=(300, 200))
-    ball = Ball()
-    playground.add(ball, ((100, 0), 0))
-    agent = HeadAgent(name="agent")
-    playground.add(agent)
+    playground = EmptyPlayground(size=(400, 400))
 
-    view = TopDownView(playground)
+    agent = DynamicAgentWithArm(
+        rotation_range=math.pi / 2, arm_angle=0, arm_position=(10, 10), name="agent"
+    )
+    playground.add(agent, coord_center)
 
-    view.update()
-    img_init = view.get_np_img()
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
+
+    img = view.get_np_img()
 
     playground.remove(agent)
 
-    view.update()
-    img_after_mvt = view.get_np_img()
+    view.update(force=True)
+    img_2 = view.get_np_img()
 
-    assert not np.all(img_after_mvt == img_init)
-
-    playground.reset()
-    view.update()
-
-    img_after_reset = view.get_np_img()
-
-    assert np.all(img_init == img_after_reset)
+    assert not np.all(img == img_2)
+    assert np.sum(img_2) == 0

@@ -1,41 +1,64 @@
-from typing import List
+from __future__ import annotations
+
+from abc import abstractmethod
+from typing import TYPE_CHECKING, List
 
 from gymnasium import spaces
 
 from spg.entity.mixin import ActionMixin, ObservationMixin
 
+if TYPE_CHECKING:
+    from spg.playground import Playground
+
 
 class CommunicationMixin(ActionMixin, ObservationMixin):
 
-    _message_space: spaces.Space
-    _received_messages: List = []
-    _recipients: Optional[List] = None
+    playground: Playground
+    name: str
+
+    received_messages: List
+
+    def subscribe_to_topics(self):
+
+        for topic in self.topics:
+            self.playground.subscribe(self, topic)
+
+        self.received_messages = []
+
+    def unsubscribe_from_topics(self):
+        for topic in self.topics:
+            self.playground.unsubscribe(self, topic)
+
+    @property
+    @abstractmethod
+    def communication_range(self):
+        ...
+
+    @property
+    @abstractmethod
+    def topics(self) -> List[str]:
+        ...
+
+    @property
+    @abstractmethod
+    def message_space(self) -> spaces.Space:
+        ...
+
+    @property
+    def action_space(self):
+        return spaces.Dict({topic: self.message_space for topic in self.topics})
 
     @property
     def observation_space(self):
-        return spaces.Sequence(self._message_space)
+        return spaces.Sequence(self.message_space)
 
-    def get_observation(self):
-        return self._received_messages
+    def receive_message(self, message):
+        self.received_messages.append(message)
 
-    def receive_messages(self):
-        pass
+    @property
+    def observation(self):
+        return self.received_messages
 
     def apply_action(self, action):
-        self.send_messages(action)
-
-    def send_messages(self):
-
-    def publish(self, topic, message, recipient=None):
-        """Publish a message to a topic."""
-        if topic in self._topics:
-            for func in self._topics[topic]:
-                if recipient is None:  # Broadcast to all agents
-                    if self.in_range(func.__self__):
-                        func(message)
-                elif isinstance(recipient, str):  # Address to a specific agent
-                    if recipient == func.__self__.name and self.in_range(func.__self__):
-                        func(message)
-                elif isinstance(recipient, list):  # Address to a team of agents
-                    if func.__self__.name in recipient and self.in_range(func.__self__):
-                        func(message)
+        for topic, message in action.items():
+            self.playground.publish(self, topic, message)

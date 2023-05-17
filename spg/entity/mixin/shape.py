@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import arcade
 import pymunk
@@ -26,23 +26,24 @@ class ShapeMixin:
 
     def __init__(
         self,
-        ghost: bool = False,
+        traversable: bool = False,
         shape_approximation: Optional[str] = None,
         **_,
     ):
         """
 
         Args:
-            ghost: bool, if True, the entity can't be observed and has no physical collisions
+            traversable: bool, if True, the entity can't be observed and has no physical collisions
             shape_approximation:
             **_:
         """
 
-        self.pm_shapes = self._get_pm_shapes(shape_approximation, ghost)
+        self.traversable = traversable
+        self.pm_shapes = self._get_pm_shapes(shape_approximation)
 
         self._set_pm_collision_type()
 
-    def _get_pm_shapes(self, shape_approximation, interactive_shape):
+    def _get_pm_shapes(self, shape_approximation):
 
         vertices = self.sprite.get_hit_box()
 
@@ -72,9 +73,7 @@ class ShapeMixin:
             if pymunk.area_for_poly(vertices) < 0:
                 vertices = list(reversed(vertices))
 
-            list_vertices = autogeometry.convex_decomposition(
-                vertices, tolerance=0.5
-            )
+            list_vertices = autogeometry.convex_decomposition(vertices, tolerance=0.5)
 
             pm_shapes = []
             for vertices in list_vertices:
@@ -89,7 +88,7 @@ class ShapeMixin:
             pm_shape.elasticity = ELASTICITY_ENTITY
             pm_shape.filter = pymunk.ShapeFilter(categories=1, mask=1)
 
-        if interactive_shape:
+        if self.traversable:
             for pm_shape in pm_shapes:
                 pm_shape.sensor = True
 

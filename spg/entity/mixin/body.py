@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Union, List
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import arcade
 import pymunk
@@ -71,13 +71,13 @@ class BodyMixin(ABC):
                 return True
 
         return False
+
     @property
     def base(self):
         return self
 
 
 class BaseMixin(BodyMixin):
-
     def move_to(
         self,
         coordinates: Union[Coordinate, CoordinateSampler],
@@ -115,13 +115,11 @@ class BaseMixin(BodyMixin):
 
 
 class BaseStaticMixin(BaseMixin):
-
     def _get_pm_body(self):
         return pymunk.Body(body_type=pymunk.Body.STATIC)
 
 
 class BaseDynamicMixin(BaseMixin):
-
     def _get_pm_body(self):
 
         vertices = self.sprite.get_hit_box()
@@ -197,6 +195,13 @@ class AttachedStaticMixin(AttachmentMixin):
 
     def _fix(self):
         pass
+
+    @property
+    def position(self):
+        position_entity = self.anchor.position + self.initial_relative_coordinate[
+            0
+        ].rotated(self.anchor.angle)
+        return position_entity
 
 
 class AttachedDynamicMixin(AttachmentMixin):

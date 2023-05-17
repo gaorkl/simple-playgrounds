@@ -7,6 +7,8 @@ import pymunk
 from gymnasium import spaces
 
 from spg.position import Coordinate
+
+from ..playground.collision import CollisionTypes
 from .mixin import (
     ActionMixin,
     AttachedStaticMixin,
@@ -16,7 +18,6 @@ from .mixin import (
     SpriteMixin,
 )
 from .mixin.body import BodyMixin
-from ..playground.collision import CollisionTypes
 
 if TYPE_CHECKING:
     from ..playground import Playground
@@ -126,11 +127,11 @@ class Agent(Entity, BaseMixin, ActionMixin, ObservationMixin):
     @property
     def agent_action_space(self):
 
-        act_space = {self.name: self.action_space }
+        act_space = {self.name: self.action_space}
 
         # Add attached entities' action spaces
         for attached in self.all_attached:
-            if hasattr(attached, 'action_space'):
+            if hasattr(attached, "action_space"):
                 act_space[attached.name] = attached.action_space
 
         return spaces.Dict(act_space)
@@ -141,19 +142,29 @@ class Agent(Entity, BaseMixin, ActionMixin, ObservationMixin):
 
         # Apply attached entities' actions
         for attached in self.all_attached:
-            if hasattr(attached, 'apply_action'):
+            if hasattr(attached, "apply_action"):
                 attached.apply_action(action[attached.name])
 
     @property
     def agent_observation_space(self):
 
-        obs_space = {self.name: self.observation_space }
+        obs_space = {self.name: self.observation_space}
 
         # Add attached entities' observation spaces
         for attached in self.all_attached:
-            if hasattr(attached, 'observation_space'):
+            if hasattr(attached, "observation_space"):
                 obs_space[attached.name] = attached.observation_space
 
         return spaces.Dict(obs_space)
 
+    @property
+    def agent_observation(self):
 
+        obs = {self.name: self.observation}
+
+        # Add attached entities' observations
+        for attached in self.all_attached:
+            if hasattr(attached, "observation"):
+                obs[attached.name] = attached.observation
+
+        return obs

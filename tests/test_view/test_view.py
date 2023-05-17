@@ -1,292 +1,206 @@
-import math
-
+import arcade.color
 import numpy as np
+import pytest
 
-from spg import Playground
-from spg.view import TopDownView
-from tests.mock_entities import (
-    MockPhysicalFromShape,
-    MockPhysicalInteractive,
-    MockPhysicalMovable,
-    MockPhysicalUnmovable,
-    MockZoneInteractive,
-)
+from spg.playground import EmptyPlayground
+from spg.view import View
+from tests.mock_entities import DynamicElementFromGeometry, StaticElementFromGeometry
 
-center_view = (0, 0)
+coord_center = (0, 0), 0
+coord_shifted_center = (0, 5), 0
 
 
-def test_empty_pg(view_size, zoom, color_bg):
+# from spg import Playground
+# from spg.view import TopDownView
+# from tests.mock_entities import (
+#     MockPhysicalFromShape,
+#     MockPhysicalInteractive,
+#     MockPhysicalMovable,
+#     MockPhysicalUnmovable,
+#     MockZoneInteractive,
+# )
+
+
+@pytest.mark.parametrize("view_size", [(300, 300), (100, 100)])
+@pytest.mark.parametrize("color_bg", [(0, 0, 0), (255, 255, 255), arcade.color.COAL])
+@pytest.mark.parametrize("center", [(0, 0), (100, 100)])
+@pytest.mark.parametrize("scale", [0.5, 1, 2, 3])
+def test_empty_pg(view_size, color_bg, center, scale):
     """Tests that background is set correctly"""
 
-    playground = Playground(background=color_bg)
-    view = TopDownView(playground, center=center_view, size=view_size, zoom=zoom)
+    playground = EmptyPlayground(background=color_bg, size=(100, 100))
+    view = View(playground, size_on_playground=view_size, center=center, scale=scale)
 
-    view.update()
+    np_img = view.get_np_img()
+    assert np.all(np_img[0, 0] == color_bg)
 
-    assert np.all(view.get_np_img()[0, 0] == color_bg)
+    assert np_img.shape[1] == view_size[1] * scale
+    assert np_img.shape[0] == view_size[0] * scale
 
 
-def test_shape(geometry, position, center):
+def test_non_empty_pg():
+    playground = EmptyPlayground(size=(100, 100))
+    view = View(playground, size_on_playground=(100, 100), center=(0, 0), scale=1)
 
-    color_ent = (123, 122, 54)
-    playground = Playground()
-    ent_1 = MockPhysicalFromShape(geometry=geometry, size=10, color=color_ent)
-    playground.add(
-        ent_1,
-        (position, math.pi / 3),
+    ent_1 = StaticElementFromGeometry(geometry="circle", radius=10, color=(0, 0, 255))
+    playground.add(ent_1, coord_center)
+
+    np_img = view.get_np_img()
+    assert np.sum(np_img) > 0
+
+
+@pytest.mark.parametrize(
+    "color",
+    [
+        arcade.color.CHOCOLATE,
+        arcade.color.RED,
+        arcade.color.BLUE,
+        arcade.color.GREEN,
+        arcade.color.BLACK,
+        arcade.color.WHITE,
+    ],
+)
+@pytest.mark.parametrize("center_view", [(-100, -100), (100, 100)])
+@pytest.mark.parametrize(
+    "color_bg", [arcade.color.YELLOW, arcade.color.WHITE, arcade.color.BLACK]
+)
+def test_entity_size(color, color_bg, center_view):
+    playground = EmptyPlayground(size=(400, 400), background=color_bg)
+
+    view_1 = View(
+        playground, size_on_playground=(400, 400), center=center_view, scale=1
     )
 
-    view = TopDownView(playground, center=center, size=(300, 300), display_uid=False)
+    ent_1 = StaticElementFromGeometry(geometry="circle", radius=10, color=color)
+    playground.add(ent_1, coord_center)
 
-    view.update()
+    view_2 = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
 
-    ent_pos_on_image = (150 + position[0] + center[0], 150 + position[1] + center[1])
+    assert len(view_1.entity_to_sprites) == 1
+    assert len(view_2.entity_to_sprites) == 1
 
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent
+    assert len(view_1.scene.get_sprite_list("entity")) == 1
+    assert len(view_2.scene.get_sprite_list("entity")) == 1
+
+    img_1 = view_1.get_np_img()
+    img_2 = view_2.get_np_img()
+
+    assert np.all(img_1[200, 200] == color_bg)
+    assert np.all(img_2[200, 200] == color)
+
+    assert np.all(img_2[200 - center_view[0], 200 - center_view[1]] == color_bg)
+    assert np.all(img_1[200 - center_view[0], 200 - center_view[1]] == color)
+
+
+def test_traversable():
+    color_1 = (1, 2, 3)
+    color_2 = (2, 3, 4)
+    color_3 = (3, 4, 5)
+
+    playground = EmptyPlayground(size=(400, 400))
+
+    ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=color_1)
+    playground.add(ent_1, coord_center)
+
+    traversable = DynamicElementFromGeometry(
+        geometry="circle", radius=10, traversable=True, color=color_2
     )
+    playground.add(traversable, coord_center)
+
+    ent_2 = StaticElementFromGeometry(geometry="circle", radius=10, color=color_3)
+    playground.add(ent_2, coord_center)
+
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
+
+    assert len(view.entity_to_sprites) == 3
+    assert len(view.scene.get_sprite_list("entity")) == 2
+    assert len(view.scene.get_sprite_list("traversable")) == 1
+    assert traversable.traversable
+
+    img = view.get_np_img()
+
+    assert np.all(img[200, 200] == color_2)
 
 
-def test_position(geometry, position, zoom):
+def test_transparent():
+    color_1 = (50, 50, 100)
+    color_2 = (50, 199, 30)
 
-    color_ent = (123, 122, 54)
-    playground = Playground()
-    ent_1 = MockPhysicalFromShape(geometry=geometry, size=10, color=color_ent)
-    playground.add(
-        ent_1,
-        (position, math.pi / 3),
+    playground = EmptyPlayground(size=(400, 400))
+
+    ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=color_1)
+    playground.add(ent_1, coord_center)
+
+    transparent = DynamicElementFromGeometry(
+        geometry="circle", radius=10, transparent=True, color=color_2
     )
+    playground.add(transparent, coord_shifted_center)
 
-    view = TopDownView(
-        playground, zoom=zoom, center=center_view, size=(300, 300), display_uid=False
-    )
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
 
-    view.update()
+    assert len(view.entity_to_sprites) == 2
+    assert len(view.scene.get_sprite_list("entity")) == 2
+    assert transparent.transparent
 
-    ent_pos_on_image = (150 + int(position[0] * zoom), 150 + int(position[1] * zoom))
+    img = view.get_np_img()
 
-    # print(position)
-    # print(center)
-    # view.imdisplay()
-    # assert np.all(view.img[0, 0] == color_bg)
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent
-    )
-
-
-def test_traversable(geometry, position, zoom):
-
-    color_1 = (123, 122, 54)
-    color_2 = (13, 12, 54)
-
-    playground = Playground()
-    ent_1 = MockPhysicalFromShape(
-        geometry=geometry,
-        size=10,
-        color=color_1,
-        traversable=True,
-    )
-    playground.add(
-        ent_1,
-        (position, math.pi / 3),
-    )
-
-    ent_2 = MockPhysicalFromShape(geometry=geometry, size=10, color=color_2)
-    playground.add(
-        ent_2,
-        (position, math.pi / 3),
-    )
-
-    view = TopDownView(
-        playground, zoom=zoom, center=center_view, size=(300, 300), display_uid=False
-    )
-
-    view.update()
-
-    ent_pos_on_image = (150 + int(position[0] * zoom), 150 + int(position[1] * zoom))
-
-    # print(position)
-    # print(center)
-    # view.imdisplay()
-    # assert np.all(view.img[0, 0] == color_bg)
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == color_1
-    )
-
-
-def test_transparent(geometry, position, zoom):
-
-    color_1 = (123, 122, 54)
-
-    playground = Playground()
-    ent_1 = MockPhysicalFromShape(
-        geometry=geometry,
-        size=10,
-        color=color_1,
-        transparent=True,
-    )
-    playground.add(
-        ent_1,
-        (position, math.pi / 3),
-    )
-
-    view = TopDownView(
-        playground,
-        zoom=zoom,
-        center=center_view,
-        size=(300, 300),
-        display_uid=False,
-        draw_transparent=False,
-    )
-
-    view.update()
-
-    ent_pos_on_image = (150 + int(position[0] * zoom), 150 + int(position[1] * zoom))
-
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
-    )
+    assert np.any(img[200, 200] != color_2)
+    assert np.any(img[200, 200] != color_1)
 
 
 def test_remove_entity():
+    playground = EmptyPlayground(size=(400, 400))
 
-    playground = Playground()
-    ent_1 = MockPhysicalInteractive(interaction_range=5)
-    playground.add(ent_1, ((0, 0), 0))
+    ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=(1, 2, 3))
+    playground.add(ent_1, coord_center)
 
-    view = TopDownView(
-        playground,
-        zoom=1,
-        center=center_view,
-        size=(300, 300),
-        display_uid=False,
-        draw_interactive=True,
-    )
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
 
-    view.update()
-
-    ent_pos_on_image = (150, 150)
-
-    assert not np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
-    )
+    img = view.get_np_img()
 
     playground.remove(ent_1)
-    assert ent_1 not in view.sprites
 
-    view.update()
+    view.update(force=True)
+    img_2 = view.get_np_img()
 
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
-    )
-
-    playground.reset()
-
-    view.update()
-
-    assert not np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
-    )
+    assert not np.all(img == img_2)
 
 
 def test_move_entity():
 
-    color_ent = (123, 122, 54)
-    playground = Playground()
-    ent_1 = MockPhysicalFromShape(geometry="circle", size=10, color=color_ent)
-    playground.add(ent_1, ((0, 0), 0))
+    playground = EmptyPlayground(size=(400, 400))
 
-    view = TopDownView(
-        playground, zoom=1, center=center_view, size=(300, 300), display_uid=False
-    )
+    ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=(1, 2, 3))
+    playground.add(ent_1, coord_center)
 
-    view.update()
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
 
-    ent_pos_on_image = (150, 150)
+    img = view.get_np_img()
 
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == color_ent
-    )
+    ent_1.move_to(coord_shifted_center)
 
-    ent_1.move_to(((100, 100), 0))
+    view.update(force=True)
+    img_2 = view.get_np_img()
 
-    view.update()
-
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0], ent_pos_on_image[1]] == (0, 0, 0)
-    )
-    assert np.all(
-        view.get_np_img()[ent_pos_on_image[0] + 100, ent_pos_on_image[1] + 100]
-        == color_ent
-    )
+    assert not np.all(img == img_2)
+    assert np.sum(img) == np.sum(img_2)
 
 
-def test_multiple_views():
+def test_reset_playground():
 
-    color_ent = (123, 122, 54)
-    playground = Playground()
-    ent_1 = MockPhysicalFromShape(geometry="circle", size=10, color=color_ent)
+    playground = EmptyPlayground(size=(400, 400))
 
-    playground.add(ent_1, ((0, 0), 0))
+    ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=(1, 2, 3))
+    playground.add(ent_1, coord_center)
 
-    view_2 = TopDownView(
-        playground,
-        zoom=1,
-        center=center_view,
-        size=(300, 300),
-        display_uid=False,
-    )
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
 
-    view_1 = TopDownView(
-        playground,
-        zoom=1,
-        center=center_view,
-        size=(300, 300),
-        display_uid=False,
-    )
+    img = view.get_np_img()
 
-    view_1.update()
-    view_2.update()
+    playground.reset()
 
-    assert np.all(view_1.get_np_img() == view_2.get_np_img())
+    view.update(force=True)
+    img_2 = view.get_np_img()
 
-    ent_1.move_to(((10, 10), 0))
-
-    view_1.update()
-    assert not np.all(view_1.get_np_img() == view_2.get_np_img())
-
-    view_2.update()
-
-    assert np.all(view_1.get_np_img() == view_2.get_np_img())
-
-
-def test_visual_view(zoom):
-
-    playground = Playground(background=(123, 0, 134))
-
-    # Position and orientation
-    playground.add(MockPhysicalMovable(), ((-100, 100), 0))
-    playground.add(MockPhysicalMovable(), ((0, 100), math.pi / 4))
-    playground.add(MockPhysicalMovable(), ((100, 100), math.pi / 3))
-
-    # Radius
-    playground.add(MockPhysicalMovable(), ((-100, 0), 0))
-    playground.add(MockPhysicalMovable(radius=10), ((0, 0), 0))
-    playground.add(MockPhysicalMovable(radius=30), ((100, 0), 0))
-
-    # Different shapes
-    playground.add(MockPhysicalUnmovable(), ((-100, -100), 0))
-    playground.add(MockPhysicalInteractive(interaction_range=10), ((0, -100), 0))
-    playground.add(MockZoneInteractive(), ((100, -100), 0))
-
-    # MockPhysicalUnmovable(playground, ((0, 100), 0))
-
-    view = TopDownView(
-        playground,
-        zoom=zoom,
-        center=center_view,
-        size=(300, 300),
-        display_uid=False,
-    )
-
-    view.update()
+    assert not np.all(img == img_2)
+    assert not np.sum(img) == np.sum(img_2)

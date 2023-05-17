@@ -1,194 +1,134 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Tuple, Union
 
-import matplotlib.pyplot as plt
+import arcade
 import numpy as np
-from arcade import SpriteList
-from arcade.sprite import Sprite
 
 if TYPE_CHECKING:
-    from ..entity import Entity
     from ..playground import Playground
+
+from ..entity import Agent, Element, Entity
 
 
 class View:
+
+    updated = False
+
     def __init__(
         self,
         playground: Playground,
-        size: Optional[Tuple[int, int]] = None,
+        size_on_playground: Tuple[int, int],
+        scale: float = 1,
         center: Tuple[float, float] = (0, 0),
-        zoom: float = 1,
-        display_uid: bool = False,
+        uid_mode: bool = False,
         draw_transparent: bool = True,
-        draw_interactive: bool = True,
-        draw_zone: bool = True,
     ) -> None:
 
-        self._playground = playground
+        self.playground = playground
 
-        self._ctx = playground.window.ctx
+        self._ctx = playground.ctx
+        self.center = center
 
-        self._center = center
+        self.scale = scale
+        self.size = int(size_on_playground[0] * scale), int(
+            size_on_playground[1] * scale
+        )
+        self.width, self.height = self.size
 
-        if not size:
-            size = playground.size
+        # Change projection to match the contents
+        self._ctx.projection_2d = 0, self.width, 0, self.height
 
-        if not size:
-            raise ValueError("Size should be set")
-
-        self._width, self._height = self._size = size
-
-        self._zoom = zoom
-        self._draw_transparent = draw_transparent
-        self._draw_interactive = draw_interactive
-        self._draw_zone = draw_zone
-        self._display_uid = display_uid
-
-        self._transparent_sprites = SpriteList()
-        self._visible_sprites = SpriteList()
-        self._interactive_sprites = SpriteList()
-        self._zone_sprites = SpriteList()
-        self._traversable_sprites = SpriteList()
-
-        self._background = playground.background
+        self.draw_transparent = draw_transparent
+        self.uid_mode = uid_mode
 
         self._fbo = self._ctx.framebuffer(
             color_attachments=[
                 self._ctx.texture(
-                    (size),
+                    self.size,
                     components=4,
                     wrap_x=self._ctx.CLAMP_TO_BORDER,  # type: ignore
                     wrap_y=self._ctx.CLAMP_TO_BORDER,  # type: ignore
-                    # type: ignore
                     filter=(self._ctx.NEAREST, self._ctx.NEAREST),
                 ),
             ]
         )
 
-        self._sprites: Dict[Entity, Sprite] = {}
+        self.scene = arcade.Scene()
+        self.scene.add_sprite_list("traversable")
+        self.scene.add_sprite_list("entity")
 
-        self._playground.add_view(self)
+        self.entity_to_sprites: Dict[Entity, arcade.Sprite] = {}
+
+        for element in playground.elements:
+            self.add(element)
+
+        for agent in playground.agents:
+            self.add(agent)
+
+        self.playground.views.append(self)
 
     @property
     def texture(self):
         """The OpenGL texture containing the map pixel data"""
         return self._fbo.color_attachments[0]
 
-    @property
-    def zoom(self):
-        return self._zoom
+    def add(self, entity: Union[Element, Agent]):
 
-    @property
-    def width(self):
-        return self._width
+        if entity.transparent and not self.draw_transparent:
+            pass
 
-    @property
-    def height(self):
-        return self._height
+        elif entity not in self.entity_to_sprites:
+            sprite = entity.get_sprite(self.scale, color_uid=self.uid_mode)
 
-    @property
-    def center(self):
-        return self._center
+            self.entity_to_sprites[entity] = sprite
 
-    @property
-    def sprites(self):
-        return self._sprites
+            self._add_sprite_to_scene(sprite, entity)
 
-    def add(self, entity):
+        if isinstance(entity, (Agent, Element)):
+            for attached in entity.all_attached:
+                self.add(attached)
 
-        pass
-        # if isinstance(entity, InteractiveAnchored):
+    def _add_sprite_to_scene(self, sprite, entity):
 
-        #     if not self._draw_interactive:
-        #         return
-
-        #     if self._display_uid:
-        #         raise ValueError(
-        #             "Cannot display uid of interactive, set draw_interactive to False"
-        #         )
-
-        #     sprite = entity.get_sprite(self._zoom)
-        #     self._interactive_sprites.append(sprite)
-
-        # elif isinstance(entity, InteractiveZone):
-
-        #     if not self._draw_zone:
-        #         return
-
-        #     if self._display_uid:
-        #         raise ValueError("Cannot display uid of zones, set draw_zones to False")
-
-        #     sprite = entity.get_sprite(self._zoom)
-        #     self._zone_sprites.append(sprite)
-
-        # elif isinstance(entity, PhysicalEntity):
-
-        #     sprite = entity.get_sprite(self._zoom, color_uid=self._display_uid)
-
-        #     if entity.traversable:
-        #         self._traversable_sprites.append(sprite)
-
-        #     elif entity.transparent:
-        #         if self._draw_transparent:
-        #             self._transparent_sprites.append(sprite)
-
-        #     else:
-        #         self._visible_sprites.append(sprite)
-
-        # else:
-        #     raise ValueError("Not implemented")
-
-        # entity.update_sprite(self, sprite)
-        # self._sprites[entity] = sprite
+        if entity.traversable:
+            self.scene.add_sprite("traversable", sprite)
+        else:
+            self.scene.add_sprite("entity", sprite)
 
     def remove(self, entity):
-        pass
 
-        # if isinstance(entity, InteractiveAnchored) and not self._draw_interactive:
-        #     return
+        sprite = self.entity_to_sprites.pop(entity)
 
-        # if isinstance(entity, InteractiveZone) and not self._draw_zone:
-        #     return
+        self._remove_sprite_from_scene(sprite, entity)
 
-        # sprite = self._sprites.pop(entity)
+        if isinstance(entity, (Agent, Element)):
+            for attached in entity.all_attached:
+                self.remove(attached)
 
-        # if isinstance(entity, InteractiveAnchored):
-        #     self._interactive_sprites.remove(sprite)
+    def _remove_sprite_from_scene(self, sprite, entity):
 
-        # elif isinstance(entity, InteractiveZone):
-        #     self._zone_sprites.remove(sprite)
-
-        # elif isinstance(entity, PhysicalEntity):
-
-        #     if entity.traversable:
-        #         self._traversable_sprites.remove(sprite)
-
-        #     elif entity.transparent:
-        #         self._transparent_sprites.remove(sprite)
-
-        #     else:
-        #         self._visible_sprites.remove(sprite)
+        if entity.traversable:
+            sprite_list = self.scene.get_sprite_list("traversable")
+            sprite_list.remove(sprite)
+        else:
+            sprite_list = self.scene.get_sprite_list("entity")
+            sprite_list.remove(sprite)
 
     def update_sprites(self, force=False):
 
-        # check that
-        for entity, sprite in self._sprites.items():
-            if entity.needs_sprite_update or force:
-                self.update_sprite(entity, sprite)
+        for entity, sprite in self.entity_to_sprites.items():
+            pos_x = (
+                entity.pm_body.position.x - self.center[0]
+            ) * self.scale + self.width // 2
+            pos_y = (
+                entity.pm_body.position.y - self.center[1]
+            ) * self.scale + self.height // 2
 
-    def update_sprite(self, entity, sprite):
-
-        pos_x = (
-            entity.pm_body.position.x - self.center[0]
-        ) * self.zoom + self.width // 2
-        pos_y = (
-            entity.pm_body.position.y - self.center[1]
-        ) * self.zoom + self.height // 2
-
-        sprite.set_position(pos_x, pos_y)
-        sprite.angle = int(self._pm_body.angle * 180 / math.pi)
+            if sprite.position != (pos_x, pos_y) or force:
+                sprite.set_position(pos_x, pos_y)
+                sprite.angle = int(entity.pm_body.angle * 180 / math.pi)
 
     def update(self, force=False):
 
@@ -196,42 +136,28 @@ class View:
 
         with self._fbo.activate() as fbo:
 
-            if self._display_uid:
+            if self.uid_mode:
                 fbo.clear()
             else:
-                fbo.clear(self._background)
+                fbo.clear(self.playground.background)
 
-            # Change projection to match the contents
-            self._ctx.projection_2d = 0, self._width, 0, self._height
-
-            if self._draw_transparent:
-                self._transparent_sprites.draw(pixelated=True)
-
-            if self._draw_interactive:
-                self._interactive_sprites.draw(pixelated=True)
-
-            if self._draw_zone:
-                self._zone_sprites.draw(pixelated=True)
-
-            self._visible_sprites.draw(pixelated=True)
-            self._traversable_sprites.draw(pixelated=True)
+            self.scene.draw(names=["entity", "traversable"])
+        self.updated = True
 
     def get_np_img(self):
+
+        if not self.updated:
+            self.update()
+
         img = np.frombuffer(self._fbo.read(), dtype=np.dtype("B")).reshape(
-            self._height, self._width, 3
+            self.height, self.width, 3
         )
         return img
 
-    def draw(self):
-        img = self.get_np_img()
-        plt.imshow(img)
-        plt.axis("off")
-        plt.show()
-
     def reset(self):
+        self.scene.remove_sprite_list_by_name("entity")
+        self.scene.remove_sprite_list_by_name("traversable")
+        self.scene.add_sprite_list("traversable")
+        self.scene.add_sprite_list("entity")
 
-        self._transparent_sprites.clear()
-        self._interactive_sprites.clear()
-        self._zone_sprites.clear()
-        self._visible_sprites.clear()
-        self._traversable_sprites.clear()
+        self.entity_to_sprites = {}

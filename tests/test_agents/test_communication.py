@@ -1,157 +1,104 @@
 import pytest
 
-from spg import Communicator, LimitedCommunicator
-from spg import Playground
-from tests.mock_agents import MockAgent
+from spg.playground import EmptyPlayground
+from tests.mock_communicator import MockAgentWithCommunication
 
 
-def test_equip_communication(comm_radius):
+@pytest.mark.parametrize("message_length", [1, 10, 30])
+@pytest.mark.parametrize("communication_range", [None, 10, 100, 200])
+def test_equip_communication(communication_range, message_length):
+    playground = EmptyPlayground(size=(1000, 1000))
 
-    playground = Playground()
-
-    agent_1 = MockAgent(name="agent_1")
-    comm_1 = Communicator(transmission_range=comm_radius)
-    agent_1.base.add(comm_1)
-
-    agent_2 = MockAgent(name="agent_2")
-    comm_2 = Communicator(transmission_range=comm_radius)
-    agent_2.base.add(comm_2)
-
+    agent_1 = MockAgentWithCommunication(
+        name="agent_1",
+        message_length=message_length,
+        communication_range=communication_range,
+    )
     playground.add(agent_1, ((100, 100), 0))
-    playground.add(agent_2, ((200, 100), 0))
 
 
 @pytest.mark.parametrize(
-    "range_1, range_2, distance, in_range",
+    "range_sender, range_receiver, distance, in_range",
     [
         (100, 100, 50, True),
         (200, 50, 100, False),
         (50, 200, 100, False),
         (100, None, 80, True),
         (None, None, 100, True),
-        (None, 100, 200, False),
+        (None, 100, 200, True),
     ],
 )
-def test_transmission_range(range_1, range_2, distance, in_range):
+def test_transmission_range(range_sender, range_receiver, distance, in_range):
+    playground = EmptyPlayground(size=(1000, 1000))
 
-    playground = Playground()
-
-    agent_1 = MockAgent()
-    comm_1 = Communicator(transmission_range=range_1)
-    agent_1.base.add(comm_1)
-
-    agent_2 = MockAgent()
-    comm_2 = Communicator(transmission_range=range_2)
-    agent_2.base.add(comm_2)
+    agent_1 = MockAgentWithCommunication(
+        name="agent_1",
+        communication_range=range_sender,
+        message_length=1,
+        topics="test",
+    )
+    agent_2 = MockAgentWithCommunication(
+        name="agent_2",
+        communication_range=range_receiver,
+        message_length=1,
+        topics=["test"],
+    )
 
     playground.add(agent_1, ((100, 100), 0))
     playground.add(agent_2, ((100 + distance, 100), 0))
 
-    messages = {agent_1: {comm_1: (comm_2, "test")}}
-    _, msg, _, _ = playground.step(messages=messages)
+    assert (
+        playground.in_communication_range(agent_1.communicator, agent_2.communicator)
+        == in_range
+    )
 
-    assert comm_1.in_transmission_range(comm_2) == in_range
+    action = playground.action_space.sample()
+
+    obs, *_ = playground.step(action)
+
+    # convert nested ordered dict to dict
 
     if in_range:
-        assert msg[agent_2][comm_2] == (comm_1, "test")
-    else:
-        assert msg[agent_2] == {}
+        sent_1 = action[agent_1.name][agent_1.communicator.name]["test"]
+        sent_2 = action[agent_2.name][agent_2.communicator.name]["test"]
+
+        rec_1 = agent_1.communicator.received_messages[0]
+        rec_2 = agent_2.communicator.received_messages[0]
+
+        assert sent_1 == rec_2
+        assert sent_2 == rec_1
 
 
 def test_directed_broadcast():
 
-    playground = Playground()
+    # by default, agents create a topic with their own name
 
-    agent_1 = MockAgent()
-    comm_1 = Communicator()
-    agent_1.base.add(comm_1)
+    playground = EmptyPlayground(size=(1000, 1000))
+
+    agent_1 = MockAgentWithCommunication(
+        name="agent_1", message_length=1, topics=["agent_1_2"]
+    )
+    agent_2 = MockAgentWithCommunication(
+        name="agent_2", message_length=1, topics=["agent_1_2", "private"]
+    )
+    agent_3 = MockAgentWithCommunication(
+        name="agent_3", message_length=1, topics=["private"]
+    )
+    agent_4 = MockAgentWithCommunication(
+        name="agent_4", message_length=1, topics=["private"]
+    )
+    agent_5 = MockAgentWithCommunication(name="agent_5", message_length=1)
+
     playground.add(agent_1, ((100, 100), 0))
-
-    agent_2 = MockAgent()
-    comm_2 = Communicator()
-    agent_2.base.add(comm_2)
     playground.add(agent_2, ((200, 100), 0))
-
-    agent_3 = MockAgent()
-    comm_3 = Communicator()
-    agent_3.base.add(comm_3)
     playground.add(agent_3, ((100, 200), 0))
-
-    agent_4 = MockAgent()
-    comm_4 = Communicator()
-    agent_4.base.add(comm_4)
     playground.add(agent_4, ((200, 200), 0))
+    playground.add(agent_5, ((300, 100), 0))
 
-    # Directed message
-    msg_to_single_agent = {agent_1: {comm_1: (comm_2, "test")}}
-    playground.step(messages=msg_to_single_agent)
+    playground.step(playground.action_space.sample())
 
-    assert not comm_1.received_messages
-    assert comm_2.received_messages == [(comm_1, "test")]
-    assert not comm_3.received_messages
-    assert not comm_4.received_messages
-
-    # No message, verify receivers are empty
-    playground.step()
-    assert not comm_1.received_messages
-    assert not comm_2.received_messages
-    assert not comm_3.received_messages
-    assert not comm_4.received_messages
-
-    # Broadcast message
-    msg_to_all_agents = {agent_1: {comm_1: (None, "test")}}
-    playground.step(messages=msg_to_all_agents)
-    assert not comm_1.received_messages
-    assert comm_2.received_messages == [(comm_1, "test")]
-    assert comm_3.received_messages == [(comm_1, "test")]
-    assert comm_4.received_messages == [(comm_1, "test")]
-
-
-def test_capacity():
-
-    playground = Playground()
-
-    agent_1 = MockAgent()
-    comm_1 = LimitedCommunicator(capacity=1)
-    agent_1.base.add(comm_1)
-    playground.add(agent_1, ((100, 100), 0))
-
-    agent_2 = MockAgent()
-    comm_2 = LimitedCommunicator(capacity=2)
-    agent_2.base.add(comm_2)
-    playground.add(agent_2, ((180, 100), 0))
-
-    agent_3 = MockAgent()
-    comm_3 = LimitedCommunicator(capacity=3)
-    agent_3.base.add(comm_3)
-    playground.add(agent_3, ((200, 120), 0))
-
-    agent_4 = MockAgent()
-    comm_4 = LimitedCommunicator(capacity=2)
-    agent_4.base.add(comm_4)
-    playground.add(agent_4, ((100, 200), 0))
-
-    # Broadcast message
-    msg_to_all_agents = {
-        agent_1: {comm_1: (None, "test_1")},
-        agent_2: {comm_2: (None, "test_2")},
-        agent_3: {comm_3: (None, "test_3")},
-        agent_4: {comm_4: (None, "test_4")},
-    }
-
-    playground.step(messages=msg_to_all_agents)
-
-    # Assert correct message length
-    assert len(comm_1.received_messages) == 1
-    assert len(comm_2.received_messages) == 2
-    assert len(comm_3.received_messages) == 3
-    assert len(comm_4.received_messages) == 2
-
-    # Assert priority is given to comm that are closer
-    assert comm_1.received_messages == [(comm_2, "test_2")]
-    assert comm_2.received_messages == [(comm_3, "test_3"), (comm_1, "test_1")]
-    assert comm_3.received_messages == [
-        (comm_2, "test_2"),
-        (comm_1, "test_1"),
-        (comm_4, "test_4"),
-    ]
+    assert len(agent_1.communicator.received_messages) == 1
+    assert len(agent_2.communicator.received_messages) == 3
+    assert len(agent_3.communicator.received_messages) == 2
+    assert len(agent_4.communicator.received_messages) == 2
+    assert len(agent_5.communicator.received_messages) == 0

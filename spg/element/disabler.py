@@ -1,11 +1,12 @@
 from typing import List, Optional, Type, Union
 
-from .element import ZoneElement
+from spg.agent.sensor import Sensor
+
 from ..agent.device import Device
 from ..agent.device.communicator import Communicator
-from ..agent.device.sensor import Sensor
 from ..agent.part import PhysicalPart
 from ..playground.collision import CollisionTypes
+from .element import ZoneElement
 
 
 class Disabler(ZoneElement):
