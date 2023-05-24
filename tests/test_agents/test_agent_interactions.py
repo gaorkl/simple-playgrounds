@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from spg.core.playground import EmptyPlayground
+from spg.core.playground.utils import fill_action_space
 from tests.mock_agents import (
     DynamicAgent,
     DynamicAgentWithArm,
@@ -18,7 +19,6 @@ from tests.mock_interactives import ActivableZone
 
 coord_center = (0, 0), 0
 
-from spg.core.playground.utils import fill_action_space
 
 
 @pytest.mark.parametrize(

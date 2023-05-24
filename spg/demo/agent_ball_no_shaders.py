@@ -1,8 +1,6 @@
 import arcade
 
-from spg import Ball, TiledAlternateColorWall
-from spg import HeadAgent
-from spg import Room
+from spg import Ball, HeadAgent, Room, TiledAlternateColorWall
 from spg.view import HeadAgentGUI
 
 # import arcade

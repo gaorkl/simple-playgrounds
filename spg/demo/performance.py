@@ -3,10 +3,7 @@ import time
 
 from tqdm import tqdm
 
-from spg import HeadAgent
-from spg import Ball
-from spg import Room
-from spg import UniformCoordinateSampler
+from spg import Ball, HeadAgent, Room, UniformCoordinateSampler
 
 
 def run_exp(args):

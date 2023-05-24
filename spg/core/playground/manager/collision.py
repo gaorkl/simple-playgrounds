@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict
 import pymunk
 
 from spg.core.collision import CollisionTypes
+
 from ...entity.mixin import ActivableMixin
 
 if TYPE_CHECKING:

@@ -7,7 +7,6 @@ from spg.core.sensor.ray.ray import RaySensor
 
 
 class Distance(RaySensor):
-
     @property
     def observation_space(self):
         return spaces.Box(low=0, high=self.max_range, shape=(self.resolution,))

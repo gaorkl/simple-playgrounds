@@ -1,4 +1,5 @@
 from spg.core.collision import CollisionTypes
+
 from .element import PhysicalElement, RewardElement
 
 

@@ -1,8 +1,15 @@
 import pytest
 
 from spg.core.playground import EmptyPlayground
-from tests.mock_interactives import ActivableMoving, ActivableZone, MockElementWithHalo, MockDynamicTrigger, \
-    MockStaticTrigger, ActivableZoneTeleport, ActivableZoneRemove
+from tests.mock_interactives import (
+    ActivableMoving,
+    ActivableZone,
+    ActivableZoneRemove,
+    ActivableZoneTeleport,
+    MockDynamicTrigger,
+    MockElementWithHalo,
+    MockStaticTrigger,
+)
 
 coord_center = (0, 0), 0
 coord_shift = (0, 1), 0.3
@@ -110,4 +117,3 @@ def test_activate_remove():
 
     assert elem not in playground.elements
     assert activ.activated
-

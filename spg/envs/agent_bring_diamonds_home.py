@@ -1,11 +1,8 @@
 import arcade
-from spg.view import HeadAgentGUI
 
-from spg import Chest, Diamond
-from spg import HeadAgent
-from spg import Playground, Room
-from spg import get_colliding_entities
+from spg import Chest, Diamond, HeadAgent, Playground, Room, get_colliding_entities
 from spg.core.playground import CollisionTypes
+from spg.view import HeadAgentGUI
 
 
 def diamond_chest_collision(arbiter, _, data):

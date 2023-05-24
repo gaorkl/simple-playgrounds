@@ -8,6 +8,7 @@ from spg.core.position import UniformCoordinateSampler
 
 WALL_DEPTH = 10
 
+
 class ConnectedRooms(Playground):
     def __init__(
         self,

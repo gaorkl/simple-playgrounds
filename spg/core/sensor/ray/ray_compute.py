@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from array import array
 from os import path
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import numpy as np
 
@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 
 
 class RayComputeStrategy(ABC):
-
     @abstractmethod
     def __init__(self, ray_compute: RayCompute):
 
@@ -55,7 +54,6 @@ class RayComputeStrategy(ABC):
 
 
 class ShaderCompute(RayComputeStrategy):
-
     def __init__(self, ray_compute: RayCompute):
 
         super().__init__(ray_compute)
@@ -85,9 +83,7 @@ class ShaderCompute(RayComputeStrategy):
         with open(shader_dir + "/id_compute.glsl", "rt", encoding="utf-8") as f_id:
             self._source_compute_ids = f_id.read()
 
-        with open(
-            shader_dir + "/color_compute.glsl", "rt", encoding="utf-8"
-        ) as f_col:
+        with open(shader_dir + "/color_compute.glsl", "rt", encoding="utf-8") as f_col:
             self._source_compute_colors = f_col.read()
 
         self._id_shader = None
@@ -137,7 +133,6 @@ class ShaderCompute(RayComputeStrategy):
                     yield 0.0
 
     def _generate_invisible_buffer(self):
-
 
         for sensor in self.sensors:
 
@@ -211,7 +206,6 @@ class ShaderCompute(RayComputeStrategy):
 
 
 class NumpyCompute(RayComputeStrategy):
-
     def __init__(self, ray_compute: RayCompute):
         super().__init__(ray_compute)
 
@@ -225,11 +219,11 @@ class NumpyCompute(RayComputeStrategy):
             end_positions = sensor.end_positions
 
             ray_start_x = (
-                                  sensor.position[0] - self.id_view.center[0]
-                          ) * self.id_view.scale+ self.id_view.width / 2
+                sensor.position[0] - self.id_view.center[0]
+            ) * self.id_view.scale + self.id_view.width / 2
             ray_start_y = (
-                                  sensor.position[1] - self.id_view.center[1]
-                          ) * self.id_view.scale + self.id_view.height / 2
+                sensor.position[1] - self.id_view.center[1]
+            ) * self.id_view.scale + self.id_view.height / 2
 
             center_on_view = np.asarray((ray_start_x, ray_start_y)).reshape(2, 1)
 
@@ -239,15 +233,13 @@ class NumpyCompute(RayComputeStrategy):
 
             points[:, 0, :] = (points[:, 0, :] > 0) * points[:, 0, :]
             points[:, 0, :] = (points[:, 0, :] < self.id_view.width) * points[
-                                                                        :, 0, :
-                                                                        ] + (
-                                          points[:, 0, :] >= self.id_view.width) * (self.id_view.width - 1)
+                :, 0, :
+            ] + (points[:, 0, :] >= self.id_view.width) * (self.id_view.width - 1)
 
             points[:, 1, :] = (points[:, 1, :] > 0) * points[:, 1, :]
             points[:, 1, :] = (points[:, 1, :] < self.id_view.height) * points[
-                                                                         :, 1, :
-                                                                         ] + (
-                                          points[:, 1, :] >= self.id_view.height) * (self.id_view.height - 1)
+                :, 1, :
+            ] + (points[:, 1, :] >= self.id_view.height) * (self.id_view.height - 1)
 
             points = points.swapaxes(1, 2).reshape(-1, 2)
 
@@ -260,7 +252,7 @@ class NumpyCompute(RayComputeStrategy):
 
             #  remove invisible
             for inv in sensor.invisible_ids:
-                ids *= (ids != inv)
+                ids *= ids != inv
 
             ids = ids.reshape(-1, sensor.resolution).transpose()
 
@@ -274,8 +266,8 @@ class NumpyCompute(RayComputeStrategy):
 
             points = points.reshape((-1, sensor.resolution, 2))
             view_position = points[
-                            index_first_non_zero, np.arange(len(index_first_non_zero)), :
-                            ]
+                index_first_non_zero, np.arange(len(index_first_non_zero)), :
+            ]
 
             color = img_color[
                 view_position[:, 1].astype(np.int), view_position[:, 0].astype(np.int)
@@ -289,16 +281,16 @@ class NumpyCompute(RayComputeStrategy):
             distance = np.expand_dims(distance, -1)
 
             x_abs = (
-                            view_position[:, 0] - self.id_view.width / 2
-                    ) / self.id_view.scale + self.id_view.center[0]
+                view_position[:, 0] - self.id_view.width / 2
+            ) / self.id_view.scale + self.id_view.center[0]
 
             y_abs = (
-                            view_position[:, 1] - self.id_view.height / 2
-                    ) / self.id_view.scale + self.id_view.center[1]
+                view_position[:, 1] - self.id_view.height / 2
+            ) / self.id_view.scale + self.id_view.center[1]
 
             view_position[id_first_non_zero == 0, :] = rays_end[
-                                                       :, id_first_non_zero == 0
-                                                       ].transpose()
+                :, id_first_non_zero == 0
+            ].transpose()
             abs_env_position = np.vstack((x_abs, y_abs)).transpose()
 
             center_on_view = np.broadcast_to(
@@ -323,7 +315,6 @@ class NumpyCompute(RayComputeStrategy):
 
 
 class RayCompute:
-
     def __init__(self, playground: Playground, scale=1, use_shader=True):
 
         self.playground = playground

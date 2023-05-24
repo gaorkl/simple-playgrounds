@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Dict, Tuple, Union, Optional
+from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
 import arcade
 import numpy as np
@@ -123,12 +123,8 @@ class View:
     def update_sprites(self, force=False):
 
         for entity, sprite in self.entity_to_sprites.items():
-            pos_x = (
-                entity.position.x - self.center[0]
-            ) * self.scale + self.width // 2
-            pos_y = (
-                entity.position.y - self.center[1]
-            ) * self.scale + self.height // 2
+            pos_x = (entity.position.x - self.center[0]) * self.scale + self.width // 2
+            pos_y = (entity.position.y - self.center[1]) * self.scale + self.height // 2
 
             if sprite.position != (pos_x, pos_y) or force:
                 sprite.set_position(pos_x, pos_y)

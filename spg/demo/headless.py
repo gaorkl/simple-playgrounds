@@ -15,9 +15,7 @@ def run_environment(headless):
 
     import arcade
 
-    from spg import HeadAgent
-    from spg import Ball
-    from spg import Room
+    from spg import Ball, HeadAgent, Room
 
     playground = Room(size=(500, 200), background=(23, 23, 21))
 

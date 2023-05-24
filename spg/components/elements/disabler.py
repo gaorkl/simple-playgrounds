@@ -3,9 +3,10 @@ from typing import List, Optional, Type, Union
 from spg.components.agents.part import PhysicalPart
 from spg.core.collision import CollisionTypes
 from spg.core.sensor import Sensor
-from .element import ZoneElement
+
 from ..agents.device import Device
 from ..agents.device.communicator import Communicator
+from .element import ZoneElement
 
 
 class Disabler(ZoneElement):

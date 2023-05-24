@@ -11,7 +11,8 @@ def wall_cls(request):
 
 
 @pytest.fixture(
-    scope="module", params=[None, arcade.color.REDWOOD, arcade.color.YELLOW, arcade.color.BLUE]
+    scope="module",
+    params=[None, arcade.color.REDWOOD, arcade.color.YELLOW, arcade.color.BLUE],
 )
 def wall_color(request):
     return request.param

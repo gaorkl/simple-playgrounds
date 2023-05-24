@@ -13,12 +13,13 @@ from matplotlib import pyplot as plt
 from spg.core.entity.communication import CommunicationMixin
 from spg.core.playground.utils import zero_action_space
 from spg.core.position import Coordinate, CoordinateSampler
+
+from ..entity import Agent, Element, Entity
+from ..entity.sensor import SensorMixin
 from .manager import SpaceManager, ViewManager
 from .manager.collision import CollisionManager
 from .manager.communication import CommunicationManager
 from .manager.sensor import SensorManager
-from ..entity import Agent, Element, Entity
-from ..entity.sensor import SensorMixin
 
 if TYPE_CHECKING:
     from spg.components.elements.barrier import BarrierMixin
@@ -329,5 +330,3 @@ class EmptyPlayground(Playground):
 
     def place_elements(self):
         pass
-
-

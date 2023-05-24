@@ -1,6 +1,4 @@
-from spg import Ball
-from spg import HeadAgent
-from spg import Room
+from spg import Ball, HeadAgent, Room
 from spg.view import HeadAgentGUI
 
 playground = Room(size=(500, 200), background=(23, 23, 21))

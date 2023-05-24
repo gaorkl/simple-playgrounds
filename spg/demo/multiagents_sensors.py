@@ -1,7 +1,4 @@
-from spg import Ball
-from spg import HeadAgent
-from spg import Room
-from spg import UniformCoordinateSampler
+from spg import Ball, HeadAgent, Room, UniformCoordinateSampler
 from spg.view import HeadAgentGUI
 
 playground = Room(size=(500, 500))

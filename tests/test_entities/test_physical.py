@@ -113,7 +113,7 @@ def test_polygon_offset(vertices, offset):
     ent_1 = StaticElementFromGeometry(
         geometry="polygon", vertices=vertices, color=(0, 0, 1)
     )
-    coord_offset = (x_offset, y_offset), 0
+
     playground.add(ent_1, (ent_1.offset, 0))
 
     assert (
@@ -301,7 +301,7 @@ def test_entity_size(vertices, radius):
 
 @pytest.mark.parametrize("radius", [2, 3, 4, 5, 10, 20])
 @pytest.mark.parametrize("base_radius", [2, 3, 4, 5, 10, 20])
-def test_size_entities_radius(radius, base_radius):
+def test_size_entities_from_other_entity(radius, base_radius):
 
     base_entity = StaticElementFromGeometry(
         geometry="circle", radius=base_radius, color=(0, 0, 1)

@@ -17,5 +17,3 @@ class ActivableMixin:
     @abstractmethod
     def activate(self, entity, **kwargs):
         ...
-
-

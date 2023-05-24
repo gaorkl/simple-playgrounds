@@ -2,9 +2,7 @@
 
 from multiprocessing import Pool
 
-from spg import Ball
-from spg import HeadAgent
-from spg import Room
+from spg import Ball, HeadAgent, Room
 from spg.view import HeadAgentGUI
 
 

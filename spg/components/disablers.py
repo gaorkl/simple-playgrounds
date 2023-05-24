@@ -1,8 +1,13 @@
-from spg import Ball, CommunicatorDisabler, ControllerDisabler, SensorDisabler
-from spg import GrasperController
-from spg import HeadAgent
-from spg import RGBSensor
-from spg import Room
+from spg import (
+    Ball,
+    CommunicatorDisabler,
+    ControllerDisabler,
+    GrasperController,
+    HeadAgent,
+    RGBSensor,
+    Room,
+    SensorDisabler,
+)
 from spg.view import HeadAgentGUI
 
 playground = Room(size=(400, 400))

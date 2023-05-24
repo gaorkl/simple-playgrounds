@@ -19,7 +19,6 @@ class GraspableMixin:
     grasped_by = []
 
 
-
 class GrasperMixin(ActionMixin):
 
     pm_shapes: List[pymunk.Shape]
@@ -28,7 +27,6 @@ class GrasperMixin(ActionMixin):
 
     grasped: Dict[GraspableMixin, List[pymunk.PinJoint]] = {}
     max_grasped: int = None
-
 
     @property
     def action_space(self):
@@ -39,17 +37,19 @@ class GrasperMixin(ActionMixin):
         shapes_in_range = []
 
         for shape in self.pm_shapes:
-            shapes_in_range.extend( (sq.shape for sq in self.playground.space.shape_query(shape)))
+            shapes_in_range.extend(
+                (sq.shape for sq in self.playground.space.shape_query(shape))
+            )
 
-        entities_in_range = set([
-            self.playground.shapes_to_entities[shape]
-            for shape in set(shapes_in_range)
-        ])
+        entities_in_range = set(
+            [
+                self.playground.shapes_to_entities[shape]
+                for shape in set(shapes_in_range)
+            ]
+        )
 
         graspables_in_range = [
-            entity
-            for entity in entities_in_range
-            if isinstance(entity, GraspableMixin)
+            entity for entity in entities_in_range if isinstance(entity, GraspableMixin)
         ]
 
         for graspable in graspables_in_range:

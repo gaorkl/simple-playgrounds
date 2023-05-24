@@ -3,14 +3,12 @@ from gymnasium import spaces
 
 from spg.core.entity.sensor import SensorMixin
 
-
 ##################
 # Internal Sensors
 ##################
 
 
 class Position(SensorMixin):
-
     @property
     def observation(self):
         return self.position
@@ -21,8 +19,6 @@ class Position(SensorMixin):
 
 
 class BasePosition(Position):
-
     @property
     def observation(self):
         return self.base.position
-

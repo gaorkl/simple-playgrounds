@@ -4,7 +4,7 @@ from typing import List, Union
 
 import pymunk
 
-from spg.core.entity import Entity, Agent
+from spg.core.entity import Agent, Entity
 from spg.core.playground import Playground
 
 

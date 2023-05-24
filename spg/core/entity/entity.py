@@ -8,16 +8,12 @@ from gymnasium import spaces
 
 from spg.core.collision import CollisionTypes
 from spg.core.position import Coordinate
+
+from ..sensor.ray.ray import RaySensor
 from .action import ActionMixin
-from .mixin import (
-    AttachedStaticMixin,
-    BaseMixin,
-    ShapeMixin,
-    SpriteMixin,
-)
+from .mixin import AttachedStaticMixin, BaseMixin, ShapeMixin, SpriteMixin
 from .mixin.body import BodyMixin
 from .sensor import SensorMixin
-from ..sensor.ray.ray import RaySensor
 
 if TYPE_CHECKING:
     from ..playground import Playground

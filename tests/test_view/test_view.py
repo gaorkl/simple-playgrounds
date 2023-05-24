@@ -121,6 +121,7 @@ def test_traversable():
 
     assert np.all(img[200, 200] == color_2)
 
+
 @pytest.mark.parametrize("draw_transparent", [True, False])
 def test_transparent(draw_transparent):
     color_1 = (50, 50, 100)
@@ -136,7 +137,13 @@ def test_transparent(draw_transparent):
     )
     playground.add(transparent, coord_shifted_center)
 
-    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1, draw_transparent=draw_transparent)
+    view = View(
+        playground,
+        size_on_playground=(400, 400),
+        center=(0, 0),
+        scale=1,
+        draw_transparent=draw_transparent,
+    )
 
     assert len(view.entity_to_sprites) == 1 + int(draw_transparent)
     assert len(view.scene.get_sprite_list("entity")) == 1 + int(draw_transparent)

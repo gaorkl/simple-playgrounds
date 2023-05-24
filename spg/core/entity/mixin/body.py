@@ -208,6 +208,7 @@ class AttachedStaticMixin(AttachmentMixin):
     def angle(self):
         return self.anchor.angle + self.initial_relative_coordinate[1]
 
+
 class AttachedDynamicMixin(AttachmentMixin):
 
     attached: list[AttachmentMixin]

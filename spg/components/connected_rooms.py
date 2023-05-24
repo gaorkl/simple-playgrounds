@@ -1,12 +1,16 @@
 import math
 
-from spg.view import HeadAgentGUI
-
-from spg import Chest, Coin
-from spg import ConnectedRooms, Playground, get_colliding_entities
-from spg import HeadAgent
-from spg import TiledLongColorWall
+from spg import (
+    Chest,
+    Coin,
+    ConnectedRooms,
+    HeadAgent,
+    Playground,
+    TiledLongColorWall,
+    get_colliding_entities,
+)
 from spg.core.playground import CollisionTypes
+from spg.view import HeadAgentGUI
 
 
 def coin_chest_collision(arbiter, _, data):

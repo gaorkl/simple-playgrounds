@@ -1,10 +1,16 @@
 import pytest
 
 from spg.core.playground import EmptyPlayground
+
 # Add test Interactions to collisions
 from tests.mock_entities import MockStaticElement
-from tests.mock_interactives import ActivableMoving, ActivableZone, MockElementWithHalo, MockDynamicTrigger, \
-    MockStaticTrigger
+from tests.mock_interactives import (
+    ActivableMoving,
+    ActivableZone,
+    MockDynamicTrigger,
+    MockElementWithHalo,
+    MockStaticTrigger,
+)
 
 coord_0 = ((0, 0), 0)
 

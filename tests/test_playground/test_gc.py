@@ -9,7 +9,9 @@ from tests.mock_interactives import ActivableZone, MockElementWithHalo
 coord_center = (0, 0), 0
 
 
-@pytest.mark.parametrize("Elem", [MockDynamicElement, ActivableZone, MockElementWithHalo])
+@pytest.mark.parametrize(
+    "Elem", [MockDynamicElement, ActivableZone, MockElementWithHalo]
+)
 def test_gc_del(Elem):
 
     playground = EmptyPlayground(size=(100, 100))

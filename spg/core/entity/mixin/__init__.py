@@ -1,4 +1,5 @@
 from spg.core.entity.interaction import ActivableMixin
+
 from .body import (
     AttachedDynamicMixin,
     AttachedStaticMixin,

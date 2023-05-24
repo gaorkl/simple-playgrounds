@@ -14,7 +14,7 @@ def test_default_name():
     playground.add(elem, ((0, 0), 0))
 
     assert elem.name is not None
-    assert elem.name.split('_')[0] == "MockDynamicElement"
+    assert elem.name.split("_")[0] == "MockDynamicElement"
 
 
 def test_custom_name():

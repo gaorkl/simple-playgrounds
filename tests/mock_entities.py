@@ -7,8 +7,8 @@
 
 import numpy as np
 import pymunk
-from PIL import Image
 from arcade.texture import Texture
+from PIL import Image
 from skimage import draw, morphology
 
 from spg.components.elements.barrier import BarrierMixin
@@ -23,18 +23,18 @@ from spg.core.entity.mixin.sprite import get_texture_from_geometry
 
 
 class MockElement(Element):
-
     def __init__(self, **kwargs):
         super().__init__(
             filename=":resources:onscreen_controls/flat_light/play.png",
             **kwargs,
         )
 
+
 class MockStaticElementFromTexture(Element, BaseStaticMixin):
     pass
 
-class MockDynamicElement(MockElement, BaseDynamicMixin):
 
+class MockDynamicElement(MockElement, BaseDynamicMixin):
     def __init__(self, **kwargs):
         super().__init__(mass=1, **kwargs)
 
@@ -44,13 +44,12 @@ class MockStaticElement(MockElement, BaseStaticMixin):
 
 
 class ElementFromGeometry(Element):
-
     def __init__(self, **kwargs):
 
         texture, offset = get_texture_from_geometry(**kwargs)
         self.offset = offset
 
-        super().__init__(texture=texture, shape_approximation='decomposition', **kwargs)
+        super().__init__(texture=texture, shape_approximation="decomposition", **kwargs)
 
 
 class StaticElementFromGeometry(ElementFromGeometry, BaseStaticMixin):
@@ -63,7 +62,6 @@ class DynamicElementFromGeometry(ElementFromGeometry, BaseDynamicMixin):
 
 
 class NonConvexPlus_Approx(Element, BaseDynamicMixin):
-
     def __init__(
         self,
         radius,
@@ -102,7 +100,6 @@ class NonConvexPlus(NonConvexPlus_Approx):
 
 
 class NonConvexC(Element, BaseDynamicMixin):
-
     def __init__(
         self,
         radius,
@@ -139,7 +136,6 @@ class NonConvexC(Element, BaseDynamicMixin):
 
 
 class MockAttachment(Entity, AttachedDynamicMixin):
-
     def __init__(self, **kwargs):
         super().__init__(
             mass=1,
@@ -164,7 +160,6 @@ class MockAttachment(Entity, AttachedDynamicMixin):
 
 
 class MockFixedAttachment(Entity, AttachedStaticMixin):
-
     def __init__(self, **kwargs):
         super().__init__(
             filename=":resources:images/topdown_tanks/tankBlue_barrel3_outline.png",
@@ -178,7 +173,6 @@ class MockFixedAttachment(Entity, AttachedStaticMixin):
 
 
 class MockElemWithAttachment(MockDynamicElement):
-
     def __init__(self, anchor_point, relative_angle, **kwargs):
 
         super().__init__(**kwargs)

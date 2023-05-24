@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from spg.core.view import View
 
@@ -12,7 +12,6 @@ from spg.core.sensor.ray.ray_compute import RayCompute
 
 
 class SensorManager:
-
     def __init__(self, use_shader=True, sensor_scale=1, **kwargs) -> None:
 
         self.sensors: List[SensorMixin] = []
@@ -53,4 +52,3 @@ class SensorManager:
 
         if isinstance(sensor, RaySensor):
             self.ray_compute.add(sensor)
-

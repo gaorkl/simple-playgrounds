@@ -10,8 +10,8 @@ import numpy as np
 from spg.core.entity.sensor import SensorMixin
 
 if TYPE_CHECKING:
-    from spg.core.playground import Playground
     from spg.core.entity import Entity
+    from spg.core.playground import Playground
 
 
 Detection = namedtuple("Detection", "entity, distance, angle")
@@ -34,8 +34,7 @@ class RaySensor(SensorMixin):
         fov: float,
         resolution: int,
         max_range: float,
-        invisible_entities: Optional[Union[List[Entity], Entity]
-            ] = None,
+        invisible_entities: Optional[Union[List[Entity], Entity]] = None,
         spatial_resolution: float = 1,
         **kwargs,
     ):
@@ -60,9 +59,11 @@ class RaySensor(SensorMixin):
 
         # Invisible elements
         invisible_entities = (
-            [] if not invisible_entities else
-            [invisible_entities] if isinstance(invisible_entities, Entity) else
-            invisible_entities
+            []
+            if not invisible_entities
+            else [invisible_entities]
+            if isinstance(invisible_entities, Entity)
+            else invisible_entities
         )
 
         for ent in invisible_entities:
@@ -71,7 +72,7 @@ class RaySensor(SensorMixin):
         self._invisible_entities: List[Entity] = []
 
         self._hitpoints = np.zeros((self.resolution, SIZE_OUTPUT_BUFFER))
-        self._observation = self.observation_space.sample()*0
+        self._observation = self.observation_space.sample() * 0
         self.updated = False
 
         self.invisible_changed = False

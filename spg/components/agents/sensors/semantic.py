@@ -13,7 +13,6 @@ RELATIVE_POSITION = spaces.Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.fl
 
 
 class Semantic(RaySensor, ABC):
-
     def _convert_hitpoints_to_observation(self):
         id_rgb = self._hitpoints[:, 8:10]
         uids = np.dot(id_rgb, [1, 255, 255**2]).astype(np.uint32)
@@ -31,7 +30,6 @@ class Semantic(RaySensor, ABC):
 
 
 class SemanticID(Semantic):
-
     @property
     def observation_space(self):
         return spaces.Sequence(spaces.Box(low=0, high=255 + 255**2 + 255**3))

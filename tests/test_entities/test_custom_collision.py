@@ -8,7 +8,6 @@ coord_far = (50, 50), 0
 
 
 class CustomCollisionMoving(ActivableMoving):
-
     def __init__(self, collision_id, **kwargs):
         super().__init__(**kwargs)
         self.collision_type = collision_id

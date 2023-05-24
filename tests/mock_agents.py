@@ -208,7 +208,6 @@ class MockGraspable(MockDynamicElement, GraspableMixin):
 
 
 class MockRaySensor(Entity, AttachedStaticMixin, RaySensor):
-
     def _convert_hitpoints_to_observation(self):
         return self._hitpoints
 

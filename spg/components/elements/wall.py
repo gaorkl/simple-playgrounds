@@ -5,9 +5,9 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pymunk
-from PIL import Image
 from arcade.resources import resolve_resource_path
 from arcade.texture import Texture
+from PIL import Image
 from skimage.io import imread
 from skimage.transform import resize
 
@@ -36,7 +36,7 @@ class Wall(Element, BaseStaticMixin):
             hit_box_detail=1,
         )
 
-        super().__init__(texture=texture, color_tint = color, **kwargs)
+        super().__init__(texture=texture, color_tint=color, **kwargs)
 
     @abstractmethod
     def _get_img_wall(self, wall_width, wall_length):

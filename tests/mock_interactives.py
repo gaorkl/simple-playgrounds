@@ -1,16 +1,15 @@
 from spg.core.collision import CollisionTypes
-from spg.core.entity import Entity, Element
+from spg.core.entity import Element, Entity
 from spg.core.entity.mixin import (
     ActivableMixin,
     AttachedStaticMixin,
     BaseDynamicMixin,
     BaseStaticMixin,
 )
-from tests.mock_entities import MockElement, MockStaticElement, MockDynamicElement
+from tests.mock_entities import MockDynamicElement, MockElement, MockStaticElement
 
 
 class MockActivable(Element, ActivableMixin):
-
     def __init__(self, **kwargs):
         super().__init__(
             filename=":resources:onscreen_controls/flat_light/play.png",
@@ -22,19 +21,16 @@ class MockActivable(Element, ActivableMixin):
 
 
 class ActivableMoving(MockActivable, BaseDynamicMixin):
-
     def __init__(self, **kwargs):
         super().__init__(mass=1, **kwargs)
 
 
 class ActivableZone(MockActivable, BaseStaticMixin):
-
     def __init__(self, **kwargs):
         super().__init__(ghost=True, **kwargs)
 
 
 class ActivableHalo(Entity, ActivableMixin, AttachedStaticMixin):
-
     def __init__(self, **kwargs):
         super().__init__(ghost=True, **kwargs)
 
@@ -47,7 +43,6 @@ class ActivableHalo(Entity, ActivableMixin, AttachedStaticMixin):
 
 
 class MockElementWithHalo(MockElement, BaseDynamicMixin):
-
     def __init__(self, interaction_radius=10, **kwargs):
         super().__init__(mass=10, **kwargs)
 
@@ -108,4 +103,3 @@ class ActivableZoneRemove(ActivableZone):
         for entity in set(self.entities_to_remove):
             self.entities_to_remove.remove(entity)
             self.playground.remove(entity)
-

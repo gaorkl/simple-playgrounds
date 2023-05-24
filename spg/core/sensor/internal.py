@@ -5,4 +5,3 @@ from spg.core.entity.sensor import SensorMixin
 
 class InternalSensor(SensorMixin, ABC):
     pass
-
