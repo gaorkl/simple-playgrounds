@@ -1,6 +1,6 @@
 import pytest
 
-from spg.playground import EmptyPlayground
+from spg.core.playground import EmptyPlayground
 # Add test Interactions to collisions
 from tests.mock_entities import MockStaticElement
 from tests.mock_interactives import ActivableMoving, ActivableZone, MockElementWithHalo, MockDynamicTrigger, \
@@ -8,7 +8,7 @@ from tests.mock_interactives import ActivableMoving, ActivableZone, MockElementW
 
 coord_0 = ((0, 0), 0)
 
-# teams of element 1 ; team of element 2 ; is interacting?
+# teams of elements 1 ; team of elements 2 ; is interacting?
 
 
 @pytest.fixture(

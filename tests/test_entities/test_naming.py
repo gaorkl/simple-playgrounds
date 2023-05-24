@@ -1,6 +1,6 @@
 import pytest
 
-from spg.playground import EmptyPlayground
+from spg.core.playground import EmptyPlayground
 from tests.mock_agents import StaticAgent
 from tests.mock_entities import MockDynamicElement
 

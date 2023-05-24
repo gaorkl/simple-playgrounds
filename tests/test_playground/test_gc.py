@@ -1,97 +1,26 @@
 import gc
 
-from spg import PhysicalEntity
-from spg import Playground
-from tests.mock_entities import MockHalo, MockPhysicalInteractive, MockPhysicalMovable
+import pytest
+
+from spg.core.playground import EmptyPlayground
+from tests.mock_entities import MockDynamicElement
+from tests.mock_interactives import ActivableZone, MockElementWithHalo
 
 coord_center = (0, 0), 0
 
 
-def test_gc_del():
+@pytest.mark.parametrize("Elem", [MockDynamicElement, ActivableZone, MockElementWithHalo])
+def test_gc_del(Elem):
 
-    playground = Playground()
+    playground = EmptyPlayground(size=(100, 100))
 
-    playground.add(MockPhysicalMovable(), coord_center)
+    playground.add(Elem(), coord_center)
 
     del playground
 
     gc.collect()
     for obj in gc.get_objects():
-        if isinstance(obj, Playground):
+        if isinstance(obj, EmptyPlayground):
             raise ValueError
-        if isinstance(obj, MockPhysicalMovable):
+        if isinstance(obj, Elem):
             raise ValueError
-
-
-def test_gc_remove_physical():
-
-    playground = Playground()
-    playground.add(MockPhysicalMovable(), coord_center)
-
-    gc.collect()
-    in_gc = len(
-        [obj for obj in gc.get_objects() if isinstance(obj, MockPhysicalMovable)]
-    )
-    assert in_gc
-
-    playground.remove(playground.elements[0], definitive=False)
-
-    gc.collect()
-    in_gc = len(
-        [obj for obj in gc.get_objects() if isinstance(obj, MockPhysicalMovable)]
-    )
-    assert in_gc
-
-    playground.reset()
-
-    playground.remove(playground.elements[0], definitive=True)
-    gc.collect()
-    in_gc = len(
-        [obj for obj in gc.get_objects() if isinstance(obj, MockPhysicalMovable)]
-    )
-    assert not in_gc
-
-
-def test_gc_remove_anchored():
-
-    playground = Playground()
-
-    playground.add(
-        MockPhysicalInteractive(radius=20, interaction_range=10),
-        coord_center,
-    )
-
-    gc.collect()
-    in_gc = len(
-        [
-            obj
-            for obj in gc.get_objects()
-            if isinstance(obj, (MockPhysicalInteractive, PhysicalEntity, MockHalo))
-        ]
-    )
-    assert in_gc
-
-    playground.remove(playground.elements[0], definitive=False)
-
-    gc.collect()
-    in_gc = len(
-        [
-            obj
-            for obj in gc.get_objects()
-            if isinstance(obj, (MockPhysicalInteractive, PhysicalEntity, MockHalo))
-        ]
-    )
-    assert in_gc
-
-    playground.reset()
-
-    playground.remove(playground.elements[0], definitive=True)
-    gc.collect()
-    in_gc = len(
-        [
-            obj
-            for obj in gc.get_objects()
-            if isinstance(obj, (MockPhysicalInteractive, PhysicalEntity, MockHalo))
-        ]
-    )
-    assert not in_gc

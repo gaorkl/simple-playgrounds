@@ -5,8 +5,6 @@ scikit-image
 pillow
 pytest
 matplotlib
-gymnasium
 arcade
-tripy
 tqdm
 gymnasium

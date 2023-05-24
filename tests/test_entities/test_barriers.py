@@ -1,4 +1,4 @@
-from spg.playground import EmptyPlayground
+from spg.core.playground import EmptyPlayground
 
 # Add test Interactions to collisions
 from tests.mock_entities import MockBarrier, MockDynamicElement

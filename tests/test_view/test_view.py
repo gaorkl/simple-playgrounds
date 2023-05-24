@@ -2,8 +2,8 @@ import arcade.color
 import numpy as np
 import pytest
 
-from spg.playground import EmptyPlayground
-from spg.view import View
+from spg.core.playground import EmptyPlayground
+from spg.core.view import View
 from tests.mock_entities import DynamicElementFromGeometry, StaticElementFromGeometry
 
 coord_center = (0, 0), 0
@@ -121,8 +121,8 @@ def test_traversable():
 
     assert np.all(img[200, 200] == color_2)
 
-
-def test_transparent():
+@pytest.mark.parametrize("draw_transparent", [True, False])
+def test_transparent(draw_transparent):
     color_1 = (50, 50, 100)
     color_2 = (50, 199, 30)
 
@@ -136,16 +136,15 @@ def test_transparent():
     )
     playground.add(transparent, coord_shifted_center)
 
-    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
+    view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1, draw_transparent=draw_transparent)
 
-    assert len(view.entity_to_sprites) == 2
-    assert len(view.scene.get_sprite_list("entity")) == 2
+    assert len(view.entity_to_sprites) == 1 + int(draw_transparent)
+    assert len(view.scene.get_sprite_list("entity")) == 1 + int(draw_transparent)
     assert transparent.transparent
 
     img = view.get_np_img()
 
-    assert np.any(img[200, 200] != color_2)
-    assert np.any(img[200, 200] != color_1)
+    assert np.any(img[200, 200] == color_1)
 
 
 def test_remove_entity():

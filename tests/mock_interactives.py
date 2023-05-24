@@ -1,11 +1,11 @@
-from spg.entity import Entity, Element
-from spg.entity.mixin import (
+from spg.core.collision import CollisionTypes
+from spg.core.entity import Entity, Element
+from spg.core.entity.mixin import (
     ActivableMixin,
     AttachedStaticMixin,
     BaseDynamicMixin,
     BaseStaticMixin,
 )
-from spg.playground.collision import CollisionTypes
 from tests.mock_entities import MockElement, MockStaticElement, MockDynamicElement
 
 

@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from spg.playground import EmptyPlayground
+from spg.core.playground import EmptyPlayground
 from tests.mock_entities import MockElemWithAttachment, MockElemWithFixedAttachment
 
 coord_center = (0, 0), 0

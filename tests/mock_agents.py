@@ -3,19 +3,21 @@ import math
 import pymunk
 from gymnasium import spaces
 
-from spg.agent.grasper import GraspableMixin, GrasperHold
-from spg.definitions import ANGULAR_VELOCITY
-from spg.entity import Agent, Entity
-from spg.entity.mixin import (
-    ActionMixin,
+from spg.components.grasper import GraspableMixin, GrasperHold
+from spg.core.entity import Agent, Entity
+from spg.core.entity.action import ActionMixin
+from spg.core.entity.mixin import (
     ActivableMixin,
     AttachedDynamicMixin,
     AttachedStaticMixin,
     BaseDynamicMixin,
     BaseStaticMixin,
 )
-from spg.entity.mixin.sprite import get_texture_from_geometry
+from spg.core.entity.mixin.sprite import get_texture_from_geometry
+from spg.core.sensor.ray.ray import RaySensor
 from tests.mock_entities import MockDynamicElement
+
+ANGULAR_VELOCITY = 0.3
 
 
 class MockAgent(Agent):
@@ -96,22 +98,6 @@ class MockAttachedPart(Entity, AttachedDynamicMixin, ActionMixin):
 
     def apply_action(self, action):
         self.motor.rate = action * ANGULAR_VELOCITY
-        #
-        # relative_angle = self.anchor.angle - self.angle
-        #
-        # angle_centered = relative_angle % (2 * math.pi)
-        # angle_centered = (
-        #     angle_centered - 2 * math.pi if angle_centered > math.pi else angle_centered
-        # )
-        #
-        # # Do not set the motor if the limb is close to limit
-        # if (angle_centered < -self.rotation_range / 2 + math.pi / 20) and action < 0:
-        #     self.motor.rate = 0
-        #
-        # elif (angle_centered > self.rotation_range / 2 - math.pi / 20) and action > 0:
-        #     self.motor.rate = 0
-
-        pass
 
 
 class Trigger(Entity, ActivableMixin, AttachedStaticMixin):
@@ -203,6 +189,7 @@ class GrasperHand(Entity, AttachedStaticMixin, GrasperHold):
             **kwargs,
         )
 
+    @property
     def attachment_point(self):
         return 0, 0
 
@@ -220,123 +207,32 @@ class MockGraspable(MockDynamicElement, GraspableMixin):
     pass
 
 
-#
-# class Detector(Device):
-#     def __init__(self, anchor, **kwargs):
-#         super().__init__(anchor=anchor, **kwargs)
-#         self._activated = False
-#
-#     @property
-#     def _collision_type(self):
-#         return CollisionTypes.PASSIVE_INTERACTOR
-#
-#     def pre_step(self):
-#         self._activated = False
-#
-#     def activate(self):
-#         self._activated = True
-#
-#     @property
-#     def activated(self):
-#         return self._activated
-#
-#     @property
-#     def action_space(self):
-#         return None
-#
-#     def apply_action(self):
-#         pass
-#
-#
-# class Trigger(Device):
-#     def __init__(self, anchor, **kwargs):
-#         super().__init__(anchor=anchor, **kwargs)
-#
-#         self._triggered = False
-#
-#     @property
-#     def _collision_type(self):
-#         return CollisionTypes.ACTIVE_INTERACTOR
-#
-#     def pre_step(self):
-#         self._triggered = False
-#
-#     @property
-#     def triggered(self):
-#         return self._triggered
-#
-#     @property
-#     def activated(self):
-#         return self._triggered
-#
-#     @property
-#     def action_space(self):
-#         return spaces.Discrete(2)
-#
-#     def apply_action(self, action):
-#
-#         if action:
-#             self._triggered = True
-#
-#
-# class TriggerArm(Arm):
-#     def __init__(self, **kwargs):
-#
-#         super().__init__(**kwargs)
-#
-#         self.trigger = Trigger(self, name="trigger")
-#         self.add(self.trigger)
-#
-#
-# class MockAgent(Agent):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#
-#     def _get_base(self):
-#         return ForwardBase(name="base")
-#
-#     @property
-#     def forward_action(self):
-#
-#         agent_forward_action = {self.name: {"base": {"motor": {"forward_force": 1}}}}
-#         action = fill_action_space(self.playground, agent_forward_action)
-#
-#         return action
-#
-#
-# class MockAgentWithArm(MockAgent):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         rel_left = ((15, 15), math.pi / 3)
-#         self.left_arm = Arm(
-#             name="left_arm",
-#             rotation_range=math.pi / 4,
-#         )
-#         self.base.add(self.left_arm, rel_left)
-#
-#         rel_right = ((15, -15), -math.pi / 3)
-#         self.right_arm = Arm(
-#             name="right_arm",
-#             rotation_range=math.pi / 4,
-#         )
-#         self.base.add(self.right_arm, rel_right)
-#
-#
-# class MockAgentWithTriggerArm(MockAgent):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#
-#         rel_left = ((15, 15), math.pi / 3)
-#         self.left_arm = TriggerArm(
-#             name="left_arm",
-#             rotation_range=math.pi / 4,
-#         )
-#         self.base.add(self.left_arm, rel_left)
-#
-#         rel_right = ((15, -15), -math.pi / 3)
-#         self.right_arm = TriggerArm(
-#             name="right_arm",
-#             rotation_range=math.pi / 4,
-#         )
-#         self.base.add(self.right_arm, rel_right)
+class MockRaySensor(Entity, AttachedStaticMixin, RaySensor):
+
+    def _convert_hitpoints_to_observation(self):
+        return self._hitpoints
+
+    def _get_ray_colors(self):
+        pass
+
+    def __init__(self, **kwargs):
+
+        texture, _ = get_texture_from_geometry(
+            geometry="circle", radius=10, color=(255, 0, 0)
+        )
+
+        super().__init__(
+            texture=texture,
+            transparent=True,
+            **kwargs,
+        )
+
+        RaySensor.__init__(self, **kwargs)
+
+    @property
+    def observation_space(self):
+        return spaces.Box(low=0, high=255 + 255**2 + 255**3, shape=(13,))
+
+    @property
+    def attachment_point(self):
+        return 0, 0

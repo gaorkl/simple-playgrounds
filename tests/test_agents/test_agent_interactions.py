@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pytest
 
-from spg.playground import EmptyPlayground
+from spg.core.playground import EmptyPlayground
 from tests.mock_agents import (
     DynamicAgent,
     DynamicAgentWithArm,
@@ -18,7 +18,7 @@ from tests.mock_interactives import ActivableZone
 
 coord_center = (0, 0), 0
 
-from spg.playground.actions import fill_action_space
+from spg.core.playground.utils import fill_action_space
 
 
 @pytest.mark.parametrize(
@@ -28,7 +28,7 @@ def test_agent_barrier(Agent):
     playground = EmptyPlayground(size=(100, 100))
 
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
 
     barrier = MockBarrier()
@@ -47,7 +47,7 @@ def test_agent_interacts_activable(Agent):
     playground = EmptyPlayground(size=(100, 100))
 
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -66,7 +66,7 @@ def test_agent_grasping():
     playground = EmptyPlayground(size=(100, 100))
 
     agent = DynamicAgentWithGrasper(
-        name="agent",
+        name="agents",
         arm_position=(10, 10),
         arm_angle=math.pi / 4,
         grasper_radius=20,
@@ -96,7 +96,7 @@ def test_agent_grasping_multiple():
     playground = EmptyPlayground(size=(100, 100))
 
     agent = DynamicAgentWithGrasper(
-        name="agent",
+        name="agents",
         arm_position=(10, 10),
         arm_angle=math.pi / 4,
         grasper_radius=20,
@@ -137,7 +137,7 @@ def test_grasp_then_move():
     playground = EmptyPlayground(size=(100, 100))
 
     agent = DynamicAgentWithGrasper(
-        name="agent",
+        name="agents",
         arm_position=(10, 10),
         arm_angle=math.pi / 4,
         grasper_radius=20,
@@ -149,7 +149,7 @@ def test_grasp_then_move():
     elem1 = MockGraspable()
     playground.add(elem1, ((50, 50), 0))
 
-    # calculate distance between agent and elem1
+    # calculate distance between agents and elem1
     distance = math.sqrt(
         (agent.arm.position[0] - elem1.position[0]) ** 2
         + (agent.arm.position[1] - elem1.position[1]) ** 2

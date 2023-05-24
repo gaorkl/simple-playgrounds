@@ -1,5 +1,5 @@
-from spg.playground import EmptyPlayground
-from spg.playground.mixin.collision import get_colliding_entities
+from spg.core.playground import EmptyPlayground
+from spg.core.playground.manager.collision import get_colliding_entities
 from tests.mock_interactives import ActivableMoving
 
 coord_center = (0, 0), 0

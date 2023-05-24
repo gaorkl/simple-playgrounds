@@ -1,26 +1,29 @@
-from spg.playground import Playground
-from spg.playground.actions import fill_action_space, zero_action_space
-from tests.mock_agents import MockAgent
+import math
+
+from spg.core.playground import EmptyPlayground
+from spg.core.playground.utils import fill_action_space
+from tests.mock_agents import DynamicAgent, DynamicAgentWithArm
+
+coord_center = (0, 0), 0
 
 
 def test_zero_action():
+    playground = EmptyPlayground(size=(500, 200), background=(23, 23, 21))
+    agent = DynamicAgent(name="agent")
+    playground.add(agent, coord_center)
 
-    playground = Playground()
-    agent = MockAgent(name="agent")
-    playground.add(agent)
+    playground.step(playground.null_action)
 
-    action = zero_action_space(playground)
-
-    playground.step(action)
+    assert agent.position == coord_center[0]
+    assert agent.angle == coord_center[1]
 
 
 def test_partial_action():
+    playground = EmptyPlayground(size=(500, 200), background=(23, 23, 21))
+    agent = DynamicAgentWithArm(name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi/4)
+    playground.add(agent, coord_center)
 
-    playground = Playground()
-    agent = MockAgent(name="agent")
-    playground.add(agent)
-
-    agent_forward_action = {agent.name: {"base": {"motor": {"forward_force": 1}}}}
+    agent_forward_action = {agent.name: {agent.name: (1,0,0)}}
 
     action = fill_action_space(playground, agent_forward_action)
 

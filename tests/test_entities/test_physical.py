@@ -4,7 +4,7 @@ import numpy as np
 import pymunk
 import pytest
 
-from spg.playground import EmptyPlayground
+from spg.core.playground import EmptyPlayground
 from tests.mock_entities import (
     DynamicElementFromGeometry,
     MockDynamicElement,

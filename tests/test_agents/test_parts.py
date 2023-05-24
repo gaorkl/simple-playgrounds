@@ -3,8 +3,8 @@ import random
 
 import pytest
 
-from spg.playground import EmptyPlayground
-from spg.playground.actions import fill_action_space
+from spg.core.playground import EmptyPlayground
+from spg.core.playground.utils import fill_action_space
 from tests.mock_agents import DynamicAgentWithArm, DynamicAgentWithTrigger
 
 center_coord = (0, 0), 0
@@ -22,7 +22,7 @@ def test_move(pos, angle, arm_angle, rotation_range, arm_position, Agent):
     playground = EmptyPlayground(size=(100, 100))
 
     agent = Agent(
-        name="agent",
+        name="agents",
         arm_position=arm_position,
         arm_angle=arm_angle,
         rotation_range=rotation_range,
@@ -68,7 +68,7 @@ def test_move_arm(arm_position, arm_angle, rotation_range, action):
     playground = EmptyPlayground(size=(100, 100))
 
     agent = DynamicAgentWithArm(
-        name="agent",
+        name="agents",
         arm_position=arm_position,
         arm_angle=arm_angle,
         rotation_range=rotation_range,

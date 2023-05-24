@@ -1,11 +1,10 @@
 import math
 
-import matplotlib.pyplot as plt
 import numpy as np
 
-from spg.playground import EmptyPlayground
-from spg.playground.actions import fill_action_space
-from spg.view import View
+from spg.core.playground import EmptyPlayground
+from spg.core.playground.utils import fill_action_space
+from spg.core.view import View
 from tests.mock_agents import DynamicAgent, DynamicAgentWithArm
 from tests.mock_entities import DynamicElementFromGeometry
 
@@ -22,7 +21,7 @@ def test_move_object():
     )
     playground.add(ent_1, coord_shifted_center)
 
-    agent = DynamicAgent(name="agent")
+    agent = DynamicAgent(name="agents")
     playground.add(agent, coord_center)
 
     view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
@@ -35,8 +34,6 @@ def test_move_object():
         playground.step(action)
 
     img_2 = view.get_np_img()
-    plt.imshow(img_2)
-    plt.show()
 
     assert not np.all(img == img_2)
 
@@ -46,7 +43,7 @@ def test_delete_agent():
     playground = EmptyPlayground(size=(400, 400))
 
     agent = DynamicAgentWithArm(
-        rotation_range=math.pi / 2, arm_angle=0, arm_position=(10, 10), name="agent"
+        rotation_range=math.pi / 2, arm_angle=0, arm_position=(10, 10), name="agents"
     )
     playground.add(agent, coord_center)
 

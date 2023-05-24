@@ -1,7 +1,7 @@
 # import numpy as np
 # import pymunk
 #
-# from spg.element import ColorWall, PhysicalElement, ZoneElement
+# from spg.elements import ColorWall, PhysicalElement, ZoneElement
 # from spg.entity import InteractiveAnchored
 # from spg.playground import get_colliding_entities
 
@@ -11,15 +11,15 @@ from PIL import Image
 from arcade.texture import Texture
 from skimage import draw, morphology
 
-from spg.entity import Element, Entity
-from spg.entity.mixin import (
+from spg.components.elements.barrier import BarrierMixin
+from spg.core.entity import Element, Entity
+from spg.core.entity.mixin import (
     AttachedDynamicMixin,
     AttachedStaticMixin,
     BaseDynamicMixin,
     BaseStaticMixin,
 )
-from spg.entity.mixin.interaction import BarrierMixin
-from spg.entity.mixin.sprite import get_texture_from_geometry
+from spg.core.entity.mixin.sprite import get_texture_from_geometry
 
 
 class MockElement(Element):

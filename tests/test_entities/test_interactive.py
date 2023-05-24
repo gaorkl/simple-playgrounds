@@ -1,6 +1,6 @@
 import pytest
 
-from spg.playground import EmptyPlayground
+from spg.core.playground import EmptyPlayground
 from tests.mock_interactives import ActivableMoving, ActivableZone, MockElementWithHalo, MockDynamicTrigger, \
     MockStaticTrigger, ActivableZoneTeleport, ActivableZoneRemove
 

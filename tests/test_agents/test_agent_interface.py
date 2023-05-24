@@ -2,8 +2,8 @@ import math
 
 import pytest
 
-from spg.playground import EmptyPlayground
-from spg.playground.actions import fill_action_space
+from spg.core.playground import EmptyPlayground
+from spg.core.playground.utils import fill_action_space
 from tests.mock_agents import (
     DynamicAgent,
     DynamicAgentWithArm,
@@ -32,7 +32,7 @@ def test_agent_in_playground(Agent):
 
     playground = EmptyPlayground(size=(200, 200))
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -61,7 +61,7 @@ def test_action_spaces_dynamic(Agent):
 
     playground = EmptyPlayground(size=(200, 200))
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -79,7 +79,7 @@ def test_action_spaces_static(Agent):
 
     playground = EmptyPlayground(size=(200, 200))
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -103,7 +103,7 @@ def test_null_action(Agent):
 
     playground = EmptyPlayground(size=(200, 200))
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -131,7 +131,7 @@ def test_forward(Agent):
 
     playground = EmptyPlayground(size=(200, 200))
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -156,7 +156,7 @@ def test_rotate(Agent):
 
     playground = EmptyPlayground(size=(200, 200))
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -179,7 +179,7 @@ def test_agent_forward_movable(Agent):
 
     playground = EmptyPlayground(size=(200, 200))
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -208,7 +208,7 @@ def test_agent_overlapping(Agent):
     playground.add(unmovable, ((0, 0), 0))
 
     agent = Agent(
-        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
 
     with pytest.raises(ValueError):
