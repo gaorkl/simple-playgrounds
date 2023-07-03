@@ -1,50 +1,81 @@
-# Welcome to simple-playgrounds
+# Welcome to SimplePlaygrounds
 
-Simple-Playgrounds (SPG) is an easy-to-use, fast and flexible
+SimplePlaygrounds (SPG) is an easy-to-use, fast and flexible
 simulation environment for research in Deep Reinforcement Learning and Artificial Intelligence.
-This simulator proposes a huge diversity of environments for embodied agents learning
-through physical interactions.
-It bridges the gap between simple and efficient grid environments, and complex and challenging 3D environments.
+This simulator proposes a huge diversity of environments for embodied agents learning.
+It bridges the gap between simple and efficient grid-word environments, and complex and challenging 3D environments.
 
-The playgrounds are 2D environments where agents can move around and interact with scene elements.
-The game engine, based on [Pymunk](http://www.pymunk.org) and [Pygame](https://www.pygame.org), deals with simple physics, such as collision and friction.
-Agents can act through continuous movements and discrete interactive actions.
-They perceive the scene with realistic first-person view sensors, top-down view sensors, and
-semantic sensors.
+The playgrounds are 2D environments where agents can move around and interact with scene elements and other agents.
+The game engine is based on [Pymunk](http://www.pymunk.org), and allows very fine-grained physical interactions between elements
+of SPG.
+[Arcade](https://api.arcade.academy/en/latest/), is used to render the playground, and its integration of OpenGL shaders
+is used to calculate first-person sensors at high speed.
 
-
-# API
-
-Simple PLaygrounds follows the gymnasium environment definitions.
-
-
-
-![Alt Text](https://github.com/mgarciaortiz/simple-playgrounds/blob/master/assets/spg.gif)
-
-This simulator is easy to handle, and very flexible. It allows very fast design of AI experiments
-and runs experiments very quickly.
-
-We hope that you can make use of this simulator for your research.
-If you publish your work based on this simulator, please use the following reference:
+If you are using Simple Playgrounds in your research, please cite us!
 
 ```
-@misc{Simple-Playgrounds,
-  author = {Garcia Ortiz, Michael and Jankovics, Vince and Caselles-Dupre, Hugo and Annabi, Louis},
+@misc{SimplePlaygrounds,
+  author = {Garcia Ortiz, Michael and Jankovics, Vince},
   title = {Simple-Playgrounds},
-  year = {2021},
+  year = {2023},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/mgarciaortiz/simple-playgrounds}},
+  howpublished = {\url{https://github.com/gaorkl/simple-playgrounds}},
 }
 ```
 
-# Acknowledgements
+## Table of Contents
+
+- [Installation](#installation)
+- [Demo](#demo)
+- [Examples and Tutorials](#examples-and-tutorials)
+- [Contributing](#contributing)
+- [License](#license)
+- [Credits](#credits)
+- [Contact](#contact)
+
+## Installation
+
+Detailed installation instructions. Include any prerequisites and then the command or commands to install your project.
+
+```bash
+pip install spg
+```
+
+## Demo
+
+```python
+import spg
+```
+
+WIP
+
+## Examples and Tutorials
+
+Link to your tutorials here.
+
+- [Tutorial 1](./tutorials/tutorial1.md)
+- [Tutorial 2](./tutorials/tutorial2.md)
+- [Tutorial 3](./tutorials/tutorial3.md)
+
+WIP
+
+## Contributing
+
+Pull Requests welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
+
+
+## License
+
+This project is licensed under the terms of the [MIT license](./LICENSE).
+
+## Credits
 
 The first version of the simulator was called Flatland, and was designed by
 Hugo Caselles-Dupre, Louis Annabi, Oksana Hagen and Michael Garcia Ortiz.
 
-The new version was developed by Vince Jankovics, Hugo Caselles-Dupre, Louis Annabi and Michael Garcia Ortiz.
+This version was developed by Vince Jankovics and Michael Garcia Ortiz.
 
-We would like to thank Clement Moulin-Frier and Younes Rabii for their helpful
-suggestions and their contributions to the new version of the simulator.
+## Contact
 
+If you have any questions, please contact us on github.
