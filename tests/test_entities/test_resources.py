@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from tests.mock_entities import MockPhysicalFromResource
@@ -7,16 +9,12 @@ coord_center = ((0, 0), 0)
 
 def test_loading_spg_resources():
 
-    element = MockPhysicalFromResource(
-        filename=":spg:platformer/items/diamond_blue.png"
-    )
+    MockPhysicalFromResource(filename=":spg:platformer/items/diamond_blue.png")
 
 
 def test_loading_arcade_resources():
 
-    element = MockPhysicalFromResource(
-        filename=":resources:images/items/coinGold.png"
-    )
+    MockPhysicalFromResource(filename=":resources:images/items/coinGold.png")
 
 
 def test_loading_spg_resources_fail():
@@ -26,4 +24,5 @@ def test_loading_spg_resources_fail():
 
 
 def test_load_local_file():
-    element = MockPhysicalFromResource(filename="rabbit.png")
+    rabbit_path = Path(__file__).parent / "rabbit.png"
+    MockPhysicalFromResource(filename=rabbit_path)
