@@ -1,6 +1,6 @@
-# Welcome to SimplePlaygrounds
+# Welcome to Simple Playgrounds
 
-SimplePlaygrounds (SPG) is an easy-to-use, fast and flexible
+Simple Playgrounds (SPG) is an easy-to-use, fast and flexible
 simulation environment for research in Deep Reinforcement Learning and Artificial Intelligence.
 This simulator proposes a huge diversity of environments for embodied agents learning.
 It bridges the gap between simple and efficient grid-word environments, and complex and challenging 3D environments.
@@ -8,8 +8,10 @@ It bridges the gap between simple and efficient grid-word environments, and comp
 The playgrounds are 2D environments where agents can move around and interact with scene elements and other agents.
 The game engine is based on [Pymunk](http://www.pymunk.org), and allows very fine-grained physical interactions between elements
 of SPG.
-[Arcade](https://api.arcade.academy/en/latest/), is used to render the playground, and its integration of OpenGL shaders
-is used to calculate first-person sensors at high speed.
+[Arcade](https://api.arcade.academy/en/latest/), is used to render the playground, and we use its integration of OpenGL shaders
+to calculate first-person sensors at high speed.
+
+SPG follows the [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) API for straightforward integration in any RL project.
 
 If you are using Simple Playgrounds in your research, please cite us!
 
@@ -36,11 +38,11 @@ If you are using Simple Playgrounds in your research, please cite us!
 
 ## Installation
 
-Detailed installation instructions. Include any prerequisites and then the command or commands to install your project.
-
+To install SPG library use:
 ```bash
 pip install spg
 ```
+
 
 ## Demo
 
@@ -71,10 +73,10 @@ This project is licensed under the terms of the [MIT license](./LICENSE).
 
 ## Credits
 
+SPG is currently actively developped by Vince Jankovics and Michael Garcia Ortiz.
+
 The first version of the simulator was called Flatland, and was designed by
 Hugo Caselles-Dupre, Louis Annabi, Oksana Hagen and Michael Garcia Ortiz.
-
-This version was developed by Vince Jankovics and Michael Garcia Ortiz.
 
 ## Contact
 

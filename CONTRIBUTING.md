@@ -28,7 +28,7 @@ pyenv activate spg
 ## Development Dependencies
 
 To install all necessary development dependencies, create a feature branch and run this command in your terminal
-from inside the top level of the arcade directory:
+from inside the top level of the simple-playgrounds project directory:
 
 ```bash
 pip install -e '.[dev]'
@@ -37,7 +37,7 @@ pip install -e '.[dev]'
 ## Pre-commit Checks
 
 We request that all new PRs go through pre-commit checks.
-To install the pre-commit hooks, run this command in your terminal from inside the top level of the arcade directory:
+To install the pre-commit hooks, run this command in your terminal from inside the top level of the SPG directory:
 
 ```bash
 pre-commit install
