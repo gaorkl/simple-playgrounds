@@ -20,7 +20,6 @@ from tests.mock_interactives import ActivableZone
 coord_center = (0, 0), 0
 
 
-
 @pytest.mark.parametrize(
     "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
 )
@@ -134,20 +133,24 @@ def test_agent_grasping_multiple():
 
 def test_grasp_then_move():
 
-    playground = EmptyPlayground(size=(100, 100))
+    playground = EmptyPlayground(size=(1000, 1000))
 
     agent = DynamicAgentWithGrasper(
         name="agents",
         arm_position=(10, 10),
         arm_angle=math.pi / 4,
         grasper_radius=20,
-        rotation_range=math.pi / 2,
+        rotation_range=math.pi / 4,
     )
 
     playground.add(agent, coord_center)
 
     elem1 = MockGraspable()
-    playground.add(elem1, ((50, 50), 0))
+
+    x_coord = 10 + agent.arm.radius * math.cos(agent.arm.angle) + elem1.radius + 3
+    y_coord = 10 + agent.arm.radius * math.sin(agent.arm.angle) + elem1.radius + 3
+
+    playground.add(elem1, ((x_coord, y_coord), 0))
 
     # calculate distance between agents and elem1
     distance = math.sqrt(

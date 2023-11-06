@@ -195,6 +195,10 @@ class GrasperHand(Entity, AttachedStaticMixin, GrasperHold):
 
 
 class DynamicAgentWithGrasper(DynamicAgentWithArm):
+    @property
+    def observation(self):
+        pass
+
     def __init__(self, arm_position, arm_angle, grasper_radius, **kwargs):
 
         super().__init__(arm_position, arm_angle, **kwargs)
