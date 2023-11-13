@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from typing import TYPE_CHECKING, Dict, List
 
 import pymunk
@@ -19,7 +20,7 @@ class GraspableMixin:
     grasped_by = []
 
 
-class GrasperMixin(ActionMixin):
+class GrasperMixin(ActionMixin, ABC):
 
     pm_shapes: List[pymunk.Shape]
     pm_body: pymunk.Body
@@ -42,10 +43,7 @@ class GrasperMixin(ActionMixin):
             )
 
         entities_in_range = set(
-            [
-                self.playground.shapes_to_entities[shape]
-                for shape in set(shapes_in_range)
-            ]
+            self.playground.shapes_to_entities[shape] for shape in set(shapes_in_range)
         )
 
         graspables_in_range = [
@@ -68,8 +66,15 @@ class GrasperMixin(ActionMixin):
         if not pm_body:
             pm_body = self.anchor.pm_body
 
-        j_1 = pymunk.PinJoint(pm_body, entity.pm_body, (0, 0), (0, 20))
-        j_2 = pymunk.PinJoint(pm_body, entity.pm_body, (0, 0), (0, -20))
+        attach_point_right = pymunk.Vec2d(0, 20)
+        attach_point_left = pymunk.Vec2d(0, -20)
+
+        # rotate attach points
+        attach_point_right = attach_point_right.rotated(pm_body.angle)
+        attach_point_left = attach_point_left.rotated(pm_body.angle)
+
+        j_1 = pymunk.PinJoint(pm_body, entity.pm_body, (0, 0), attach_point_right)
+        j_2 = pymunk.PinJoint(pm_body, entity.pm_body, (0, 0), attach_point_left)
 
         j_3 = pymunk.PinJoint(pm_body, entity.pm_body, (0, 20), (0, 0))
         j_4 = pymunk.PinJoint(pm_body, entity.pm_body, (0, -20), (0, 0))
