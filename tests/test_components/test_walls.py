@@ -2,7 +2,7 @@ import arcade
 import pytest
 
 from spg.components.elements.wall import ColorWall, TiledAlternateColorWall
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 
 
 @pytest.fixture(scope="module", params=[ColorWall, TiledAlternateColorWall])
@@ -25,7 +25,7 @@ def wall_width(request):
 
 def test_wall_size(wall_cls, wall_color, wall_width):
 
-    playground = EmptyPlayground(size=(100, 100), background=(23, 23, 21))
+    playground = Playground(size=(100, 100), background=(23, 23, 21))
 
     wall = wall_cls((-10, -10), (-10, 90), wall_width=wall_width, color=wall_color)
     playground.add(wall, wall.wall_coordinates)

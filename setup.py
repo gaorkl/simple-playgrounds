@@ -22,6 +22,7 @@ test_requires = [
     "pytest-cov",
     "pytest-env",
     "pytest-sugar",
+    "pytest-xdist",
 ]
 
 dev_requires = test_requires + [

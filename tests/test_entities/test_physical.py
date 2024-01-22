@@ -4,7 +4,7 @@ import numpy as np
 import pymunk
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from tests.mock_entities import (
     DynamicElementFromGeometry,
     MockDynamicElement,
@@ -22,7 +22,7 @@ coord_shift = (0, 1), 0.3
 
 @pytest.mark.parametrize("TestElem", [MockDynamicElement, MockStaticElement])
 def test_add_remove_dynamic_entity(TestElem):
-    playground = EmptyPlayground(size=(10, 10))
+    playground = Playground(size=(10, 10))
 
     ent_1 = TestElem()
     playground.add(ent_1, coord_center)
@@ -43,7 +43,7 @@ def test_add_remove_dynamic_entity(TestElem):
 )
 @pytest.mark.parametrize("radius", [2, 3, 4, 5, 10, 20])
 def test_size_entities_radius(radius, TestElem):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
     ent_1 = TestElem(geometry="circle", radius=radius, color=(0, 0, 1))
     playground.add(ent_1, coord_center)
 
@@ -53,7 +53,7 @@ def test_size_entities_radius(radius, TestElem):
 
 @pytest.mark.parametrize("radius", [2, 3, 4, 5, 10, 20])
 def test_circle_texture(radius):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
     ent_1 = StaticElementFromGeometry(geometry="circle", radius=10, color=(0, 0, 1))
     playground.add(ent_1, coord_center)
 
@@ -63,7 +63,7 @@ def test_circle_texture(radius):
 # test rectangle with variations of size
 @pytest.mark.parametrize("size", [(10, 10), (5, 30)])
 def test_size_entities_rectangle(size):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
     ent_1 = StaticElementFromGeometry(geometry="rectangle", size=size, color=(0, 0, 1))
     playground.add(ent_1, coord_center)
 
@@ -74,7 +74,7 @@ def test_size_entities_rectangle(size):
 # test polygon with variations of vertices
 @pytest.mark.parametrize("vertices", [3, 4, 5, 6])
 def test_size_entities_polygon(vertices):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     # get regular vertices centered at (0, 0) as a np array
     vertices = np.array(
@@ -96,7 +96,7 @@ def test_size_entities_polygon(vertices):
 @pytest.mark.parametrize("vertices", [4, 5, 6])
 @pytest.mark.parametrize("offset", [(0, 0), (10, 10), (-20, 20)])
 def test_polygon_offset(vertices, offset):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     x_offset, y_offset = offset
     # get regular vertices centered at (x_offset, y_offset) as a np array
@@ -133,7 +133,7 @@ def test_polygon_offset(vertices, offset):
 
 
 def test_setting_entity_by_positions():
-    playground = EmptyPlayground(size=(200, 200))
+    playground = Playground(size=(200, 200))
 
     vertices = np.array([(30, 30), (50, 30), (50, 10), (80, 40), (60, 70)])
     ent_1 = StaticElementFromGeometry(
@@ -169,7 +169,7 @@ def test_setting_entity_by_positions():
 
 
 def test_fixed_dont_move():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = MockStaticElement()
     playground.add(ent_1, coord_center)
@@ -184,7 +184,7 @@ def test_fixed_dont_move():
 
 
 def test_fix_moves_movable():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = MockStaticElement()
     playground.add(ent_1, coord_center)
@@ -200,7 +200,7 @@ def test_fix_moves_movable():
 
 @pytest.mark.parametrize("traversable", [True, False])
 def test_fix_dont_move_traversable(traversable):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = MockStaticElement()
     playground.add(ent_1, coord_center)
@@ -219,7 +219,7 @@ def test_fix_dont_move_traversable(traversable):
 
 
 def test_moving_moves_movable():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = MockDynamicElement()
     playground.add(ent_1, coord_center)
@@ -234,7 +234,7 @@ def test_moving_moves_movable():
 
 
 def test_non_convex_entity():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = NonConvexPlus(40, 10, mass=1)
     playground.add(ent_1, coord_center)
@@ -251,7 +251,7 @@ def test_non_convex_entity():
 
 
 def test_non_convex_entity_moving():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = NonConvexPlus(40, 10, mass=1)
     playground.add(ent_1, coord_center)
@@ -266,7 +266,7 @@ def test_non_convex_entity_moving():
 
 @pytest.mark.parametrize("shape_approx", ["circle", "box", "hull", "decomposition"])
 def test_shape_approximation(shape_approx):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     coord = ((10, 10), math.pi / 3)
     ent_1 = NonConvexPlus_Approx(20, 10, shape_approximation=shape_approx, mass=1)
@@ -278,7 +278,7 @@ def test_shape_approximation(shape_approx):
 @pytest.mark.parametrize("vertices", [3, 4, 5])
 def test_entity_size(vertices, radius):
 
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     # get regular vertices centered at (0, 0) as a np array
     vertices = np.array(
@@ -332,7 +332,7 @@ def test_entity_scale(scale):
 
 def test_small_triangle():
 
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     vertices = 3
     radius = 10

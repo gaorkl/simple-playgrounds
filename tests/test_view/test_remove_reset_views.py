@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.playground.utils import fill_action_space
 from spg.core.view import View
 from tests.mock_agents import DynamicAgent, DynamicAgentWithArm
@@ -14,7 +14,7 @@ coord_shifted_center = (100, 0), 0
 
 def test_move_object():
 
-    playground = EmptyPlayground(size=(400, 400))
+    playground = Playground(size=(400, 400))
 
     ent_1 = DynamicElementFromGeometry(
         geometry="circle", radius=10, color=(100, 200, 13)
@@ -40,7 +40,7 @@ def test_move_object():
 
 def test_delete_agent():
 
-    playground = EmptyPlayground(size=(400, 400))
+    playground = Playground(size=(400, 400))
 
     agent = DynamicAgentWithArm(
         rotation_range=math.pi / 2, arm_angle=0, arm_position=(10, 10), name="agents"

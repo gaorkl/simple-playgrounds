@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from tests.mock_entities import MockElemWithAttachment, MockElemWithFixedAttachment
 
 coord_center = (0, 0), 0
@@ -13,7 +13,7 @@ coord_far = (10, 10), math.pi / 3
 @pytest.mark.parametrize("relative_angle", [0, math.pi / 2, math.pi, 3 * math.pi / 2])
 @pytest.mark.parametrize("anchor_point", [(0, 0), (5, 5), (-10, 10)])
 def test_attached_elem(anchor_point, relative_angle):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = MockElemWithAttachment(
         anchor_point=anchor_point, relative_angle=relative_angle
@@ -47,7 +47,7 @@ def test_attached_elem(anchor_point, relative_angle):
 @pytest.mark.parametrize("relative_angle", [0, math.pi / 2, math.pi, 3 * math.pi / 2])
 @pytest.mark.parametrize("anchor_point", [(0, 0), (5, 5), (-10, 10)])
 def test_attached_static_move(anchor_point, relative_angle, TestElem):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     ent_1 = TestElem(anchor_point=anchor_point, relative_angle=relative_angle)
 

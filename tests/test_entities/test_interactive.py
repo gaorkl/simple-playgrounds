@@ -1,6 +1,6 @@
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from tests.mock_interactives import (
     ActivableMoving,
     ActivableZone,
@@ -17,7 +17,7 @@ coord_far = (50, 50), 0
 
 
 def test_activable_element_activates_zone():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = ActivableMoving()
     playground.add(elem, coord_center)
@@ -38,7 +38,7 @@ def test_activable_element_activates_zone():
     "Activable", [ActivableMoving, ActivableZone, MockElementWithHalo]
 )
 def test_element_activates(TestElement, Activable):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = TestElement()
     playground.add(elem, coord_center)
@@ -60,7 +60,7 @@ def test_element_activates(TestElement, Activable):
 
 
 def test_halo_doesnt_activate_itself():
-    playground = EmptyPlayground(size=(200, 200))
+    playground = Playground(size=(200, 200))
 
     elem = MockElementWithHalo()
     playground.add(elem, coord_center)
@@ -72,7 +72,7 @@ def test_halo_doesnt_activate_itself():
 
 @pytest.mark.parametrize("TestElement", [ActivableMoving, ActivableZone])
 def test_far_doesnt_activate(TestElement):
-    playground = EmptyPlayground(size=(200, 200))
+    playground = Playground(size=(200, 200))
 
     elem = MockDynamicTrigger(radius=10)
     playground.add(elem, coord_center)
@@ -88,7 +88,7 @@ def test_far_doesnt_activate(TestElement):
 @pytest.mark.parametrize("angle", [0, 0.5, 1])
 @pytest.mark.parametrize("position", [(0, 0), (50, 50), (-100, 100)])
 def test_activate_move(angle, position):
-    playground = EmptyPlayground(size=(200, 200))
+    playground = Playground(size=(200, 200))
 
     elem = MockDynamicTrigger()
     playground.add(elem, coord_center)
@@ -105,7 +105,7 @@ def test_activate_move(angle, position):
 
 
 def test_activate_remove():
-    playground = EmptyPlayground(size=(200, 200))
+    playground = Playground(size=(200, 200))
 
     elem = MockDynamicTrigger()
     playground.add(elem, coord_center)

@@ -4,7 +4,7 @@ import arcade.color
 import numpy as np
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.sensor.ray.ray import SIZE_OUTPUT_BUFFER
 from tests.mock_agents import DynamicAgent, MockRaySensor
 from tests.mock_entities import DynamicElementFromGeometry
@@ -13,7 +13,7 @@ coord_center = (0, 0), 0
 
 
 def test_sensor_interface():
-    playground = EmptyPlayground(size=(500, 200), background=(23, 23, 21))
+    playground = Playground(size=(500, 200), background=(23, 23, 21))
 
     agent = DynamicAgent()
 
@@ -32,7 +32,7 @@ def test_sensor_interface():
 @pytest.mark.parametrize("resolution", [1, 8, 180])
 @pytest.mark.parametrize("fov", [math.pi / 4, math.pi / 3, math.pi / 2])
 def test_sensor_parameters(max_range, resolution, fov, use_shaders):
-    playground = EmptyPlayground(
+    playground = Playground(
         size=(300, 300), background=arcade.color.DARK_KHAKI, use_shaders=use_shaders
     )
 
@@ -68,7 +68,7 @@ def test_sensor_parameters(max_range, resolution, fov, use_shaders):
     "color", [arcade.color.AFRICAN_VIOLET, arcade.color.AIR_FORCE_BLUE]
 )
 def test_sensor_detects(color, fov, resolution):
-    playground = EmptyPlayground(size=(300, 300), background=arcade.color.ORANGE)
+    playground = Playground(size=(300, 300), background=arcade.color.ORANGE)
 
     agent = DynamicAgent()
 
@@ -92,14 +92,15 @@ def test_sensor_detects(color, fov, resolution):
     assert sensor.observation.shape == (resolution, SIZE_OUTPUT_BUFFER)
     assert agent in sensor.invisible_entities
 
-    # create a list with all angles from -fov/2 to fov/2, and there are a number of values equal to resolutions
+    # create a list with all angles from -fov/2 to fov/2,
+    # and there are a number of values equal to resolutions
     hit_angles = [angle for angle in np.linspace(-fov / 2, fov / 2, resolution)]
     hit_angles = np.array(hit_angles)
 
     min_angle = -math.atan(10 / 30)
     max_angle = math.atan(10 / 30)
 
-    # create mask of hit_angles so that they are between min_angle and max_angle
+    # create mask of hit_angles that are between min_angle and max_angle
     mask = np.logical_and(hit_angles > min_angle, hit_angles < max_angle)
 
     assert np.all(sensor.observation[mask, 8] == ent_1.uid)

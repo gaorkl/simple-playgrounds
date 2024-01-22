@@ -1,4 +1,4 @@
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.playground.manager.collision import get_colliding_entities
 from tests.mock_interactives import ActivableMoving
 
@@ -30,7 +30,7 @@ def custom_handler(arbiter, space, data):
 
 
 def test_activable_element_activates_zone():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     new_collision_1 = playground.get_new_collision_type("COLLISION_1")
     new_collision_2 = playground.get_new_collision_type("COLLISION_2")

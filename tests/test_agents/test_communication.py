@@ -1,13 +1,13 @@
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from tests.mock_communicator import MockAgentWithCommunication
 
 
 @pytest.mark.parametrize("message_length", [1, 10, 30])
 @pytest.mark.parametrize("communication_range", [None, 10, 100, 200])
 def test_equip_communication(communication_range, message_length):
-    playground = EmptyPlayground(size=(1000, 1000))
+    playground = Playground(size=(1000, 1000))
 
     agent_1 = MockAgentWithCommunication(
         name="agent_1",
@@ -29,7 +29,7 @@ def test_equip_communication(communication_range, message_length):
     ],
 )
 def test_transmission_range(range_sender, range_receiver, distance, in_range):
-    playground = EmptyPlayground(size=(1000, 1000))
+    playground = Playground(size=(1000, 1000))
 
     agent_1 = MockAgentWithCommunication(
         name="agent_1",
@@ -73,7 +73,7 @@ def test_directed_broadcast():
 
     # by default, agents create a topic with their own name
 
-    playground = EmptyPlayground(size=(1000, 1000))
+    playground = Playground(size=(1000, 1000))
 
     agent_1 = MockAgentWithCommunication(
         name="agent_1", message_length=1, topics=["agent_1_2"]

@@ -1,6 +1,6 @@
 import math
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.playground.utils import fill_action_space
 from tests.mock_agents import DynamicAgent, DynamicAgentWithArm
 
@@ -8,7 +8,7 @@ coord_center = (0, 0), 0
 
 
 def test_zero_action():
-    playground = EmptyPlayground(size=(500, 200), background=(23, 23, 21))
+    playground = Playground(size=(500, 200), background=(23, 23, 21))
     agent = DynamicAgent(name="agent")
     playground.add(agent, coord_center)
 
@@ -19,7 +19,7 @@ def test_zero_action():
 
 
 def test_partial_action():
-    playground = EmptyPlayground(size=(500, 200), background=(23, 23, 21))
+    playground = Playground(size=(500, 200), background=(23, 23, 21))
     agent = DynamicAgentWithArm(
         name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 4
     )

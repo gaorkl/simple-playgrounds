@@ -2,7 +2,7 @@ import arcade.color
 import numpy as np
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.view import View
 from tests.mock_entities import DynamicElementFromGeometry, StaticElementFromGeometry
 
@@ -28,7 +28,7 @@ coord_shifted_center = (0, 5), 0
 def test_empty_pg(view_size, color_bg, center, scale):
     """Tests that background is set correctly"""
 
-    playground = EmptyPlayground(background=color_bg, size=(100, 100))
+    playground = Playground(background=color_bg, size=(100, 100))
     view = View(playground, size_on_playground=view_size, center=center, scale=scale)
 
     np_img = view.get_np_img()
@@ -39,7 +39,7 @@ def test_empty_pg(view_size, color_bg, center, scale):
 
 
 def test_non_empty_pg():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
     view = View(playground, size_on_playground=(100, 100), center=(0, 0), scale=1)
 
     ent_1 = StaticElementFromGeometry(geometry="circle", radius=10, color=(0, 0, 255))
@@ -65,7 +65,7 @@ def test_non_empty_pg():
     "color_bg", [arcade.color.YELLOW, arcade.color.WHITE, arcade.color.BLACK]
 )
 def test_entity_size(color, color_bg, center_view):
-    playground = EmptyPlayground(size=(400, 400), background=color_bg)
+    playground = Playground(size=(400, 400), background=color_bg)
 
     view_1 = View(
         playground, size_on_playground=(400, 400), center=center_view, scale=1
@@ -97,7 +97,7 @@ def test_traversable():
     color_2 = (2, 3, 4)
     color_3 = (3, 4, 5)
 
-    playground = EmptyPlayground(size=(400, 400))
+    playground = Playground(size=(400, 400))
 
     ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=color_1)
     playground.add(ent_1, coord_center)
@@ -127,7 +127,7 @@ def test_transparent(draw_transparent):
     color_1 = (50, 50, 100)
     color_2 = (50, 199, 30)
 
-    playground = EmptyPlayground(size=(400, 400))
+    playground = Playground(size=(400, 400))
 
     ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=color_1)
     playground.add(ent_1, coord_center)
@@ -155,7 +155,7 @@ def test_transparent(draw_transparent):
 
 
 def test_remove_entity():
-    playground = EmptyPlayground(size=(400, 400))
+    playground = Playground(size=(400, 400))
 
     ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=(1, 2, 3))
     playground.add(ent_1, coord_center)
@@ -174,7 +174,7 @@ def test_remove_entity():
 
 def test_move_entity():
 
-    playground = EmptyPlayground(size=(400, 400))
+    playground = Playground(size=(400, 400))
 
     ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=(1, 2, 3))
     playground.add(ent_1, coord_center)
@@ -194,7 +194,7 @@ def test_move_entity():
 
 def test_reset_playground():
 
-    playground = EmptyPlayground(size=(400, 400))
+    playground = Playground(size=(400, 400))
 
     ent_1 = DynamicElementFromGeometry(geometry="circle", radius=10, color=(1, 2, 3))
     playground.add(ent_1, coord_center)

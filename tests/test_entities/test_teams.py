@@ -1,6 +1,6 @@
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 
 # Add test Interactions to collisions
 from tests.mock_entities import MockStaticElement
@@ -46,7 +46,7 @@ def test_element_activates(TestElement, Activable, team_params):
 
     team_1, team_2, is_interacting = team_params
 
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = TestElement(teams=team_1)
     playground.add(elem, coord_center)

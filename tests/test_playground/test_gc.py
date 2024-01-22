@@ -3,7 +3,7 @@ import weakref
 
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from tests.mock_entities import MockDynamicElement
 from tests.mock_interactives import ActivableZone, MockElementWithHalo
 
@@ -15,7 +15,7 @@ coord_center = (0, 0), 0
 )
 def test_gc_del(Elem):
 
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
     elem = Elem()
     playground.add(elem, coord_center)
 
@@ -27,17 +27,46 @@ def test_gc_del(Elem):
     gc.collect()
     assert weak_entity_ref() is None
 
-    # def test_garbage_collection_after_clear(self):
-    #     entities = [Entity(name=f"Entity {i}") for i in range(3)]
-    #     weak_refs = [weakref.ref(entity) for entity in entities]
-    #     for entity in entities:
-    #         self.playground.add_entity(entity)
-    #
-    #     # Delete all entities
-    #     self.playground.delete_all_entities()
-    #     del entities
-    #     gc.collect()  # Force garbage collection
-    #
-    #     # Check that all weak references are now dead
-    #     dead_refs = [ref for ref in weak_refs if ref() is None]
-    #     self.assertEqual(len(dead_refs), len(weak_refs))
+    for obj in gc.get_objects():
+        if isinstance(obj, Playground):
+            raise AssertionError("Playground is not deleted")
+        if isinstance(obj, Elem):
+            raise AssertionError("Element is not deleted")
+
+
+def test_gc_del_fixtures(dummy_pg):
+    weak_pg_ref = weakref.ref(dummy_pg)
+
+    del dummy_pg
+
+    gc.collect()
+
+    for obj in gc.get_objects():
+        if isinstance(obj, Playground):
+            raise AssertionError("Playground is not deleted")
+
+
+@pytest.mark.parametrize(
+    "Elem", [MockDynamicElement, ActivableZone, MockElementWithHalo]
+)
+def test_gc_del(Elem):
+    class PgGcTest(Playground):
+        pass
+
+    class ElemGcTest(Elem):
+        pass
+
+    playground = PgGcTest(size=(100, 100))
+    elem = ElemGcTest()
+    playground.add(elem, coord_center)
+
+    del playground
+    del elem
+
+    gc.collect()
+
+    for obj in gc.get_objects():
+        if isinstance(obj, PgGcTest):
+            raise AssertionError("Playground is not deleted")
+        if isinstance(obj, ElemGcTest):
+            raise AssertionError("Element is not deleted")
