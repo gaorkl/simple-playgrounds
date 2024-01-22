@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.playground.utils import fill_action_space
 from tests.mock_agents import (
     DynamicAgent,
@@ -24,7 +24,7 @@ coord_center = (0, 0), 0
     "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
 )
 def test_agent_barrier(Agent):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     agent = Agent(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
@@ -43,7 +43,7 @@ def test_agent_barrier(Agent):
 
 @pytest.mark.parametrize("Agent", [StaticAgentWithTrigger, DynamicAgentWithTrigger])
 def test_agent_interacts_activable(Agent):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     agent = Agent(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
@@ -62,7 +62,7 @@ def test_agent_interacts_activable(Agent):
 
 
 def test_agent_grasping():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     agent = DynamicAgentWithGrasper(
         name="agents",
@@ -92,7 +92,7 @@ def test_agent_grasping():
 
 
 def test_agent_grasping_multiple():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     agent = DynamicAgentWithGrasper(
         name="agents",
@@ -133,7 +133,7 @@ def test_agent_grasping_multiple():
 
 def test_grasp_then_move():
 
-    playground = EmptyPlayground(size=(1000, 1000))
+    playground = Playground(size=(1000, 1000))
 
     agent = DynamicAgentWithGrasper(
         name="agents",

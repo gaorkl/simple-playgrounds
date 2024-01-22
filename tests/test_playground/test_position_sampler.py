@@ -1,6 +1,6 @@
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.position import GaussianCoordinateSampler, UniformCoordinateSampler
 
 
@@ -30,7 +30,7 @@ def center(request):
 
 
 def test_uniform_radius(radius, center):
-    pg = EmptyPlayground(size=(100, 100))
+    pg = Playground(size=(100, 100))
 
     sampler = UniformCoordinateSampler(pg, center=center, radius=radius)
 
@@ -40,7 +40,7 @@ def test_uniform_radius(radius, center):
 
 
 def test_uniform_width(width, center):
-    pg = EmptyPlayground(size=(100, 100))
+    pg = Playground(size=(100, 100))
 
     sampler = UniformCoordinateSampler(pg, center=center, width=width)
 
@@ -51,7 +51,7 @@ def test_uniform_width(width, center):
 
 
 def test_uniform_width_height(width, height, center):
-    pg = EmptyPlayground(size=(100, 100))
+    pg = Playground(size=(100, 100))
 
     sampler = UniformCoordinateSampler(pg, center=center, width=width, height=height)
 
@@ -62,7 +62,7 @@ def test_uniform_width_height(width, height, center):
 
 
 def test_gaussian_radius(radius, center, sigma):
-    pg = EmptyPlayground(size=(100, 100))
+    pg = Playground(size=(100, 100))
 
     sampler = GaussianCoordinateSampler(pg, sigma, center=center, radius=radius)
 
@@ -82,7 +82,7 @@ def test_gaussian_radius(radius, center, sigma):
 
 
 def test_gaussian_width(width, center, sigma):
-    pg = EmptyPlayground(size=(100, 100))
+    pg = Playground(size=(100, 100))
 
     sampler = GaussianCoordinateSampler(pg, sigma, center=center, width=width)
 
@@ -105,7 +105,7 @@ def test_gaussian_width(width, center, sigma):
 
 
 def test_gaussian_width_height(width, height, center, sigma):
-    pg = EmptyPlayground(size=(100, 100))
+    pg = Playground(size=(100, 100))
 
     sampler = GaussianCoordinateSampler(
         pg, sigma, center=center, width=width, height=height

@@ -1,12 +1,12 @@
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from tests.mock_agents import StaticAgent
 from tests.mock_entities import MockDynamicElement
 
 
 def test_default_name():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = MockDynamicElement()
     assert elem.name is None
@@ -18,7 +18,7 @@ def test_default_name():
 
 
 def test_custom_name():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = MockDynamicElement(name="test_name")
     assert elem.name == "test_name"
@@ -29,7 +29,7 @@ def test_custom_name():
 
 
 def test_two_elem_with_same_name():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem_1 = MockDynamicElement(name="test_name")
     elem_2 = MockDynamicElement(name="test_name")
@@ -39,7 +39,7 @@ def test_two_elem_with_same_name():
 
 
 def test_two_agents_with_same_name():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     agent_1 = StaticAgent(name="test_name")
     agent_2 = StaticAgent(name="test_name")

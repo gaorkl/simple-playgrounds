@@ -1,4 +1,4 @@
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 
 # Add test Interactions to collisions
 from tests.mock_entities import MockBarrier, MockDynamicElement
@@ -9,7 +9,7 @@ coord_far = ((0, 1000), 0)
 
 
 def test_single_barrier_not_blocking():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = MockDynamicElement()
     playground.add(elem, coord_center)
@@ -23,7 +23,7 @@ def test_single_barrier_not_blocking():
 
 
 def test_single_barrier_blocking():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = MockDynamicElement()
     playground.add(elem, coord_center)
@@ -39,7 +39,7 @@ def test_single_barrier_blocking():
 
 
 def test_multiple_barrier_blocking():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = MockDynamicElement()
     playground.add(elem, coord_center)
@@ -58,7 +58,7 @@ def test_multiple_barrier_blocking():
 
 
 def test_multiple_barrier_non_blocking():
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem = MockDynamicElement()
     playground.add(elem, coord_center)

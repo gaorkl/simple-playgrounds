@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import gymnasium
@@ -32,7 +31,6 @@ class Playground(
     CollisionManager,
     CommunicationManager,
     SensorManager,
-    ABC,
 ):
     def __init__(self, size: Tuple[int, int], **kwargs) -> None:
 
@@ -50,11 +48,9 @@ class Playground(
 
         self.reset()
 
-    @abstractmethod
     def place_elements(self) -> List[Element]:
         pass
 
-    @abstractmethod
     def place_agents(self) -> List[Agent]:
         pass
 
@@ -224,7 +220,8 @@ class Playground(
         if isinstance(entity, SensorMixin):
             self.add_sensor(entity)
 
-        # Once all attachements have been added, we can move the entity and fix the attachements
+        # Once all attachements have been added,
+        # we can move the entity and fix the attachements
         if isinstance(entity, (Agent, Element)):
             assert coordinate is not None
             entity.move_to(coordinate, allow_overlapping)
@@ -323,10 +320,20 @@ class Playground(
         plt.show()
         del fig
 
+    def __del__(self):
 
-class EmptyPlayground(Playground):
-    def place_agents(self):
-        pass
+        self.elements = []
+        self.agents = []
+        self.barriers = []
 
-    def place_elements(self):
-        pass
+        self.space = None
+        self.space_manager = None
+        self.views = []
+        self.communication_manager = None
+        self.sensor_manager = None
+        self.collision_manager = None
+        self.name_to_agents = {}
+        self.shapes_to_entities = {}
+        self.uids_to_entities = {}
+
+        print("Playground deleted")

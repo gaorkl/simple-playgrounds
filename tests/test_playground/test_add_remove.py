@@ -1,6 +1,6 @@
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from tests.mock_entities import (
     MockDynamicElement,
     MockElemWithAttachment,
@@ -12,7 +12,7 @@ from tests.mock_interactives import MockElementWithHalo
 coord_center = (0, 0), 0
 
 
-class MockPlayground(EmptyPlayground):
+class MockPlayground(Playground):
     def __init__(self, elem_cls, *args, **kwargs):
         self.elem_cls = elem_cls
         super().__init__(*args, **kwargs)
@@ -62,7 +62,7 @@ def test_playground_interface_basic_element(TestElement):
 )
 def test_playground_interface_attached_element(TestElement):
 
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     elem_1 = TestElement((0, 0), 0)
 

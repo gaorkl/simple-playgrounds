@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.core.playground import Playground
 from spg.core.playground.utils import fill_action_space
 from tests.mock_agents import DynamicAgentWithArm, DynamicAgentWithTrigger
 
@@ -19,7 +19,7 @@ center_coord = (0, 0), 0
 @pytest.mark.parametrize("Agent", [DynamicAgentWithArm, DynamicAgentWithTrigger])
 def test_move(pos, angle, arm_angle, rotation_range, arm_position, Agent):
 
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     agent = Agent(
         name="agents",
@@ -59,13 +59,16 @@ def test_move(pos, angle, arm_angle, rotation_range, arm_position, Agent):
     assert agent.position == pytest.approx(random_pos, 0.001)
     assert agent.angle == pytest.approx(random_angle % (2 * math.pi), 0.001)
 
+    del playground
+    del agent
+
 
 @pytest.mark.parametrize("arm_angle", [0, math.pi / 2, -math.pi, -math.pi / 3])
 @pytest.mark.parametrize("rotation_range", [math.pi / 4, math.pi / 3, math.pi / 2])
 @pytest.mark.parametrize("arm_position", [(10, 10), (-10, -10), (10, -10)])
 @pytest.mark.parametrize("action", [-1, 1])
 def test_move_arm(arm_position, arm_angle, rotation_range, action):
-    playground = EmptyPlayground(size=(100, 100))
+    playground = Playground(size=(100, 100))
 
     agent = DynamicAgentWithArm(
         name="agents",
