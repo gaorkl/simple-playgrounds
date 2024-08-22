@@ -12,7 +12,7 @@ from skimage.io import imread
 from skimage.transform import resize
 
 from spg.core.entity import Element
-from spg.core.entity.mixin import BaseStaticMixin
+from spg.core.entity.body import BaseStaticMixin
 
 WALL_WIDTH = 10
 

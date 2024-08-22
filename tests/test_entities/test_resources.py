@@ -9,7 +9,7 @@ coord_center = ((0, 0), 0)
 
 def test_loading_spg_resources():
 
-    MockPhysicalFromResource(filename=":spg:platformer/items/diamond_blue.png")
+    MockPhysicalFromResource(filename=":spg:spg/coin.png")
 
 
 def test_loading_arcade_resources():

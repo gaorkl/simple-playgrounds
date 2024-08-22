@@ -13,13 +13,14 @@ from skimage import draw, morphology
 
 from spg.components.elements.barrier import BarrierMixin
 from spg.core.entity import Element, Entity
-from spg.core.entity.mixin import (
+from spg.core.entity.body import (
     AttachedDynamicMixin,
     AttachedStaticMixin,
     BaseDynamicMixin,
     BaseStaticMixin,
 )
-from spg.core.entity.mixin.sprite import get_texture_from_geometry
+from spg.core.entity.interaction.grasper import GraspableMixin
+from spg.core.entity.sprite import get_texture_from_geometry
 
 
 class MockElement(Element):
@@ -196,3 +197,9 @@ class MockBarrier(MockStaticElement, BarrierMixin):
 
 class MockPhysicalFromResource(Element, BaseStaticMixin):
     pass
+
+
+class MockGraspable(MockDynamicElement, GraspableMixin):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        GraspableMixin.__init__(self)

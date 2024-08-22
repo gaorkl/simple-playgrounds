@@ -6,7 +6,7 @@ import pymunk
 
 from spg.core.collision import CollisionTypes
 
-from ...entity.mixin import ActivableMixin
+from ...entity.interaction.activable import ActivableMixin
 
 if TYPE_CHECKING:
     from ..playground import Playground

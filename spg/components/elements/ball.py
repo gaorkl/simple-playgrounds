@@ -1,6 +1,6 @@
-from spg.components.grasper import GraspableMixin
 from spg.core.entity import Element
-from spg.core.entity.mixin import BaseDynamicMixin
+from spg.core.entity.body import BaseDynamicMixin
+from spg.core.entity.interaction.grasper import GraspableMixin
 
 
 class Ball(Element, BaseDynamicMixin):
@@ -8,7 +8,7 @@ class Ball(Element, BaseDynamicMixin):
 
         super().__init__(
             mass=10,
-            filename=":spg:rollingball/ball/ball_blue_large.png",
+            filename=":resources:onscreen_controls/shaded_light/b.png",
             radius=10,
         )
 

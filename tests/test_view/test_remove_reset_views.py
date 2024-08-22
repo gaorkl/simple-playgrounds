@@ -2,10 +2,10 @@ import math
 
 import numpy as np
 
+from spg.components.agents.base import ForwardAgent
 from spg.core.playground import EmptyPlayground
-from spg.core.playground.utils import fill_action_space
 from spg.core.view import View
-from tests.mock_agents import DynamicAgent, DynamicAgentWithArm
+from tests.mock_agents import ForwardContinuousAgent
 from tests.mock_entities import DynamicElementFromGeometry
 
 coord_center = (0, 0), 0
@@ -21,16 +21,16 @@ def test_move_object():
     )
     playground.add(ent_1, coord_shifted_center)
 
-    agent = DynamicAgent(name="agents")
+    agent = ForwardAgent(name="agents")
     playground.add(agent, coord_center)
 
     view = View(playground, size_on_playground=(400, 400), center=(0, 0), scale=1)
     img = view.get_np_img()
 
-    action = {agent.name: {agent.name: (1, 0, 0)}}
-    action = fill_action_space(playground, action)
+    action = {agent.name: {agent.name: (1, 0)}}
+    # action = fill_action_space(playground, action)
 
-    for i in range(20):
+    for i in range(200):
         playground.step(action)
 
     img_2 = view.get_np_img()
@@ -42,7 +42,7 @@ def test_delete_agent():
 
     playground = EmptyPlayground(size=(400, 400))
 
-    agent = DynamicAgentWithArm(
+    agent = ForwardContinuousAgent(
         rotation_range=math.pi / 2, arm_angle=0, arm_position=(10, 10), name="agents"
     )
     playground.add(agent, coord_center)

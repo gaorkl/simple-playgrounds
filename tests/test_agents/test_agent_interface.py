@@ -4,34 +4,14 @@ import pytest
 
 from spg.core.playground import EmptyPlayground
 from spg.core.playground.utils import fill_action_space
-from tests.mock_agents import (
-    DynamicAgent,
-    DynamicAgentWithArm,
-    DynamicAgentWithTrigger,
-    StaticAgent,
-    StaticAgentWithArm,
-    StaticAgentWithTrigger,
-)
 from tests.mock_entities import MockDynamicElement, MockStaticElement
 
 coord_center = (0, 0), 0
 
 
-@pytest.mark.parametrize(
-    "Agent",
-    [
-        StaticAgent,
-        StaticAgentWithArm,
-        StaticAgentWithTrigger,
-        DynamicAgent,
-        DynamicAgentWithArm,
-        DynamicAgentWithTrigger,
-    ],
-)
-def test_agent_in_playground(Agent):
+def test_agent_in_playground(any_agents_cls, playground):
 
-    playground = EmptyPlayground(size=(200, 200))
-    agent = Agent(
+    agent = any_agents_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
@@ -54,13 +34,11 @@ def test_agent_in_playground(Agent):
     assert not playground.shapes_to_entities
 
 
-@pytest.mark.parametrize(
-    "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
-)
-def test_action_spaces_dynamic(Agent):
+def test_action_spaces_dynamic(dynamic_agent_cls):
 
-    playground = EmptyPlayground(size=(200, 200))
-    agent = Agent(
+    playground = EmptyPlayground(size=(500, 200), background=(23, 23, 21))
+
+    agent = dynamic_agent_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
@@ -72,13 +50,9 @@ def test_action_spaces_dynamic(Agent):
     assert agent.position != coord_center[0]
 
 
-@pytest.mark.parametrize(
-    "Agent", [StaticAgent, StaticAgentWithArm, StaticAgentWithTrigger]
-)
-def test_action_spaces_static(Agent):
+def test_action_spaces_static(static_agent_cls, playground):
 
-    playground = EmptyPlayground(size=(200, 200))
-    agent = Agent(
+    agent = static_agent_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
@@ -96,13 +70,9 @@ def test_action_spaces_static(Agent):
         assert agent.arm.position != arm_pos
 
 
-@pytest.mark.parametrize(
-    "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
-)
-def test_null_action(Agent):
+def test_null_action(any_agents_cls, playground):
 
-    playground = EmptyPlayground(size=(200, 200))
-    agent = Agent(
+    agent = any_agents_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
@@ -124,18 +94,16 @@ def test_null_action(Agent):
     assert pytest.approx(agent.base.velocity) == (0, 0)
 
 
-@pytest.mark.parametrize(
-    "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
-)
-def test_forward(Agent):
+def test_forward(dynamic_agent_cls, playground):
 
-    playground = EmptyPlayground(size=(200, 200))
-    agent = Agent(
+    agent = dynamic_agent_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
-    action = {agent.name: {agent.name: (1, 0, 0)}}
+    base_action_space = agent.action_space[agent.name].shape[0]
+    action_forward = tuple([1] + [0] * (base_action_space - 1))
+    action = {agent.name: {agent.name: action_forward}}
 
     assert agent.position == (0, 0)
 
@@ -149,18 +117,16 @@ def test_forward(Agent):
     assert agent.position.y == 0
 
 
-@pytest.mark.parametrize(
-    "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
-)
-def test_rotate(Agent):
+def test_rotate(dynamic_agent_cls, playground):
 
-    playground = EmptyPlayground(size=(200, 200))
-    agent = Agent(
+    agent = dynamic_agent_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
-    action = {agent.name: {agent.name: (0, 0, 1)}}
+    base_action_space = agent.action_space[agent.name].shape[0]
+    action_rotate = tuple([0] * (base_action_space - 1) + [1])
+    action = {agent.name: {agent.name: action_rotate}}
 
     assert agent.position == (0, 0)
     assert agent.angle == 0
@@ -172,18 +138,16 @@ def test_rotate(Agent):
     assert agent.angle > 0
 
 
-@pytest.mark.parametrize(
-    "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
-)
-def test_agent_forward_movable(Agent):
+def test_agent_forward_movable(dynamic_agent_cls, playground):
 
-    playground = EmptyPlayground(size=(200, 200))
-    agent = Agent(
+    agent = dynamic_agent_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
-    action = {agent.name: {agent.name: (1, 0, 0)}}
+    base_action_space = agent.action_space[agent.name].shape[0]
+    action_forward = tuple([1] + [0] * (base_action_space - 1))
+    action = {agent.name: {agent.name: action_forward}}
 
     action = fill_action_space(playground, action)
 
@@ -197,17 +161,12 @@ def test_agent_forward_movable(Agent):
     assert agent.position.x > 100
 
 
-@pytest.mark.parametrize(
-    "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
-)
-def test_agent_overlapping(Agent):
-
-    playground = EmptyPlayground(size=(200, 200))
+def test_agent_overlapping(dynamic_agent_cls, playground):
 
     unmovable = MockStaticElement()
     playground.add(unmovable, ((0, 0), 0))
 
-    agent = Agent(
+    agent = dynamic_agent_cls(
         name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
 

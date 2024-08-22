@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 from gymnasium import spaces
 
-from spg.core.sensor.ray.ray import RaySensor
+from .sensor.ray.ray import RaySensor
 
 
 class Distance(RaySensor):

@@ -2,9 +2,9 @@ import arcade
 from gymnasium import spaces
 
 from spg.core.entity import Entity
-from spg.core.entity.communication import CommunicationMixin
-from spg.core.entity.mixin import AttachedStaticMixin
-from spg.core.entity.mixin.sprite import get_texture_from_geometry
+from spg.core.entity.body import AttachedStaticMixin
+from spg.core.entity.interaction.communication import CommunicationMixin
+from spg.core.entity.sprite import get_texture_from_geometry
 from tests.mock_agents import StaticAgent
 
 

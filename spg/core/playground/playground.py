@@ -10,12 +10,12 @@ from gymnasium import spaces
 from gymnasium.core import ActType
 from matplotlib import pyplot as plt
 
-from spg.core.entity.communication import CommunicationMixin
 from spg.core.playground.utils import zero_action_space
 from spg.core.position import Coordinate, CoordinateSampler
 
 from ..entity import Agent, Element, Entity
-from ..entity.sensor import SensorMixin
+from ..entity.interaction.communication import CommunicationMixin
+from ..entity.interaction.observation import ObservationMixin, SensorMixin
 from .manager import SpaceManager, ViewManager
 from .manager.collision import CollisionManager
 from .manager.communication import CommunicationManager
@@ -64,9 +64,7 @@ class Playground(
 
     @property
     def action_space(self):
-        return spaces.Dict(
-            {agent.name: agent.agent_action_space for agent in self.agents}
-        )
+        return spaces.Dict({agent.name: agent.action_space for agent in self.agents})
 
     @property
     def null_action(self):
@@ -97,7 +95,7 @@ class Playground(
 
         for agent_name, agent_action in action.items():
             agent = self.name_to_agents[agent_name]
-            agent.agent_apply_action(agent_action)
+            agent.apply_action(agent_action)
 
         self.pymunk_step()
 
@@ -224,7 +222,8 @@ class Playground(
         if isinstance(entity, SensorMixin):
             self.add_sensor(entity)
 
-        # Once all attachements have been added, we can move the entity and fix the attachements
+        # Once all attachements have been added
+        # we can move the entity and fix the attachements
         if isinstance(entity, (Agent, Element)):
             assert coordinate is not None
             entity.move_to(coordinate, allow_overlapping)
