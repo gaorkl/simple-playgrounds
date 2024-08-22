@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List
 
+from spg.components.agents.sensors.sensor.ray.ray import RaySensor
+from spg.components.agents.sensors.sensor.ray.ray_compute import RayCompute
 from spg.core.view import View
 
 if TYPE_CHECKING:
-    from spg.core.entity.sensor import SensorMixin
-
-from spg.core.sensor.ray.ray import RaySensor
-from spg.core.sensor.ray.ray_compute import RayCompute
+    from spg.core.entity.interaction.observation import SensorMixin
 
 
 class SensorManager:
@@ -48,6 +47,7 @@ class SensorManager:
         self.ray_compute.update_sensors()
 
     def add_sensor(self, sensor: SensorMixin):
+
         self.sensors.append(sensor)
 
         if isinstance(sensor, RaySensor):

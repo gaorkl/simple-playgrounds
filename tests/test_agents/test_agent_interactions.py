@@ -4,31 +4,29 @@ import math
 import numpy as np
 import pytest
 
-from spg.core.playground import EmptyPlayground
+from spg.components.agents.base import ForwardContinuousAgent
 from spg.core.playground.utils import fill_action_space
 from tests.mock_agents import (
-    DynamicAgent,
     DynamicAgentWithArm,
     DynamicAgentWithGrasper,
     DynamicAgentWithTrigger,
-    MockGraspable,
     StaticAgentWithTrigger,
 )
-from tests.mock_entities import MockBarrier
+from tests.mock_entities import MockBarrier, MockGraspable
 from tests.mock_interactives import ActivableZone
 
 coord_center = (0, 0), 0
 
 
 @pytest.mark.parametrize(
-    "Agent", [DynamicAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
+    "agent_cls", [ForwardContinuousAgent, DynamicAgentWithArm, DynamicAgentWithTrigger]
 )
-def test_agent_barrier(Agent):
-    playground = EmptyPlayground(size=(100, 100))
+def test_agent_barrier(agent_cls, playground):
 
-    agent = Agent(
-        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+    agent = agent_cls(
+        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
+    playground.add(agent, coord_center)
 
     barrier = MockBarrier()
     playground.add(barrier, coord_center)
@@ -42,11 +40,10 @@ def test_agent_barrier(Agent):
 
 
 @pytest.mark.parametrize("Agent", [StaticAgentWithTrigger, DynamicAgentWithTrigger])
-def test_agent_interacts_activable(Agent):
-    playground = EmptyPlayground(size=(100, 100))
+def test_agent_interacts_activable(Agent, playground):
 
     agent = Agent(
-        name="agents", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
+        name="agent", arm_position=(0, 0), arm_angle=0, rotation_range=math.pi / 2
     )
     playground.add(agent, coord_center)
 
@@ -61,11 +58,10 @@ def test_agent_interacts_activable(Agent):
     assert agent.trigger.activated
 
 
-def test_agent_grasping():
-    playground = EmptyPlayground(size=(100, 100))
+def test_agent_grasping(playground):
 
     agent = DynamicAgentWithGrasper(
-        name="agents",
+        name="agent",
         arm_position=(10, 10),
         arm_angle=math.pi / 4,
         grasper_radius=20,
@@ -91,11 +87,10 @@ def test_agent_grasping():
     assert len(elem.grasped_by) == 0
 
 
-def test_agent_grasping_multiple():
-    playground = EmptyPlayground(size=(100, 100))
+def test_agent_grasping_multiple(playground):
 
     agent = DynamicAgentWithGrasper(
-        name="agents",
+        name="agent",
         arm_position=(10, 10),
         arm_angle=math.pi / 4,
         grasper_radius=20,
@@ -131,12 +126,10 @@ def test_agent_grasping_multiple():
     assert len(elem2.grasped_by) == 0
 
 
-def test_grasp_then_move():
-
-    playground = EmptyPlayground(size=(1000, 1000))
+def test_grasp_then_move(playground):
 
     agent = DynamicAgentWithGrasper(
-        name="agents",
+        name="agent",
         arm_position=(10, 10),
         arm_angle=math.pi / 4,
         grasper_radius=20,
@@ -159,7 +152,7 @@ def test_grasp_then_move():
     )
 
     for _ in range(100):
-        base_action = np.random.rand(3) * 2 - 1
+        base_action = np.random.rand(2) * 2 - 1
         action = {agent.name: {agent.grasper.name: 1, agent.name: base_action}}
         action = fill_action_space(playground, action)
         playground.step(action)

@@ -4,9 +4,9 @@ import arcade.color
 import numpy as np
 import pytest
 
+from spg.components.agents.sensors.sensor.ray.ray import SIZE_OUTPUT_BUFFER
 from spg.core.playground import EmptyPlayground
-from spg.core.sensor.ray.ray import SIZE_OUTPUT_BUFFER
-from tests.mock_agents import DynamicAgent, MockRaySensor
+from tests.mock_agents import ForwardContinuousAgent, MockRaySensor
 from tests.mock_entities import DynamicElementFromGeometry
 
 coord_center = (0, 0), 0
@@ -15,7 +15,7 @@ coord_center = (0, 0), 0
 def test_sensor_interface():
     playground = EmptyPlayground(size=(500, 200), background=(23, 23, 21))
 
-    agent = DynamicAgent()
+    agent = ForwardContinuousAgent()
 
     sensor = MockRaySensor(fov=math.pi / 4, max_range=100, resolution=10)
     agent.add(sensor)
@@ -23,6 +23,9 @@ def test_sensor_interface():
     playground.add(agent, coord_center)
 
     assert playground.ray_compute is not None
+
+    assert sensor in agent.attached
+
     assert len(playground.ray_compute.sensors) == 1
     assert playground.ray_compute.sensors[0] == sensor
 
@@ -36,7 +39,7 @@ def test_sensor_parameters(max_range, resolution, fov, use_shaders):
         size=(300, 300), background=arcade.color.DARK_KHAKI, use_shaders=use_shaders
     )
 
-    agent = DynamicAgent()
+    agent = ForwardContinuousAgent()
 
     sensor = MockRaySensor(fov=fov, max_range=max_range, resolution=resolution)
     agent.add(sensor)
@@ -70,7 +73,7 @@ def test_sensor_parameters(max_range, resolution, fov, use_shaders):
 def test_sensor_detects(color, fov, resolution):
     playground = EmptyPlayground(size=(300, 300), background=arcade.color.ORANGE)
 
-    agent = DynamicAgent()
+    agent = ForwardContinuousAgent()
 
     sensor = MockRaySensor(fov=fov, max_range=1000, resolution=resolution)
     agent.add(sensor)
@@ -92,7 +95,8 @@ def test_sensor_detects(color, fov, resolution):
     assert sensor.observation.shape == (resolution, SIZE_OUTPUT_BUFFER)
     assert agent in sensor.invisible_entities
 
-    # create a list with all angles from -fov/2 to fov/2, and there are a number of values equal to resolutions
+    # create a list with all angles from -fov/2 to fov/2,
+    # and there are a number of values equal to resolutions
     hit_angles = [angle for angle in np.linspace(-fov / 2, fov / 2, resolution)]
     hit_angles = np.array(hit_angles)
 

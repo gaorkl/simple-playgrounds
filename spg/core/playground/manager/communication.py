@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from spg.core.entity.communication import CommunicationMixin
+from spg.core.entity.interaction.communication import CommunicationMixin
 
 
 class CommunicationManager:

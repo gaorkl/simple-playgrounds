@@ -11,11 +11,11 @@ center_coord = (0, 0), 0
 
 
 # parametrize decorator with marks for position, angle, and rotational_range, separately
-@pytest.mark.parametrize("pos", [(20, 20), (-20, -20), (10, -10)])
-@pytest.mark.parametrize("angle", [-2, 1, 2, 6])
+@pytest.mark.parametrize("pos", [(20.0, 20.0), (-20.0, -20.0), (10.0, -10.0)])
+@pytest.mark.parametrize("angle", [-2.0, 1.0, 2.0, 6.0])
 @pytest.mark.parametrize("arm_angle", [-math.pi / 4, math.pi / 3, 0])
 @pytest.mark.parametrize("rotation_range", [math.pi / 4, 5 * math.pi / 2])
-@pytest.mark.parametrize("arm_position", [(10, 10), (-10, -10), (10, -10)])
+@pytest.mark.parametrize("arm_position", [(10.0, 10.0), (-10.0, -10.0), (10.0, -10.0)])
 @pytest.mark.parametrize("Agent", [DynamicAgentWithArm, DynamicAgentWithTrigger])
 def test_move(pos, angle, arm_angle, rotation_range, arm_position, Agent):
 
@@ -36,7 +36,7 @@ def test_move(pos, angle, arm_angle, rotation_range, arm_position, Agent):
         # plt_draw(playground)
 
     assert agent.position == pos
-    assert agent.angle == angle % (2 * math.pi)
+    assert agent.angle == pytest.approx(angle % (2 * math.pi))
 
     for _ in range(100):
         playground.step(playground.action_space.sample())

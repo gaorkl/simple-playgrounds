@@ -1,7 +1,6 @@
-# Include requirements:
-include requirements.txt
+# Include Assets:
+recursive-include src/spg *.txt *.md *.url *.png *.jpg *.jpeg
 
-# Include configs:
-recursive-include src/spg/resources *.txt *.md *.url *.png *.jpg *.jpeg
-recursive-include src/spg/agent/sensor/shaders *.glsl
+# Include Shaders:
+recursive-include src/spg *.glsl
 

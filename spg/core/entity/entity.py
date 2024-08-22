@@ -9,11 +9,12 @@ from gymnasium import spaces
 from spg.core.collision import CollisionTypes
 from spg.core.position import Coordinate
 
-from ..sensor.ray.ray import RaySensor
-from .action import ActionMixin
-from .mixin import AttachedStaticMixin, BaseMixin, ShapeMixin, SpriteMixin
-from .mixin.body import BodyMixin
-from .sensor import SensorMixin
+from ...components.agents.sensors.sensor.ray.ray import RaySensor
+from .body import AttachedStaticMixin, BaseMixin, BodyMixin
+from .interaction.action import ActionMixin
+from .interaction.observation import ObservationMixin
+from .shape import ShapeMixin
+from .sprite import SpriteMixin
 
 if TYPE_CHECKING:
     from ..playground import Playground
@@ -27,7 +28,7 @@ class Entity(SpriteMixin, BodyMixin, ShapeMixin, ABC):
 
     """
 
-    _playground: Playground
+    playground: Playground
     pm_body: pymunk.Body
     pm_shapes: List[pymunk.Shape]
 
@@ -56,7 +57,7 @@ class Entity(SpriteMixin, BodyMixin, ShapeMixin, ABC):
         self.anchor: Optional[Entity] = None
 
     @property
-    def all_attached(self):
+    def all_attached(self) -> List[Entity]:
         """
         Returns all entities attached to the agents.
         """
@@ -109,10 +110,9 @@ class Element(Entity, BaseMixin):
     pass
 
 
-class Agent(Entity, BaseMixin, ActionMixin, SensorMixin):
+class Agent(Entity, BaseMixin, ActionMixin, ObservationMixin):
 
     reward = 0
-    cumulative_reward = 0
     collision_type = CollisionTypes.AGENT
 
     def pre_step(self):
@@ -121,27 +121,29 @@ class Agent(Entity, BaseMixin, ActionMixin, SensorMixin):
 
     def post_step(self):
         super().post_step()
-        self.cumulative_reward += self.reward
 
     @property
-    def agent_action_space(self):
+    def action_space(self):
 
-        act_space = {self.name: self.action_space}
+        act_space = {}
+        if self._action_space is not None:
+            act_space[self.name] = self._action_space
 
         # Add attached entities' action spaces
         for attached in self.all_attached:
-            if hasattr(attached, "action_space"):
+            if isinstance(attached, ActionMixin) and attached.action_space is not None:
                 act_space[attached.name] = attached.action_space
 
         return spaces.Dict(act_space)
 
-    def agent_apply_action(self, action):
+    def apply_action(self, action):
 
-        self.apply_action(action[self.name])
+        if self.name in action:
+            self._apply_action(action[self.name])
 
         # Apply attached entities' actions
         for attached in self.all_attached:
-            if hasattr(attached, "apply_action"):
+            if isinstance(attached, ActionMixin) and attached.name in action:
                 attached.apply_action(action[attached.name])
 
     @property

@@ -2,8 +2,34 @@ from os import path
 
 from setuptools import find_packages, setup
 
-with open("requirements.txt", "r") as f:
-    requirements = f.read().splitlines()
+install_requires = [
+    "numpy",
+    "pyyaml",
+    "pymunk>=6.0.0",
+    "scikit-image",
+    "pillow",
+    "pytest",
+    "matplotlib",
+    "arcade",
+    "tqdm",
+    "gymnasium",
+]
+
+test_requires = [
+    "flake8",
+    "pytest",
+    "pytest-cov",
+    "pytest-env",
+    "pytest-sugar",
+    "pylint",
+]
+
+
+dev_requires = [
+    "pre-commit",
+    "ipdb",
+]
+
 
 # read the contents of the README file
 
@@ -21,7 +47,11 @@ setup(
     packages=find_packages(where="."),
     package_dir={"": "."},
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=install_requires,
+    extras_require={
+        "test": test_requires,
+        "dev": dev_requires,
+    },
     long_description=long_description,
     long_description_content_type="text/markdown",
 )
