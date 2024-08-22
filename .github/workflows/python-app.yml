@@ -34,7 +34,6 @@ jobs:
         sudo apt-get install xvfb
         sudo apt-get install freeglut3-dev
         pip install flake8 pytest pytest-cov
-        pip install -r requirements.txt
         pip install -e .
     - name: Lint with flake8
       run: |
